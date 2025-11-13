@@ -1,0 +1,41 @@
+import { TFreq } from "./TFreq";
+import { TStamps } from "./TStamps";
+import { TVal } from "./TVal";
+import { TVar } from "./TVar";
+
+export interface TSer {
+  timeZone: string;
+
+  isLoaded: boolean;
+  isInLoading: boolean;
+
+  isAscending<V extends TVal>(values: V[]): boolean
+
+  // --- for charting
+
+  // horizonal grids of this indicator used to draw grid
+  grids: number[]
+
+  isOverlapping: boolean;
+
+  freq: TFreq;
+  vars(): Map<string, TVar<unknown>>;
+  timestamps(): TStamps;
+
+  exists(time: number): boolean;
+
+  firstOccurredTime(): number;
+  lastOccurredTime(): number;
+  indexOfOccurredTime(time: number): number
+
+  // Clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage
+  clear(fromTime: number): void;
+
+  size(): number;
+
+  shortName: string;
+  longName: string;
+  displayName: string;
+
+  //validate(): void;
+}
