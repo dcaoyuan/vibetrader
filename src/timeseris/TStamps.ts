@@ -104,14 +104,14 @@ export class TStampsOnOccurred extends TStamps {
     super(freq, timeZone, capacity);
   }
 
-  private onCalendarShadow = new TStampsOnCalendar(this);
+  #onCalendarShadow = new TStampsOnCalendar(this);
 
   isOnCalendar(): boolean {
     return false;
   }
 
   asOnCalendar(): TStamps {
-    return this.onCalendarShadow;
+    return this.#onCalendarShadow;
   }
 
   /**
@@ -388,93 +388,93 @@ export class TStampsOnOccurred extends TStamps {
 }
 
 class ItrOnOccurred implements TStampsIterator {
-  private outer: TStampsOnOccurred;
+  #outer: TStampsOnOccurred;
 
-  private freq: TFreq;
-  private cursorTime: number;
-  private expectedModCount: number
+  #freq: TFreq;
+  #cursorTime: number;
+  #expectedModCount: number
 
   fromTime: number;
   toTime: number;
 
   /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
-  private lastReturnTime: number = TStamps.LONG_LONG_AGO;
+  #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
   /** Row of element to be returned by subsequent call to next. */
-  private cursorRow = 0;
+  #cursorRow = 0;
 
   /**
    * Index of element returned by most recent call to next or previous. Reset to -1 if this
    * element is deleted by a call to remove.
    */
-  private lastRet = -1;
+  #lastRet = -1;
 
   constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
-    this.outer = outer;
-    this.freq = outer.freq;
-    this.fromTime = fromTime === undefined ? outer.firstOccurredTime() : outer.freq.trunc(fromTime, this.outer.timeZone);
+    this.#outer = outer;
+    this.#freq = outer.freq;
+    this.fromTime = fromTime === undefined ? outer.firstOccurredTime() : outer.freq.trunc(fromTime, this.#outer.timeZone);
     this.toTime = toTime === undefined ? outer.lastOccurredTime() : toTime;
-    this.cursorTime = this.fromTime;
-    this.expectedModCount = this.outer.modCount;
+    this.#cursorTime = this.fromTime;
+    this.#expectedModCount = this.#outer.modCount;
   }
 
   hasNext(): boolean {
-    return this.cursorTime <= this.toTime;
+    return this.#cursorTime <= this.toTime;
   }
 
   next(): number {
-    this.checkForComodification();
+    this.#checkForComodification();
     try {
-      this.cursorRow += 1;
-      const next = (this.cursorRow >= this.outer.size()) ? this.freq.nextTime(this.cursorTime, this.outer.timeZone) : this.outer.get(this.cursorRow);
-      this.cursorTime = next;
-      this.lastReturnTime = this.cursorTime;
+      this.#cursorRow += 1;
+      const next = (this.#cursorRow >= this.#outer.size()) ? this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
+      this.#cursorTime = next;
+      this.#lastReturnTime = this.#cursorTime;
       return next;
 
     } catch (e) {
-      this.checkForComodification();
+      this.#checkForComodification();
       throw new Error("NoSuchElementException");
     }
   }
 
-  private checkForComodification() {
-    if (this.outer.modCount !== this.expectedModCount) {
+  #checkForComodification() {
+    if (this.#outer.modCount !== this.#expectedModCount) {
       throw new Error("ConcurrentModificationException");
     }
   }
 
   hasPrev(): boolean {
-    return this.cursorTime >= this.fromTime;
+    return this.#cursorTime >= this.fromTime;
   }
 
   prev(): number {
-    this.checkForComodification();
+    this.#checkForComodification();
     try {
-      this.cursorRow -= 1;
-      const prev1 = this.cursorRow < 0 ? this.freq.prevTime(this.cursorTime, this.outer.timeZone) : this.outer.get(this.cursorRow);
-      this.cursorTime = prev1;
-      this.lastReturnTime = this.cursorTime;
+      this.#cursorRow -= 1;
+      const prev1 = this.#cursorRow < 0 ? this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
+      this.#cursorTime = prev1;
+      this.#lastReturnTime = this.#cursorTime;
       return prev1;
     } catch (e) {
-      this.checkForComodification();
+      this.#checkForComodification();
       throw new Error("NoSuchElementException");
     }
   }
 
   nextOccurredIndex(): number {
-    return this.outer.indexOrNextIndexOfOccurredTime(this.cursorTime);
+    return this.#outer.indexOrNextIndexOfOccurredTime(this.#cursorTime);
   }
 
   prevOccurredIndex(): number {
-    return this.outer.indexOrPrevIndexOfOccurredTime(this.cursorTime);
+    return this.#outer.indexOrPrevIndexOfOccurredTime(this.#cursorTime);
   }
 
   nextRow(): number {
-    return this.cursorRow;
+    return this.#cursorRow;
   }
 
   prevRow(): number {
-    return this.cursorRow - 1;
+    return this.#cursorRow - 1;
   }
 }
 
@@ -486,11 +486,11 @@ class ItrOnOccurred implements TStampsIterator {
  */
 export class TStampsOnCalendar extends TStamps {
 
-  private delegateTimestamps: TStamps;
+  #delegateTimestamps: TStamps;
 
   constructor(delegateTimestamps: TStamps) {
     super(delegateTimestamps.freq, delegateTimestamps.timeZone, 1024);
-    this.delegateTimestamps = delegateTimestamps;
+    this.#delegateTimestamps = delegateTimestamps;
   }
 
   /**
@@ -503,7 +503,7 @@ export class TStampsOnCalendar extends TStamps {
   }
 
   asOnCalendar(): TStamps {
-    return this.delegateTimestamps.asOnCalendar();
+    return this.#delegateTimestamps.asOnCalendar();
   }
 
   /**
@@ -547,32 +547,32 @@ export class TStampsOnCalendar extends TStamps {
   /** -------------------------------------------- */
 
   indexOfOccurredTime(time: number): number {
-    return this.delegateTimestamps.indexOfOccurredTime(time);
+    return this.#delegateTimestamps.indexOfOccurredTime(time);
   }
 
   nearestIndexOfOccurredTime(time: number): number {
-    return this.delegateTimestamps.nearestIndexOfOccurredTime(time);
+    return this.#delegateTimestamps.nearestIndexOfOccurredTime(time);
   }
 
   indexOrNextIndexOfOccurredTime(time: number): number {
-    return this.delegateTimestamps.indexOrNextIndexOfOccurredTime(time);
+    return this.#delegateTimestamps.indexOrNextIndexOfOccurredTime(time);
   }
 
   /** return index of nearest before or equal (if exist) time */
   indexOrPrevIndexOfOccurredTime(time: number): number {
-    return this.delegateTimestamps.indexOrPrevIndexOfOccurredTime(time);
+    return this.#delegateTimestamps.indexOrPrevIndexOfOccurredTime(time);
   }
 
   firstOccurredTime(): number {
-    return this.delegateTimestamps.firstOccurredTime();
+    return this.#delegateTimestamps.firstOccurredTime();
   }
 
   lastOccurredTime(): number {
-    return this.delegateTimestamps.lastOccurredTime();
+    return this.#delegateTimestamps.lastOccurredTime();
   }
 
   size(): number {
-    return this.delegateTimestamps.size();
+    return this.#delegateTimestamps.size();
   }
 
   timeIterator(): TStampsIterator {
@@ -584,63 +584,63 @@ export class TStampsOnCalendar extends TStamps {
   }
 
   isEmpty(): boolean {
-    return this.delegateTimestamps.isEmpty();
+    return this.#delegateTimestamps.isEmpty();
   }
 
   iterator(): CIterator<number> {
-    return this.delegateTimestamps.iterator();
+    return this.#delegateTimestamps.iterator();
   }
 
   toArray(): number[] {
-    return this.delegateTimestamps.toArray();
+    return this.#delegateTimestamps.toArray();
   }
 
   toSlice(offset: number, len: number): number[] {
-    return this.delegateTimestamps.toSlice(offset, len);
+    return this.#delegateTimestamps.toSlice(offset, len);
   }
 
   containsAll(collection: Collection<number>): boolean {
-    return this.delegateTimestamps.containsAll(collection);
+    return this.#delegateTimestamps.containsAll(collection);
   }
 
   add(value: number): boolean {
-    return this.delegateTimestamps.add(value);
+    return this.#delegateTimestamps.add(value);
   }
 
   addAll(collection: Collection<number>): boolean {
-    return this.delegateTimestamps.addAll(collection);
+    return this.#delegateTimestamps.addAll(collection);
   }
 
   addAllArray(array: number[]): boolean {
-    return this.delegateTimestamps.addAllArray(array);
+    return this.#delegateTimestamps.addAllArray(array);
   }
 
   insert(offset: number, value: number) {
-    this.delegateTimestamps.insert(offset, value);
+    this.#delegateTimestamps.insert(offset, value);
   }
 
   insertAll(offset: number, values: Collection<number>): boolean {
-    return this.delegateTimestamps.insertAll(offset, values);
+    return this.#delegateTimestamps.insertAll(offset, values);
   }
 
   insertAllArray(offset: number, array: number[]): boolean {
-    return this.delegateTimestamps.insertAllArray(offset, array);
+    return this.#delegateTimestamps.insertAllArray(offset, array);
   }
 
   remove(value: number): boolean {
-    return this.delegateTimestamps.remove(value);
+    return this.#delegateTimestamps.remove(value);
   }
 
   removeMultiple(offset: number, length: number) {
-    this.delegateTimestamps.removeMultiple(offset, length);
+    this.#delegateTimestamps.removeMultiple(offset, length);
   }
 
   contains(value: number): boolean {
-    return this.delegateTimestamps.contains(value);
+    return this.#delegateTimestamps.contains(value);
   }
 
   clear() {
-    this.delegateTimestamps.clear();
+    this.#delegateTimestamps.clear();
   }
 
   // boolean equals(Object o) {
@@ -653,23 +653,23 @@ export class TStampsOnCalendar extends TStamps {
   // }
 
   get(offset: number): number {
-    return this.delegateTimestamps.get(offset);
+    return this.#delegateTimestamps.get(offset);
   }
 
   set(offset: number, value: number): number {
-    return this.delegateTimestamps.set(offset, value);
+    return this.#delegateTimestamps.set(offset, value);
   }
 
   subList(fromIndex: number, toIndex: number): ValueList<number> {
-    return this.delegateTimestamps.subList(fromIndex, toIndex);
+    return this.#delegateTimestamps.subList(fromIndex, toIndex);
   }
 
   indexOf(value: number): number {
-    return this.delegateTimestamps.indexOf(value);
+    return this.#delegateTimestamps.indexOf(value);
   }
 
   lastIndexOf(value: number): number {
-    return this.delegateTimestamps.lastIndexOf(value);
+    return this.#delegateTimestamps.lastIndexOf(value);
   }
 
   // TStampsOnCalendar clone() {
@@ -677,7 +677,7 @@ export class TStampsOnCalendar extends TStamps {
   // }
 
   reversedOne(): TStamps {
-    return new TStampsOnCalendar(this.delegateTimestamps.reversedOne());
+    return new TStampsOnCalendar(this.#delegateTimestamps.reversedOne());
   }
 
 }
@@ -690,22 +690,22 @@ class ItrOnCalendar implements TStampsIterator {
   toTime: number;
 
   /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
-  private lastReturnTime: number = TStamps.LONG_LONG_AGO;
+  #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
   /** Row of element to be returned by subsequent call to next. */
-  private cursorRow = 0;
+  #cursorRow = 0;
 
   /**
    * Index of element returned by most recent call to next or previous. Reset to -1 if this
    * element is deleted by a call to remove.
    */
-  private lastRet = -1;
+  #lastRet = -1;
 
   /**
    * The modCount value that the iterator believes that the backing List should have. If this
    * expectation is violated, the iterator has detected concurrent modification.
    */
-  private expectedModCount: number;
+  #expectedModCount: number;
 
   constructor(outer: TStampsOnCalendar, fromTime?: number, toTime?: number) {
     this.#outer = outer;
@@ -713,7 +713,7 @@ class ItrOnCalendar implements TStampsIterator {
     this.fromTime = fromTime === undefined ? outer.firstOccurredTime() : outer.freq.trunc(fromTime, outer.timeZone);
     this.toTime = toTime === undefined ? outer.lastOccurredTime() : toTime;
     this.#cursorTime = this.fromTime;
-    this.expectedModCount = this.#outer.modCount;
+    this.#expectedModCount = this.#outer.modCount;
   }
 
   hasNext(): boolean {
@@ -721,21 +721,21 @@ class ItrOnCalendar implements TStampsIterator {
   }
 
   next(): number {
-    this.checkForComodification();
+    this.#checkForComodification();
     try {
-      this.cursorRow += 1;
+      this.#cursorRow += 1;
       const next = this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone);
       this.#cursorTime = next;
-      this.lastReturnTime = this.#cursorTime;
+      this.#lastReturnTime = this.#cursorTime;
       return next;
     } catch (e) {
-      this.checkForComodification();
+      this.#checkForComodification();
       throw new Error("NoSuchElementException");
     }
   }
 
-  private checkForComodification() {
-    if (this.#outer.modCount != this.expectedModCount) {
+  #checkForComodification() {
+    if (this.#outer.modCount != this.#expectedModCount) {
       throw new Error("ConcurrentModificationException");
     }
   }
@@ -745,15 +745,15 @@ class ItrOnCalendar implements TStampsIterator {
   }
 
   prev(): number {
-    this.checkForComodification();
+    this.#checkForComodification();
     try {
-      this.cursorRow -= 1;
+      this.#cursorRow -= 1;
       const prev1 = this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone);
       this.#cursorTime = prev1;
-      this.lastReturnTime = this.#cursorTime;
+      this.#lastReturnTime = this.#cursorTime;
       return prev1;
     } catch (e) {
-      this.checkForComodification();
+      this.#checkForComodification();
       throw new Error("NoSuchElementException");
     }
   }
@@ -767,10 +767,10 @@ class ItrOnCalendar implements TStampsIterator {
   }
 
   nextRow(): number {
-    return this.cursorRow;
+    return this.#cursorRow;
   }
 
   prevRow(): number {
-    return this.cursorRow - 1;
+    return this.#cursorRow - 1;
   }
 }

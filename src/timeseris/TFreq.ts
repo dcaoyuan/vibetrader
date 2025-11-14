@@ -57,10 +57,10 @@ export class TFreq {
     TFreq.MONTHLY,
   ];
 
-  private static readonly shortNamePattern = /([0-9]+)([smhDWMY])/g;
+  static readonly #shortNamePattern = /([0-9]+)([smhDWMY])/g;
 
   static ofName(shortName: string): TFreq | undefined {
-    const match = shortName.match(TFreq.shortNamePattern);
+    const match = shortName.match(TFreq.#shortNamePattern);
     if (match && match.length > 2) {
       const nUnits = parseInt(match[1]);
       const unit = TUnit.withShortName(match[2]);

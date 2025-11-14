@@ -12,7 +12,7 @@ export class TVar<V extends TVal> {
   belongsTo: TSer;
   #values: ValueList<V>;
 
-  protected readonly nullVal: V = undefined
+  protected readonly _NULL_VAL: V = undefined
 
   readonly name: string;
   readonly kind?: TVar.Kind;
@@ -120,14 +120,14 @@ export class TVar<V extends TVal> {
     if (idx >= 0 && idx < this.values().size()) {
       const value = this.values().get(idx);
       if (value === undefined) {
-        return this.nullVal;
+        return this._NULL_VAL;
 
       } else {
         return value;
       }
 
     } else {
-      return this.nullVal;
+      return this._NULL_VAL;
     }
   }
 
@@ -154,15 +154,15 @@ export class TVar<V extends TVal> {
   }
 
   addNull(): boolean {
-    return this.add(this.nullVal);
+    return this.add(this._NULL_VAL);
   }
 
   putNullByTime(time: number): boolean {
-    return this.putByTime(time, this.nullVal);
+    return this.putByTime(time, this._NULL_VAL);
   }
 
   putNullByIndex(idx: number): boolean {
-    return this.putByIndex(idx, this.nullVal);
+    return this.putByIndex(idx, this._NULL_VAL);
   }
 
   /**
@@ -171,7 +171,7 @@ export class TVar<V extends TVal> {
    * @param time
    */
   resetByTime(time: number) {
-    this.setByTime(time, this.nullVal);
+    this.setByTime(time, this._NULL_VAL);
   }
 
   /**
@@ -180,7 +180,7 @@ export class TVar<V extends TVal> {
    * @param idx
    */
   resetByIndex(idx: number) {
-    this.setByIndex(idx, this.nullVal);
+    this.setByIndex(idx, this._NULL_VAL);
   }
 
   toArray(fromTime: number, toTime: number): V[] {

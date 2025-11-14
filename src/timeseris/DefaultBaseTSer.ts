@@ -108,7 +108,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
 
     } else {
       // append at the end: create a new one, add placeholder
-      this.internal_addItem_fillTimestamps_inTimeOrder(time, true);
+      this.#internal_addItem_fillTimestamps_inTimeOrder(time, true);
     }
   }
 
@@ -122,7 +122,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
       // noop
     } else {
       // append at the end: create a new one, add placeholder
-      this.internal_addItem_fillTimestamps_inTimeOrder(time, true);
+      this.#internal_addItem_fillTimestamps_inTimeOrder(time, true);
     }
   }
 
@@ -133,7 +133,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
    * @param time
    * @param clearItem
    */
-  private internal_addItem_fillTimestamps_inTimeOrder(time: number, holder: boolean): number {
+  #internal_addItem_fillTimestamps_inTimeOrder(time: number, holder: boolean): number {
     // @Note: writeLock timestamps only when insert/append it
     const lastOccurredTime = this._timestamps.lastOccurredTime();
     if (time < lastOccurredTime) {
@@ -284,30 +284,30 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
   }
 
   indexOfTime(time: number): number {
-    return this.activeTimestamps().indexOfOccurredTime(time);
+    return this.#activeTimestamps().indexOfOccurredTime(time);
   }
 
   timeOfIndex(idx: number): number {
-    return this.activeTimestamps().get(idx);
+    return this.#activeTimestamps().get(idx);
   }
 
   rowOfTime(time: number): number {
-    return this.activeTimestamps().rowOfTime(time);
+    return this.#activeTimestamps().rowOfTime(time);
   }
 
   timeOfRow(row: number): number {
-    return this.activeTimestamps().timeOfRow(row);
+    return this.#activeTimestamps().timeOfRow(row);
   }
 
   lastOccurredRow(): number {
-    return this.activeTimestamps().lastRow();
+    return this.#activeTimestamps().lastRow();
   }
 
   size(): number {
-    return this.activeTimestamps().size();
+    return this.#activeTimestamps().size();
   }
 
-  private activeTimestamps(): TStamps {
+  #activeTimestamps(): TStamps {
     return this.isOnCalendarMode ? this._timestamps.asOnCalendar() : this._timestamps;
   }
 }

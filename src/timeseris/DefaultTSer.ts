@@ -75,11 +75,11 @@ export class DefaultTSer implements TSer {
     return tvar;
   }
 
-  protected lname = ""; // Long description 
-  protected sname = ""; // Short description
+  protected _lname = ""; // Long description 
+  protected _sname = ""; // Short description
 
-  private tsLogCheckedCursor = 0;
-  private tsLogCheckedSize = 0;
+  #tsLogCheckedCursor = 0;
+  #tsLogCheckedSize = 0;
 
   isOverlapping = false;
 
@@ -165,12 +165,12 @@ export class DefaultTSer implements TSer {
     return idx >= 0 && idx < this._holders.size();
   }
 
-  protected assignValue(tval: TVal): void {
+  protected _assignValue(tval: TVal): void {
     // todo
   }
 
-  longName = this.lname
-  shortName = this.sname
+  longName = this._lname
+  shortName = this._sname
   displayName = this.shortName + " - (" + this.longName + ")";
 
   /**
@@ -348,7 +348,7 @@ export class DefaultTSer implements TSer {
   //   return _hashCode;
   // }
 
-  protected TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
+  TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
     return new TVar<V>(this, name, kind);
   }
 
