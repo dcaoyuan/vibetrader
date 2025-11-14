@@ -101,10 +101,10 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
      * item mapping
      */
     const idx = this._timestamps.indexOfOccurredTime(time);
-    if (idx >= 0 && idx < this.holders.size()) {
+    if (idx >= 0 && idx < this._holders.size()) {
       // existed, reset it
       this._vars.forEach((v, _) => v.resetByIndex(idx));
-      this.holders.set(idx, false);
+      this._holders.set(idx, false);
 
     } else {
       // append at the end: create a new one, add placeholder
@@ -118,7 +118,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
      * item mapping
      */
     const idx = this._timestamps.indexOfOccurredTime(time);
-    if (idx >= 0 && idx < this.holders.size()) {
+    if (idx >= 0 && idx < this._holders.size()) {
       // noop
     } else {
       // append at the end: create a new one, add placeholder
@@ -141,7 +141,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
       if (existIdx >= 0) {
         this._vars.forEach((v, _) => v.putNullByTime(time));
         // as timestamps includes this time, we just always put in a none-null item
-        this.holders.insert(existIdx, holder);
+        this._holders.insert(existIdx, holder);
 
         return existIdx;
 
@@ -156,7 +156,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
         this._timestamps.insert(idx, time);
 
         this._vars.forEach((v, _) => v.putNullByTime(time));
-        this.holders.insert(idx, holder);
+        this._holders.insert(idx, holder);
 
         return idx;
 
@@ -174,7 +174,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
       this._timestamps.add(time);
 
       this._vars.forEach((v, _) => v.addNull());
-      this.holders.add(holder);
+      this._holders.add(holder);
 
       return this.size() - 1;
 
@@ -189,7 +189,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
       const existIdx = this._timestamps.indexOfOccurredTime(time);
       if (existIdx >= 0) {
         this._vars.forEach((v, _) => v.putNullByTime(time));
-        this.holders.add(holder);
+        this._holders.add(holder);
 
         return this.size() - 1;
 
@@ -208,7 +208,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
 
   clearUntilIndex(idx: number) {
     this._timestamps.removeMultiple(0, idx);
-    this.holders.removeMultiple(0, idx);
+    this._holders.removeMultiple(0, idx);
   }
 
   /**

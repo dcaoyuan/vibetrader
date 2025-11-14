@@ -1,9 +1,9 @@
-import { AbstractTSer } from "./AbstractTSer";
 import { TFreq } from "./TFreq";
 import { TVal } from "./TVal";
 import { TVar } from "./TVar";
 import { ValueList } from "../collection/ValueList";
 import { TStamps } from "./TStamps";
+import { TSer } from "./TSer";
 
 /**
  * This is the default data container, which is a time sorted data contianer.
@@ -21,19 +21,42 @@ import { TStamps } from "./TStamps";
  * years.
  *
  */
-export class DefaultTSer extends AbstractTSer {
+export class DefaultTSer implements TSer {
+  freq: TFreq;
+  timeZone: string;
   valuesCapacity: number;
 
-  protected holders: ValueList<boolean>; // a place holder plus flag
+  protected _holders: ValueList<boolean>; // a place holder plus flag
 
-  constructor(freq: TFreq, valuesCapacity: number, timeZone: string, timestamps: TStamps) {
-    super(freq, timeZone, timestamps);
-
-    //assert valuesCapacity >= 2 : "valuesCapacity must >= 2, so as to record and get prev one";
-    this.valuesCapacity = valuesCapacity;
-    this.holders = new ValueList(valuesCapacity);
+  /** Each var element of array is a Var that contains a sequence of values for one field of Ser. */
+  protected _vars: Map<string, TVar<TVal>>
+  vars() {
+    return this._vars;
   }
 
+  /**
+   * we implement occurred timestamps and items in density mode instead of spare mode, to avoid
+   * itemOf(time) return null even in case of timestamps has been filled. DefaultItem is a
+   * lightweight virtual class, don't worry about the memory occupied.
+   *
+   * <p>Should only get index from timestamps which has the proper mapping of : position <-> time
+   * <-> item
+   */
+  protected _timestamps: TStamps;
+  timestamps() {
+    return this._timestamps;
+  }
+
+  constructor(freq: TFreq, valuesCapacity: number, timeZone: string, timestamps: TStamps) {
+    this.freq = freq;
+    this.timeZone = timeZone;
+    this.valuesCapacity = valuesCapacity;
+    //assert valuesCapacity >= 2 : "valuesCapacity must >= 2, so as to record and get prev one";
+
+    this._vars = new Map<string, TVar<TVal>>();
+    this._timestamps = timestamps;
+    this._holders = new ValueList(valuesCapacity);
+  }
 
   protected lname = ""; // Long description 
   protected sname = ""; // Short description
@@ -41,11 +64,79 @@ export class DefaultTSer extends AbstractTSer {
   private tsLogCheckedCursor = 0;
   private tsLogCheckedSize = 0;
 
+  isOverlapping = false;
+
+  #isInLoading = false;
+  #isLoaded = false;
+
+  /**
+   * Used only by InnerVar's constructor and AbstractIndicator's functions
+   *
+   * @param v
+   */
+  addVar(v: TVar<TVal>) {
+    // v could be added afterwards, should catch up and keep same size as this TSer
+    for (let i = 0; i < this.size(); i++) {
+      v.addNull();
+    }
+    this._vars.set("v.name()", v);
+  }
+
+  /** --- for charting horizontal grids of this indicator used to draw grid */
+  grids: number[] = [];
+
+  get isLoaded() {
+    return this.#isLoaded;
+  }
+  set isLoaded(b: boolean) {
+    if (b) {
+      this.#isInLoading = false;
+    }
+    this.isLoaded = b;
+  }
+
+  get isInLoading() {
+    return this.#isInLoading;
+  }
+  set isInLoading(b: boolean) {
+    if (b) {
+      this.isLoaded = false;
+    }
+    this.#isInLoading = b;
+  }
+
+  nonExists(time: number): boolean {
+    return !this.exists(time);
+  }
+
+  isAscending<V extends TVal>(values: V[]): boolean {
+    const size = values.length;
+    if (size <= 1) {
+      return true;
+
+    } else {
+      let i = 0;
+      while (i < size - 1) {
+        if (values[i].time < values[i + 1].time) {
+          return true;
+
+        } else if (values[i].time > values[i + 1].time) {
+          return false;
+        }
+
+        i++;
+      }
+
+      return false;
+    }
+  }
+
+
   /**
    * @return @todo, holder.size or timestamps.size ?
    */
   size(): number {
-    return this.holders.size();
+    return this._holders.size();
   }
 
   exists(time: number): boolean {
@@ -54,7 +145,7 @@ export class DefaultTSer extends AbstractTSer {
      * Should only get index from timestamps which has the proper position <-> time <-> item mapping
      */
     const idx = this._timestamps.indexOfOccurredTime(time);
-    return idx >= 0 && idx < this.holders.size();
+    return idx >= 0 && idx < this._holders.size();
   }
 
   protected assignValue(tval: TVal): void {
@@ -171,8 +262,8 @@ export class DefaultTSer extends AbstractTSer {
 
     this._vars.forEach((v, _) => v.clearFromIndex(fromIdx));
 
-    const count = this.holders.size() - fromIdx;
-    this.holders.removeMultiple(fromIdx, count);
+    const count = this._holders.size() - fromIdx;
+    this._holders.removeMultiple(fromIdx, count);
 
   }
 
@@ -240,7 +331,7 @@ export class DefaultTSer extends AbstractTSer {
   //   return _hashCode;
   // }
 
-  protected TVar<V>(name: string, kind: TVar.Kind): TVar<V> {
+  protected TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
     return new DefaultTSer.InnerTVar<V>(this, name, kind);
   }
 
@@ -255,34 +346,11 @@ export class DefaultTSer extends AbstractTSer {
    *
    * @param <V>
    */
-  private static InnerTVar = class <V> extends TVar<V> {
-    #outer: DefaultTSer;
-    readonly kind: TVar.Kind;
-    readonly name: string;
+  private static InnerTVar = class <V extends TVal> extends TVar<V> {
 
-    #values: ValueList<V>;
-
-    constructor(outer: DefaultTSer, name: string, kind: TVar.Kind) {
-      super();
-      this.#outer = outer;
-      this.kind = kind;
-      this.name = name;
-      this.#values = new ValueList<V>(this.#outer.valuesCapacity);
-      outer.addVar(this);
+    constructor(belongsTo: DefaultTSer, name: string, kind: TVar.Kind) {
+      super(belongsTo, name, kind);
     }
-
-    values(): ValueList<V> {
-      return this.#values;
-    }
-
-    override timestamps(): TStamps {
-      return this.#outer.timestamps();
-    }
-
-    // @Override
-    // public ValueList<V> values() {
-    //   return values;
-    // }
 
     override putByTime(time: number, value: V): boolean {
       const idx = this.timestamps().indexOfOccurredTime(time);

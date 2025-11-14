@@ -1,19 +1,38 @@
 import { CIterator } from "../collection/CIterator";
 import { ValueList } from "../collection/ValueList";
+import { TSer } from "./TSer";
 import { TStamps } from "./TStamps";
+import { TVal } from "./TVal";
 
 /**
  * A horizontal view of Ser.It's a reference of one of the field vars. V is the type of value
- *
+ * 
  */
-export abstract class TVar<V> {
+export abstract class TVar<V extends TVal> {
+  belongsTo: TSer;
+  #values: ValueList<V>;
 
-  protected nullVal: V = undefined
+  protected readonly nullVal: V = undefined
 
   readonly name?: string;
   readonly kind?: TVar.Kind;
 
-  abstract timestamps(): TStamps;
+  constructor(belongsTo: TSer, name: string, kind: TVar.Kind) {
+    this.belongsTo = belongsTo;
+    this.kind = kind;
+    this.name = name;
+    this.#values = new ValueList<V>(this.belongsTo.valuesCapacity);
+    belongsTo.addVar(this);
+  }
+
+
+  values(): ValueList<V> {
+    return this.#values;
+  }
+
+  timestamps(): TStamps {
+    return this.belongsTo.timestamps();
+  }
 
   /**
    * @return true if it's an instant variable, or false if it's an accumulate variable.
@@ -44,10 +63,7 @@ export abstract class TVar<V> {
    * @param value
    */
   abstract setByTime(time: number, value: V): void;
-
   abstract getByTime(time: number): V;
-
-  abstract values(): ValueList<V>;
 
   /**
    * This method will never return null, return a nullValue at least.

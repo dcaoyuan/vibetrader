@@ -4,12 +4,19 @@ import { TVal } from "./TVal";
 import { TVar } from "./TVar";
 
 export interface TSer {
+  freq: TFreq;
   timeZone: string;
+  vars(): Map<string, TVar<TVal>>;
+  timestamps(): TStamps;
+
+  valuesCapacity: number;
 
   isLoaded: boolean;
   isInLoading: boolean;
 
   isAscending<V extends TVal>(values: V[]): boolean
+
+  addVar(v: TVar<TVal>): void
 
   // --- for charting
 
@@ -17,10 +24,6 @@ export interface TSer {
   grids: number[]
 
   isOverlapping: boolean;
-
-  freq: TFreq;
-  vars(): Map<string, TVar<unknown>>;
-  timestamps(): TStamps;
 
   exists(time: number): boolean;
 
