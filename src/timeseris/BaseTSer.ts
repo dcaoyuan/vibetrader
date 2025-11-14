@@ -5,7 +5,8 @@ export interface BaseTSer extends TSer {
 
   // Only BaseTSer can have methods that explictly add value
   createOrReset(time: number): void;
-  addAll<V extends TVal>(values: V[]): TSer
+  addToVar(name: string, value: TVal): BaseTSer 
+  addAllToVar(name: string, values: TVal[]): BaseTSer
 
   // Should only trust BaseTSer to translate row <-> time properly.
   indexOfTime(time: number): number
@@ -18,5 +19,4 @@ export interface BaseTSer extends TSer {
   isOnCalendarMode: boolean
   toOnCalendarMode(): void
   toOnOccurredMode(): void
-
 }

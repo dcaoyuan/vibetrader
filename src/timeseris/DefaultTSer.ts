@@ -26,14 +26,6 @@ export class DefaultTSer implements TSer {
   timeZone: string;
   valuesCapacity: number;
 
-  protected _holders: ValueList<boolean>; // a place holder plus flag
-
-  /** Each var element of array is a Var that contains a sequence of values for one field of Ser. */
-  protected _vars: Map<string, TVar<TVal>>
-  vars() {
-    return this._vars;
-  }
-
   /**
    * we implement occurred timestamps and items in density mode instead of spare mode, to avoid
    * itemOf(time) return null even in case of timestamps has been filled. DefaultItem is a
@@ -43,11 +35,14 @@ export class DefaultTSer implements TSer {
    * <-> item
    */
   protected _timestamps: TStamps;
-  timestamps() {
-    return this._timestamps;
-  }
 
-  constructor(freq: TFreq, valuesCapacity: number, timeZone: string, timestamps: TStamps) {
+
+  /** Each var element of array is a Var that contains a sequence of values for one field of Ser. */
+  protected _vars: Map<string, TVar<TVal>>
+
+  protected _holders: ValueList<boolean>; // a place holder plus flag
+
+  constructor(freq: TFreq, timeZone: string, timestamps: TStamps, valuesCapacity: number) {
     this.freq = freq;
     this.timeZone = timeZone;
     this.valuesCapacity = valuesCapacity;
@@ -56,6 +51,28 @@ export class DefaultTSer implements TSer {
     this._vars = new Map<string, TVar<TVal>>();
     this._timestamps = timestamps;
     this._holders = new ValueList(valuesCapacity);
+  }
+
+  timestamps() {
+    return this._timestamps;
+  }
+
+  vars() {
+    return this._vars;
+  }
+
+  /**
+   *  
+   * @param name 
+   * @returns var of name, will create one if non exist yet.
+   */
+  varOf(name: string): TVar<TVal> {
+    var tvar = this._vars.get(name);
+    if (tvar === undefined) {
+      tvar = this.TVar(name, TVar.Kind.Accumlate);
+    }
+
+    return tvar;
   }
 
   protected lname = ""; // Long description 
@@ -74,12 +91,12 @@ export class DefaultTSer implements TSer {
    *
    * @param v
    */
-  addVar(v: TVar<TVal>) {
+  addVar(name: string, v: TVar<TVal>) {
     // v could be added afterwards, should catch up and keep same size as this TSer
     for (let i = 0; i < this.size(); i++) {
       v.addNull();
     }
-    this._vars.set("v.name()", v);
+    this._vars.set(name, v);
   }
 
   /** --- for charting horizontal grids of this indicator used to draw grid */

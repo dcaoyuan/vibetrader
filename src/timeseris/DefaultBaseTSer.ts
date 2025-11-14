@@ -7,8 +7,8 @@ import { TVal } from "./TVal";
 
 export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
 
-  constructor(freq: TFreq, valuesCapacity: number, timeZone: string) {
-    super(freq, valuesCapacity, timeZone, TStamps.of(freq, timeZone, valuesCapacity));
+  constructor(freq: TFreq, timeZone: string, valuesCapacity: number) {
+    super(freq, timeZone, TStamps.of(freq, timeZone, valuesCapacity), valuesCapacity);
   }
 
   isOnCalendarMode = false;
@@ -77,7 +77,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
   // }
 
   /*-
-   * !NOTICE
+   * !NOTE
    * This should be the only place to create an Item from outside, because it's
    * a bit complex to finish an item creating procedure, the procedure contains
    * at least 3 steps:
@@ -212,16 +212,36 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
   }
 
   /**
-   * Append TVals to ser.To use this method, should define proper assignValue(value)
+   * Append TVal to var in ser. 
    *
-   * @param <V>
+   * @param var name
    * @param values
-   * @return
+   * @return self
    */
-  addAll<V extends TVal>(values: V[]): TSer {
+  addToVar(name: string, value: TVal): BaseTSer {
+    const theVar = this.varOf(name);
+    const time = this.freq.trunc(value.time, this.timeZone);
+    if (!this.exists(time)) {
+      this.createOrReset(time);
+    }
+    theVar.setByTime(time, value);
+
+    return this;
+  }
+
+  /**
+   * Append TVals to var in ser. 
+   *
+   * @param var name
+   * @param values
+   * @return self
+   */
+  addAllToVar(name: string, values: TVal[]): BaseTSer {
     if (values.length === 0) {
       return this;
     }
+
+    const theVar = this.varOf(name);
 
     let frTime = Number.MAX_SAFE_INTEGER;
     let toTime = Number.MIN_SAFE_INTEGER;
@@ -234,13 +254,10 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
       if (value !== undefined) {
         const time = this.freq.trunc(value.time, this.timeZone);
         this.createOrReset(time);
-        this.assignValue(value);
+        theVar.setByTime(time, value);
 
         frTime = Math.min(frTime, time);
         toTime = Math.max(toTime, time);
-      } else {
-        // @todo why will  happen? seems form loadFromPersistence
-        console.warn("Value of i=" + i + " is null");
       }
 
       // shoudReverse: the recent quote's index is more in quotes, thus the order in

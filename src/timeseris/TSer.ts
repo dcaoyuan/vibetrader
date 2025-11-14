@@ -3,11 +3,12 @@ import { TStamps } from "./TStamps";
 import { TVal } from "./TVal";
 import { TVar } from "./TVar";
 
+// timeZone string specs: https://www.iana.org/time-zones
 export interface TSer {
   freq: TFreq;
   timeZone: string;
-  vars(): Map<string, TVar<TVal>>;
   timestamps(): TStamps;
+  vars(): Map<string, TVar<TVal>>;
 
   valuesCapacity: number;
 
@@ -16,7 +17,7 @@ export interface TSer {
 
   isAscending<V extends TVal>(values: V[]): boolean
 
-  addVar(v: TVar<TVal>): void
+  addVar(name: string, v: TVar<TVal>): void
 
   // --- for charting
 

@@ -14,7 +14,7 @@ export class TVar<V extends TVal> {
 
   protected readonly nullVal: V = undefined
 
-  readonly name?: string;
+  readonly name: string;
   readonly kind?: TVar.Kind;
 
   constructor(belongsTo: TSer, name: string, kind: TVar.Kind) {
@@ -22,7 +22,7 @@ export class TVar<V extends TVal> {
     this.kind = kind;
     this.name = name;
     this.#values = new ValueList<V>(this.belongsTo.valuesCapacity);
-    belongsTo.addVar(this);
+    belongsTo.addVar(name, this);
   }
 
 
