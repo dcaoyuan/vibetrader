@@ -8,7 +8,7 @@ import { TVal } from "./TVal";
  * A horizontal view of Ser.It's a reference of one of the field vars. V is the type of value
  * 
  */
-export abstract class TVar<V extends TVal> {
+export class TVar<V extends TVal> {
   belongsTo: TSer;
   #values: ValueList<V>;
 
@@ -45,25 +45,70 @@ export abstract class TVar<V extends TVal> {
     return this.kind === TVar.Kind.Accumlate;
   }
 
-  /**
-   * Append or insert value at time
-   *
-   * @param time
-   * @param value
-   * @return
-   */
-  abstract putByTime(time: number, value: V): boolean;
-  abstract putByIndex(idx: number, value: V): boolean;
-  abstract add(value: V): boolean;
+  putByTime(time: number, value: V): boolean {
+    const idx = this.timestamps().indexOfOccurredTime(time);
+    if (idx >= 0) {
+      // TODO. for limited capacity values, no change idx == values().size()
+      if (idx == this.values().size()) {
+        this.values().add(value);
 
-  /**
-   * Update value at time
-   *
-   * @param time
-   * @param value
-   */
-  abstract setByTime(time: number, value: V): void;
-  abstract getByTime(time: number): V;
+      } else {
+        this.values().insert(idx, value);
+      }
+
+      return true;
+
+    } else {
+      // assert false
+      //     : "Fill timestamps first before put an element! "
+      //         + ": "
+      //         + "idx="
+      //         + idx
+      //         + ", time="
+      //         + time;
+      return false;
+    }
+  }
+
+  putByIndex(idx: number, value: V): boolean {
+    this.values().insert(idx, value);
+    return true;
+  }
+
+  add(value: V): boolean {
+    return this.values().add(value);
+  }
+
+  getByTime(time: number): V {
+    const idx = this.timestamps().indexOfOccurredTime(time);
+    return this.values().get(idx);
+  }
+
+  setByTime(time: number, value: V) {
+    const idx = this.timestamps().indexOfOccurredTime(time);
+    this.values().set(idx, value);
+  }
+
+  // plot = Plot.None;
+  // layer = -1; // -1 means not set
+
+  // // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
+  // private _lazy_colors: TStampedMapBasedList<Color> = undefined as any;
+
+  // private get colors(): TStampedMapBasedList<Color> {
+  //   if (this._lazy_colors === undefined) {
+  //     _lazy_colors = new TStampedMapBasedList<>(Color.class, timestamps);
+  //   }
+  //   return _lazy_colors;
+  // }
+
+  // getColor(idx: number): Color {
+  //   return this.colors.get(idx);
+  // }
+
+  // setColor(idx: number, color: Color) {
+  //   this.colors.set(idx, color);
+  // }
 
   /**
    * This method will never return null, return a nullValue at least.
