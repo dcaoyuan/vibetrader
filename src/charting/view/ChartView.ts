@@ -433,17 +433,17 @@ export abstract class ChartView {
 
   //       switch (chart.tag) {
   //         case "GradientChart":
-  //           chart.depth = depthGradient; depthGradient -= 1
+  //           chart.depth = depthGradient; depthGradient--
   //           break;
   //         case "ProfileChart":
-  //           chart.depth = depthGradient; depthGradient -= 1
+  //           chart.depth = depthGradient; depthGradient--
   //           break;
   //         case "StickChart":
   //           chart.depth = -8
   //           break;
   //         default:
   //           chart.depth = this.#lastDepthOfOverlappingChart;
-  //           this.#lastDepthOfOverlappingChart += 1
+  //           this.#lastDepthOfOverlappingChart++;
   //       }
 
   //       chart.set(this.mainChartPane, ser)
@@ -470,7 +470,7 @@ export abstract class ChartView {
   //           case "StickChart": /** noop */
   //             break;
   //           default:
-  //             this.#lastDepthOfOverlappingChart -= 1
+  //             this.#lastDepthOfOverlappingChart--
   //         }
   //       }
   //       /** release chartToVars */

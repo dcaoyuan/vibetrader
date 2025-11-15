@@ -222,7 +222,7 @@ export class TVar<V extends TVal> {
     let i = data.size() - 1;
     while (i >= fromIdx) {
       data.remove(i);
-      i += 1;
+      i++;
     }
   }
 
@@ -288,7 +288,7 @@ export class TVar<V extends TVal> {
   //     if (i < length - 1) {
   //       sb.append(", ");
   //     }
-  //     i += 1;
+  //     i++;
   //   }
   //   sb.append("]");
 

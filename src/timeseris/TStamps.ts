@@ -373,7 +373,7 @@ export class TStampsOnOccurred extends TStamps {
     let i = 0;
     while (i < n) {
       reversed.add(this.get(n - 1 - i));
-      i += 1;
+      i++;
     }
 
     return reversed;
@@ -425,7 +425,7 @@ class ItrOnOccurred implements TStampsIterator {
   next(): number {
     this.#checkForComodification();
     try {
-      this.#cursorRow += 1;
+      this.#cursorRow++;
       const next = (this.#cursorRow >= this.#outer.size()) ? this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
       this.#cursorTime = next;
       this.#lastReturnTime = this.#cursorTime;
@@ -450,7 +450,7 @@ class ItrOnOccurred implements TStampsIterator {
   prev(): number {
     this.#checkForComodification();
     try {
-      this.#cursorRow -= 1;
+      this.#cursorRow--;
       const prev1 = this.#cursorRow < 0 ? this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
       this.#cursorTime = prev1;
       this.#lastReturnTime = this.#cursorTime;
@@ -723,7 +723,7 @@ class ItrOnCalendar implements TStampsIterator {
   next(): number {
     this.#checkForComodification();
     try {
-      this.#cursorRow += 1;
+      this.#cursorRow++;
       const next = this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone);
       this.#cursorTime = next;
       this.#lastReturnTime = this.#cursorTime;
@@ -747,7 +747,7 @@ class ItrOnCalendar implements TStampsIterator {
   prev(): number {
     this.#checkForComodification();
     try {
-      this.#cursorRow -= 1;
+      this.#cursorRow--;
       const prev1 = this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone);
       this.#cursorTime = prev1;
       this.#lastReturnTime = this.#cursorTime;

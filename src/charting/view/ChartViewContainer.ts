@@ -89,7 +89,7 @@ export class ChartViewContainer {
     // for (let view of descriptorToSlaveView.valuesIterator if view != masterView) {
     //   /** overlapping view is also in masterView, should ignor it */
     //   sumSlaveViewsHeight += view.getHeight
-    //   numSlaveViews += 1
+    //   numSlaveViews++ 
     // }
 
     if (numSlaveViews == 1 && sumSlaveViewsHeight == 0) {

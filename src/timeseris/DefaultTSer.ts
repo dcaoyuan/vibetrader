@@ -224,7 +224,7 @@ export class DefaultTSer implements TSer {
   //               const time = timestamps.get(begIdx1 + i);
   //               vars().forEach((v) -> v.putNullByTime(time));
   //               newHolders[i] = true; // true
-  //               i += 1;
+  //               i++;
   //             }
   //             holders.addAll(begIdx1, newHolders, newHolders.length);
   //           }
@@ -240,7 +240,7 @@ export class DefaultTSer implements TSer {
   //               const time = timestamps.get(begIdx + i);
   //               vars().forEach((v) -> v.putNullByTime(time));
   //               newHolders[i] = true; // true
-  //               i += 1;
+  //               i++;
   //             }
   //             holders.addAll(newHolders, newHolders.length);
 

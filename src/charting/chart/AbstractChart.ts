@@ -4,13 +4,17 @@ import { TSer } from '../../timeseris/TSer';
 import { Geometry } from './Geometry';
 import { Theme } from '../theme/Theme';
 import { Path } from '../../svg/Path';
+import { ChartControl } from '../view/ChartControl';
 
 abstract class AbstractChart implements Chart {
   protected _datumPlane: DatumPlane;
+  protected _control: ChartControl;
+
   depth;
 
   constructor(datumPlane: DatumPlane, depth = 0) {
     this._datumPlane = datumPlane;
+    this._control = datumPlane.view.control;
     this.depth = depth;
   }
 
@@ -31,12 +35,11 @@ abstract class AbstractChart implements Chart {
   plot() {
     this.nBars = this._datumPlane.nBars
     this.wBar = this._datumPlane.wBar
-        
+
     // wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     // nSegs = (nBars * wBar / wSeg).toInt + 1
-        
+
     this.nBarsCompressed = this.wBar >= 1 ? 1 : Math.floor(1 / this.wBar)
-    console.log(this._datumPlane)
 
     this.plotChart();
   }

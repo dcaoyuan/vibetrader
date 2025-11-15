@@ -22,7 +22,7 @@ interface IChartControl /* extends ChangeSubject*/ {
   //serProvider: SerProvider
   baseSer: BaseTSer
 
-  isCursorCrossLineVisible: boolean
+  isCursorCrossVisible: boolean
 
   isMouseEnteredAnyChartPane: boolean
 
@@ -137,7 +137,7 @@ export class ChartControl implements IChartControl {
   private _lastOccurredRowOfBaseSer = 0;
   private _isAutoScrollToNewData = true;
   private _isMouseEnteredAnyChartPane = false;
-  private _isCursorCrossLineVisible = true;
+  isCursorCrossVisible = true;
 
   /**
    * Factory method to create ChartViewContainer instance, got the relations
@@ -207,13 +207,6 @@ export class ChartControl implements IChartControl {
   //   component.getKeyListeners.forEach(x => component.removeKeyListener(x))
   //   component.getMouseWheelListeners.forEach(x => component.removeMouseWheelListener(x))
   // }
-
-  get isCursorCrossLineVisible(): boolean {
-    return this._isCursorCrossLineVisible
-  }
-  set isCursorCrossLineVisible(b: boolean) {
-    this._isCursorCrossLineVisible = b;
-  }
 
   get isMouseEnteredAnyChartPane() {
     return this._isMouseEnteredAnyChartPane;
@@ -307,9 +300,9 @@ export class ChartControl implements IChartControl {
         if (newWBar > ChartControl.PREFERRED_BAR_WIDTHS[i] && newWBar < ChartControl.PREFERRED_BAR_WIDTHS[i + 1]) {
           /** which one is the nearest ? */
           this._wBarIdx = Math.abs(ChartControl.PREFERRED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartControl.PREFERRED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
-          breakNow = true
+          breakNow = true;
         }
-        i += 1
+        i++;
       }
     }
 

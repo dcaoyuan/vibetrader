@@ -39,7 +39,6 @@ export class QuoteChart extends AbstractChart {
       this.#negPath = new Path(this.#negColor, isFill ? this.#negColor : "none");
     }
 
-    console.log(QuoteChart.Kind.Candle)
     //const kind: QuoteChart.Kind = QuoteChart.Kind.Candle; // this.datumPlane.view.asInstanceOf<WithQuoteChart>.quoteChartType
     switch (this.kind) {
       case QuoteChart.Kind.Candle:
@@ -64,8 +63,8 @@ export class QuoteChart extends AbstractChart {
        */
       let open: number = undefined as any
       let close: number = undefined as any
-      let high = -Number.MAX_VALUE;
-      let low = Number.MAX_VALUE
+      let high = Number.NEGATIVE_INFINITY;
+      let low = Number.POSITIVE_INFINITY
       let i = 0
       while (i < this.nBarsCompressed) {
         const time = this.tb(bar + i)
@@ -82,7 +81,7 @@ export class QuoteChart extends AbstractChart {
           }
         }
 
-        i += 1
+        i++;
       }
 
       if (close !== undefined && close != 0) {
@@ -196,8 +195,8 @@ export class QuoteChart extends AbstractChart {
       // use `undefiend` to test if value has been set at least one time
       let open: number = undefined as any
       let close: number = undefined as any
-      let max = -Number.MAX_VALUE;
-      let min = +Number.MAX_VALUE
+      let max = Number.NEGATIVE_INFINITY;
+      let min = Number.POSITIVE_INFINITY;
       let i = 0;
       while (i < this.nBarsCompressed) {
         const time = this.tb(bar + i)
@@ -214,10 +213,10 @@ export class QuoteChart extends AbstractChart {
           }
         }
 
-        i += 1
+        i++;
       }
 
-      if (close !== undefined && close != 0) {
+      if (close !== undefined && close !== 0) {
         const path = close >= open ? this.#posPath : this.#negPath || this.#posPath;
 
         y2 = this.yv(close)
@@ -237,11 +236,11 @@ export class QuoteChart extends AbstractChart {
             path.lineto(x2, y2);
           }
         }
-        y1 = y2
+        y1 = y2;
 
       }
 
-      bar += 1
+      bar++;
     }
   }
 

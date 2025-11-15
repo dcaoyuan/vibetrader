@@ -5,7 +5,7 @@ export class Theme {
 
   static now(): Theme {
     if (Theme.current === undefined) {
-      Theme.current = new Theme; 
+      Theme.current = new Theme;
     }
     return Theme.current;
   }
@@ -38,7 +38,7 @@ export class Theme {
 
   protected readonly positiveColor = "#FF0000";
   protected readonly negativeColor = "#00FF00";
-  protected readonly positiveBgColor = "" ;
+  protected readonly positiveBgColor = "";
   protected readonly negativeBgColor: string;
   protected readonly neutralColor: string;
   protected readonly neutralBgColor: string;
@@ -105,7 +105,7 @@ export class Theme {
     var i = 1
     while (i <= multiple) {
       //color = color.darker();
-      i += 1;
+      i++;
     }
     return color;
   }

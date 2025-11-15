@@ -102,7 +102,6 @@ export abstract class AbstractDatumPlane /* extends Pane(aview, null) */ impleme
 
     const hChartCouldBe = this.#hCanvas
     this.#hChart = hChartCouldBe * this.#yChartScale
-    console.log(this.#hCanvas, this.#hChart, this.#yChartScale, this.height, this.#hSpaceLower, this.#hSpaceUpper)
 
     /** allocate sparePixelsBroughtByYChartScale to upper and lower averagyly */
     const sparePixelsBroughtByYChartScale = hChartCouldBe - this.#hChart

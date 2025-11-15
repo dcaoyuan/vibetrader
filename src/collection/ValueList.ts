@@ -171,7 +171,7 @@ export class ValueList<T> extends AbstractCollection<T> {
       if (this.size0 + 1 <= this.maxCapacity) {
         this.arraycopy(this.array, offset, this.array, offset + 1, this.size0 - offset);
         this.array[offset] = elem;
-        this.size0 += 1;
+        this.size0++;
 
       } else {
         // for 1 spare space, we need to drop the very first elem, ie. the one at cursor0.
@@ -513,7 +513,7 @@ export class ValueList<T> extends AbstractCollection<T> {
 
     if (this.cursor0 === 0) {
       while (this.size0 > sz) {
-        this.size0 -= 1;
+        this.size0--;
         this.array[this.size0] = undefined as T;
       }
 
@@ -570,7 +570,7 @@ export class ValueList<T> extends AbstractCollection<T> {
     var i = 0;
     while (i < this.size0) {
       reversed.add(this.get(this.size0 - 1 - i));
-      i += 1;
+      i++;
     }
     return reversed;
   }

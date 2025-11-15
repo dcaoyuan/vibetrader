@@ -68,12 +68,12 @@ export class QuoteChartView extends ChartView {
   }
 
   override computeMaxMin() {
-    let min = Number.MAX_VALUE;
-    let max = Number.MIN_VALUE;
+    let max = Number.NEGATIVE_INFINITY;
+    let min = Number.POSITIVE_INFINITY;
 
     /** minimum volume should be 0 */
+    this.maxVolume = Number.NEGATIVE_INFINITY;
     this.minVolume = 0
-    this.maxVolume = Number.MIN_VALUE;
     let i = 1
     while (i <= this.nBars) {
       const time = this.tb(i)
@@ -86,7 +86,7 @@ export class QuoteChartView extends ChartView {
         }
       }
 
-      i += 1
+      i++
     }
 
     if (this.maxVolume == 0) {
@@ -94,7 +94,7 @@ export class QuoteChartView extends ChartView {
     }
 
     if (this.maxVolume == this.minVolume) {
-      this.maxVolume += 1
+      this.maxVolume++;
     }
 
     if (max == min) {
