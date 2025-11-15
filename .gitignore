@@ -88,5 +88,8 @@ typings/
 # Vite
 .vite/
 
+# Dist
+dist/
+
 # Electron-Forge
 out/

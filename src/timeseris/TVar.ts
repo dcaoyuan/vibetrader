@@ -25,13 +25,16 @@ export class TVar<V extends TVal> {
     belongsTo.addVar(name, this);
   }
 
-
   values(): ValueList<V> {
     return this.#values;
   }
 
   timestamps(): TStamps {
     return this.belongsTo.timestamps();
+  }
+
+  exists(time: number) {
+    return this.belongsTo.exists(time);
   }
 
   /**
