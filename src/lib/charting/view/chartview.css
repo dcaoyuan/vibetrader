@@ -1,0 +1,40 @@
+.container {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "content axisy"
+    "axisx axisx";
+  grid-template-columns: 1fr 3fr;
+  /* gap: 1px; */
+  background-color: dodgerblue;
+  padding: 0px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.container div {
+  background-color: #333333;
+  /* background-color: white; */
+  padding: 0px;
+}
+
+.container div.header {
+  grid-area: header;
+}
+
+.container div.content {
+  grid-area: content;
+}
+
+.container div.axisy {
+  grid-area: axisy;
+}
+
+.container div.axisx {
+  grid-area: axisx;
+}
+
+.container div.footer {
+  grid-area: footer;
+}
