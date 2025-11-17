@@ -1,18 +1,18 @@
 import { Chart, StrokeType } from './Chart';
-import type { DatumPlane } from '../pane/DatumPlane';
 import { Geometry } from './Geometry';
 import { Path } from '../../svg/Path';
 import { ChartXControl } from '../view/ChartXControl';
+import type { ChartYControl } from '../view/ChartYControl';
 
 abstract class AbstractChart implements Chart {
-  protected _datumPlane: DatumPlane;
+  protected _ycontrol: ChartYControl;
   protected _xcontrol: ChartXControl;
 
   depth;
 
-  constructor(datumPlane: DatumPlane, depth = 0) {
-    this._datumPlane = datumPlane;
-    this._xcontrol = datumPlane.view.xcontrol;
+  constructor(ycontrol: ChartYControl, depth = 0) {
+    this._ycontrol = ycontrol;
+    this._xcontrol = ycontrol.view.xcontrol;
     this.depth = depth;
   }
 
@@ -31,8 +31,8 @@ abstract class AbstractChart implements Chart {
   #markPoints: DOMPoint[] = [];
 
   plot() {
-    this.nBars = this._datumPlane.nBars
-    this.wBar = this._datumPlane.wBar
+    this.nBars = this._ycontrol.nBars
+    this.wBar = this._ycontrol.wBar
 
     // wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     // nSegs = (nBars * wBar / wSeg).toInt + 1
@@ -95,27 +95,27 @@ abstract class AbstractChart implements Chart {
   }
 
   protected xb(barIndex: number): number {
-    return this._datumPlane.xb(barIndex);
+    return this._ycontrol.xb(barIndex);
   }
 
   protected yv(value: number): number {
-    return this._datumPlane.yv(value);
+    return this._ycontrol.yv(value);
   }
 
   protected bx(x: number): number {
-    return this._datumPlane.bx(x);
+    return this._ycontrol.bx(x);
   }
 
   protected vy(y: number): number {
-    return this._datumPlane.vy(y);
+    return this._ycontrol.vy(y);
   }
 
   protected rb(barIndex: number): number {
-    return this._datumPlane.rb(barIndex);
+    return this._ycontrol.rb(barIndex);
   }
 
   protected br(row: number): number {
-    return this._datumPlane.br(row);
+    return this._ycontrol.br(row);
   }
 
   protected sb(barIdx: number): number {
@@ -127,21 +127,21 @@ abstract class AbstractChart implements Chart {
   }
 
   protected tb(barIdx: number): number {
-    return this._datumPlane.tb(barIdx);
+    return this._ycontrol.tb(barIdx);
   }
 
   protected bt(time: number): number {
-    return this._datumPlane.bt(time);
+    return this._ycontrol.bt(time);
   }
 
   protected exists(time: number): boolean {
-    return this._datumPlane.exists(time);
+    return this._ycontrol.exists(time);
   }
 
   protected plotLine(xBase: number, yBase: number, k: number, path: Path) {
     const xFr = 0;
     const yFr = Geometry.yOfLine(xFr, xBase, yBase, k);
-    const xTo = this._datumPlane.width;
+    const xTo = this._ycontrol.width;
     const yTo = Geometry.yOfLine(xTo, xBase, yBase, k);
 
     path.moveto(xFr, yFr);
@@ -150,8 +150,8 @@ abstract class AbstractChart implements Chart {
 
   protected plotVerticalLine(bar: number, path: Path): void {
     const x = this.xb(bar);
-    const yFr = this._datumPlane.yCanvasLower;
-    const yTo = this._datumPlane.yCanvasUpper;
+    const yFr = this._ycontrol.yCanvasLower;
+    const yTo = this._ycontrol.yCanvasUpper;
 
     path.moveto(x, yFr);
     path.lineto(x, yTo);

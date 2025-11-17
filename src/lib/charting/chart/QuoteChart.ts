@@ -3,7 +3,7 @@ import { AbstractChart } from "./AbstractChart";
 import { Theme } from "../theme/Theme";
 import { Quote } from "../../domain/Quote";
 import { Path } from "../../svg/Path";
-import type { DatumPlane } from "../pane/DatumPlane";
+import type { ChartYControl } from "../view/ChartYControl";
 
 export class QuoteChart extends AbstractChart {
   kind: QuoteChart.Kind = QuoteChart.Kind.Candle;
@@ -16,8 +16,8 @@ export class QuoteChart extends AbstractChart {
   #posPath: Path;
   #negPath?: Path;
 
-  constructor(quoteVar: TVar<Quote>, datumPlane: DatumPlane, depth = 0) {
-    super(datumPlane, depth);
+  constructor(quoteVar: TVar<Quote>, ycontrol: ChartYControl, depth = 0) {
+    super(ycontrol, depth);
     this.#quoteVar = quoteVar;
   }
 

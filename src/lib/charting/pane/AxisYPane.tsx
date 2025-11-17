@@ -1,11 +1,11 @@
 import { TVar } from "../../timeseris/TVar";
 import { ChartXControl } from "../view/ChartXControl";
 import { ChartView } from "../view/ChartView";
-import type { DatumPlane } from "./DatumPlane";
 import { TVal } from "../../timeseris/TVal";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Theme } from "../theme/Theme";
+import type { ChartYControl } from "../view/ChartYControl";
 
 export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
   static readonly CURRENCY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
@@ -20,8 +20,8 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     maximumFractionDigits: 3,
   }); // DecimalFormat("0.###")
 
-  #datumPlane: DatumPlane;
-  #control: ChartXControl;
+  #ycontrol: ChartYControl;
+  #xcontrol: ChartXControl;
   #view: ChartView;
   #tvar: TVar<TVal>;
 
@@ -30,8 +30,8 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
 
   constructor(view: ChartView, tvar: TVar<TVal>) {
     this.#view = view;
-    this.#datumPlane = view.ycontrol;
-    this.#control = view.xcontrol;
+    this.#ycontrol = view.ycontrol;
+    this.#xcontrol = view.xcontrol;
     this.#tvar = tvar;
   }
 
@@ -169,14 +169,14 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     const hFm = 12;
 
     let nTicks = 6.0;
-    while (Math.floor(this.#datumPlane.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
+    while (Math.floor(this.#ycontrol.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
       nTicks -= 2 // always keep even
     }
 
-    const maxValueOnCanvas = this.#datumPlane.vy(this.#datumPlane.yCanvasUpper)
+    const maxValueOnCanvas = this.#ycontrol.vy(this.#ycontrol.yCanvasUpper)
     const minValueOnCanvas = this.#view.yControlPane !== undefined ?
-      this.#datumPlane.vy(this.#datumPlane.yCanvasLower - this.#view.yControlPane.height) :
-      this.#datumPlane.vy(this.#datumPlane.yCanvasLower)
+      this.#ycontrol.vy(this.#ycontrol.yCanvasLower - this.#view.yControlPane.height) :
+      this.#ycontrol.vy(this.#ycontrol.yCanvasLower)
 
 
     const vMaxTick = maxValueOnCanvas
@@ -203,7 +203,7 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     let breakNow = false
     while (i < nTicks + 2 && !breakNow) {
       let vTick = vMinTick + vTickUnit * i
-      const yTick = this.#datumPlane.yv(vTick)
+      const yTick = this.#ycontrol.yv(vTick)
 
       if (yTick < hFm) {
         breakNow = true

@@ -1,7 +1,7 @@
 import { Chart } from "../chart/Chart";
 import { ChartView } from "../view/ChartView"
-import type { DatumPlane } from "./DatumPlane"
 import { CursorChart } from "../chart/CursorChart";
+import type { ChartYControl } from "../view/ChartYControl";
 
 export abstract class Pane {
   static readonly DEPTH_FRONT = 1000
@@ -15,17 +15,11 @@ export abstract class Pane {
 
 
   readonly view: ChartView;
-  readonly datumPlane: DatumPlane;
+  readonly ycontrol: ChartYControl;
 
-  constructor(view: ChartView, datumPlane: DatumPlane) {
+  constructor(view: ChartView, ycontrol: ChartYControl) {
     this.view = view;
-    this.datumPlane = datumPlane;
-
-    if (this.datumPlane === undefined) {
-      /** if a null datumPlane given, we assume it will be just me, such as a ChartPane */
-      //assert(this instanceof DatumPlane, "A null datumPlane given, the datumPlane should be myself!")
-      this.datumPlane = this as unknown as DatumPlane;
-    }
+    this.ycontrol = ycontrol;
 
     // if (this.isInstanceOf<WithCursorChart>) {
     //   createCursorChart(this.datumPlane)
@@ -123,7 +117,7 @@ export abstract class Pane {
      * just ask the Objects that depend on datumPlane and may be painted
      * earlier than datumPlane, call datumPlane.computeGeomtry() first.
      */
-    this.datumPlane.computeGeometry()
+    this.ycontrol.computeGeometry()
   }
 
   // protected postPaintComponent() {

@@ -2,7 +2,7 @@ import { Theme } from "../theme/Theme";
 import { AbstractChart } from "./AbstractChart"
 import { Path } from "../../svg/Path";
 import { ChartView } from "../view/ChartView";
-import type { DatumPlane } from "../pane/DatumPlane";
+import type { ChartYControl } from "../view/ChartYControl";
 
 export class CursorChart extends AbstractChart {
   paths(): Path[] {
@@ -31,9 +31,9 @@ export class CursorChart extends AbstractChart {
   protected mouseTime = 0
   protected x = 0.0
 
-  constructor(datumPlane: DatumPlane) {
-    super(datumPlane);
-    this._xcontrol = datumPlane.view.xcontrol;
+  constructor(ycontrol: ChartYControl) {
+    super(ycontrol);
+    this._xcontrol = ycontrol.view.xcontrol;
   }
 
   protected cursorPath: Path;
@@ -61,7 +61,7 @@ export class CursorChart extends AbstractChart {
 
         break;
       case CursorChart.Kind.Mouse:
-        if (!this._datumPlane.view.xcontrol.isMouseEnteredAnyChartPane) {
+        if (!this._ycontrol.view.xcontrol.isMouseEnteredAnyChartPane) {
           return;
         }
 
@@ -78,8 +78,8 @@ export class CursorChart extends AbstractChart {
 
 
   protected plotReferCursor() {
-    const h = this._datumPlane.view.height
-    const w = this._datumPlane.view.width
+    const h = this._ycontrol.view.height
+    const w = this._ycontrol.view.width
 
     /** plot cross' vertical line */
     if (this._xcontrol.isCursorCrossVisible) {
@@ -87,11 +87,11 @@ export class CursorChart extends AbstractChart {
       this.cursorPath.lineto(this.x, h)
     }
 
-    if (this._datumPlane.view.isQuote) {
+    if (this._ycontrol.view.isQuote) {
       const quoteSer = this._xcontrol.baseSer
-      const time = this._datumPlane.tr(this.referRow);
+      const time = this._ycontrol.tr(this.referRow);
       if (quoteSer.exists(time)) {
-        const y = this._datumPlane.isAutoReferCursorValue ? this.yv(quoteSer.close(time)) : this.yv(this._datumPlane.referCursorValue)
+        const y = this._ycontrol.isAutoReferCursorValue ? this.yv(quoteSer.close(time)) : this.yv(this._ycontrol.referCursorValue)
 
         /** plot cross' horizonal line */
         if (this._xcontrol.isCursorCrossVisible) {
@@ -105,8 +105,8 @@ export class CursorChart extends AbstractChart {
 
 
   protected plotMouseCursor() {
-    const h = this._datumPlane.view.height
-    const w = this._datumPlane.view.width
+    const h = this._ycontrol.view.height
+    const w = this._ycontrol.view.width
 
     /** plot vertical line */
     if (this._xcontrol.isCursorCrossVisible) {
@@ -115,30 +115,30 @@ export class CursorChart extends AbstractChart {
     }
 
     let y = 0.0
-    if (this._datumPlane.view.isQuote) {
+    if (this._ycontrol.view.isQuote) {
       const quoteSer = x.quoteSer
 
       cal.setTimeInMillis(this.mouseTime)
       const time = quoteSer.timeOfRow(this.mouseRow)
       const vMouse = quoteSer.exists(time) ? quoteSer.close(time) : 0;
 
-      if (this._datumPlane.isMouseEntered) {
-        y = this._datumPlane.yMouse
+      if (this._ycontrol.isMouseEntered) {
+        y = this._ycontrol.yMouse
       } else {
-        y = quoteSer.exists(time) ? this._datumPlane.yv(quoteSer.close(time)) : 0
+        y = quoteSer.exists(time) ? this._ycontrol.yv(quoteSer.close(time)) : 0
       }
 
 
       /** plot horizonal line */
-      if (this._datumPlane.view.xcontrol.isCursorCrossVisible) {
+      if (this._ycontrol.view.xcontrol.isCursorCrossVisible) {
         this.cursorPath.moveto(0, y)
         this.cursorPath.lineto(w, y)
       }
 
-      const vDisplay = this._datumPlane.vy(y)
+      const vDisplay = this._ycontrol.vy(y)
 
       let str: string;
-      if (this._datumPlane.isAutoReferCursorValue) { // normal QuoteChartView
+      if (this._ycontrol.isAutoReferCursorValue) { // normal QuoteChartView
         const time = quoteSer.timeOfRow(this.referRow)
         const vRefer = quoteSer.exists(time) ? quoteSer.close(time) : 0;
 
@@ -159,8 +159,8 @@ export class CursorChart extends AbstractChart {
 
         str = "P: " + period + "  %" + append("%+3.2f".format(percent)).append("%").append("  A: ").append("%5.0f".format(amountSum)).toString
       } else { // else, usually RealtimeQuoteChartView
-        const vRefer = this._datumPlane.referCursorValue
-        const percent = vRefer == 0 ? 0.0 : 100 * (this._datumPlane.vy(y) - vRefer) / vRefer
+        const vRefer = this._ycontrol.referCursorValue
+        const percent = vRefer == 0 ? 0.0 : 100 * (this._ycontrol.vy(y) - vRefer) / vRefer
 
         str = CursorChart.MONEY_DECIMAL_FORMAT.format(vDisplay) + "  " + ("%+3.2f".format(percent)).append("%").toString
       }
@@ -174,8 +174,8 @@ export class CursorChart extends AbstractChart {
       label.plot
 
     } else { // indicator view
-      if (this._datumPlane.isMouseEntered) {
-        y = this._datumPlane.yMouse
+      if (this._ycontrol.isMouseEntered) {
+        y = this._ycontrol.yMouse
 
         /** plot horizonal line */
         if (this._xcontrol.isCursorCrossVisible) {

@@ -1,22 +1,22 @@
 import { TUnit } from "../../timeseris/TUnit";
-import type { DatumPlane } from "./DatumPlane";
 import { ChartView } from "../view/ChartView";
 import { ChartXControl } from "../view/ChartXControl";
 import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
+import type { ChartYControl } from "../view/ChartYControl";
 
 export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   #view: ChartView;
-  #datumPlane: DatumPlane;
+  #ycontrol: ChartYControl;
   #xcontrol: ChartXControl;
   width = 0;
   height = 0;
 
   constructor(view: ChartView) {
     this.#view = view;
-    this.#datumPlane = view.ycontrol;
+    this.#ycontrol = view.ycontrol;
     this.#xcontrol = view.xcontrol;
   }
 
@@ -93,7 +93,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   private plotAxisX() {
     const nTicks = this.width / this.TICK_SPACING
 
-    const nBars = this.#datumPlane.nBars
+    const nBars = this.#ycontrol.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
@@ -116,12 +116,12 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
     let prevDateDay: number;
 
     const hTick = this.height;
-    const xLastTick = this.#datumPlane.xb(nBars)
+    const xLastTick = this.#ycontrol.xb(nBars)
     console.log(nBars)
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit == 0 || i == nBars || i == 1) {
-        const xCurrTick = this.#datumPlane.xb(i)
+        const xCurrTick = this.#ycontrol.xb(i)
 
         if (xLastTick - xCurrTick < this.TICK_SPACING && i != nBars) {
           /** too close */
@@ -130,7 +130,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
           path.moveto(xCurrTick, 1)
           path.lineto(xCurrTick, hTick)
 
-          const time = this.#datumPlane.tb(i)
+          const time = this.#ycontrol.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
           let stridingDate = false
           const freqUnit = this.#xcontrol.baseSer.freq.unit
