@@ -1,7 +1,7 @@
 import { TUnit } from "../../timeseris/TUnit";
 import type { DatumPlane } from "./DatumPlane";
 import { ChartView } from "../view/ChartView";
-import { ChartControl } from "../view/ChartControl";
+import { ChartXControl } from "../view/ChartXControl";
 import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
@@ -10,7 +10,7 @@ import { Temporal } from "temporal-polyfill";
 export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   #view: ChartView;
   #datumPlane: DatumPlane;
-  #control: ChartControl;
+  #control: ChartXControl;
   width = 0;
   height = 0;
 

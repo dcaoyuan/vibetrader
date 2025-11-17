@@ -2,11 +2,11 @@ import { Chart, StrokeType } from './Chart';
 import type { DatumPlane } from '../pane/DatumPlane';
 import { Geometry } from './Geometry';
 import { Path } from '../../svg/Path';
-import { ChartControl } from '../view/ChartControl';
+import { ChartXControl } from '../view/ChartXControl';
 
 abstract class AbstractChart implements Chart {
   protected _datumPlane: DatumPlane;
-  protected _control: ChartControl;
+  protected _control: ChartXControl;
 
   depth;
 

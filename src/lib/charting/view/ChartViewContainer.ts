@@ -1,14 +1,14 @@
 import { Chart } from "../chart/Chart"
-import { ChartControl } from "./ChartControl"
+import { ChartXControl } from "./ChartXControl"
 import { ChartView } from "./ChartView"
 
 export interface ClassOfChartViewContainer {
-  new(focusableParent: any): ChartViewContainer;
+  new(): ChartViewContainer;
 }
 
 export class ChartViewContainer {
   //private descriptorToSlaveView = new Map<IndicatorDescriptor, ChartView>()
-  control: ChartControl
+  control: ChartXControl
   masterView: ChartView
 
   width: number;
@@ -17,11 +17,8 @@ export class ChartViewContainer {
   /**
    * init this viewContainer instance. binding with control (so, MasterSer and Descriptor) here
    */
-  constructor(focusableParent: any, control: ChartControl, masterView: ChartView) {
-    this._parent = focusableParent
+  constructor(control: ChartXControl, masterView: ChartView) {
     this.control = control;
-
-
     this.masterView = masterView;
 
     this.initComponents();
@@ -36,7 +33,6 @@ export class ChartViewContainer {
   private _selectedView?: ChartView;
   private _isInteractive = true;
   private _isPinned = false;
-  private _parent: any;
 
   paint() {
     //super.paint(g)
@@ -84,8 +80,8 @@ export class ChartViewContainer {
      * Need implement adjusting each views' height ?
      */
 
-    var numSlaveViews = 0
-    var sumSlaveViewsHeight = 0.0
+    let numSlaveViews = 0
+    let sumSlaveViewsHeight = 0.0
     // for (let view of descriptorToSlaveView.valuesIterator if view != masterView) {
     //   /** overlapping view is also in masterView, should ignor it */
     //   sumSlaveViewsHeight += view.getHeight

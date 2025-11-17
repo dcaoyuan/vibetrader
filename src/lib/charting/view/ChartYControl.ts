@@ -29,16 +29,7 @@ import { ChartPane } from "../pane/ChartPane";
  *   wBar
  *   onCalendarMode
  */
-export abstract class ChartView {
-  static readonly AXISX_HEIGHT = 16
-  static readonly AXISY_WIDTH = 50
-  static readonly CONTROL_HEIGHT = 12
-  static readonly TITLE_HEIGHT_PER_LINE = 12
-
-  drawLine(): SVGPathElement {
-    return document.createElementNS("http://www.w3.org/2000/svg", "path");
-  }
-
+export class ChartYControl {
   control: ChartXControl;
   mainSer?: TSer;
 
@@ -47,9 +38,6 @@ export abstract class ChartView {
 
   isQuote = false;
 
-  protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
-
-  readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
   readonly mainChartPane: ChartPane;
   //readonly glassPane = new GlassPane(this, this.mainChartPane)

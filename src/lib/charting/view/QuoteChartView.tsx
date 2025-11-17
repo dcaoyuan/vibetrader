@@ -1,5 +1,5 @@
 import { QuoteChart } from "../chart/QuoteChart"
-import { ChartControl } from "./ChartControl"
+import { ChartXControl } from "./ChartXControl"
 import { ChartView } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
@@ -40,7 +40,7 @@ export class QuoteChartView extends ChartView {
   quoteChart: QuoteChart
   quoteVar: TVar<Quote>;
 
-  constructor(control: ChartControl, quoteVar: TVar<Quote>) {
+  constructor(control: ChartXControl, quoteVar: TVar<Quote>) {
     super(control, quoteVar.belongsTo);
     this.quoteChart = new QuoteChart(quoteVar, this.mainChartPane);
     this.quoteVar = quoteVar;

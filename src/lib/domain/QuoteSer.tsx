@@ -3,7 +3,7 @@ import quotesJson from "../quotes.json"
 import { Quote } from "./Quote";
 import { TFreq } from "../timeseris/TFreq";
 import { TVar } from "../timeseris/TVar";
-import { ChartControl } from "../charting/view/ChartControl";
+import { ChartXControl } from "../charting/view/ChartXControl";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
 import { ChartViewContainer } from "../charting/view/ChartViewContainer";
 import { AxisXPane } from "../charting/pane/AxisXPane";
@@ -59,7 +59,7 @@ export namespace QuoteSer {
     const width = 800;
     const height = 400;
     const quoteSer = loadSer();
-    const chartControl = new ChartControl(quoteSer);
+    const chartControl = new ChartXControl(quoteSer);
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
     const chartView = new QuoteChartView(chartControl, qvar);
@@ -69,7 +69,7 @@ export namespace QuoteSer {
     chartView.mainChartPane.width = width;
     chartView.mainChartPane.height = height;
 
-    const viewContainer = new ChartViewContainer(undefined, chartControl, chartView);
+    const viewContainer = new ChartViewContainer(chartControl, chartView);
     chartControl.setViewContainer(viewContainer);
 
     const axisxPane = new AxisXPane(chartView);

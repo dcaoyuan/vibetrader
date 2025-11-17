@@ -4,22 +4,20 @@ import { ChartViewContainer } from "./ChartViewContainer"
 import type { ClassOfChartViewContainer } from "./ChartViewContainer"
 
 /**
- * Each BaseTSer can have more than one ChartControl instances.
+ * Each BaseTSer can have more than one ChartXControl instances.
  *
  * A ChartControl instance keeps the 1-1 relation with:
  *   the BaseTSer,
- *   the Descriptor, and
- *   a ChartViewContainer
+ *   the ChartViewContainer
  * Thus, ChartControl couples BaseTSer-Descriptor-ChartViewContainer
  * together from outside.
  *
  * A ChartView's container can be any Component even without a ChartViewContainer,
  * but should reference back to a control. All ChartViews shares the same
- * control will have the same cursor behaves.
+ * ChartXControl will have the same cursor behaves.
  *
  */
-
-export class ChartControl {
+export class ChartXControl {
   /**
    * min spacing in number of bars between referRow and left / right edge, if want more, such as:
    *     minSpacing = (nBars * 0.168).intValue
@@ -55,7 +53,7 @@ export class ChartControl {
   private _fixedLeftSideTime?: number;
   private _wBarIdx = 11;
   /** pixels per bar (bar width in pixels) */
-  private _wBar = ChartControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]
+  private _wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]
   private _lastOccurredRowOfBaseSer = 0;
   private _isAutoScrollToNewData = true;
   private _isMouseEnteredAnyChartPane = false;
@@ -65,9 +63,9 @@ export class ChartControl {
    * Factory method to create ChartViewContainer instance, got the relations
    * between ChartViewContainer and Control ready.
    */
-  createChartViewContainer(clazz: ClassOfChartViewContainer, focusableParent: any): ChartViewContainer | undefined {
+  createChartViewContainer(clazz: ClassOfChartViewContainer): ChartViewContainer | undefined {
     try {
-      const instance = new clazz(focusableParent);
+      const instance = new clazz();
       //instance.init(focusableParent, this)
 
       /**
@@ -175,11 +173,11 @@ export class ChartControl {
     this._wBarIdx += increment
     if (this._wBarIdx < 0) {
       this._wBarIdx = 0
-    } else if (this._wBarIdx > ChartControl.PREDEFINED_BAR_WIDTHS.length - 1) {
-      this._wBarIdx = ChartControl.PREDEFINED_BAR_WIDTHS.length - 1
+    } else if (this._wBarIdx > ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1) {
+      this._wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
     }
 
-    this.internal_setWBar(ChartControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]);
+    this.internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]);
     this.updateViews();
   }
 
@@ -207,23 +205,23 @@ export class ChartControl {
     let newWBar = wViewPort * 1.0 / nBars * 1.0;
 
     /** adjust xfactorIdx to nearest */
-    if (newWBar < ChartControl.PREDEFINED_BAR_WIDTHS[0]) {
+    if (newWBar < ChartXControl.PREDEFINED_BAR_WIDTHS[0]) {
       /** avoid too small xfactor */
-      newWBar = ChartControl.PREDEFINED_BAR_WIDTHS[0]
+      newWBar = ChartXControl.PREDEFINED_BAR_WIDTHS[0]
 
       this._wBarIdx = 0
 
-    } else if (newWBar > ChartControl.PREDEFINED_BAR_WIDTHS[ChartControl.PREDEFINED_BAR_WIDTHS.length - 1]) {
-      this._wBarIdx = ChartControl.PREDEFINED_BAR_WIDTHS.length - 1
+    } else if (newWBar > ChartXControl.PREDEFINED_BAR_WIDTHS[ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1]) {
+      this._wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
 
     } else {
       let i = 0
-      const n = ChartControl.PREDEFINED_BAR_WIDTHS.length - 1;
+      const n = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1;
       let breakNow = false
       while (i < n && !breakNow) {
-        if (newWBar > ChartControl.PREDEFINED_BAR_WIDTHS[i] && newWBar < ChartControl.PREDEFINED_BAR_WIDTHS[i + 1]) {
+        if (newWBar > ChartXControl.PREDEFINED_BAR_WIDTHS[i] && newWBar < ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1]) {
           /** which one is the nearest ? */
-          this._wBarIdx = Math.abs(ChartControl.PREDEFINED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartControl.PREDEFINED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
+          this._wBarIdx = Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
           breakNow = true;
         }
         i++;
@@ -275,14 +273,14 @@ export class ChartControl {
 
     // if refCursor is near left/right side, check if need to scroll chart except referCursur
     const rightPadding = rightRow - referRow
-    if (rightPadding < ChartControl.REF_PADDING_RIGHT) {
-      this.internal_setRightSideRow(rightRow + ChartControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
+    if (rightPadding < ChartXControl.REF_PADDING_RIGHT) {
+      this.internal_setRightSideRow(rightRow + ChartXControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
     } else {
       /** right spacing is enough, check left spacing: */
       const leftRow = rightRow - this.nBars() + 1
       const leftPadding = referRow - leftRow
-      if (leftPadding < ChartControl.REF_PADDING_LEFT) {
-        this.internal_setRightSideRow(rightRow + leftPadding - ChartControl.REF_PADDING_LEFT, willUpdateViews)
+      if (leftPadding < ChartXControl.REF_PADDING_LEFT) {
+        this.internal_setRightSideRow(rightRow + leftPadding - ChartXControl.REF_PADDING_LEFT, willUpdateViews)
       }
     }
 
@@ -302,7 +300,7 @@ export class ChartControl {
 
   scrollReferCursorToLeftSide() {
     const rightRow = this.rightSideRow;
-    const leftRow = rightRow - this.nBars() + ChartControl.REF_PADDING_LEFT
+    const leftRow = rightRow - this.nBars() + ChartXControl.REF_PADDING_LEFT
     this.setReferCursorByRow(leftRow, true)
   }
 
@@ -340,7 +338,7 @@ export class ChartControl {
 
   leftSideRow(): number {
     const rightRow = this.rightSideRow
-    return rightRow - this.nBars() + ChartControl.REF_PADDING_LEFT
+    return rightRow - this.nBars() + ChartXControl.REF_PADDING_LEFT
   }
 
   setLeftSideRowByTime(time: number, willUpdateViews: boolean = false) {
@@ -484,9 +482,9 @@ class ChartViewKeyAdapter /* extends KeyAdapter */ {
   private static readonly LEFT = -1
   private static readonly RIGHT = 1
 
-  outer: ChartControl;
+  outer: ChartXControl;
 
-  constructor(outer: ChartControl) {
+  constructor(outer: ChartXControl) {
     this.outer = outer;
   }
 
@@ -554,9 +552,9 @@ class ChartViewKeyAdapter /* extends KeyAdapter */ {
 }
 
 class ChartViewMouseWheelListener /* extends MouseWheelListener */ {
-  outer: ChartControl;
+  outer: ChartXControl;
 
-  constructor(outer: ChartControl) {
+  constructor(outer: ChartXControl) {
     this.outer = outer;
   }
 

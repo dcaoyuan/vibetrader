@@ -1,5 +1,5 @@
 import { TVar } from "../../timeseris/TVar";
-import { ChartControl } from "../view/ChartControl";
+import { ChartXControl } from "../view/ChartXControl";
 import { ChartView } from "../view/ChartView";
 import type { DatumPlane } from "./DatumPlane";
 import { TVal } from "../../timeseris/TVal";
@@ -21,7 +21,7 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
   }); // DecimalFormat("0.###")
 
   #datumPlane: DatumPlane;
-  #control: ChartControl;
+  #control: ChartXControl;
   #view: ChartView;
   #tvar: TVar<TVal>;
 
