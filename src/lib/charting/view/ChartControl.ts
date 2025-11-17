@@ -18,87 +18,8 @@ import type { ClassOfChartViewContainer } from "./ChartViewContainer"
  * control will have the same cursor behaves.
  *
  */
-interface IChartControl /* extends ChangeSubject*/ {
 
-  //serProvider: SerProvider
-  baseSer: BaseTSer
-
-  isCursorCrossVisible: boolean
-
-  isMouseEnteredAnyChartPane: boolean
-
-  wBar(): number
-
-  growWBar(increment: number): void
-
-  isFixedNBars(): boolean
-  fixedNBars?: number
-
-  isFixedLeftSideTime(): boolean
-  fixedLeftSideTime: number
-
-  // setWBarByNBars(nBars: number): void
-  setWBarByNBars(wViewPort: number, nBars: number): void
-
-  isOnCalendarMode: boolean
-
-  setCursorByRow(referRow: number, rightRow: number, willUpdateViews: boolean): void
-
-  setReferCursorByRow(Row: number, willUpdateViews: boolean): void
-
-  scrollReferCursor(increment: number, willUpdateViews: boolean): void
-
-  /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
-  scrollChartsHorizontallyByBar(increment: number): void
-
-  scrollReferCursorToLeftSide(): void
-  setLeftSideRowByTime(time: number, willUpdateViews: boolean): void
-
-  setMouseCursorByRow(row: number): void
-
-  isAutoScrollToNewData: boolean
-
-  updateViews(): void
-
-  //popupViewToDesktop(view: ChartView, dimension: DOMRect, alwaysOnTop: boolean, joint: boolean): void
-
-  /**
-   * ======================================================
-   * Bellow is the methods for cursor etc:
-   */
-  referCursorRow: number
-  rightSideRow: number
-  mouseCursorRow: number
-
-  leftSideRow(): number
-
-  referCursorTime(): number
-  rightSideTime(): number
-  leftSideTime(): number
-  mouseCursorTime(): number
-
-  isCursorAccelerated: boolean
-
-  /**
-   * Factory method to create ChartViewContainer instance
-   */
-  createChartViewContainer(clazz: ClassOfChartViewContainer, focusableParent: any): ChartViewContainer
-}
-
-
-/**
- * ChartControl that implements IChartControl
- *
- * ChangeSubject cases for ChartValidityObserver:
- *   rightSideRow
- *   referCursorRow
- *   wBar
- *   onCalendarMode
- * ChangeSubject cases for MouseCursorObserver:
- *   mosueCursor
- *   mouseEnteredAnyChartPane
- */
-export class ChartControl implements IChartControl {
+export class ChartControl {
   /**
    * min spacing in number of bars between referRow and left / right edge, if want more, such as:
    *     minSpacing = (nBars * 0.168).intValue

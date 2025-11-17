@@ -3,10 +3,10 @@ import type { BaseTSer } from "../../timeseris/BaseTSer";
 import type { TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { Chart } from "../chart/Chart";
-import { ChartPane } from "../pane/ChartPane";
 import { Pane } from "../pane/Pane";
 import { ChartControl } from "./ChartControl";
 import type { Scalar } from "./scalar/Scalar";
+import { ChartPane } from "../pane/ChartPane";
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -160,7 +160,6 @@ export abstract class ChartView {
   protected prePaintComponent() {
     this.computeGeometry()
 
-    /** @TODO, use notify ? */
     this.mainChartPane.computeGeometry()
   }
 
@@ -381,7 +380,7 @@ export abstract class ChartView {
 
   chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
     //assert(ser != null, "Do not pass me a null ser!")
-    let x = this.overlappingSerChartToVars.get(ser);
+    //let x = this.overlappingSerChartToVars.get(ser);
     return ser === this.mainSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
   }
 
@@ -393,7 +392,7 @@ export abstract class ChartView {
     const _allSers = new Set<TSer>()
 
     _allSers.add(this.mainSer);
-    for (let s of this.overlappingSers()) {
+    for (const s of this.overlappingSers()) {
       _allSers.add(s);
     }
 
