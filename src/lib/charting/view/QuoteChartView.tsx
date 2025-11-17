@@ -42,7 +42,7 @@ export class QuoteChartView extends ChartView {
 
   constructor(control: ChartXControl, quoteVar: TVar<Quote>) {
     super(control, quoteVar.belongsTo);
-    this.quoteChart = new QuoteChart(quoteVar, this.mainChartPane);
+    this.quoteChart = new QuoteChart(quoteVar, this.ycontrol);
     this.quoteVar = quoteVar;
 
     //if (axisXPane != null) {
@@ -108,13 +108,13 @@ export class QuoteChartView extends ChartView {
   }
 
   swithScalarType() {
-    switch (this.mainChartPane.valueScalar.kind) {
+    switch (this.ycontrol.valueScalar.kind) {
       case LINEAR_SCALAR.kind:
-        this.mainChartPane.valueScalar = LG_SCALAR;
+        this.ycontrol.valueScalar = LG_SCALAR;
         break;
 
       default:
-        this.mainChartPane.valueScalar = LINEAR_SCALAR;
+        this.ycontrol.valueScalar = LINEAR_SCALAR;
     }
   }
 

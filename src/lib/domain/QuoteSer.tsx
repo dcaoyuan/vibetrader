@@ -66,8 +66,8 @@ export namespace QuoteSer {
     chartView.isQuote = true;
     chartView.width = width;
     chartView.height = height;
-    chartView.mainChartPane.width = width;
-    chartView.mainChartPane.height = height;
+    chartView.ycontrol.width = width;
+    chartView.ycontrol.height = height;
 
     const viewContainer = new ChartViewContainer(chartControl, chartView);
     chartControl.setViewContainer(viewContainer);

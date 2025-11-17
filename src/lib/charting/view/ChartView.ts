@@ -6,7 +6,7 @@ import { Chart } from "../chart/Chart";
 import { Pane } from "../pane/Pane";
 import { ChartXControl } from "./ChartXControl";
 import type { Scalar } from "./scalar/Scalar";
-import { ChartPane } from "../pane/ChartPane";
+import { ChartYControl } from "./ChartYControl";
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -51,7 +51,7 @@ export abstract class ChartView {
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-  readonly mainChartPane: ChartPane;
+  readonly ycontrol: ChartYControl;
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
@@ -67,7 +67,7 @@ export abstract class ChartView {
     this.initComponents();
     this.putChartsOfMainSer()
 
-    this.mainChartPane = new ChartPane(this);
+    this.ycontrol = new ChartYControl(this);
 
     //listenTo(this._mainSer);
 
@@ -160,7 +160,7 @@ export abstract class ChartView {
   protected prePaintComponent() {
     this.computeGeometry()
 
-    this.mainChartPane.computeGeometry()
+    this.ycontrol.computeGeometry()
   }
 
   /**
@@ -289,11 +289,11 @@ export abstract class ChartView {
   }
 
   get yChartScale() {
-    return this.mainChartPane.yChartScale;
+    return this.ycontrol.yChartScale;
   }
   set yChartScale(yChartScale: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
+    if (this.ycontrol != null) {
+      const datumPane = this.ycontrol
       datumPane.yChartScale = yChartScale
     }
 
@@ -301,8 +301,8 @@ export abstract class ChartView {
   }
 
   valueScalar(valueScalar: Scalar) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
+    if (this.ycontrol != null) {
+      const datumPane = this.ycontrol
       datumPane.valueScalar = valueScalar
     }
 
@@ -310,8 +310,8 @@ export abstract class ChartView {
   }
 
   adjustYChartScale(increment: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
+    if (this.ycontrol != null) {
+      const datumPane = this.ycontrol
       datumPane.growYChartScale(increment)
     }
 
@@ -319,8 +319,8 @@ export abstract class ChartView {
   }
 
   yChartScaleByCanvasValueRange(canvasValueRange: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
+    if (this.ycontrol != null) {
+      const datumPane = this.ycontrol
       datumPane.yChartScaleByCanvasValueRange(canvasValueRange)
     }
 
@@ -328,7 +328,7 @@ export abstract class ChartView {
   }
 
   scrollChartsVerticallyByPixel(increment: number) {
-    const datumPane = this.mainChartPane
+    const datumPane = this.ycontrol
     if (datumPane != null) {
       datumPane.scrollChartsVerticallyByPixel(increment)
     }

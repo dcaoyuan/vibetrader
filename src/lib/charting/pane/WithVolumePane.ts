@@ -1,4 +1,4 @@
-import { ChartPane } from "./ChartPane"
+import type { ChartYControl } from "../view/ChartYControl";
 
 export interface WithVolumePane {
 
@@ -6,7 +6,7 @@ export interface WithVolumePane {
 
   minVolume: number
 
-  volumeChartPane: ChartPane
+  volumeChartPane: ChartYControl
 }
 
 export function withVolumePane(view: any): view is WithVolumePane {

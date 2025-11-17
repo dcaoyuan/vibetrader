@@ -1,327 +1,247 @@
-import { TVal } from "../../timeseris/TVal";
 import type { BaseTSer } from "../../timeseris/BaseTSer";
-import type { TSer } from "../../timeseris/TSer";
-import { TVar } from "../../timeseris/TVar";
-import { Chart } from "../chart/Chart";
-import { Pane } from "../pane/Pane";
-import { ChartXControl } from "./ChartXControl";
-import type { Scalar } from "./scalar/Scalar";
-import { ChartPane } from "../pane/ChartPane";
+import { Geometry } from "../chart/Geometry";
+import { withVolumePane, type WithVolumePane } from "../pane/WithVolumePane";
+import { ChartView } from "../view/ChartView";
+import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
+import type { Scalar } from "../view/scalar/Scalar";
 
 /**
- * A ChartView's container can be any Component even without a ChartViewContainer,
- * but should reference back to a control. All ChartViews shares the same
- * control will have the same cursor behaves.
  *
- * Example: you can add a ChartView directly to a JFrame.
+ * @todo the ChangeObservable should notify according to priority
  *
- * baseSer: the ser instaceof BaseTSer, with the calendar time feature,
- *            it's put in the masterView to control the cursor;
- * mainSer: vs overlappingSer, this view's main ser.
- *
- *       1..n           1..n
- * ser --------> chart ------> var
- *
- *
- * ChangeSubject cases:
- *   rightSideRow
- *   referCursorRow
- *   wBar
- *   onCalendarMode
+ * call super(view, null) will let the super know this pane will be its
+ * own datumPlane.
+ * @see Pane#Pane(ChartView, DatumPlane)
  */
 export class ChartYControl {
-  control: ChartXControl;
-  mainSer?: TSer;
+  view: ChartView;
+  baseSer: BaseTSer;
+
+  constructor(view: ChartView) {
+    this.view = view;
+    this.baseSer = this.view.control.baseSer;
+  }
+
+  isGeometryValid = false;
 
   width: number;
   height: number;
 
-  isQuote = false;
+  /** geometry that need to be set before chart plotting and render */
+  #nBars = 0                // fetched from view, number of bars, you may consider it as chart width
+  #hChart = 0               // chart height in pixels, corresponds to the value range (maxValue - minValue)
+  #hCanvas = 0              // canvas height in pixels
+  #hChartOffsetToCanvas = 0 // chart's axis-y offset in canvas, named hXXXX means positive is from lower to upper;
+  #hSpaceLower = 0          // height of spare space at lower side
+  #hSpaceUpper = 0          // height of spare space at upper side
+  #yCanvasLower = 0         // y of canvas' lower side
+  #yChartLower = 0          // y of chart's lower side
+  #wBar = 0.0               // fetched from viewContainer, pixels per bar
+  #hOne = 0.0               // pixels per 1.0 value
+  #maxValue = 0.0           // fetched from view
+  #minValue = 0.0           // fetched from view
+  #maxScaledValue = 0.0
+  #minScaledValue = 0.0
 
+  valueScalar: Scalar = LINEAR_SCALAR
 
-  readonly mainChartPane: ChartPane;
-  //readonly glassPane = new GlassPane(this, this.mainChartPane)
-  //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
-  //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
-  //readonly divisionPane = new DivisionPane(this, this.mainChartPane)
+  isMouseEntered: boolean;
+  yMouse: number;
+  referCursorValue: number;
+  isAutoReferCursorValue: boolean;
 
-  constructor(control: ChartXControl, mainSer: TSer) {
-    this.control = control
-    this.mainSer = mainSer
-    this.#baseSer = control.baseSer
-
-    this.#createBasisComponents();
-
-    this.initComponents();
-    this.putChartsOfMainSer()
-
-    this.mainChartPane = new ChartPane(this);
-
-    //listenTo(this._mainSer);
-
-    /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
-  }
-
-
-
-  //   const mainLayeredPane = new JLayeredPane {
-  //     /** this will let the pane components getting the proper size when init */
-  //     override protected def paintComponent(g: Graphics) {
-  //       val width = getWidth
-  //       val height = getHeight
-  //       for (c <- getComponents if c.isInstanceOf[Pane]) {
-  //         c.setBounds(0, 0, width, height)
-  //       }
-  //     }
-  //   }
-
-  // x-control pane, may be <code>null</code>
-  //xControlPane?: XControlPane;
-  // y-control pane, may be <code>null</code>
-  yControlPane?: Pane; //YControlPane;
-
-  /** geometry */
-  #nBars = 0 // number of bars
-  #maxValue = 1.0
-  #minValue = 0.0
-  #oldMaxValue = this.#maxValue
-  #oldMinValue = this.#minValue
-
-  #isInteractive = true
-  #isPinned = false
-
-  #baseSer?: BaseTSer;
-  #lastDepthOfOverlappingChart = 0; // Pane.DEPTH_CHART_BEGIN
-
-  protected abstract initComponents(): void;
-
-  #createBasisComponents() {
-
-    /**
-     * !NOTICE
-     * To make background works, should keep three conditions:
-     * 1. It should be a JPanel instead of a JComponent(which may have no background);
-     * 2. It should be opaque;
-     * 3. If override paintComponent(g0), should call super.paintComponent(g0) ?
-     */
-    // setOpaque(true);
-
-    // this.mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-    // this.mainLayeredPane.add(mainChartPane, JLayeredPane.DEFAULT_LAYER)
-
-    // this.glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-
-    // this.axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
-    // this.axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
-    // this.divisionPane.setPreferredSize(new Dimension(10, 1))
-  }
 
   /**
-   * The paintComponent() method will always be called automatically whenever
-   * the component need to be reconstructed as it is a JComponent.
+   * the percent of hCanvas to be used to render charty, is can be used to scale the chart
    */
-  protected paintComponent() {
-    this.prePaintComponent()
+  #yChartScale = 1.0;
 
-    // if (isOpaque) {
-    //   /**
-    //    * Process background by self,
-    //    *
-    //    * @NOTICE
-    //    * don't forget to setBackgroud() to keep this component's properties consistent
-    //    */
-    //   setBackground(LookFeel().backgroundColor)
-    //   g.setColor(getBackground)
-    //   g.fillRect(0, 0, getWidth, getHeight)
+  /** the pixels used to record the chart vertically moving */
+  #hChartScrolled: number = 0;
+
+  computeGeometry() {
+    this.#wBar = this.view.control.wBar()
+    this.#nBars = this.view.nBars
+
+    /**
+     * @TIPS:
+     * if want to leave spare space at lower side, do hCanvas -= space
+     * if want to leave spare space at upper side, do hChart = hCanvas - space
+     *     hOne = hChart / (maxValue - minValue)
+     */
+    this.#hSpaceLower = 1
+    // if (this.view.xControlPane !== undefined) {
+    //   /** leave xControlPane's space at lower side */
+    //   this.#hSpaceLower += this.view.xControlPane.getHeight
     // }
 
-    /**
-     * @NOTICE:
-     * if we call:
-     *   super.paintComponent(g);
-     * here, this.paintComponent(g) will be called three times!!!, the reason
-     * may be that isOpaque() == true
-     */
-    this.postPaintComponent()
-  }
+    /** default values: */
+    this.#hSpaceUpper = 0
+    this.#maxValue = this.view.maxValue
+    this.#minValue = this.view.minValue
 
-  protected prePaintComponent() {
-    this.computeGeometry()
+    /** adjust if necessary */
+    if (this as unknown as ChartYControl === this.view.ycontrol) {
+      this.#hSpaceUpper += ChartView.TITLE_HEIGHT_PER_LINE
+      //let x = (this.view as unknown as WithVolumePane).volumeChartPane
 
-    this.mainChartPane.computeGeometry()
-  }
-
-  /**
-   * what may affect the geometry:
-   * 1. the size of this component changed;
-   * 2. the rightCursorRow changed;
-   * 3. the ser's value changed or its items added, which need computeMaxMin();
-   *
-   * The control only define wBar (the width of each bar), this component
-   * will compute number of bars according to its size. So, if you want to more
-   * bars displayed, such as an appointed newNBars, you should compute the size of
-   * this's container, and call container.setBounds() to proper size, then, the
-   * layout manager will layout the size of its ChartView instances automatically,
-   * and if success, the newNBars computed here will equals the newNBars you want.
-   */
-  protected computeGeometry() {
-    /**
-     * @Note
-     * 1.Should get wBar firstly, then calculator nBars
-     * 2.Get this view's width to compute nBars instead of mainChartPane's
-     * width, because other panes may be repainted before mainChartPane is
-     * properly layouted (the width of mainChartPane is still not good)
-     */
-    const nBars1 = this.control.isFixedNBars() ?
-      this.control.fixedNBars :
-      Math.floor(this.wChart() / this.control.wBar())
-
-    /** avoid nBars == 0 */
-    this.nBars = Math.max(nBars1, 1)
-
-    if (this.control.isFixedLeftSideTime) {
-      this.control.setLeftSideRowByTime(this.control.fixedLeftSideTime, false)
+    } else if (
+      withVolumePane(this.view) &&
+      (this as unknown as ChartYControl) === (this.view as unknown as WithVolumePane).volumeChartPane
+    ) {
+      this.#maxValue = (this.view as unknown as WithVolumePane).maxVolume;
+      this.#minValue = (this.view as unknown as WithVolumePane).minVolume;
     }
 
-    /**
-     * We only need computeMaxMin() once when a this should be repainted,
-     * so do it here.
-     */
-    this.computeMaxMin();
-    if (this.#maxValue != this.#oldMaxValue || this.#minValue != this.#oldMinValue) {
-      this.#oldMaxValue = this.#maxValue
-      this.#oldMinValue = this.#minValue
-      //this.notifyChanged(classOf[ChartValidityObserver])
-    }
-  }
+    this.#maxScaledValue = this.valueScalar.doScale(this.#maxValue)
+    this.#minScaledValue = this.valueScalar.doScale(this.#minValue)
 
-  protected setMaxMinValue(max: number, min: number) {
-    this.#maxValue = max;
-    this.#minValue = min;
-  }
+    this.#hCanvas = this.height - this.#hSpaceLower - this.#hSpaceUpper
 
-  protected postPaintComponent() {
+    const hChartCouldBe = this.#hCanvas
+    this.#hChart = hChartCouldBe * this.#yChartScale
+
+    /** allocate sparePixelsBroughtByYChartScale to upper and lower averagyly */
+    const sparePixelsBroughtByYChartScale = hChartCouldBe - this.#hChart
+    this.#hChartOffsetToCanvas = this.#hChartScrolled + (sparePixelsBroughtByYChartScale * 0.5)
+
+
+    this.#yCanvasLower = this.#hSpaceUpper + this.#hCanvas
+    this.#yChartLower = this.#yCanvasLower - this.#hChartOffsetToCanvas
+
     /**
-     * update controlPane's scrolling thumb position etc.
-     *
      * @NOTICE
-     * We choose here do update controlPane, because the paint() called in
-     * Java Swing is async, we not sure when it will be really called from
-     * outside, even in this's container, so here is relative safe place to
-     * try, because here means the paint() is truely beging called by awt.
+     * the chart height corresponds to value range.
+     * (not canvas height, which may contain values exceed max/min)
      */
-    // if (this.axisXPane != null) {
-    //   this.axisXPane.syncWithView
-    // }
+    this.#hOne = this.#hChart / (this.#maxScaledValue - this.#minScaledValue)
 
-    // if (this.axisYPane != null) {
-    //   this.axisYPane.syncWithView
-    // }
+    /** avoid hOne == 0 */
+    this.#hOne = Math.max(this.#hOne, 0.0000000001)
 
-    // if (this.xControlPane != null) {
-    //   this.xControlPane.syncWithView
-    // }
+    console.log(
+      {
+        hCanvas: this.#hCanvas,
+        hChart: this.#hChart,
+        hChartOffsetToCanvas: this.#hChartOffsetToCanvas,
+        hOne: this.#hOne,
+        hSpaceLower: this.#hSpaceLower,
+        hSpaceUpper: this.#hSpaceUpper,
+        maxValue: this.#maxValue,
+        minValue: this.#minValue,
+        maxScaledValue: this.#maxScaledValue,
+        minScaledValue: this.#minScaledValue,
+        nBars: this.#nBars,
+        wBars: this.#wBar,
+        yCanvasLower: this.#yCanvasLower,
+        yChartLower: this.#yChartLower,
+        yChartScale: this.#yChartScale
+      },
+    )
 
-    // if (this.yControlPane != null) {
-    //   this.yControlPane.syncWithView
-    // }
-
+    this.isGeometryValid = true
   }
 
-  get nBars(): number {
-    return this.#nBars;
-  }
-  private set nBars(nBars: number) {
-    const oldValue = this.#nBars
-    this.#nBars = nBars;
-    if (this.#nBars != oldValue) {
-      //this.notifyChanged(classOf[ChartValidityObserver])
-    }
-  }
-
-  // should decide width by this component's width and constant AXISY_WIDTH, since the width of children may not be decided yet.
-  wChart(): number {
-    return this.width - ChartView.AXISY_WIDTH;
-  }
-
-  get isSelected() {
-    return false;
-    //return this.glassPane.isSelected;
-  }
-  set isSelected(b: boolean) {
-    //this.glassPane.isSelected = b;
-  }
-
-  get isInteractive() {
-    return this.#isInteractive;
-  }
-  set isInteractive(b: boolean) {
-    //this.glassPane.interactive(b);
-
-    this.#isInteractive = b;
-  }
-
-  get isPinned(): boolean {
-    return this.#isPinned;
-  }
-  pin() {
-    //this.glassPane.pin(true);
-
-    this.#isPinned = true;
-  }
-
-  unPin() {
-    //this.glassPane.pin(false);
-
-    this.#isPinned = false;
-  }
-
-  get yChartScale() {
-    return this.mainChartPane.yChartScale;
-  }
+  get yChartScale(): number { return this.#yChartScale; }
   set yChartScale(yChartScale: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
-      datumPane.yChartScale = yChartScale
-    }
+    const oldValue = this.#yChartScale
+    this.#yChartScale = yChartScale
 
-    //repaint()
+    if (oldValue != this.#yChartScale) {
+      this.isGeometryValid = false
+      //repaint();
+    }
   }
 
-  valueScalar(valueScalar: Scalar) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
-      datumPane.valueScalar = valueScalar
-    }
-
-    //repaint()
-  }
-
-  adjustYChartScale(increment: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
-      datumPane.growYChartScale(increment)
-    }
-
-    //repaint()
+  growYChartScale(increment: number) {
+    this.yChartScale += increment;
   }
 
   yChartScaleByCanvasValueRange(canvasValueRange: number) {
-    if (this.mainChartPane != null) {
-      const datumPane = this.mainChartPane
-      datumPane.yChartScaleByCanvasValueRange(canvasValueRange)
-    }
+    const oldCanvasValueRange = this.vy(this.yCanvasUpper) - this.vy(this.yCanvasLower)
+    const scale = oldCanvasValueRange / canvasValueRange
+    const newYChartScale = this.#yChartScale * scale
 
-    //repaint()
+    this.yChartScale = newYChartScale
   }
 
   scrollChartsVerticallyByPixel(increment: number) {
-    const datumPane = this.mainChartPane
-    if (datumPane != null) {
-      datumPane.scrollChartsVerticallyByPixel(increment)
-    }
+    this.#hChartScrolled += increment
 
-    //repaint()
+    /** let repaint() to update the hChartOffsetToCanvas and other geom */
+    //repaint();
+  }
+
+
+  /**
+   * barIndex -> x
+   *
+   * @param i index of bars, start from 1 to nBars
+   * @return x
+   */
+  xb(barIndex: number): number {
+    return this.#wBar * (barIndex - 1);
+  }
+
+  xr(row: number): number {
+    return this.xb(this.br(row));
+  }
+
+  /**
+   * y <- value
+   *
+   * @param value
+   * @return y on the pane
+   */
+  yv(value: number): number {
+    const scaledValue = this.valueScalar.doScale(value)
+    return Geometry.yv(scaledValue, this.#hOne, this.#minScaledValue, this.#yChartLower)
+  }
+
+  /**
+   * value <- y
+   * @param y y on the pane
+   * @return value
+   */
+  vy(y: number): number {
+    const scaledValue = Geometry.vy(y, this.#hOne, this.#minScaledValue, this.#yChartLower)
+    return this.valueScalar.unScale(scaledValue);
+  }
+
+  /**
+   * barIndex <- x
+   *
+   * @param x x on the pane
+   * @return index of bars, start from 1 to nBars
+   */
+  bx(x: number): number {
+    return Math.round(x / this.#wBar + 1)
+  }
+
+
+  /**
+   * time <- x
+   */
+  tx(x: number): number {
+    return this.tb(this.bx(x));
+  }
+
+  /** row <- x */
+  rx(x: number): number {
+    return this.rb(this.bx(x))
+  }
+
+  rb(barIndex: number): number {
+    /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
+    return this.view.control.rightSideRow - this.#nBars + barIndex
+  }
+
+  br(row: number): number {
+    return row - this.view.control.rightSideRow + this.#nBars
+  }
+
+  exists(time: number): boolean {
+    return this.baseSer.exists(time);
   }
 
   /**
@@ -331,12 +251,15 @@ export class ChartYControl {
    * @return time
    */
   tb(barIndex: number): number {
-    return this.#baseSer.timeOfRow(this.rb(barIndex));
+    return this.view.baseSer.timeOfRow(this.rb(barIndex));
   }
 
-  rb(barIndex: number): number {
-    /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.control.rightSideRow - this.#nBars + barIndex;
+  tr(row: number): number {
+    return this.baseSer.timeOfRow(row);
+  }
+
+  rt(time: number): number {
+    return this.baseSer.rowOfTime(time);
   }
 
   /**
@@ -346,170 +269,66 @@ export class ChartYControl {
    * @return index of bars, start from 1 and to nBars
    */
   bt(time: number): number {
-    return this.br(this.#baseSer.rowOfTime(time))
+    return this.br(this.view.control.baseSer.rowOfTime(time))
   }
 
-  br(row: number): number {
-    return row - this.control.rightSideRow + this.#nBars
+  get nBars(): number {
+    return this.#nBars;
   }
 
-  get maxValue() {
+  get wBar(): number {
+    return this.#wBar;
+  }
+
+  /**
+   * @return height of 1.0 value in pixels
+   */
+  get hOne(): number {
+    return this.#hOne;
+  }
+
+  get hCanvas(): number {
+    return this.#hCanvas;
+  }
+
+  get yCanvasLower(): number {
+    return this.#yCanvasLower;
+  }
+
+  get yCanvasUpper(): number {
+    return this.#hSpaceUpper;
+  }
+
+  /**
+   * @return chart height in pixels, corresponds to the value range (maxValue - minValue)
+   */
+  get hChart(): number {
+    return this.#hChart;
+  }
+
+  get yChartLower(): number {
+    return this.#yChartLower
+  }
+
+  get yChartUpper(): number {
+    return this.yChartLower - this.#hChart;
+  }
+
+  get maxValue(): number {
     return this.#maxValue;
   }
+
   get minValue(): number {
     return this.#minValue;
   }
 
+  // @throws(classOf[Throwable])
+  // override protected def finalize {
+  //   view.control.removeObserversOf(this)
+  //   view.removeObserversOf(this)
 
-  get baseSer(): BaseTSer {
-    return this.#baseSer;
-  }
-
-
-  chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
-    //assert(ser != null, "Do not pass me a null ser!")
-    //let x = this.overlappingSerChartToVars.get(ser);
-    return ser === this.mainSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
-  }
-
-  overlappingSers() {
-    return this.overlappingSerChartToVars.keys();
-  }
-
-  allSers() {
-    const _allSers = new Set<TSer>()
-
-    _allSers.add(this.mainSer);
-    for (const s of this.overlappingSers()) {
-      _allSers.add(s);
-    }
-
-    return _allSers
-  }
-
-  popupToDesktop() {
-  }
-
-  // addOverlappingCharts(ser: TSer) {
-  //   this.listenTo(ser)
-
-  //   let chartToVars = this.overlappingSerChartToVars.get(ser)
-  //   if (chartToVars === undefined) {
-  //     chartToVars = new Map<Chart, Set<TVar<unknown>>>()
-  //     this.overlappingSerChartToVars.set(ser, chartToVars)
-  //   }
-
-  //   let depthGradient = Pane.DEPTH_GRADIENT_BEGIN
-
-  //   for (let [k, v] of ser.vars if v.plot != Plot.None) {
-  //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf QuoteSer) {
-  //       const qser = baseSer.asInstanceOf[QuoteSer]
-  //       ChartFactory.createVarChart(v, qser.high, qser.low)
-
-  //     } else if (v.plot === Plot.Info) {
-  //       ChartFactory.createVarChart(v, ser.vars : _ *)
-
-  //     } else {
-  //       ChartFactory.createVarChart(v)
-  //     }
-
-  //     if (chart != null) {
-  //       let vars = chartToVars.get(chart);
-  //       if (vars === undefined) {
-  //         vars = new Set<TVar<unknown>>()
-  //         chartToVars.set(chart, vars)
-  //       }
-  //       vars.add(v);
-
-  //       switch (chart.tag) {
-  //         case "GradientChart":
-  //           chart.depth = depthGradient; depthGradient--
-  //           break;
-  //         case "ProfileChart":
-  //           chart.depth = depthGradient; depthGradient--
-  //           break;
-  //         case "StickChart":
-  //           chart.depth = -8
-  //           break;
-  //         default:
-  //           chart.depth = this.#lastDepthOfOverlappingChart;
-  //           this.#lastDepthOfOverlappingChart++;
-  //       }
-
-  //       chart.set(this.mainChartPane, ser)
-  //       this.mainChartPane.putChart(chart)
-  //     }
-  //   }
-
-  //   notifyChanged(classOf[ChartValidityObserver])
-
-  //   repaint()
+  //   super.finalize
   // }
 
-  // removeOverlappingCharts(ser: TSer) {
-  //   deafTo(ser)
-
-  //   const chartToVars = this.overlappingSerChartToVars.get(ser) ?? new Map<Chart, Set<TVar<unknown>>>();
-  //   chartToVars.forEach(
-  //     chartToVars => {
-  //       for (let chart of chartToVars.keys()) {
-  //         mainChartPane.removeChart(chart)
-  //         switch (chart.tag) {
-  //           case "GradientChart": /** noop */
-  //           case "ProfileChart": /** noop */
-  //           case "StickChart": /** noop */
-  //             break;
-  //           default:
-  //             this.#lastDepthOfOverlappingChart--
-  //         }
-  //       }
-  //       /** release chartToVars */
-  //       chartToVars.clear
-  //       overlappingSerChartToVars.remove(ser)
-  //     }
-  //   )
-
-  //   notifyChanged(classOf[ChartValidityObserver])
-
-  //   repaint()
-  // }
-
-  computeMaxMin() {
-    /** if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 */
-    this.#maxValue = 1;
-    this.#minValue = 0;
-  }
-
-  protected abstract putChartsOfMainSer(): void
-
-  /** this method only process FinishedComputing event, if you want more, do it in subclass */
-  // protected updateView(evt: TSerEvent) {
-  //   switch (evt) {
-  //     case TSerEvent.Computed(_, _, _, _, _, _):
-  //       switch (this) {
-  //         case drawPane: WithDrawingPane:
-  //           const drawing = drawPane.selectedDrawing
-  //           if (drawing !== undefined && drawing.isInDrawing) {
-  //             return
-  //           }
-  //           break;
-  //         default:
-  //       }
-
-  //       notifyChanged(classOf[ChartValidityObserver])
-
-  //       // repaint this chart view
-  //       repaint();
-  //       break;
-  //     default:
-  //   }
-  // }
-
-  //   @throws(classOf[Throwable])
-  //   override protected def finalize {
-  //     deafTo(_mainSer)
-  //     super.finalize
-  //   }
 }
-
 

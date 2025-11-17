@@ -216,10 +216,6 @@ export class ChartViewContainer {
   //   descriptorToSlaveView
   // }
 
-  getFocusableParent(): any {
-    return this._parent;
-  }
-
   // def saveToCustomSizeImage(file: File, fileFormat: String, width: Int, height: Int) {
   //   /** backup: */
   //   val backupRect = getBounds()

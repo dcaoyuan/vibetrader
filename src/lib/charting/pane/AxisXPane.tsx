@@ -16,7 +16,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
 
   constructor(view: ChartView) {
     this.#view = view;
-    this.#datumPlane = view.mainChartPane;
+    this.#datumPlane = view.ycontrol;
     this.#control = view.control;
   }
 

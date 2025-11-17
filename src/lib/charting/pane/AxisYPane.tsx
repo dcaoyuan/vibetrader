@@ -30,7 +30,7 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
 
   constructor(view: ChartView, tvar: TVar<TVal>) {
     this.#view = view;
-    this.#datumPlane = view.mainChartPane;
+    this.#datumPlane = view.ycontrol;
     this.#control = view.control;
     this.#tvar = tvar;
   }
