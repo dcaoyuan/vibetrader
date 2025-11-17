@@ -40,8 +40,8 @@ export class QuoteChartView extends ChartView {
   quoteChart: QuoteChart
   quoteVar: TVar<Quote>;
 
-  constructor(control: ChartXControl, quoteVar: TVar<Quote>) {
-    super(control, quoteVar.belongsTo);
+  constructor(xcontrol: ChartXControl, quoteVar: TVar<Quote>) {
+    super(xcontrol, quoteVar.belongsTo);
     this.quoteChart = new QuoteChart(quoteVar, this.ycontrol);
     this.quoteVar = quoteVar;
 

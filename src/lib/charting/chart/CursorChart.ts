@@ -33,7 +33,7 @@ export class CursorChart extends AbstractChart {
 
   constructor(datumPlane: DatumPlane) {
     super(datumPlane);
-    this._control = datumPlane.view.control;
+    this._xcontrol = datumPlane.view.xcontrol;
   }
 
   protected cursorPath: Path;
@@ -43,10 +43,10 @@ export class CursorChart extends AbstractChart {
   protected plotChart() {
     const theme = Theme.now()
 
-    const referRow = this._control.referCursorRow
-    const referTime = this._control.referCursorTime
-    const mouseRow = this._control.mouseCursorRow
-    const mouseTime = this._control.mouseCursorTime
+    const referRow = this._xcontrol.referCursorRow
+    const referTime = this._xcontrol.referCursorTime
+    const mouseRow = this._xcontrol.mouseCursorRow
+    const mouseTime = this._xcontrol.mouseCursorTime
 
     switch (this.kind) {
       case CursorChart.Kind.Refer:
@@ -61,7 +61,7 @@ export class CursorChart extends AbstractChart {
 
         break;
       case CursorChart.Kind.Mouse:
-        if (!this._datumPlane.view.control.isMouseEnteredAnyChartPane) {
+        if (!this._datumPlane.view.xcontrol.isMouseEnteredAnyChartPane) {
           return;
         }
 
@@ -82,19 +82,19 @@ export class CursorChart extends AbstractChart {
     const w = this._datumPlane.view.width
 
     /** plot cross' vertical line */
-    if (this._control.isCursorCrossVisible) {
+    if (this._xcontrol.isCursorCrossVisible) {
       this.cursorPath.moveto(this.x, 0)
       this.cursorPath.lineto(this.x, h)
     }
 
     if (this._datumPlane.view.isQuote) {
-      const quoteSer = this._control.baseSer
+      const quoteSer = this._xcontrol.baseSer
       const time = this._datumPlane.tr(this.referRow);
       if (quoteSer.exists(time)) {
         const y = this._datumPlane.isAutoReferCursorValue ? this.yv(quoteSer.close(time)) : this.yv(this._datumPlane.referCursorValue)
 
         /** plot cross' horizonal line */
-        if (this._control.isCursorCrossVisible) {
+        if (this._xcontrol.isCursorCrossVisible) {
           this.cursorPath.moveto(0, y)
           this.cursorPath.lineto(w, y)
         }
@@ -109,7 +109,7 @@ export class CursorChart extends AbstractChart {
     const w = this._datumPlane.view.width
 
     /** plot vertical line */
-    if (this._control.isCursorCrossVisible) {
+    if (this._xcontrol.isCursorCrossVisible) {
       this.cursorPath.moveto(x, 0)
       this.cursorPath.lineto(x, h)
     }
@@ -130,7 +130,7 @@ export class CursorChart extends AbstractChart {
 
 
       /** plot horizonal line */
-      if (this._datumPlane.view.control.isCursorCrossVisible) {
+      if (this._datumPlane.view.xcontrol.isCursorCrossVisible) {
         this.cursorPath.moveto(0, y)
         this.cursorPath.lineto(w, y)
       }
@@ -178,7 +178,7 @@ export class CursorChart extends AbstractChart {
         y = this._datumPlane.yMouse
 
         /** plot horizonal line */
-        if (this._control.isCursorCrossVisible) {
+        if (this._xcontrol.isCursorCrossVisible) {
           this.cursorPath.moveto(0, y)
           this.cursorPath.lineto(w, y)
         }

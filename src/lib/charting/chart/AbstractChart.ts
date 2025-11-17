@@ -6,13 +6,13 @@ import { ChartXControl } from '../view/ChartXControl';
 
 abstract class AbstractChart implements Chart {
   protected _datumPlane: DatumPlane;
-  protected _control: ChartXControl;
+  protected _xcontrol: ChartXControl;
 
   depth;
 
   constructor(datumPlane: DatumPlane, depth = 0) {
     this._datumPlane = datumPlane;
-    this._control = datumPlane.view.control;
+    this._xcontrol = datumPlane.view.xcontrol;
     this.depth = depth;
   }
 

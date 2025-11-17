@@ -59,18 +59,18 @@ export namespace QuoteSer {
     const width = 800;
     const height = 400;
     const quoteSer = loadSer();
-    const chartControl = new ChartXControl(quoteSer);
+    const xontrol = new ChartXControl(quoteSer);
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
-    const chartView = new QuoteChartView(chartControl, qvar);
+    const chartView = new QuoteChartView(xontrol, qvar);
     chartView.isQuote = true;
     chartView.width = width;
     chartView.height = height;
     chartView.ycontrol.width = width;
     chartView.ycontrol.height = height;
 
-    const viewContainer = new ChartViewContainer(chartControl, chartView);
-    chartControl.setViewContainer(viewContainer);
+    const viewContainer = new ChartViewContainer(xontrol, chartView);
+    xontrol.setViewContainer(viewContainer);
 
     const axisxPane = new AxisXPane(chartView);
     axisxPane.width = width;

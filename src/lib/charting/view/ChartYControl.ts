@@ -19,7 +19,7 @@ export class ChartYControl {
 
   constructor(view: ChartView) {
     this.view = view;
-    this.baseSer = this.view.control.baseSer;
+    this.baseSer = this.view.xcontrol.baseSer;
   }
 
   isGeometryValid = false;
@@ -60,7 +60,7 @@ export class ChartYControl {
   #hChartScrolled: number = 0;
 
   computeGeometry() {
-    this.#wBar = this.view.control.wBar()
+    this.#wBar = this.view.xcontrol.wBar()
     this.#nBars = this.view.nBars
 
     /**
@@ -233,11 +233,11 @@ export class ChartYControl {
 
   rb(barIndex: number): number {
     /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.view.control.rightSideRow - this.#nBars + barIndex
+    return this.view.xcontrol.rightSideRow - this.#nBars + barIndex
   }
 
   br(row: number): number {
-    return row - this.view.control.rightSideRow + this.#nBars
+    return row - this.view.xcontrol.rightSideRow + this.#nBars
   }
 
   exists(time: number): boolean {
@@ -269,7 +269,7 @@ export class ChartYControl {
    * @return index of bars, start from 1 and to nBars
    */
   bt(time: number): number {
-    return this.br(this.view.control.baseSer.rowOfTime(time))
+    return this.br(this.view.xcontrol.baseSer.rowOfTime(time))
   }
 
   get nBars(): number {

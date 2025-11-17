@@ -225,7 +225,7 @@ export abstract class Pane {
   // }
 
   isCursorCrossVisible(): boolean {
-    return this.view.control.isCursorCrossVisible
+    return this.view.xcontrol.isCursorCrossVisible
   }
 
   /*- @RESERVER

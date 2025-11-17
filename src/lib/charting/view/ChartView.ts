@@ -39,7 +39,8 @@ export abstract class ChartView {
     return document.createElementNS("http://www.w3.org/2000/svg", "path");
   }
 
-  control: ChartXControl;
+  readonly xcontrol: ChartXControl;
+  readonly ycontrol: ChartYControl;
   mainSer?: TSer;
 
   width: number;
@@ -51,23 +52,23 @@ export abstract class ChartView {
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-  readonly ycontrol: ChartYControl;
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
   //readonly divisionPane = new DivisionPane(this, this.mainChartPane)
 
-  constructor(control: ChartXControl, mainSer: TSer) {
-    this.control = control
+  constructor(xcontrol: ChartXControl, mainSer: TSer) {
+    this.xcontrol = xcontrol
+    this.ycontrol = new ChartYControl(this);
+
     this.mainSer = mainSer
-    this.#baseSer = control.baseSer
+    this.#baseSer = xcontrol.baseSer
 
     this.#createBasisComponents();
 
     this.initComponents();
     this.putChartsOfMainSer()
 
-    this.ycontrol = new ChartYControl(this);
 
     //listenTo(this._mainSer);
 
@@ -184,15 +185,15 @@ export abstract class ChartView {
      * width, because other panes may be repainted before mainChartPane is
      * properly layouted (the width of mainChartPane is still not good)
      */
-    const nBars1 = this.control.isFixedNBars() ?
-      this.control.fixedNBars :
-      Math.floor(this.wChart() / this.control.wBar())
+    const nBars1 = this.xcontrol.isFixedNBars() ?
+      this.xcontrol.fixedNBars :
+      Math.floor(this.wChart() / this.xcontrol.wBar())
 
     /** avoid nBars == 0 */
     this.nBars = Math.max(nBars1, 1)
 
-    if (this.control.isFixedLeftSideTime) {
-      this.control.setLeftSideRowByTime(this.control.fixedLeftSideTime, false)
+    if (this.xcontrol.isFixedLeftSideTime) {
+      this.xcontrol.setLeftSideRowByTime(this.xcontrol.fixedLeftSideTime, false)
     }
 
     /**
@@ -348,7 +349,7 @@ export abstract class ChartView {
 
   rb(barIndex: number): number {
     /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.control.rightSideRow - this.#nBars + barIndex;
+    return this.xcontrol.rightSideRow - this.#nBars + barIndex;
   }
 
   /**
@@ -362,7 +363,7 @@ export abstract class ChartView {
   }
 
   br(row: number): number {
-    return row - this.control.rightSideRow + this.#nBars
+    return row - this.xcontrol.rightSideRow + this.#nBars
   }
 
   get maxValue() {

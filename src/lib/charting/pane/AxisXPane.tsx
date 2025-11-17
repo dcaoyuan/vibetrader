@@ -10,14 +10,14 @@ import { Temporal } from "temporal-polyfill";
 export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   #view: ChartView;
   #datumPlane: DatumPlane;
-  #control: ChartXControl;
+  #xcontrol: ChartXControl;
   width = 0;
   height = 0;
 
   constructor(view: ChartView) {
     this.#view = view;
     this.#datumPlane = view.ycontrol;
-    this.#control = view.control;
+    this.#xcontrol = view.xcontrol;
   }
 
   private readonly TICK_SPACING = 100 // in pixels
@@ -107,7 +107,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
     path.moveto(0, this.height)
     path.lineto(this.width, this.height)
 
-    const timeZone = this.#control.baseSer.timeZone;
+    const timeZone = this.#xcontrol.baseSer.timeZone;
     let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDateYear: number;
@@ -133,7 +133,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
           const time = this.#datumPlane.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
           let stridingDate = false
-          const freqUnit = this.#control.baseSer.freq.unit
+          const freqUnit = this.#xcontrol.baseSer.freq.unit
           switch (freqUnit) {
             case TUnit.Day:
               currDateYear = currDt.year;
