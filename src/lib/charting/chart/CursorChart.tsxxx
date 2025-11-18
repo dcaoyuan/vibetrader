@@ -4,23 +4,23 @@ import { Path } from "../../svg/Path";
 import { ChartView } from "../view/ChartView";
 import type { ChartYControl } from "../view/ChartYControl";
 
+const MONEY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 3,
+  maximumFractionDigits: 3,
+}); // DecimalFormat("0.###")
+
+const STOCK_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}); // DecimalFormat("0.00")
+
+
 export class CursorChart extends AbstractChart {
   paths(): Path[] {
     return this.cursorPath ? [this.cursorPath] : [];
   }
-
-  static readonly MONEY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
-  }); // DecimalFormat("0.###")
-
-  static readonly STOCK_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }); // DecimalFormat("0.00")
-
 
   protected fgColor?: string;
   protected bgColor?: string;

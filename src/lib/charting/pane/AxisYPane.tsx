@@ -1,134 +1,44 @@
-import { TVar } from "../../timeseris/TVar";
+import React from "react";
 import { ChartXControl } from "../view/ChartXControl";
-import { ChartView, type ViewProps, type ViewState } from "../view/ChartView";
-import { TVal } from "../../timeseris/TVal";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Theme } from "../theme/Theme";
 import type { ChartYControl } from "../view/ChartYControl";
+import { useState } from "react";
 
-export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
-  static readonly CURRENCY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 3,
-  }); // DecimalFormat("0.###")
+const CURRENCY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 3,
+}); // DecimalFormat("0.###")
 
-  static readonly COMMON_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 3,
-  }); // DecimalFormat("0.###")
+const COMMON_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 3,
+}); // DecimalFormat("0.###")
 
-  #ycontrol: ChartYControl;
-  #xcontrol: ChartXControl;
-  #view: ChartView<ViewProps, ViewState>;
-  #tvar: TVar<TVal>;
+type Props = {
+  width: number,
+  height: number,
+  xcontrol: ChartXControl,
+  ycontrol: ChartYControl
+}
 
-  width = 0;
-  height = 0;
+type State = {
+  path: Path,
+  texts: Text[]
+}
 
-  constructor(view: ChartView<ViewProps, ViewState>, tvar: TVar<TVal>) {
-    this.#view = view;
-    this.#ycontrol = view.ycontrol;
-    this.#xcontrol = view.xcontrol;
-    this.#tvar = tvar;
-  }
+const AxisYPane: React.FC<Props> = (props) => {
+  const { width, height, xcontrol, ycontrol } = props;
 
-  private _symmetricByMiddleValue = false;
+  const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
+  const [state, setState] = useState<State>(plotAxisY())
 
-  // private mouseCursorLabel = new JLabel
-  // private referCursorLabel = new JLabel
-
-  // private updateMouseCursorLabel() {
-  //   this.#datumPlane.computeGeometry()
-  //   if (this.#control.isMouseEnteredAnyChartPane) {
-  //     let y, v = 0.0
-  //     if (this.#datumPlane.view.isQuote) {
-  //       if (this.#datumPlane.isMouseEntered) {
-  //         y = this.#datumPlane.yMouse
-  //         v = this.#datumPlane.vy(y)
-  //       } else {
-  //         const mouseRow = this.#control.mouseCursorRow
-  //         const quoteVar = this.#tvar as TVar<Quote>;
-  //         const time = this.#datumPlane.tr(mouseRow)
-  //         v = quoteVar.exists(time) ? quoteVar.getByTime(time).close : 0
-  //         y = this.#datumPlane.yv(v)
-  //       }
-  //       const valueStr = AxisYPane.COMMON_DECIMAL_FORMAT.format(v)
-
-  //       mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
-  //       mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
-  //       mouseCursorLabel.setFont(LookFeel().axisFont)
-  //       mouseCursorLabel.setText(valueStr)
-  //       const fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
-  //       mouseCursorLabel.setBounds(
-  //         3, Math.round(y).toInt - fm.getHeight + 1,
-  //         fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
-
-  //       mouseCursorLabel.setVisible(true)
-  //     } else {
-  //       if (this.#datumPlane.isMouseEntered) {
-  //         y = this.#datumPlane.yMouse
-  //         v = this.#datumPlane.vy(y)
-  //         const valueStr = AxisYPane.COMMON_DECIMAL_FORMAT.format(v)
-
-  //         mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
-  //         mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
-  //         mouseCursorLabel.setFont(LookFeel().axisFont)
-  //         mouseCursorLabel.setText(valueStr)
-  //         const fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
-  //         mouseCursorLabel.setBounds(3, Math.round(y).toInt - fm.getHeight + 1,
-  //           fm.stringWidth(mouseCursorLabel.getText) + 2, fm.getHeight + 1)
-
-  //         mouseCursorLabel.setVisible(true)
-  //       } else {
-  //         mouseCursorLabel.setVisible(false)
-  //       }
-  //     }
-  //   } else {
-  //     mouseCursorLabel.setVisible(false)
-  //   }
-  // }
-
-  // /**
-  //  * CursorChangeEvent only notice the cursor's position changes, but the
-  //  * referCursorLable is also aware of the refer value's changes, so we could
-  //  * not rely on the CursorChangeEvent only, instead, we call this method via
-  //  * syncWithView()
-  //  */
-  // private updateReferCursorLabel() {
-  //   this.#datumPlane.computeGeometry()
-
-  //   var y, v = 0.0
-  //   if (this.#datumPlane.view.isQuote) {
-  //     const referRow = this.#control.referCursorRow
-  //     const quoteVar = this.#tvar as TVar<Quote>;
-  //     const time = this.#datumPlane.tr(referRow)
-  //     v = quoteVar.exists(time) ? quoteVar.getByTime(time).close : 0
-  //     y = this.#datumPlane.yv(v)
-  //     const valueStr = AxisYPane.COMMON_DECIMAL_FORMAT.format(v)
-
-  //     referCursorLabel.setForeground(LookFeel().referCursorTextColor)
-  //     referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
-  //     referCursorLabel.setFont(LookFeel().axisFont)
-  //     referCursorLabel.setText(valueStr)
-  //     cosnt fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
-  //     referCursorLabel.setBounds(3, Math.round(y).toInt - fm.getHeight + 1,
-  //       fm.stringWidth(referCursorLabel.getText) + 2, fm.getHeight)
-
-  //     referCursorLabel.setVisible(true)
-  //   } else {
-  //     referCursorLabel.setVisible(false)
-  //   }
-  // }
-
-  /**
-   * Try to round tickUnit
-   */
-  private roundTickUnit(avTickUnit: number) {
+  function roundTickUnit(vtUnit: number) {
     /** sample : 0.032 */
-    let vTickUnit = avTickUnit
+    let vTickUnit = vtUnit
     const roundedExponent = Math.round(Math.log10(vTickUnit)) - 1   // -2
     const adjustFactor = Math.pow(10, -roundedExponent)               // 100
     const adjustedValue = Math.round(vTickUnit * adjustFactor) // 3.2 -> 3
@@ -140,7 +50,7 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
       vTickUnit = 0.001
     } else if (vTickUnit > 0.001 && vTickUnit < 0.005) {
       /** for currency */
-      const unitStr = AxisYPane.CURRENCY_DECIMAL_FORMAT.format(vTickUnit)
+      const unitStr = CURRENCY_DECIMAL_FORMAT.format(vTickUnit)
       try {
         vTickUnit = Number(unitStr.trim);
       } catch (ex) {
@@ -148,7 +58,7 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
       }
     } else if (vTickUnit > 0.005 && vTickUnit < 1) {
       /** for stock */
-      const unitStr = AxisYPane.COMMON_DECIMAL_FORMAT.format(vTickUnit)
+      const unitStr = COMMON_DECIMAL_FORMAT.format(vTickUnit)
       try {
         vTickUnit = Number(unitStr.trim);
       } catch (ex) {
@@ -159,23 +69,22 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     return vTickUnit;
   }
 
-  render() {
-    return this.plotAxisY()
-  }
-
-  private plotAxisY() {
+  function plotAxisY() {
     //const hFm = fm.getHeight
     const hFm = 12;
 
+    console.log(width, height)
+
     let nTicks = 6.0;
-    while (Math.floor(this.#ycontrol.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
+    while (Math.floor(ycontrol.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
       nTicks -= 2 // always keep even
     }
 
-    const maxValueOnCanvas = this.#ycontrol.vy(this.#ycontrol.yCanvasUpper)
-    const minValueOnCanvas = this.#view.yControlPane !== undefined ?
-      this.#ycontrol.vy(this.#ycontrol.yCanvasLower - this.#view.yControlPane.height) :
-      this.#ycontrol.vy(this.#ycontrol.yCanvasLower)
+    const maxValueOnCanvas = ycontrol.vy(ycontrol.yCanvasUpper)
+    const minValueOnCanvas =
+      /* this.#view.yControlPane !== undefined ?
+        this.#ycontrol.vy(this.#ycontrol.yCanvasLower - this.#view.yControlPane.height) : */
+      ycontrol.vy(ycontrol.yCanvasLower)
 
 
     const vMaxTick = maxValueOnCanvas
@@ -184,8 +93,8 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     const vRange = vMaxTick - vMinTick
     let vTickUnit = Math.floor(vRange / nTicks)
 
-    if (!this._symmetricByMiddleValue) {
-      vTickUnit = this.roundTickUnit(vTickUnit)
+    if (!symmetricByMiddleValue) {
+      vTickUnit = roundTickUnit(vTickUnit)
       vMinTick = Math.ceil(vMinTick / vTickUnit) * vTickUnit
     }
 
@@ -195,14 +104,14 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
 
     /** Draw left border line */
     path.moveto(0, 0)
-    path.lineto(0, this.height)
+    path.lineto(0, height)
 
     let shouldScale = false
     let i = 0
     let breakNow = false
     while (i < nTicks + 2 && !breakNow) {
       let vTick = vMinTick + vTickUnit * i
-      const yTick = this.#ycontrol.yv(vTick)
+      const yTick = ycontrol.yv(vTick)
 
       if (yTick < hFm) {
         breakNow = true
@@ -227,29 +136,27 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
           texts.push(text);
 
         } else {
-          const text = new Text(4, yTick, AxisYPane.COMMON_DECIMAL_FORMAT.format(vTick));
+          const text = new Text(4, yTick, COMMON_DECIMAL_FORMAT.format(vTick));
           text.fill = color;
           texts.push(text);
         }
       }
 
       i++;
-
     }
 
-    const style = {
-      width: this.width + 'px',
-      height: this.height + 'px',
-    };
-
-    return (
-      <div style={style}>
-        <svg width={this.width} height={this.height}>
-          {path.render()}
-          {texts.map((text) => text.render())}
-        </svg>
-      </div>
-    );
+    return { path: path, texts: texts };
   }
 
+  return (
+    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
+    <div style={{ width: width + 'px', height: height + 'px' }}>
+      <svg width={width} height={height}>
+        {state.path.render()}
+        {state.texts.map((text) => text.render())}
+      </svg>
+    </div>
+  );
 }
+
+export default AxisYPane;

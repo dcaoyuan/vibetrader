@@ -1,6 +1,5 @@
 import { Chart } from "../chart/Chart";
 import { ChartView, type ViewProps, type ViewState } from "../view/ChartView"
-import { CursorChart } from "../chart/CursorChart";
 import type { ChartYControl } from "../view/ChartYControl";
 
 export abstract class Pane {
@@ -38,8 +37,8 @@ export abstract class Pane {
   private _referCursorValue = 0.0
   private _isAutoReferCursorValue = true
   private _charts = new Set<Chart>
-  private referCursorChart?: CursorChart;
-  private mouseCursorChart?: CursorChart;
+  // private referCursorChart?: CursorChart;
+  // private seCursorChart?: CursorChart;
 
   /** helper method for implementing WithCursorChart */
   // private createCursorChart(datumPlane: DatumPlane) {

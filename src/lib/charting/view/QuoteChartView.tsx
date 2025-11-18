@@ -5,9 +5,9 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
 import { Quote } from "../../domain/Quote";
-import { AxisXPane } from "../pane/AxisXPane";
-import { AxisYPane } from "../pane/AxisYPane";
+import AxisXPane from "../pane/AxisXPane";
 import './chartview.css';
+import AxisYPane from "../pane/AxisYPane";
 
 interface QuoteChartViewProps extends ViewProps {
   quoteVar: TVar<Quote>;
@@ -141,13 +141,13 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
       height: this.height + 'px',
     };
 
-    const axisxPane = new AxisXPane(this);
-    axisxPane.width = this.width;
-    axisxPane.height = ChartView.AXISX_HEIGHT;
+    // const axisxPane = new AxisXPane(this);
+    // axisxPane.width = this.width;
+    // axisxPane.height = ChartView.AXISX_HEIGHT;
 
-    const axisyPane = new AxisYPane(this, this.quoteVar);
-    axisyPane.width = ChartView.AXISY_WIDTH;
-    axisyPane.height = this.height;
+    // const axisyPane = new AxisYPane(this, this.quoteVar);
+    // axisyPane.width = ChartView.AXISY_WIDTH;
+    // axisyPane.height = this.height;
 
     return (
       <div className="container" style={{ width: this.width + 'px' }}>
@@ -158,9 +158,24 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
             </svg>
           </div>
         </div>
-        <div className="axisy">{axisyPane.render()}</div>
+
+        <div className="axisy">
+          <AxisYPane
+            width={ChartView.AXISY_WIDTH}
+            height={this.height}
+            xcontrol={this.xcontrol}
+            ycontrol={this.ycontrol}
+          />
+        </div>
+
         <div className="axisx">
-          {axisxPane.render()}
+          <AxisXPane
+            width={this.width}
+            height={ChartView.AXISX_HEIGHT}
+            xcontrol={this.xcontrol}
+            ycontrol={this.ycontrol}
+            view={this}
+          />
         </div>
       </div>
     )

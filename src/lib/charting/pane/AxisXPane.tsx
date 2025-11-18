@@ -6,27 +6,30 @@ import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
 import type { ChartYControl } from "../view/ChartYControl";
+import { useState } from "react";
 
-export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
-  #view: ChartView<ViewProps, ViewState>
-  #ycontrol: ChartYControl;
-  #xcontrol: ChartXControl;
-  width = 0;
-  height = 0;
+const TICK_SPACING = 100 // in pixels
 
-  constructor(view: ChartView<ViewProps, ViewState>) {
-    this.#view = view;
-    this.#ycontrol = view.ycontrol;
-    this.#xcontrol = view.xcontrol;
-  }
+type Props = {
+  view: ChartView<ViewProps, ViewState>,
+  ycontrol: ChartYControl,
+  xcontrol: ChartXControl,
+  width: number,
+  height: number,
+}
 
-  private readonly TICK_SPACING = 100 // in pixels
+type State = {
+  path: Path,
+  texts: Text[]
+}
+
+const AxisXPane: React.FC<Props> = (props) => {
+  const { xcontrol, width, height } = props;
+
+  const [state, setState] = useState<State>(plotAxisX())
 
   // private mouseCursorLabel: unknown;
-
   // private referCursorLabel: unknown;
-
-
 
   // setTimeZone(timeZone: string) {
   //   this.timeZone = timeZone
@@ -86,14 +89,10 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   //   updateReferCursorLabel
   // }
 
-  render() {
-    return this.plotAxisX();
-  }
+  function plotAxisX() {
+    const nTicks = width / TICK_SPACING
 
-  private plotAxisX() {
-    const nTicks = this.width / this.TICK_SPACING
-
-    const nBars = this.#xcontrol.nBars
+    const nBars = xcontrol.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
@@ -103,11 +102,11 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
 
     /** Draw border line */
     path.moveto(0, 0)
-    path.lineto(this.width, 0)
-    path.moveto(0, this.height)
-    path.lineto(this.width, this.height)
+    path.lineto(width, 0)
+    path.moveto(0, height)
+    path.lineto(width, height)
 
-    const timeZone = this.#xcontrol.baseSer.timeZone;
+    const timeZone = xcontrol.baseSer.timeZone;
     let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDateYear: number;
@@ -115,24 +114,24 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
     let prevDateYear: number;
     let prevDateDay: number;
 
-    const hTick = this.height;
-    const xLastTick = this.#xcontrol.xb(nBars)
+    const hTick = height;
+    const xLastTick = xcontrol.xb(nBars)
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit == 0 || i == nBars || i == 1) {
-        const xCurrTick = this.#xcontrol.xb(i)
+        const xCurrTick = xcontrol.xb(i)
 
-        if (xLastTick - xCurrTick < this.TICK_SPACING && i != nBars) {
+        if (xLastTick - xCurrTick < TICK_SPACING && i != nBars) {
           /** too close */
 
         } else {
           path.moveto(xCurrTick, 1)
           path.lineto(xCurrTick, hTick)
 
-          const time = this.#xcontrol.tb(i)
+          const time = xcontrol.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
           let stridingDate = false
-          const freqUnit = this.#xcontrol.baseSer.freq.unit
+          const freqUnit = xcontrol.baseSer.freq.unit
           switch (freqUnit) {
             case TUnit.Day:
               currDateYear = currDt.year;
@@ -161,7 +160,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
             freqUnit.formatStrideDate(currDt, timeZone) :
             freqUnit.formatNormalDate(currDt, timeZone)
 
-          const text = new Text(xCurrTick + 2, this.height - 4, dateStr);
+          const text = new Text(xCurrTick + 2, height - 4, dateStr);
           text.fill = color;
           texts.push(text);
 
@@ -172,19 +171,19 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
       i++;
     }
 
-    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
-    const style = {
-      width: this.width + 'px',
-      height: this.height + 'px',
-    };
-
-    return (
-      <div style={style}>
-        <svg width={this.width} height={this.height}>
-          {path.render()}
-          {texts.map((text) => text.render())}
-        </svg>
-      </div>
-    );
+    return { path: path, texts: texts };
   }
+
+  return (
+    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
+    <div style={{ width: width + 'px', height: height + 'px' }}>
+      <svg width={width} height={height}>
+        {state.path.render()}
+        {state.texts.map((text) => text.render())}
+      </svg>
+    </div>
+  );
+
 }
+
+export default AxisXPane;

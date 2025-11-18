@@ -3,12 +3,7 @@ import quotesJson from "../quotes.json"
 import { Quote } from "./Quote";
 import { TFreq } from "../timeseris/TFreq";
 import { TVar } from "../timeseris/TVar";
-import { ChartXControl } from "../charting/view/ChartXControl";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
-import { ChartViewContainer } from "../charting/view/ChartViewContainer";
-import { AxisXPane } from "../charting/pane/AxisXPane";
-import { AxisYPane } from "../charting/pane/AxisYPane";
-import { ChartView } from "../charting/view/ChartView";
 
 export namespace QuoteSer {
   //const timeZone = "America/Los_Angeles";
