@@ -61,8 +61,8 @@ export class QuoteChart extends AbstractChart {
       /**
        * use `undefiend` to test if value has been set at least one time
        */
-      let open: number = undefined as any
-      let close: number = undefined as any
+      let open: number = undefined as number
+      let close: number = undefined as number
       let high = Number.NEGATIVE_INFINITY;
       let low = Number.POSITIVE_INFINITY
       let i = 0

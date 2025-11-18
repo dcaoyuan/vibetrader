@@ -1,7 +1,6 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer"
 import { ChartView } from "./ChartView"
 import { ChartViewContainer } from "./ChartViewContainer"
-import type { ClassOfChartViewContainer } from "./ChartViewContainer"
 
 /**
  * Each BaseTSer can have more than one ChartXControl instances.
@@ -35,55 +34,35 @@ export class ChartXControl {
 
   readonly baseSer: BaseTSer;
 
-  #wBarIdx = 11;
+  #wBarIdx = 9;
   /** pixels per bar (bar width in pixels) */
   wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
 
   nBars = 0;
+  nBarsCompressed = 0;
 
   constructor(baseSer: BaseTSer) {
     this.baseSer = baseSer;
   }
 
-  referCursorRow = 0;
-  mouseCursorRow = 0;
   rightSideRow = 0;
 
+  referCursorRow = 0;
+  mouseCursorRow = 0;
+
   fixedNBars?: number;
+  fixedLeftSideTime?: number;
 
   isCursorAccelerated = false;
 
   readonly #popupViewRefs = new Map<ChartView, any>();
   private popupViews() { return this.#popupViewRefs.keys() };
   #viewContainer?: ChartViewContainer;
-  #fixedLeftSideTime?: number;
   #lastOccurredRowOfBaseSer = 0;
   #isAutoScrollToNewData = true;
   #isMouseEnteredAnyChartPane = false;
 
   isCursorCrossVisible = true;
-
-  /**
-   * Factory method to create ChartViewContainer instance, got the relations
-   * between ChartViewContainer and Control ready.
-   */
-  createChartViewContainer(clazz: ClassOfChartViewContainer): ChartViewContainer | undefined {
-    try {
-      const instance = new clazz();
-      //instance.init(focusableParent, this)
-
-      /**
-       * @Note
-       * Always call internal_setChartViewContainer(instance) next to
-       * instance.init(focusableParent, this), since the internal_initCursorRow()
-       * procedure needs the children of chartViewContainer ready.
-       */
-      this.internal_setChartViewContainer(instance)
-      return instance;
-    } catch (ex) {
-      return undefined;
-    }
-  }
 
   setViewContainer(viewContainer: ChartViewContainer) {
     this.internal_setChartViewContainer(viewContainer);
@@ -108,9 +87,19 @@ export class ChartXControl {
     /** avoid nBars == 0 */
     this.nBars = Math.max(nBars1, 1)
 
-    if (this.isFixedLeftSideTime) {
+    this.nBarsCompressed = this.wBar >= 1 ? 1 : Math.floor(1 / this.wBar)
+
+    if (this.isFixedLeftSideTime()) {
       this.setLeftSideRowByTime(this.fixedLeftSideTime, false)
     }
+
+    console.log({
+      wBar: this.wBar,
+      nBars: this.nBars,
+      nBarsCompressed: this.nBarsCompressed,
+      rightSideRow: this.rightSideRow,
+      isFixedLeftSideTime: this.isFixedLeftSideTime()
+    })
   }
 
   // --- x geometry methods:
@@ -258,13 +247,7 @@ export class ChartXControl {
   }
 
   isFixedLeftSideTime() {
-    return this.#fixedLeftSideTime !== undefined;
-  }
-  get fixedLeftSideTime() {
-    return this.#fixedLeftSideTime
-  }
-  set fixedLeftSideTime(time: number) {
-    this.#fixedLeftSideTime = time;
+    return this.fixedLeftSideTime !== undefined;
   }
 
   isFixedNBars() {
@@ -357,7 +340,7 @@ export class ChartXControl {
 
   setCursorByRow(referRow: number, rightRow: number, willUpdateViews: boolean) {
     /** set right cursor row first and directly */
-    this.internal_setRightSideRow(rightRow, willUpdateViews)
+    this.#internal_setRightSideRow(rightRow, willUpdateViews)
 
     const oldValue = this.referCursorRow
     this.scrollReferCursor(referRow - oldValue, willUpdateViews)
@@ -375,13 +358,14 @@ export class ChartXControl {
     // if refCursor is near left/right side, check if need to scroll chart except referCursur
     const rightPadding = rightRow - referRow
     if (rightPadding < ChartXControl.REF_PADDING_RIGHT) {
-      this.internal_setRightSideRow(rightRow + ChartXControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
+      this.#internal_setRightSideRow(rightRow + ChartXControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
+
     } else {
       /** right spacing is enough, check left spacing: */
       const leftRow = rightRow - this.nBars + 1
       const leftPadding = referRow - leftRow
       if (leftPadding < ChartXControl.REF_PADDING_LEFT) {
-        this.internal_setRightSideRow(rightRow + leftPadding - ChartXControl.REF_PADDING_LEFT, willUpdateViews)
+        this.#internal_setRightSideRow(rightRow + leftPadding - ChartXControl.REF_PADDING_LEFT, willUpdateViews)
       }
     }
 
@@ -394,7 +378,7 @@ export class ChartXControl {
   /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
   scrollChartsHorizontallyByBar(increment: number) {
     const rightRow = this.rightSideRow;
-    this.internal_setRightSideRow(rightRow + increment)
+    this.#internal_setRightSideRow(rightRow + increment)
 
     this.scrollReferCursor(increment, true)
   }
@@ -475,7 +459,7 @@ export class ChartXControl {
     }
   }
 
-  private internal_setRightSideRow(row: number, notify: boolean = true) {
+  #internal_setRightSideRow(row: number, notify: boolean = true) {
     const oldValue = this.rightSideRow
     this.rightSideRow = row
     if (this.rightSideRow !== oldValue && notify) {
@@ -488,7 +472,7 @@ export class ChartXControl {
   }
 
   private internal_setRightCursorByTime(time: number) {
-    this.internal_setRightSideRow(this.baseSer.rowOfTime(time))
+    this.#internal_setRightSideRow(this.baseSer.rowOfTime(time))
   }
 
   private internal_setMouseCursorRow(row: number) {

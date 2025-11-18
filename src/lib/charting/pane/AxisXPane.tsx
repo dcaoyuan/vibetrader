@@ -117,7 +117,6 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
 
     const hTick = this.height;
     const xLastTick = this.#xcontrol.xb(nBars)
-    console.log(nBars)
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit == 0 || i == nBars || i == 1) {

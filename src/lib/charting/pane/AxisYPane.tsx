@@ -159,7 +159,6 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
     return vTickUnit;
   }
 
-
   render() {
     return this.plotAxisY()
   }

@@ -37,7 +37,7 @@ abstract class AbstractChart implements Chart {
     // wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     // nSegs = (nBars * wBar / wSeg).toInt + 1
 
-    this.nBarsCompressed = this.wBar >= 1 ? 1 : Math.floor(1 / this.wBar)
+    this.nBarsCompressed = this._xcontrol.nBarsCompressed
 
     this.plotChart();
   }
