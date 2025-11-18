@@ -4,6 +4,7 @@ import { TVar } from "./TVar";
 import { ValueList } from "../collection/ValueList";
 import { TStamps } from "./TStamps";
 import type { TSer } from "./TSer";
+import type { BaseTSer } from "./BaseTSer";
 
 /**
  * This is the default data container, which is a time sorted data contianer.
@@ -67,7 +68,7 @@ export class DefaultTSer implements TSer {
    * @returns var of name, will create one if non exist yet.
    */
   varOf(name: string): TVar<TVal> {
-    var tvar = this._vars.get(name);
+    let tvar = this._vars.get(name);
     if (tvar === undefined) {
       tvar = this.TVar(name, TVar.Kind.Accumlate);
     }
@@ -349,7 +350,7 @@ export class DefaultTSer implements TSer {
   // }
 
   TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
-    return new TVar<V>(this, name, kind);
+    return new TVar<V>(this as any as BaseTSer, name, kind);
   }
 
   // @todo SparseTVar

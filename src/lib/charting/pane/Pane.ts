@@ -1,5 +1,5 @@
 import { Chart } from "../chart/Chart";
-import { ChartView } from "../view/ChartView"
+import { ChartView, type ViewProps, type ViewState } from "../view/ChartView"
 import { CursorChart } from "../chart/CursorChart";
 import type { ChartYControl } from "../view/ChartYControl";
 
@@ -14,10 +14,10 @@ export abstract class Pane {
   static readonly DEPTH_INVISIBLE = -100
 
 
-  readonly view: ChartView;
+  readonly view: ChartView<ViewProps, ViewState>;
   readonly ycontrol: ChartYControl;
 
-  constructor(view: ChartView, ycontrol: ChartYControl) {
+  constructor(view: ChartView<ViewProps, ViewState>, ycontrol: ChartYControl) {
     this.view = view;
     this.ycontrol = ycontrol;
 

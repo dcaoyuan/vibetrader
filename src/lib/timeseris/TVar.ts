@@ -1,5 +1,6 @@
 import type { CIterator } from "../collection/CIterator";
 import { ValueList } from "../collection/ValueList";
+import type { BaseTSer } from "./BaseTSer";
 import type { TSer } from "./TSer";
 import { TStamps } from "./TStamps";
 import { TVal } from "./TVal";
@@ -9,7 +10,7 @@ import { TVal } from "./TVal";
  * 
  */
 export class TVar<V extends TVal> {
-  belongsTo: TSer;
+  belongsTo: BaseTSer;
   #values: ValueList<V>;
 
   protected readonly _NULL_VAL: V = undefined
@@ -17,7 +18,7 @@ export class TVar<V extends TVal> {
   readonly name: string;
   readonly kind?: TVar.Kind;
 
-  constructor(belongsTo: TSer, name: string, kind: TVar.Kind) {
+  constructor(belongsTo: BaseTSer, name: string, kind: TVar.Kind) {
     this.belongsTo = belongsTo;
     this.kind = kind;
     this.name = name;

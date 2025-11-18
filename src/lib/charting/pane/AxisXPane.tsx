@@ -1,5 +1,5 @@
 import { TUnit } from "../../timeseris/TUnit";
-import { ChartView } from "../view/ChartView";
+import { ChartView, type ViewProps, type ViewState } from "../view/ChartView";
 import { ChartXControl } from "../view/ChartXControl";
 import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
@@ -8,13 +8,13 @@ import { Temporal } from "temporal-polyfill";
 import type { ChartYControl } from "../view/ChartYControl";
 
 export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
-  #view: ChartView
+  #view: ChartView<ViewProps, ViewState>
   #ycontrol: ChartYControl;
   #xcontrol: ChartXControl;
   width = 0;
   height = 0;
 
-  constructor(view: ChartView) {
+  constructor(view: ChartView<ViewProps, ViewState>) {
     this.#view = view;
     this.#ycontrol = view.ycontrol;
     this.#xcontrol = view.xcontrol;

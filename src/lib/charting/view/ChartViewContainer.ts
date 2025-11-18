@@ -1,6 +1,6 @@
 import { Chart } from "../chart/Chart"
 import { ChartXControl } from "./ChartXControl"
-import { ChartView } from "./ChartView"
+import { ChartView, type ViewProps, type ViewState } from "./ChartView"
 
 export interface ClassOfChartViewContainer {
   new(): ChartViewContainer;
@@ -9,7 +9,7 @@ export interface ClassOfChartViewContainer {
 export class ChartViewContainer {
   //private descriptorToSlaveView = new Map<IndicatorDescriptor, ChartView>()
   xcontrol: ChartXControl
-  masterView: ChartView
+  masterView: ChartView<ViewProps, ViewState>
 
   width: number;
   height: number;
@@ -17,7 +17,7 @@ export class ChartViewContainer {
   /**
    * init this viewContainer instance. binding with control (so, MasterSer and Descriptor) here
    */
-  constructor(xcontrol: ChartXControl, masterView: ChartView) {
+  constructor(xcontrol: ChartXControl, masterView: ChartView<ViewProps, ViewState>) {
     this.xcontrol = xcontrol;
     this.masterView = masterView;
 
@@ -30,7 +30,7 @@ export class ChartViewContainer {
    * on ChartView or ChartPane;
    */
   private _selectedChart?: Chart;
-  private _selectedView?: ChartView;
+  private _selectedView?: ChartView<ViewProps, ViewState>;
   private _isInteractive = true;
   private _isPinned = false;
 
@@ -122,7 +122,7 @@ export class ChartViewContainer {
     // setVisible(true)
   }
 
-  protected setMasterView(masterView: ChartView) {
+  protected setMasterView(masterView: ChartView<ViewProps, ViewState>) {
     this.masterView = masterView;
     //add(masterView);
   }
@@ -165,10 +165,10 @@ export class ChartViewContainer {
   //   return this.descriptorToSlaveView.valuesIterator;
   // }
 
-  get selectedView(): ChartView {
+  get selectedView(): ChartView<ViewProps, ViewState> {
     return this._selectedView;
   }
-  set selectedView(view: ChartView) {
+  set selectedView(view: ChartView<ViewProps, ViewState>) {
     if (this._selectedView !== undefined) {
       this._selectedView.isSelected = false
     }

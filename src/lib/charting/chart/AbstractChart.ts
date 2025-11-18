@@ -138,36 +138,6 @@ abstract class AbstractChart implements Chart {
     return this._xcontrol.exists(time);
   }
 
-  protected plotLine(xBase: number, yBase: number, k: number, path: Path) {
-    const xFr = 0;
-    const yFr = Geometry.yOfLine(xFr, xBase, yBase, k);
-    const xTo = this._ycontrol.width;
-    const yTo = Geometry.yOfLine(xTo, xBase, yBase, k);
-
-    path.moveto(xFr, yFr);
-    path.lineto(xTo, yTo);
-  }
-
-  protected plotVerticalLine(bar: number, path: Path): void {
-    const x = this.xb(bar);
-    const yFr = this._ycontrol.yCanvasLower;
-    const yTo = this._ycontrol.yCanvasUpper;
-
-    path.moveto(x, yFr);
-    path.lineto(x, yTo);
-  }
-
-  protected plotLineSegment(xFr: number, yFr: number, xTo: number, yTo: number, path: Path) {
-    path.moveto(xFr, yFr);
-    path.lineto(xTo, yTo);
-  }
-
-  protected plotVerticalLineSegment(bar: number, yFr: number, yTo: number, path: Path) {
-    const x = this.xb(bar);
-    path.moveto(x, yFr);
-    path.lineto(x, yTo);
-  }
-
   compare(another: Chart): number {
     return this.depth === another.depth ?
       0 :

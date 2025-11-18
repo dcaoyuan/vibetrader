@@ -1,6 +1,6 @@
 import { TVar } from "../../timeseris/TVar";
 import { ChartXControl } from "../view/ChartXControl";
-import { ChartView } from "../view/ChartView";
+import { ChartView, type ViewProps, type ViewState } from "../view/ChartView";
 import { TVal } from "../../timeseris/TVal";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
@@ -22,13 +22,13 @@ export class AxisYPane /*extends Pane(aview, adatumPlane)*/ {
 
   #ycontrol: ChartYControl;
   #xcontrol: ChartXControl;
-  #view: ChartView;
+  #view: ChartView<ViewProps, ViewState>;
   #tvar: TVar<TVal>;
 
   width = 0;
   height = 0;
 
-  constructor(view: ChartView, tvar: TVar<TVal>) {
+  constructor(view: ChartView<ViewProps, ViewState>, tvar: TVar<TVal>) {
     this.#view = view;
     this.#ycontrol = view.ycontrol;
     this.#xcontrol = view.xcontrol;

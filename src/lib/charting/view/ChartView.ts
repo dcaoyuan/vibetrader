@@ -7,6 +7,38 @@ import { Pane } from "../pane/Pane";
 import { ChartXControl } from "./ChartXControl";
 import type { Scalar } from "./scalar/Scalar";
 import { ChartYControl } from "./ChartYControl";
+import { Component } from "react";
+import { ChartViewContainer } from "./ChartViewContainer";
+
+export interface ViewProps {
+  mainSer: BaseTSer;
+  width: number;
+  height: number;
+  isQuote: boolean;
+}
+
+export interface ViewState {
+  xcontrol: ChartXControl;
+  ycontrol: ChartYControl;
+
+  mainSer?: BaseTSer;
+
+  width: number;
+  height: number;
+
+  isQuote: false;
+  hasInnerVolume: false;
+  maxVolume?: number;
+  minVolume?: number;
+
+  maxValue: 1.0
+  minValue: 0.0
+
+  isInteractive: true
+  isPinned: false
+
+  baseSer?: BaseTSer;
+}
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -29,7 +61,8 @@ import { ChartYControl } from "./ChartYControl";
  *   wBar
  *   onCalendarMode
  */
-export abstract class ChartView {
+export abstract class ChartView<P extends ViewProps, S extends ViewState> extends Component<P, S> {
+
   static readonly AXISX_HEIGHT = 16
   static readonly AXISY_WIDTH = 50
   static readonly CONTROL_HEIGHT = 12
@@ -44,12 +77,18 @@ export abstract class ChartView {
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
   //readonly divisionPane = new DivisionPane(this, this.mainChartPane)
 
-  constructor(xcontrol: ChartXControl, mainSer: TSer) {
-    this.xcontrol = xcontrol
-    this.ycontrol = new ChartYControl(this);
+  constructor(props: P) {
+    super(props)
 
-    this.mainSer = mainSer
-    this.#baseSer = xcontrol.baseSer
+    this.xcontrol = new ChartXControl(props.mainSer);
+    const viewContainer = new ChartViewContainer(this.xcontrol, this);
+    this.xcontrol.setViewContainer(viewContainer);
+
+    this.ycontrol = new ChartYControl(this);
+    this.ycontrol.height = props.height;
+
+    this.mainSer = props.mainSer
+    this.#baseSer = this.xcontrol.baseSer
 
     this.#createBasisComponents();
 
@@ -65,8 +104,6 @@ export abstract class ChartView {
   protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
-
-
 
   //   const mainLayeredPane = new JLayeredPane {
   //     /** this will let the pane components getting the proper size when init */
@@ -94,15 +131,11 @@ export abstract class ChartView {
 
   maxValue = 1.0
   minValue = 0.0
-  #oldMaxValue = this.maxValue
-  #oldMinValue = this.minValue
-
 
   #isInteractive = true
   #isPinned = false
 
   #baseSer?: BaseTSer;
-  #lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN;
 
   protected abstract initComponents(): void;
 
@@ -182,10 +215,6 @@ export abstract class ChartView {
      * so do it here.
      */
     this.computeMaxMin();
-    if (this.maxValue != this.#oldMaxValue || this.minValue != this.#oldMinValue) {
-      this.#oldMaxValue = this.maxValue
-      this.#oldMinValue = this.minValue
-    }
 
     // compute y after compute maxmin
     this.ycontrol.computeGeometry()
@@ -308,7 +337,6 @@ export abstract class ChartView {
   get baseSer(): BaseTSer {
     return this.#baseSer;
   }
-
 
   chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
     //assert(ser != null, "Do not pass me a null ser!")

@@ -1,6 +1,6 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer";
 import { Geometry } from "../chart/Geometry";
-import { ChartView } from "../view/ChartView";
+import { ChartView, type ViewProps, type ViewState } from "../view/ChartView";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import type { Scalar } from "../view/scalar/Scalar";
 
@@ -13,17 +13,16 @@ import type { Scalar } from "../view/scalar/Scalar";
  * @see Pane#Pane(ChartView, DatumPlane)
  */
 export class ChartYControl {
-  view: ChartView;
+  view: ChartView<ViewProps, ViewState>;
   baseSer: BaseTSer;
 
-  constructor(view: ChartView) {
+  constructor(view: ChartView<ViewProps, ViewState>) {
     this.view = view;
     this.baseSer = this.view.xcontrol.baseSer;
   }
 
   isGeometryValid = false;
 
-  width: number;
   height: number;
 
   /** geometry that need to be set before chart plotting and render */

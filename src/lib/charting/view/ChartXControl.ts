@@ -1,5 +1,5 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer"
-import { ChartView } from "./ChartView"
+import { ChartView, type ViewProps, type ViewState } from "./ChartView"
 import { ChartViewContainer } from "./ChartViewContainer"
 
 /**
@@ -55,7 +55,7 @@ export class ChartXControl {
 
   isCursorAccelerated = false;
 
-  readonly #popupViewRefs = new Map<ChartView, unknown>();
+  readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
   private popupViews() { return this.#popupViewRefs.keys() };
   #viewContainer?: ChartViewContainer;
   #lastOccurredRowOfBaseSer = 0;
@@ -541,8 +541,8 @@ export class ChartXControl {
     //this.notifyChanged(classOf<ChartValidityObserver>)
   }
 
-  internal_getCorrespondingChartView(e: UIEvent): ChartView | undefined {
-    return e.target as unknown as ChartView;
+  internal_getCorrespondingChartView(e: UIEvent): ChartView<ViewProps, ViewState> | undefined {
+    return e.target as unknown as ChartView<ViewProps, ViewState>;
     // switch (e.target) {
     //   case source: ChartViewContainer:
     //     return source.masterView;

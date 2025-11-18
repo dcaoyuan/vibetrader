@@ -1,6 +1,6 @@
 import { QuoteChart } from "../chart/QuoteChart"
 import { ChartXControl } from "./ChartXControl"
-import { ChartView } from "./ChartView";
+import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
@@ -9,7 +9,11 @@ import { AxisXPane } from "../pane/AxisXPane";
 import { AxisYPane } from "../pane/AxisYPane";
 import './chartview.css';
 
-export class QuoteChartView extends ChartView {
+interface QuoteChartViewProps extends ViewProps {
+  quoteVar: TVar<Quote>;
+}
+
+export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
   static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
     let newKind: QuoteChart.Kind;
@@ -40,14 +44,20 @@ export class QuoteChartView extends ChartView {
   quoteChart: QuoteChart
   quoteVar: TVar<Quote>;
 
-  constructor(xcontrol: ChartXControl, quoteVar: TVar<Quote>) {
-    super(xcontrol, quoteVar.belongsTo);
-    this.quoteChart = new QuoteChart(quoteVar, this.ycontrol);
-    this.quoteVar = quoteVar;
+  constructor(props: QuoteChartViewProps) {
+    super({
+      mainSer: props.mainSer,
+      quoteVar: props.quoteVar,
+      width: props.width,
+      height: props.height,
+      isQuote: props.isQuote,
+    });
 
-    //if (axisXPane != null) {
-    //  axisXPane.setTimeZone(sec.exchange.timeZone)
-    //}
+    this.quoteChart = new QuoteChart(props.quoteVar, this.ycontrol);
+    this.quoteVar = props.quoteVar;
+    this.width = props.width;
+    this.height = props.height;
+    this.isQuote = props.isQuote;
   }
 
   maxVolume = 0.0;

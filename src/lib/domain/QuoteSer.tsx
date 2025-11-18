@@ -61,23 +61,8 @@ export namespace QuoteSer {
     const quoteSer = loadSer();
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
-    const xcontrol = new ChartXControl(quoteSer);
-
-    const chartView = new QuoteChartView(xcontrol, qvar);
-    chartView.isQuote = true;
-    chartView.width = width;
-    chartView.height = height;
-    chartView.ycontrol.width = width;
-    chartView.ycontrol.height = height;
-
-    const viewContainer = new ChartViewContainer(xcontrol, chartView);
-    xcontrol.setViewContainer(viewContainer);
-
     return (
-      // <QuoteChartView xcontrol = {xcontrol}/>
-      <div>
-        {chartView.render()}
-      </div>
+      <QuoteChartView mainSer={quoteSer} quoteVar={qvar} isQuote={true} width={width} height={height} />
     )
   }
 }
