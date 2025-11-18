@@ -59,28 +59,22 @@ export namespace QuoteSer {
     const width = 800;
     const height = 400;
     const quoteSer = loadSer();
-    const xontrol = new ChartXControl(quoteSer);
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
-    const chartView = new QuoteChartView(xontrol, qvar);
+    const xcontrol = new ChartXControl(quoteSer);
+
+    const chartView = new QuoteChartView(xcontrol, qvar);
     chartView.isQuote = true;
     chartView.width = width;
     chartView.height = height;
     chartView.ycontrol.width = width;
     chartView.ycontrol.height = height;
 
-    const viewContainer = new ChartViewContainer(xontrol, chartView);
-    xontrol.setViewContainer(viewContainer);
-
-    const axisxPane = new AxisXPane(chartView);
-    axisxPane.width = width;
-    axisxPane.height = ChartView.AXISX_HEIGHT;
-
-    const axisyPane = new AxisYPane(chartView, qvar);
-    axisyPane.width = ChartView.AXISY_WIDTH;
-    axisyPane.height = height + ChartView.AXISX_HEIGHT;
+    const viewContainer = new ChartViewContainer(xcontrol, chartView);
+    xcontrol.setViewContainer(viewContainer);
 
     return (
+      // <QuoteChartView xcontrol = {xcontrol}/>
       <div>
         {chartView.render()}
       </div>
