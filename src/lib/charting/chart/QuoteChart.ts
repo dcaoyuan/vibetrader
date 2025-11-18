@@ -188,13 +188,13 @@ export class QuoteChart extends AbstractChart {
   }
 
   #plotLineChart() {
-    let y1: number = undefined as any // for prev
-    let y2: number = undefined as any // for curr
+    let y1: number = undefined as number // for prev
+    let y2: number = undefined as number // for curr
     let bar = 1
     while (bar <= this.nBars) {
       // use `undefiend` to test if value has been set at least one time
-      let open: number = undefined as any
-      let close: number = undefined as any
+      let open: number = undefined as number
+      let close: number = undefined as number
       let max = Number.NEGATIVE_INFINITY;
       let min = Number.POSITIVE_INFINITY;
       let i = 0;

@@ -51,7 +51,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
     return this.size() === 0;
   }
 
-  contains(o: any): boolean {
+  contains(o: unknown): boolean {
     const it = this.iterator();
     if (o === undefined) {
       while (it.hasNext()) {
@@ -61,7 +61,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
       }
     } else {
       while (it.hasNext()) {
-        if (o.equals(it.next())) {
+        if (o === it.next()) {
           return true;
         }
       }
@@ -101,7 +101,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 
   abstract add(e: E): boolean;
 
-  remove(o: any): boolean {
+  remove(o: unknown): boolean {
     const it = this.iterator();
     if (o === undefined) {
       while (it.hasNext()) {
@@ -112,7 +112,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
       }
     } else {
       while (it.hasNext()) {
-        if (o.equals(it.next())) {
+        if (o === it.next()) {
           it.remove();
           return true;
         }
@@ -123,7 +123,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 
 
   containsAll(c: Collection<unknown>): boolean {
-    for (let e of c) {
+    for (const e of c) {
       if (!this.contains(e)) {
         return false;
       }
@@ -133,7 +133,7 @@ export abstract class AbstractCollection<E> implements Collection<E> {
 
   addAll(c: Collection<E>): boolean {
     let modified = false;
-    for (let e of c) {
+    for (const e of c) {
       if (this.add(e)) {
         modified = true;
       }

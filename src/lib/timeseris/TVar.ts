@@ -148,11 +148,11 @@ export class TVar<V extends TVal> {
     }
   }
 
-  castingSetByIndex(idx: number, value: any) {
+  castingSetByIndex(idx: number, value: unknown) {
     this.setByIndex(idx, value as V);
   }
 
-  castingSetByTime(time: number, value: any) {
+  castingSetByTime(time: number, value: unknown) {
     this.setByTime(time, value as V);
   }
 

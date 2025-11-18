@@ -39,11 +39,6 @@ export abstract class ChartView {
   readonly ycontrol: ChartYControl;
   mainSer?: TSer;
 
-  width: number;
-  height: number;
-
-  isQuote = false;
-
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
@@ -88,6 +83,14 @@ export abstract class ChartView {
   //xControlPane?: XControlPane;
   // y-control pane, may be <code>null</code>
   yControlPane?: Pane; //YControlPane;
+
+  width: number;
+  height: number;
+
+  isQuote = false;
+  hasInnerVolume = false;
+  maxVolume?: number;
+  minVolume?: number;
 
   maxValue = 1.0
   minValue = 0.0

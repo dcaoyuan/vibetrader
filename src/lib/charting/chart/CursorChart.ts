@@ -89,7 +89,7 @@ export class CursorChart extends AbstractChart {
 
     if (this._ycontrol.view.isQuote) {
       const quoteSer = this._xcontrol.baseSer
-      const time = this._ycontrol.tr(this.referRow);
+      const time = this._xcontrol.tr(this.referRow);
       if (quoteSer.exists(time)) {
         const y = this._ycontrol.isAutoReferCursorValue ? this.yv(quoteSer.close(time)) : this.yv(this._ycontrol.referCursorValue)
 

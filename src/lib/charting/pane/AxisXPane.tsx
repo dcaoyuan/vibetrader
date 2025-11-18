@@ -8,7 +8,7 @@ import { Temporal } from "temporal-polyfill";
 import type { ChartYControl } from "../view/ChartYControl";
 
 export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
-  #view: ChartView;
+  #view: ChartView
   #ycontrol: ChartYControl;
   #xcontrol: ChartXControl;
   width = 0;
@@ -22,9 +22,9 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
 
   private readonly TICK_SPACING = 100 // in pixels
 
-  // private mouseCursorLabel: any;
+  // private mouseCursorLabel: unknown;
 
-  // private referCursorLabel: any;
+  // private referCursorLabel: unknown;
 
 
 

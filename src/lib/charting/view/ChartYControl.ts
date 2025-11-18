@@ -1,6 +1,5 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer";
 import { Geometry } from "../chart/Geometry";
-import { withVolumePane, type WithVolumePane } from "../pane/WithVolumePane";
 import { ChartView } from "../view/ChartView";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import type { Scalar } from "../view/scalar/Scalar";
@@ -80,12 +79,9 @@ export class ChartYControl {
       this.#hSpaceUpper += ChartView.TITLE_HEIGHT_PER_LINE
       //let x = (this.view as unknown as WithVolumePane).volumeChartPane
 
-    } else if (
-      withVolumePane(this.view) &&
-      (this as unknown as ChartYControl) === (this.view as unknown as WithVolumePane).volumeChartPane
-    ) {
-      this.#maxValue = (this.view as unknown as WithVolumePane).maxVolume;
-      this.#minValue = (this.view as unknown as WithVolumePane).minVolume;
+    } else if (this.view.hasInnerVolume) {
+      this.#maxValue = this.view.maxVolume;
+      this.#minValue = this.view.minVolume;
     }
 
     this.#maxScaledValue = this.valueScalar.doScale(this.#maxValue)

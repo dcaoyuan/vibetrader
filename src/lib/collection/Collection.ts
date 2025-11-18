@@ -6,7 +6,7 @@ export interface Collection<E> extends CIterable<E>, Iterable<E> {
 
   isEmpty(): boolean;
 
-  contains(o: any): boolean;
+  contains(o: unknown): boolean;
 
   iterator(): CIterator<E>;
 
@@ -14,7 +14,7 @@ export interface Collection<E> extends CIterable<E>, Iterable<E> {
 
   add(e: E): boolean;
 
-  remove(o: any): boolean;
+  remove(o: unknown): boolean;
 
   containsAll(c: Collection<unknown>): boolean;
 
@@ -25,8 +25,4 @@ export interface Collection<E> extends CIterable<E>, Iterable<E> {
   retainAll(c: Collection<unknown>): boolean;
 
   clear(): void;
-
-  // equals(o: any): boolean;
-
-  // hashCode(): number;
 }

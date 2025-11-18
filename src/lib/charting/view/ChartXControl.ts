@@ -34,7 +34,7 @@ export class ChartXControl {
 
   readonly baseSer: BaseTSer;
 
-  #wBarIdx = 9;
+  #wBarIdx = 10;
   /** pixels per bar (bar width in pixels) */
   wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
 
@@ -55,7 +55,7 @@ export class ChartXControl {
 
   isCursorAccelerated = false;
 
-  readonly #popupViewRefs = new Map<ChartView, any>();
+  readonly #popupViewRefs = new Map<ChartView, unknown>();
   private popupViews() { return this.#popupViewRefs.keys() };
   #viewContainer?: ChartViewContainer;
   #lastOccurredRowOfBaseSer = 0;
@@ -542,7 +542,7 @@ export class ChartXControl {
   }
 
   internal_getCorrespondingChartView(e: UIEvent): ChartView | undefined {
-    return e.target as any as ChartView;
+    return e.target as unknown as ChartView;
     // switch (e.target) {
     //   case source: ChartViewContainer:
     //     return source.masterView;
