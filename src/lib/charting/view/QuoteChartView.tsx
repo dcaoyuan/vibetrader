@@ -45,13 +45,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
   quoteVar: TVar<Quote>;
 
   constructor(props: QuoteChartViewProps) {
-    super({
-      mainSer: props.mainSer,
-      quoteVar: props.quoteVar,
-      width: props.width,
-      height: props.height,
-      isQuote: props.isQuote,
-    });
+    super(props);
 
     this.quoteChart = new QuoteChart(props.quoteVar, this.ycontrol);
     this.quoteVar = props.quoteVar;

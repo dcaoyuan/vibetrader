@@ -11,7 +11,7 @@ import { Component } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
 
 export interface ViewProps {
-  mainSer: BaseTSer;
+  baseSer: BaseTSer;
   width: number;
   height: number;
   isQuote: boolean;
@@ -21,7 +21,7 @@ export interface ViewState {
   xcontrol: ChartXControl;
   ycontrol: ChartYControl;
 
-  mainSer?: BaseTSer;
+  baseSer: BaseTSer;
 
   width: number;
   height: number;
@@ -36,8 +36,6 @@ export interface ViewState {
 
   isInteractive: true
   isPinned: false
-
-  baseSer?: BaseTSer;
 }
 
 /**
@@ -70,7 +68,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   readonly xcontrol: ChartXControl;
   readonly ycontrol: ChartYControl;
-  mainSer?: TSer;
+  baseSer?: TSer;
 
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
@@ -80,15 +78,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   constructor(props: P) {
     super(props)
 
-    this.xcontrol = new ChartXControl(props.mainSer);
-    const viewContainer = new ChartViewContainer(this.xcontrol, this);
-    this.xcontrol.setViewContainer(viewContainer);
+    this.xcontrol = new ChartXControl(props.baseSer);
+    this.xcontrol.setViewContainer(new ChartViewContainer(this.xcontrol, this));
 
     this.ycontrol = new ChartYControl(this);
     this.ycontrol.height = props.height;
 
-    this.mainSer = props.mainSer
-    this.#baseSer = this.xcontrol.baseSer
+    this.baseSer = props.baseSer
 
     this.#createBasisComponents();
 
@@ -134,8 +130,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   #isInteractive = true
   #isPinned = false
-
-  #baseSer?: BaseTSer;
 
   protected abstract initComponents(): void;
 
@@ -334,14 +328,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     return this.xcontrol.br(row);
   }
 
-  get baseSer(): BaseTSer {
-    return this.#baseSer;
-  }
-
   chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
     //assert(ser != null, "Do not pass me a null ser!")
     //let x = this.overlappingSerChartToVars.get(ser);
-    return ser === this.mainSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
+    return ser === this.baseSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
   }
 
   overlappingSers() {
@@ -351,7 +341,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   allSers() {
     const _allSers = new Set<TSer>()
 
-    _allSers.add(this.mainSer);
+    _allSers.add(this.baseSer);
     for (const s of this.overlappingSers()) {
       _allSers.add(s);
     }
