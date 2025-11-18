@@ -30,16 +30,6 @@ export interface Chart {//extends Widget with Ordered[Chart] {
   stroke: string;
   strockWidth: number;
 
-  /**
-   * @NOTICE:
-   * It's always better to set datumPlane here. After call following set(,,,)
-   * methods, the chart can be properly put in any datumPlane with the same datum,
-   * by calling DatumPlane.putChart() for automatically rendering, or, can be
-   * drawn on pane by calling render() initiatively (such as mouse cursor chart).
-   * So, do not try to separate a setDatumPane(AbstractDatumPlane) method.
-   */
-
-
   //plot(): void;
   paths(): Path[];
   reset(): void;

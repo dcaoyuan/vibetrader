@@ -99,7 +99,7 @@ export abstract class ChartView {
   #isPinned = false
 
   #baseSer?: BaseTSer;
-  #lastDepthOfOverlappingChart = 0; // Pane.DEPTH_CHART_BEGIN
+  #lastDepthOfOverlappingChart = Pane.DEPTH_CHART_BEGIN;
 
   protected abstract initComponents(): void;
 
@@ -266,77 +266,40 @@ export abstract class ChartView {
     return this.ycontrol.yChartScale;
   }
   set yChartScale(yChartScale: number) {
-    if (this.ycontrol != null) {
-      const datumPane = this.ycontrol
-      datumPane.yChartScale = yChartScale
-    }
-
-    //repaint()
+    this.ycontrol.yChartScale = yChartScale
   }
 
   valueScalar(valueScalar: Scalar) {
-    if (this.ycontrol != null) {
-      const datumPane = this.ycontrol
-      datumPane.valueScalar = valueScalar
-    }
-
-    //repaint()
+    this.ycontrol.valueScalar = valueScalar
   }
 
   adjustYChartScale(increment: number) {
-    if (this.ycontrol != null) {
-      const datumPane = this.ycontrol
-      datumPane.growYChartScale(increment)
-    }
-
-    //repaint()
+    this.ycontrol.growYChartScale(increment)
   }
 
   yChartScaleByCanvasValueRange(canvasValueRange: number) {
-    if (this.ycontrol != null) {
-      const datumPane = this.ycontrol
-      datumPane.yChartScaleByCanvasValueRange(canvasValueRange)
-    }
-
-    //repaint()
+    this.ycontrol.yChartScaleByCanvasValueRange(canvasValueRange)
   }
 
   scrollChartsVerticallyByPixel(increment: number) {
-    const datumPane = this.ycontrol
-    if (datumPane != null) {
-      datumPane.scrollChartsVerticallyByPixel(increment)
-    }
-
+    this.ycontrol.scrollChartsVerticallyByPixel(increment)
     //repaint()
   }
 
-  /**
-   * barIndex -> time
-   *
-   * @param barIndex, index of bars, start from 1 and to nBars
-   * @return time
-   */
   tb(barIndex: number): number {
-    return this.#baseSer.timeOfRow(this.rb(barIndex));
+    return this.xcontrol.tb(barIndex)
   }
 
   rb(barIndex: number): number {
-    /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.xcontrol.rightSideRow - this.xcontrol.nBars + barIndex;
+    return this.xcontrol.rb(barIndex);
   }
 
-  /**
-   * time -> barIndex
-   *
-   * @param time
-   * @return index of bars, start from 1 and to nBars
-   */
   bt(time: number): number {
-    return this.br(this.#baseSer.rowOfTime(time))
+    return this.xcontrol.bt(time);
   }
 
   br(row: number): number {
-    return row - this.xcontrol.rightSideRow + this.xcontrol.nBars
+    return this.xcontrol.br(row);
   }
 
   get baseSer(): BaseTSer {
