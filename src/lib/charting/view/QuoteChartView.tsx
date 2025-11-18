@@ -77,7 +77,7 @@ export class QuoteChartView extends ChartView {
     this.maxVolume = Number.NEGATIVE_INFINITY;
     this.minVolume = 0
     let i = 1
-    while (i <= this.nBars) {
+    while (i <= this.nBars()) {
       const time = this.tb(i)
       if (this.quoteVar.exists(time)) {
         const quote = this.quoteVar.getByTime(time);

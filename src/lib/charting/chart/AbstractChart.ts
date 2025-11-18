@@ -31,8 +31,8 @@ abstract class AbstractChart implements Chart {
   #markPoints: DOMPoint[] = [];
 
   plot() {
-    this.nBars = this._ycontrol.nBars
-    this.wBar = this._ycontrol.wBar
+    this.nBars = this._xcontrol.nBars
+    this.wBar = this._xcontrol.wBar
 
     // wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     // nSegs = (nBars * wBar / wSeg).toInt + 1
@@ -95,7 +95,7 @@ abstract class AbstractChart implements Chart {
   }
 
   protected xb(barIndex: number): number {
-    return this._ycontrol.xb(barIndex);
+    return this._xcontrol.xb(barIndex);
   }
 
   protected yv(value: number): number {
@@ -103,7 +103,7 @@ abstract class AbstractChart implements Chart {
   }
 
   protected bx(x: number): number {
-    return this._ycontrol.bx(x);
+    return this._xcontrol.bx(x);
   }
 
   protected vy(y: number): number {
@@ -111,11 +111,11 @@ abstract class AbstractChart implements Chart {
   }
 
   protected rb(barIndex: number): number {
-    return this._ycontrol.rb(barIndex);
+    return this._xcontrol.rb(barIndex);
   }
 
   protected br(row: number): number {
-    return this._ycontrol.br(row);
+    return this._xcontrol.br(row);
   }
 
   protected sb(barIdx: number): number {
@@ -127,15 +127,15 @@ abstract class AbstractChart implements Chart {
   }
 
   protected tb(barIdx: number): number {
-    return this._ycontrol.tb(barIdx);
+    return this._xcontrol.tb(barIdx);
   }
 
   protected bt(time: number): number {
-    return this._ycontrol.bt(time);
+    return this._xcontrol.bt(time);
   }
 
   protected exists(time: number): boolean {
-    return this._ycontrol.exists(time);
+    return this._xcontrol.exists(time);
   }
 
   protected plotLine(xBase: number, yBase: number, k: number, path: Path) {

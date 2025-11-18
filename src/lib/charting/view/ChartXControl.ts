@@ -35,6 +35,12 @@ export class ChartXControl {
 
   readonly baseSer: BaseTSer;
 
+  #wBarIdx = 11;
+  /** pixels per bar (bar width in pixels) */
+  wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
+
+  nBars = 0;
+
   constructor(baseSer: BaseTSer) {
     this.baseSer = baseSer;
   }
@@ -47,16 +53,14 @@ export class ChartXControl {
 
   isCursorAccelerated = false;
 
-  private readonly popupViewRefs = new Map<ChartView, any>();
-  private popupViews() { return this.popupViewRefs.keys() };
-  private viewContainer?: ChartViewContainer;
-  private _fixedLeftSideTime?: number;
-  private _wBarIdx = 11;
-  /** pixels per bar (bar width in pixels) */
-  private _wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]
-  private _lastOccurredRowOfBaseSer = 0;
-  private _isAutoScrollToNewData = true;
-  private _isMouseEnteredAnyChartPane = false;
+  readonly #popupViewRefs = new Map<ChartView, any>();
+  private popupViews() { return this.#popupViewRefs.keys() };
+  #viewContainer?: ChartViewContainer;
+  #fixedLeftSideTime?: number;
+  #lastOccurredRowOfBaseSer = 0;
+  #isAutoScrollToNewData = true;
+  #isMouseEnteredAnyChartPane = false;
+
   isCursorCrossVisible = true;
 
   /**
@@ -85,8 +89,110 @@ export class ChartXControl {
     this.internal_setChartViewContainer(viewContainer);
   }
 
+  computeGeometry() {
+    /**
+     * !NOTE
+     * 1.Should get wBar firstly, then calculator nBars
+     * 2.Get this view's width to compute nBars instead of mainChartPane's
+     * width, because other panes may be repainted before mainChartPane is
+     * properly layouted (the width of mainChartPane is still not good)
+     */
+    this.wBar = this.isFixedNBars() ?
+      this.#viewContainer.masterView.wChart() * 1.0 / this.fixedNBars :
+      ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
+
+    const nBars1 = this.isFixedNBars() ?
+      this.fixedNBars :
+      Math.floor(this.#viewContainer.masterView.wChart() / this.wBar)
+
+    /** avoid nBars == 0 */
+    this.nBars = Math.max(nBars1, 1)
+
+    if (this.isFixedLeftSideTime) {
+      this.setLeftSideRowByTime(this.fixedLeftSideTime, false)
+    }
+  }
+
+  // --- x geometry methods:
+  exists(time: number): boolean {
+    return this.baseSer.exists(time);
+  }
+
+  /**
+   * barIndex -> x
+   *
+   * @param i index of bars, start from 1 to nBars
+   * @return x
+   */
+  xb(barIndex: number): number {
+    return this.wBar * (barIndex - 1);
+  }
+
+  xr(row: number): number {
+    return this.xb(this.br(row));
+  }
+
+  /**
+   * barIndex <- x
+   *
+   * @param x x on the pane
+   * @return index of bars, start from 1 to nBars
+   */
+  bx(x: number): number {
+    return Math.round(x / this.wBar + 1)
+  }
+
+  /**
+   * time <- x
+   */
+  tx(x: number): number {
+    return this.tb(this.bx(x));
+  }
+
+  /** row <- x */
+  rx(x: number): number {
+    return this.rb(this.bx(x))
+  }
+
+  rb(barIndex: number): number {
+    /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
+    return this.rightSideRow - this.nBars + barIndex
+  }
+
+  br(row: number): number {
+    return row - this.rightSideRow + this.nBars
+  }
+
+  /**
+   * barIndex -> time
+   *
+   * @param barIndex, index of bars, start from 1 and to nBars
+   * @return time
+   */
+  tb(barIndex: number): number {
+    return this.baseSer.timeOfRow(this.rb(barIndex));
+  }
+
+  tr(row: number): number {
+    return this.baseSer.timeOfRow(row);
+  }
+
+  rt(time: number): number {
+    return this.baseSer.rowOfTime(time);
+  }
+
+  /**
+   * time -> barIndex
+   *
+   * @param time
+   * @return index of bars, start from 1 and to nBars
+   */
+  bt(time: number): number {
+    return this.br(this.baseSer.rowOfTime(time))
+  }
+
   private internal_setChartViewContainer(viewContainer: ChartViewContainer) {
-    this.viewContainer = viewContainer
+    this.#viewContainer = viewContainer
 
     this.internal_initCursorRow()
 
@@ -129,15 +235,15 @@ export class ChartXControl {
   // }
 
   get isMouseEnteredAnyChartPane() {
-    return this._isMouseEnteredAnyChartPane;
+    return this.#isMouseEnteredAnyChartPane;
   }
   set isMouseEnteredAnyChartPane(b: boolean) {
-    const oldValue = this._isMouseEnteredAnyChartPane
-    this._isMouseEnteredAnyChartPane = b
+    const oldValue = this.#isMouseEnteredAnyChartPane
+    this.#isMouseEnteredAnyChartPane = b
 
-    if (!this._isMouseEnteredAnyChartPane) {
+    if (!this.#isMouseEnteredAnyChartPane) {
       /** this cleanups mouse cursor */
-      if (this._isMouseEnteredAnyChartPane != oldValue) {
+      if (this.#isMouseEnteredAnyChartPane != oldValue) {
         //this.notifyChanged(classOf<MouseCursorObserver>);
         this.updateViews()
       }
@@ -145,20 +251,20 @@ export class ChartXControl {
   }
 
   get isAutoScrollToNewData() {
-    return this._isAutoScrollToNewData
+    return this.#isAutoScrollToNewData
   }
   set isAutoScrollToNewData(autoScrollToNewData: boolean) {
-    this._isAutoScrollToNewData = autoScrollToNewData
+    this.#isAutoScrollToNewData = autoScrollToNewData
   }
 
   isFixedLeftSideTime() {
-    return this._fixedLeftSideTime !== undefined;
+    return this.#fixedLeftSideTime !== undefined;
   }
   get fixedLeftSideTime() {
-    return this._fixedLeftSideTime
+    return this.#fixedLeftSideTime
   }
   set fixedLeftSideTime(time: number) {
-    this._fixedLeftSideTime = time;
+    this.#fixedLeftSideTime = time;
   }
 
   isFixedNBars() {
@@ -170,22 +276,17 @@ export class ChartXControl {
       return
     }
 
-    this._wBarIdx += increment
-    if (this._wBarIdx < 0) {
-      this._wBarIdx = 0
-    } else if (this._wBarIdx > ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1) {
-      this._wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
+    this.#wBarIdx += increment
+    if (this.#wBarIdx < 0) {
+      this.#wBarIdx = 0
+    } else if (this.#wBarIdx > ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1) {
+      this.#wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
     }
 
-    this.internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this._wBarIdx]);
+    this.internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]);
     this.updateViews();
   }
 
-  wBar(): number {
-    return this.isFixedNBars() ?
-      this.viewContainer.masterView.wChart() * 1.0 / this.fixedNBars :
-      this._wBar;
-  }
 
   // setWBarByNBars(nBars: number) {
   //   if (nBars < 0 || this.fixedNBars != - 0) return
@@ -209,10 +310,10 @@ export class ChartXControl {
       /** avoid too small xfactor */
       newWBar = ChartXControl.PREDEFINED_BAR_WIDTHS[0]
 
-      this._wBarIdx = 0
+      this.#wBarIdx = 0
 
     } else if (newWBar > ChartXControl.PREDEFINED_BAR_WIDTHS[ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1]) {
-      this._wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
+      this.#wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
 
     } else {
       let i = 0
@@ -221,7 +322,7 @@ export class ChartXControl {
       while (i < n && !breakNow) {
         if (newWBar > ChartXControl.PREDEFINED_BAR_WIDTHS[i] && newWBar < ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1]) {
           /** which one is the nearest ? */
-          this._wBarIdx = Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
+          this.#wBarIdx = Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
           breakNow = true;
         }
         i++;
@@ -277,7 +378,7 @@ export class ChartXControl {
       this.internal_setRightSideRow(rightRow + ChartXControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
     } else {
       /** right spacing is enough, check left spacing: */
-      const leftRow = rightRow - this.nBars() + 1
+      const leftRow = rightRow - this.nBars + 1
       const leftPadding = referRow - leftRow
       if (leftPadding < ChartXControl.REF_PADDING_LEFT) {
         this.internal_setRightSideRow(rightRow + leftPadding - ChartXControl.REF_PADDING_LEFT, willUpdateViews)
@@ -300,7 +401,7 @@ export class ChartXControl {
 
   scrollReferCursorToLeftSide() {
     const rightRow = this.rightSideRow;
-    const leftRow = rightRow - this.nBars() + ChartXControl.REF_PADDING_LEFT
+    const leftRow = rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
     this.setReferCursorByRow(leftRow, true)
   }
 
@@ -309,7 +410,7 @@ export class ChartXControl {
   }
 
   updateViews() {
-    if (this.viewContainer !== undefined) {
+    if (this.#viewContainer !== undefined) {
       //this.viewContainer.repaint()
     }
 
@@ -338,19 +439,15 @@ export class ChartXControl {
 
   leftSideRow(): number {
     const rightRow = this.rightSideRow
-    return rightRow - this.nBars() + ChartXControl.REF_PADDING_LEFT
+    return rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
   }
 
   setLeftSideRowByTime(time: number, willUpdateViews: boolean = false) {
     const frRow = this.baseSer.rowOfTime(time);
-    const toRow = frRow + this.nBars() - 1;
+    const toRow = frRow + this.nBars - 1;
 
     const lastOccurredRow = this.baseSer.lastOccurredRow()
     this.setCursorByRow(lastOccurredRow, toRow, willUpdateViews)
-  }
-
-  private nBars(): number {
-    return this.viewContainer.masterView.nBars;
   }
 
   /**
@@ -360,9 +457,9 @@ export class ChartXControl {
    * the following setter methods are named internal_setXXX, and are private.
    */
   private internal_setWBar(wBar: number) {
-    const oldValue = this._wBar
-    this._wBar = wBar
-    if (this._wBar != oldValue) {
+    const oldValue = this.wBar
+    this.wBar = wBar
+    if (this.wBar != oldValue) {
       //notifyChanged(classOf<ChartValidityObserver>)
     }
   }
@@ -371,7 +468,7 @@ export class ChartXControl {
     const oldValue = this.referCursorRow
     this.referCursorRow = row
     /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
-    this._lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
+    this.#lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
     if (this.referCursorRow !== oldValue && notify) {
       //this.notifyChanged(classOf<ReferCursorObserver>)
       //this.notifyChanged(classOf<ChartValidityObserver>)
@@ -448,7 +545,7 @@ export class ChartXControl {
     // }
 
     const oldReferRow = this.referCursorRow;
-    if (oldReferRow === this._lastOccurredRowOfBaseSer || this._lastOccurredRowOfBaseSer <= 0) {
+    if (oldReferRow === this.#lastOccurredRowOfBaseSer || this.#lastOccurredRowOfBaseSer <= 0) {
       /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
       const lastTime = Math.max(toTime, this.baseSer.lastOccurredTime());
       const referRow = this.baseSer.rowOfTime(lastTime);
@@ -494,7 +591,7 @@ class ChartViewKeyAdapter /* extends KeyAdapter */ {
       return
     }
 
-    const fastSteps = Math.floor(view.nBars * 0.168)
+    const fastSteps = Math.floor(view.nBars() * 0.168)
 
     switch (e.key) {
       case "ArrowLeft":
@@ -564,7 +661,7 @@ class ChartViewMouseWheelListener /* extends MouseWheelListener */ {
       return
     }
 
-    const fastSteps = Math.floor(view.nBars * 0.168)
+    const fastSteps = Math.floor(view.nBars() * 0.168)
     const delta = e.deltaX;
 
     if (e.shiftKey) {

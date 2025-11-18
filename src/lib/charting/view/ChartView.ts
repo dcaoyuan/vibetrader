@@ -35,10 +35,6 @@ export abstract class ChartView {
   static readonly CONTROL_HEIGHT = 12
   static readonly TITLE_HEIGHT_PER_LINE = 12
 
-  drawLine(): SVGPathElement {
-    return document.createElementNS("http://www.w3.org/2000/svg", "path");
-  }
-
   readonly xcontrol: ChartXControl;
   readonly ycontrol: ChartYControl;
   mainSer?: TSer;
@@ -47,10 +43,6 @@ export abstract class ChartView {
   height: number;
 
   isQuote = false;
-
-  protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
-
-  readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
@@ -75,6 +67,10 @@ export abstract class ChartView {
     /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
   }
 
+  protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
+
+  readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
+
 
 
   //   const mainLayeredPane = new JLayeredPane {
@@ -93,12 +89,11 @@ export abstract class ChartView {
   // y-control pane, may be <code>null</code>
   yControlPane?: Pane; //YControlPane;
 
-  /** geometry */
-  #nBars = 0 // number of bars
-  #maxValue = 1.0
-  #minValue = 0.0
-  #oldMaxValue = this.#maxValue
-  #oldMinValue = this.#minValue
+  maxValue = 1.0
+  minValue = 0.0
+  #oldMaxValue = this.maxValue
+  #oldMinValue = this.minValue
+
 
   #isInteractive = true
   #isPinned = false
@@ -160,8 +155,6 @@ export abstract class ChartView {
 
   protected prePaintComponent() {
     this.computeGeometry()
-
-    this.ycontrol.computeGeometry()
   }
 
   /**
@@ -178,39 +171,26 @@ export abstract class ChartView {
    * and if success, the newNBars computed here will equals the newNBars you want.
    */
   protected computeGeometry() {
-    /**
-     * @Note
-     * 1.Should get wBar firstly, then calculator nBars
-     * 2.Get this view's width to compute nBars instead of mainChartPane's
-     * width, because other panes may be repainted before mainChartPane is
-     * properly layouted (the width of mainChartPane is still not good)
-     */
-    const nBars1 = this.xcontrol.isFixedNBars() ?
-      this.xcontrol.fixedNBars :
-      Math.floor(this.wChart() / this.xcontrol.wBar())
-
-    /** avoid nBars == 0 */
-    this.nBars = Math.max(nBars1, 1)
-
-    if (this.xcontrol.isFixedLeftSideTime) {
-      this.xcontrol.setLeftSideRowByTime(this.xcontrol.fixedLeftSideTime, false)
-    }
+    // compute x first;
+    this.xcontrol.computeGeometry();
 
     /**
      * We only need computeMaxMin() once when a this should be repainted,
      * so do it here.
      */
     this.computeMaxMin();
-    if (this.#maxValue != this.#oldMaxValue || this.#minValue != this.#oldMinValue) {
-      this.#oldMaxValue = this.#maxValue
-      this.#oldMinValue = this.#minValue
-      //this.notifyChanged(classOf[ChartValidityObserver])
+    if (this.maxValue != this.#oldMaxValue || this.minValue != this.#oldMinValue) {
+      this.#oldMaxValue = this.maxValue
+      this.#oldMinValue = this.minValue
     }
+
+    // compute y after compute maxmin
+    this.ycontrol.computeGeometry()
   }
 
   protected setMaxMinValue(max: number, min: number) {
-    this.#maxValue = max;
-    this.#minValue = min;
+    this.maxValue = max;
+    this.minValue = min;
   }
 
   protected postPaintComponent() {
@@ -241,15 +221,8 @@ export abstract class ChartView {
 
   }
 
-  get nBars(): number {
-    return this.#nBars;
-  }
-  private set nBars(nBars: number) {
-    const oldValue = this.#nBars
-    this.#nBars = nBars;
-    if (this.#nBars != oldValue) {
-      //this.notifyChanged(classOf[ChartValidityObserver])
-    }
+  nBars(): number {
+    return this.xcontrol.nBars;
   }
 
   // should decide width by this component's width and constant AXISY_WIDTH, since the width of children may not be decided yet.
@@ -349,7 +322,7 @@ export abstract class ChartView {
 
   rb(barIndex: number): number {
     /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.xcontrol.rightSideRow - this.#nBars + barIndex;
+    return this.xcontrol.rightSideRow - this.xcontrol.nBars + barIndex;
   }
 
   /**
@@ -363,16 +336,8 @@ export abstract class ChartView {
   }
 
   br(row: number): number {
-    return row - this.xcontrol.rightSideRow + this.#nBars
+    return row - this.xcontrol.rightSideRow + this.xcontrol.nBars
   }
-
-  get maxValue() {
-    return this.#maxValue;
-  }
-  get minValue(): number {
-    return this.#minValue;
-  }
-
 
   get baseSer(): BaseTSer {
     return this.#baseSer;
@@ -489,8 +454,8 @@ export abstract class ChartView {
 
   computeMaxMin() {
     /** if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 */
-    this.#maxValue = 1;
-    this.#minValue = 0;
+    this.maxValue = 1;
+    this.minValue = 0;
   }
 
   protected abstract putChartsOfMainSer(): void

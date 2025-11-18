@@ -28,7 +28,6 @@ export class ChartYControl {
   height: number;
 
   /** geometry that need to be set before chart plotting and render */
-  #nBars = 0                // fetched from view, number of bars, you may consider it as chart width
   #hChart = 0               // chart height in pixels, corresponds to the value range (maxValue - minValue)
   #hCanvas = 0              // canvas height in pixels
   #hChartOffsetToCanvas = 0 // chart's axis-y offset in canvas, named hXXXX means positive is from lower to upper;
@@ -36,7 +35,6 @@ export class ChartYControl {
   #hSpaceUpper = 0          // height of spare space at upper side
   #yCanvasLower = 0         // y of canvas' lower side
   #yChartLower = 0          // y of chart's lower side
-  #wBar = 0.0               // fetched from viewContainer, pixels per bar
   #hOne = 0.0               // pixels per 1.0 value
   #maxValue = 0.0           // fetched from view
   #minValue = 0.0           // fetched from view
@@ -60,9 +58,6 @@ export class ChartYControl {
   #hChartScrolled: number = 0;
 
   computeGeometry() {
-    this.#wBar = this.view.xcontrol.wBar()
-    this.#nBars = this.view.nBars
-
     /**
      * @TIPS:
      * if want to leave spare space at lower side, do hCanvas -= space
@@ -131,8 +126,6 @@ export class ChartYControl {
         minValue: this.#minValue,
         maxScaledValue: this.#maxScaledValue,
         minScaledValue: this.#minScaledValue,
-        nBars: this.#nBars,
-        wBars: this.#wBar,
         yCanvasLower: this.#yCanvasLower,
         yChartLower: this.#yChartLower,
         yChartScale: this.#yChartScale
@@ -172,21 +165,6 @@ export class ChartYControl {
     //repaint();
   }
 
-
-  /**
-   * barIndex -> x
-   *
-   * @param i index of bars, start from 1 to nBars
-   * @return x
-   */
-  xb(barIndex: number): number {
-    return this.#wBar * (barIndex - 1);
-  }
-
-  xr(row: number): number {
-    return this.xb(this.br(row));
-  }
-
   /**
    * y <- value
    *
@@ -206,78 +184,6 @@ export class ChartYControl {
   vy(y: number): number {
     const scaledValue = Geometry.vy(y, this.#hOne, this.#minScaledValue, this.#yChartLower)
     return this.valueScalar.unScale(scaledValue);
-  }
-
-  /**
-   * barIndex <- x
-   *
-   * @param x x on the pane
-   * @return index of bars, start from 1 to nBars
-   */
-  bx(x: number): number {
-    return Math.round(x / this.#wBar + 1)
-  }
-
-
-  /**
-   * time <- x
-   */
-  tx(x: number): number {
-    return this.tb(this.bx(x));
-  }
-
-  /** row <- x */
-  rx(x: number): number {
-    return this.rb(this.bx(x))
-  }
-
-  rb(barIndex: number): number {
-    /** when barIndex equals it's max: nBars, row should equals rightTimeRow */
-    return this.view.xcontrol.rightSideRow - this.#nBars + barIndex
-  }
-
-  br(row: number): number {
-    return row - this.view.xcontrol.rightSideRow + this.#nBars
-  }
-
-  exists(time: number): boolean {
-    return this.baseSer.exists(time);
-  }
-
-  /**
-   * barIndex -> time
-   *
-   * @param barIndex, index of bars, start from 1 and to nBars
-   * @return time
-   */
-  tb(barIndex: number): number {
-    return this.view.baseSer.timeOfRow(this.rb(barIndex));
-  }
-
-  tr(row: number): number {
-    return this.baseSer.timeOfRow(row);
-  }
-
-  rt(time: number): number {
-    return this.baseSer.rowOfTime(time);
-  }
-
-  /**
-   * time -> barIndex
-   *
-   * @param time
-   * @return index of bars, start from 1 and to nBars
-   */
-  bt(time: number): number {
-    return this.br(this.view.xcontrol.baseSer.rowOfTime(time))
-  }
-
-  get nBars(): number {
-    return this.#nBars;
-  }
-
-  get wBar(): number {
-    return this.#wBar;
   }
 
   /**

@@ -93,7 +93,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
   private plotAxisX() {
     const nTicks = this.width / this.TICK_SPACING
 
-    const nBars = this.#ycontrol.nBars
+    const nBars = this.#xcontrol.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
@@ -116,12 +116,12 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
     let prevDateDay: number;
 
     const hTick = this.height;
-    const xLastTick = this.#ycontrol.xb(nBars)
+    const xLastTick = this.#xcontrol.xb(nBars)
     console.log(nBars)
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit == 0 || i == nBars || i == 1) {
-        const xCurrTick = this.#ycontrol.xb(i)
+        const xCurrTick = this.#xcontrol.xb(i)
 
         if (xLastTick - xCurrTick < this.TICK_SPACING && i != nBars) {
           /** too close */
@@ -130,7 +130,7 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
           path.moveto(xCurrTick, 1)
           path.lineto(xCurrTick, hTick)
 
-          const time = this.#ycontrol.tb(i)
+          const time = this.#xcontrol.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
           let stridingDate = false
           const freqUnit = this.#xcontrol.baseSer.freq.unit
@@ -161,8 +161,6 @@ export class AxisXPane /*extends Pane(aview, adatumPlane) */ {
           const dateStr = stridingDate ?
             freqUnit.formatStrideDate(currDt, timeZone) :
             freqUnit.formatNormalDate(currDt, timeZone)
-
-          console.log(dateStr)
 
           const text = new Text(xCurrTick + 2, this.height - 4, dateStr);
           text.fill = color;
