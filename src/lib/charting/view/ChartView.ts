@@ -9,7 +9,8 @@ import type { Scalar } from "./scalar/Scalar";
 import { ChartYControl } from "./ChartYControl";
 import { Component } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
-import type { Path } from "../../svg/Path";
+import { Path } from "../../svg/Path";
+import { Text } from "../../svg/Text";
 
 export interface ViewProps {
   baseSer: BaseTSer;
@@ -38,10 +39,8 @@ export interface ViewState {
   isInteractive: true
   isPinned: false
 
-  mouseX: number
-  mouseY: number
-
   cursorPaths: Path[]
+  cursorTexts: Text[]
 }
 
 /**

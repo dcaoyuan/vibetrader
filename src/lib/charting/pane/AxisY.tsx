@@ -1,22 +1,9 @@
-import React from "react";
 import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Theme } from "../theme/Theme";
 import type { ChartYControl } from "../view/ChartYControl";
-import { useState } from "react";
-
-const CURRENCY_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-  style: 'decimal',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 3,
-}); // DecimalFormat("0.###")
-
-const COMMON_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
-  style: 'decimal',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 3,
-}); // DecimalFormat("0.###")
+import { COMMON_DECIMAL_FORMAT, CURRENCY_DECIMAL_FORMAT } from "../view/Format";
 
 type Props = {
   x: number,
@@ -32,7 +19,7 @@ type State = {
   texts: Text,
 }
 
-const AxisY = (props: Props) => {
+export const AxisY = (props: Props) => {
   const { x, y, width, height, xcontrol, ycontrol } = props;
   const symmetricByMiddleValue = false;
 

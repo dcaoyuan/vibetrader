@@ -1,5 +1,4 @@
 import { QuoteChart } from "../chart/QuoteChart"
-import { ChartXControl } from "./ChartXControl"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
@@ -8,9 +7,12 @@ import { Quote } from "../../domain/Quote";
 import AxisX from "../pane/AxisX";
 import './chartview.css';
 import AxisY from "../pane/AxisY";
-import ChartPane from "../pane/ChartPane";
-import type { ChartYControl } from "./ChartYControl";
 import { Path } from "../../svg/Path";
+import { Text } from "../../svg/Text";
+import { Temporal } from "temporal-polyfill";
+import { TUnit } from "../../timeseris/TUnit";
+import { Theme } from "../theme/Theme";
+import { COMMON_DECIMAL_FORMAT } from "./Format";
 
 interface QuoteChartViewProps extends ViewProps {
   quoteVar: TVar<Quote>;
@@ -77,10 +79,8 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
       isInteractive: true,
       isPinned: false,
 
-      mouseX: undefined,
-      mouseY: undefined,
-
-      cursorPaths: []
+      cursorPaths: [],
+      cursorTexts: [],
     };
 
     this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -162,20 +162,32 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
     console.log("plot cursor: " + this.width + "," + this.height, offsetX, offsetY)
 
-    //const path = new Path('#F0F0F0');
+    //const path = new Path(0, 0, '#F0F0F0');
     const path = new Path(0, 0, '#00f000');
+
     path.moveto(0, offsetY);
     path.lineto(this.width, offsetY)
     path.moveto(offsetX, 0);
     path.lineto(offsetX, this.height)
-    // path.horizontal_lineto(offsetY);
-    // path.vertical_lineto(offsetX);
-    this.setState({ mouseX: offsetX, mouseY: offsetY, cursorPaths: [path] })
+
+    const axisxTexts = new Text(0, this.height - ChartView.AXISX_HEIGHT, Theme.now().axisColor)
+    const time = this.xcontrol.tx(offsetX);
+    const timeZone = this.xcontrol.baseSer.timeZone;
+    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+    const dateStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+    axisxTexts.text(offsetX + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
+
+    const axisyTexts = new Text(this.width - ChartView.AXISY_WIDTH, 0, Theme.now().axisColor)
+    const value = this.ycontrol.vy(offsetY);
+    axisyTexts.text(4, offsetY, COMMON_DECIMAL_FORMAT.format(value));
+
+    this.setState({ cursorPaths: [path], cursorTexts: [axisxTexts, axisyTexts] })
+
     console.log([path])
   }
 
   handleMouseLeave() {
-    this.setState({ mouseX: undefined, mouseY: undefined, cursorPaths: [] })
+    this.setState({ cursorPaths: [], cursorTexts: [] })
   }
 
   render() {
@@ -216,6 +228,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
             {axisy.path.render()}
             {axisy.texts.render()}
             {this.state.cursorPaths.map(path => path.render())}
+            {this.state.cursorTexts.map(text => text.render())}
           </svg>
         </div>
       </div>
