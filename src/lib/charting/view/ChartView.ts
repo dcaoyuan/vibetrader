@@ -9,6 +9,7 @@ import type { Scalar } from "./scalar/Scalar";
 import { ChartYControl } from "./ChartYControl";
 import { Component } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
+import type { Path } from "../../svg/Path";
 
 export interface ViewProps {
   baseSer: BaseTSer;
@@ -36,6 +37,11 @@ export interface ViewState {
 
   isInteractive: true
   isPinned: false
+
+  mouseX: number
+  mouseY: number
+
+  cursorPaths: Path[]
 }
 
 /**
@@ -82,7 +88,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.xcontrol.setViewContainer(new ChartViewContainer(this.xcontrol, this));
 
     this.ycontrol = new ChartYControl(this);
-    this.ycontrol.height = props.height;
+    this.ycontrol.height = props.height - ChartView.AXISX_HEIGHT;
 
     this.baseSer = props.baseSer
 

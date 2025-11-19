@@ -19,6 +19,8 @@ const COMMON_DECIMAL_FORMAT = new Intl.NumberFormat('en-US', {
 }); // DecimalFormat("0.###")
 
 type Props = {
+  x: number,
+  y: number,
   width: number,
   height: number,
   xcontrol: ChartXControl,
@@ -27,14 +29,15 @@ type Props = {
 
 type State = {
   path: Path,
-  texts: Text[]
+  texts: Text,
 }
 
-const AxisYPane: React.FC<Props> = (props) => {
-  const { width, height, xcontrol, ycontrol } = props;
+const AxisY = (props: Props) => {
+  const { x, y, width, height, xcontrol, ycontrol } = props;
+  const symmetricByMiddleValue = false;
 
-  const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
-  const [state, setState] = useState<State>(plotAxisY())
+  // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
+  // const [state, setState] = useState<State>(plotAxisY())
 
   function roundTickUnit(vtUnit: number) {
     /** sample : 0.032 */
@@ -69,7 +72,7 @@ const AxisYPane: React.FC<Props> = (props) => {
     return vTickUnit;
   }
 
-  function plotAxisY() {
+  function plot() {
     //const hFm = fm.getHeight
     const hFm = 12;
 
@@ -99,8 +102,8 @@ const AxisYPane: React.FC<Props> = (props) => {
     }
 
     const color = Theme.now().axisColor;
-    const path = new Path(color);
-    const texts: Text[] = []
+    const path = new Path(x, y, color);
+    const texts = new Text(x, y, color);
 
     /** Draw left border line */
     path.moveto(0, 0)
@@ -131,14 +134,10 @@ const AxisYPane: React.FC<Props> = (props) => {
         if (i == 0 && shouldScale) {
           const multiple = "x10000"
 
-          const text = new Text(4, yTick, multiple);
-          text.fill = color;
-          texts.push(text);
+          texts.text(4, yTick, multiple);
 
         } else {
-          const text = new Text(4, yTick, COMMON_DECIMAL_FORMAT.format(vTick));
-          text.fill = color;
-          texts.push(text);
+          texts.text(4, yTick, COMMON_DECIMAL_FORMAT.format(vTick));
         }
       }
 
@@ -148,15 +147,17 @@ const AxisYPane: React.FC<Props> = (props) => {
     return { path: path, texts: texts };
   }
 
-  return (
-    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
-    <div style={{ width: width + 'px', height: height + 'px' }}>
-      <svg width={width} height={height}>
-        {state.path.render()}
-        {state.texts.map((text) => text.render())}
-      </svg>
-    </div>
-  );
+
+  return plot();
+  // (
+  //   // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
+  //   <div style={{ width: width + 'px', height: height + 'px' }}>
+  //     <svg width={width} height={height}>
+  //       {state.path.render()}
+  //       {state.texts.map((text) => text.render())}
+  //     </svg>
+  //   </div>
+  // );
 }
 
-export default AxisYPane;
+export default AxisY;

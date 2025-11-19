@@ -86,7 +86,7 @@ export class ChartYControl {
     this.#maxScaledValue = this.valueScalar.doScale(this.#maxValue)
     this.#minScaledValue = this.valueScalar.doScale(this.#minValue)
 
-    this.#hCanvas = this.height - this.#hSpaceLower - this.#hSpaceUpper
+    this.#hCanvas = this.height - this.#hSpaceLower - this.#hSpaceUpper;
 
     const hChartCouldBe = this.#hCanvas
     this.#hChart = hChartCouldBe * this.#yChartScale

@@ -6,7 +6,7 @@ export class Theme {
 
   static now(): Theme {
     if (Theme.current === undefined) {
-      Theme.current = new Theme;
+      Theme.current = new Theme();
     }
     return Theme.current;
   }
@@ -27,11 +27,12 @@ export class Theme {
     return Math.sqrt(((R1 - R2) * (R1 - R2) + (G1 - G2) * (G1 - G2) + (B1 - B1) * (B1 - B2)))
   }
 
-  static isPositiveNegativeColorReversed = false;
+  isPositiveNegativeColorReversed = false;
   quoteChartType: QuoteChart.Kind = QuoteChart.Kind.Ohlc;
-  static isThinVolumeBar = false;
-  static isAutoHideScroll = false;
-  static isAllowMultipleIndicatorOnQuoteChartView = false;
+  isThinVolumeBar = false;
+  isAutoHideScroll = false;
+  isAllowMultipleIndicatorOnQuoteChartView = false;
+  isFillBar = true;
 
   protected readonly monthColors: string[]
   protected readonly planetColors: string[];
@@ -47,7 +48,6 @@ export class Theme {
   protected readonly trackColor: string //= backgroundColor
   protected readonly thumbColor: string //= backgroundColor
 
-  isFillBar = false;
   readonly axisFont: string
   readonly defaultFont: string;//new Font("Dialog Input", Font.PLAIN, 10)
   readonly systemBackgroundColor: string
@@ -63,7 +63,7 @@ export class Theme {
   readonly referCursorColor: string; //new Color(0.5f, 0.0f, 0.5f, 0.618f); //new Color(0.0f, 0.0f, 1.0f, 0.618f);
   //new Color(131, 129, 221);
   /** same as new Color(1.0f, 1.0f, 1.0f, 0.618f) */
-  readonly mouseCursorColor: string;
+  readonly mouseCursorColor: "#F0F0F0";
   //new Color(239, 237, 234);
   readonly mouseCursorTextColor: string;
   readonly mouseCursorTextBgColor: string;

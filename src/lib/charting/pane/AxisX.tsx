@@ -14,19 +14,21 @@ type Props = {
   view: ChartView<ViewProps, ViewState>,
   ycontrol: ChartYControl,
   xcontrol: ChartXControl,
+  x: number,
+  y: number,
   width: number,
   height: number,
 }
 
 type State = {
   path: Path,
-  texts: Text[]
+  texts: Text
 }
 
-const AxisXPane: React.FC<Props> = (props) => {
-  const { xcontrol, width, height } = props;
+const AxisX = (props: Props) => {
+  const { xcontrol, x, y, width, height } = props;
 
-  const [state, setState] = useState<State>(plotAxisX())
+  // const [state, setState] = useState<State>(plotAxisX())
 
   // private mouseCursorLabel: unknown;
   // private referCursorLabel: unknown;
@@ -89,7 +91,7 @@ const AxisXPane: React.FC<Props> = (props) => {
   //   updateReferCursorLabel
   // }
 
-  function plotAxisX() {
+  function plot() {
     const nTicks = width / TICK_SPACING
 
     const nBars = xcontrol.nBars
@@ -97,8 +99,8 @@ const AxisXPane: React.FC<Props> = (props) => {
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
     const color = Theme.now().axisColor;
-    const path = new Path(color);
-    const texts: Text[] = [];
+    const path = new Path(x, y, color);
+    const texts = new Text(x, y, color);
 
     /** Draw border line */
     path.moveto(0, 0)
@@ -160,9 +162,7 @@ const AxisXPane: React.FC<Props> = (props) => {
             freqUnit.formatStrideDate(currDt, timeZone) :
             freqUnit.formatNormalDate(currDt, timeZone)
 
-          const text = new Text(xCurrTick + 2, height - 4, dateStr);
-          text.fill = color;
-          texts.push(text);
+          texts.text(xCurrTick + 2, height - 4, dateStr);
 
           prevDt = currDt;
         }
@@ -174,16 +174,16 @@ const AxisXPane: React.FC<Props> = (props) => {
     return { path: path, texts: texts };
   }
 
-  return (
-    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
-    <div style={{ width: width + 'px', height: height + 'px' }}>
-      <svg width={width} height={height}>
-        {state.path.render()}
-        {state.texts.map((text) => text.render())}
-      </svg>
-    </div>
-  );
+  return plot();
+  //   // // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
+  //   // <div style={{ width: width + 'px', height: height + 'px' }}>
+  //   //   <svg width={width} height={height}>
+  //       {state.path.render()}
+  //       {state.texts.map((text) => text.render())}
+  //     </svg>
+  //   </div>
+  // );
 
 }
 
-export default AxisXPane;
+export default AxisX;

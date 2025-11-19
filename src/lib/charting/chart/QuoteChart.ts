@@ -34,9 +34,9 @@ export class QuoteChart extends AbstractChart {
 
     const isFill = this.kind === QuoteChart.Kind.Candle && Theme.now().isFillBar;
 
-    this.#posPath = new Path(this.#posColor, isFill ? this.#posColor : "none");
+    this.#posPath = new Path(0, 0, this.#posColor, isFill ? this.#posColor : "none");
     if (this.#posColor !== this.#negColor) {
-      this.#negPath = new Path(this.#negColor, isFill ? this.#negColor : "none");
+      this.#negPath = new Path(0, 0, this.#negColor, isFill ? this.#negColor : "none");
     }
 
     //const kind: QuoteChart.Kind = QuoteChart.Kind.Candle; // this.datumPlane.view.asInstanceOf<WithQuoteChart>.quoteChartType
@@ -247,6 +247,7 @@ export class QuoteChart extends AbstractChart {
 
   paths() {
     this.plot();
+
     return this.#negPath ? [this.#posPath, this.#negPath] : [this.#posPath]
   }
 }

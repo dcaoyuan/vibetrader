@@ -5,13 +5,17 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
 import { Quote } from "../../domain/Quote";
-import AxisXPane from "../pane/AxisXPane";
+import AxisX from "../pane/AxisX";
 import './chartview.css';
-import AxisYPane from "../pane/AxisYPane";
+import AxisY from "../pane/AxisY";
+import ChartPane from "../pane/ChartPane";
+import type { ChartYControl } from "./ChartYControl";
+import { Path } from "../../svg/Path";
 
 interface QuoteChartViewProps extends ViewProps {
   quoteVar: TVar<Quote>;
 }
+
 
 export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
@@ -52,6 +56,35 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     this.width = props.width;
     this.height = props.height;
     this.isQuote = props.isQuote;
+
+    this.state = {
+      xcontrol: undefined,
+      ycontrol: undefined,
+
+      baseSer: undefined,
+
+      width: props.width,
+      height: props.height,
+
+      isQuote: false,
+      hasInnerVolume: false,
+      maxVolume: undefined,
+      minVolume: undefined,
+
+      maxValue: 1.0,
+      minValue: 0.0,
+
+      isInteractive: true,
+      isPinned: false,
+
+      mouseX: undefined,
+      mouseY: undefined,
+
+      cursorPaths: []
+    };
+
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
   }
 
   maxVolume = 0.0;
@@ -122,64 +155,71 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     }
   }
 
-  // @throws(classOf[Throwable])
-  // override protected def finalize {
-  //   super.finalize
-  // }
+  handleMouseMove(e: React.MouseEvent) {
+    const targetRect = e.currentTarget.getBoundingClientRect();
+    const offsetX = e.pageX - targetRect.left;
+    const offsetY = e.pageY - targetRect.top;
 
-  handleMouseMove(e: MouseEvent) {
-    console.log(`Mouse X: ${e.clientX}, Mouse Y: ${e.clientY}`);
+    console.log("plot cursor: " + this.width + "," + this.height, offsetX, offsetY)
+
+    //const path = new Path('#F0F0F0');
+    const path = new Path(0, 0, '#00f000');
+    path.moveto(0, offsetY);
+    path.lineto(this.width, offsetY)
+    path.moveto(offsetX, 0);
+    path.lineto(offsetX, this.height)
+    // path.horizontal_lineto(offsetY);
+    // path.vertical_lineto(offsetX);
+    this.setState({ mouseX: offsetX, mouseY: offsetY, cursorPaths: [path] })
+    console.log([path])
+  }
+
+  handleMouseLeave() {
+    this.setState({ mouseX: undefined, mouseY: undefined, cursorPaths: [] })
   }
 
   render() {
-    this.prePaintComponent();
-    const chartPaths = this.quoteChart.paths();
+    this.computeGeometry();
 
-    // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
-    const chartPaneStyle = {
-      width: this.wChart() + 'px',
-      height: this.height + 'px',
-    };
+    const axisx = AxisX({
+      x: 0,
+      y: this.height - ChartView.AXISX_HEIGHT,
+      width: this.width,
+      height: ChartView.AXISX_HEIGHT,
+      xcontrol: this.xcontrol,
+      ycontrol: this.ycontrol,
+      view: this,
+    })
 
-    // const axisxPane = new AxisXPane(this);
-    // axisxPane.width = this.width;
-    // axisxPane.height = ChartView.AXISX_HEIGHT;
+    const axisy = AxisY({
+      x: this.width - ChartView.AXISY_WIDTH,
+      y: 0,
+      width: ChartView.AXISY_WIDTH,
+      height: this.height - ChartView.AXISX_HEIGHT,
+      xcontrol: this.xcontrol,
+      ycontrol: this.ycontrol,
+    })
 
-    // const axisyPane = new AxisYPane(this, this.quoteVar);
-    // axisyPane.width = ChartView.AXISY_WIDTH;
-    // axisyPane.height = this.height;
+    const chart = this.quoteChart.paths()
 
     return (
-      <div className="container" style={{ width: this.width + 'px' }}>
-        <div className="content">
-          <div style={chartPaneStyle} >
-            <svg width={this.wChart()} height={this.height} onMouseMove={(e) => console.log(e.clientX, e.clientY, e.target)}>
-              {chartPaths.map((path => path.render()))}
-            </svg>
-          </div>
-        </div>
+      <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
 
-        <div className="axisy">
-          <AxisYPane
-            width={ChartView.AXISY_WIDTH}
-            height={this.height}
-            xcontrol={this.xcontrol}
-            ycontrol={this.ycontrol}
-          />
-        </div>
-
-        <div className="axisx">
-          <AxisXPane
-            width={this.width}
-            height={ChartView.AXISX_HEIGHT}
-            xcontrol={this.xcontrol}
-            ycontrol={this.ycontrol}
-            view={this}
-          />
+        <div style={{ width: this.width + 'px', height: this.height + 'px', position: "absolute" }}>
+          <svg width={this.width} height={this.height}
+            onMouseMove={this.handleMouseMove}
+            onMouseLeave={this.handleMouseLeave}
+          >
+            {chart.map(path => path.render())}
+            {axisx.path.render()}
+            {axisx.texts.render()}
+            {axisy.path.render()}
+            {axisy.texts.render()}
+            {this.state.cursorPaths.map(path => path.render())}
+          </svg>
         </div>
       </div>
     )
   }
 }
-
 

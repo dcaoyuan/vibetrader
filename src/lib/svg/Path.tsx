@@ -4,13 +4,18 @@
 export type PathData = { type: string, values: number[] }
 
 export class Path {
+  #x0: number;
+  #y0: number;
+
   pathDatas: PathData[] = [];
   stroke: string;
   stroke_width: number;
   fill: string;
   opacity: number;
 
-  constructor(stroke: string, fill: string = "none") {
+  constructor(x: number, y: number, stroke: string, fill: string = "none") {
+    this.#x0 = x;
+    this.#y0 = y;
     this.stroke = stroke;
     this.fill = fill;
   }
@@ -18,7 +23,7 @@ export class Path {
   moveto(x: number, y: number, relative = false) {
     const c = relative ?
       { type: "m", values: [Math.round(x), Math.round(y)] } :
-      { type: "M", values: [Math.round(x), Math.round(y)] }
+      { type: "M", values: [Math.round(x) + this.#x0, Math.round(y) + this.#y0] }
 
     this.pathDatas.push(c)
   }
@@ -32,7 +37,7 @@ export class Path {
   lineto(x: number, y: number, relative = false) {
     const c = relative ?
       { type: "l", values: [Math.round(x), Math.round(y)] } :
-      { type: "L", values: [Math.round(x), Math.round(y)] }
+      { type: "L", values: [Math.round(x) + this.#x0, Math.round(y) + this.#y0] }
 
     this.pathDatas.push(c)
   }
@@ -95,7 +100,7 @@ export class Path {
 
   render() {
     let path = '';
-    for (let { type, values } of this.pathDatas) {
+    for (const { type, values } of this.pathDatas) {
       path = path + type;
       let i = 0;
       while (i < values.length) {

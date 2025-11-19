@@ -1,10 +1,10 @@
 .container {
-  display: grid;
+  /* display: grid;
   grid-template-areas:
     "header header"
     "content axisy"
     "axisx axisx";
-  grid-template-columns: 1fr 3fr;
+  grid-template-columns: 1fr 3fr; */
   /* gap: 1px; */
   background-color: dodgerblue;
   padding: 0px;
