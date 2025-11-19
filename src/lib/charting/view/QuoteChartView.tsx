@@ -79,8 +79,11 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
       isInteractive: true,
       isPinned: false,
 
-      cursorPaths: [],
-      cursorTexts: [],
+      mouseCursorPaths: [],
+      mouseCursorTexts: [],
+      referCursorPaths: [],
+      referCursorTexts: [],
+
       chart,
       axisx,
       axisy,
@@ -88,6 +91,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleKeyUp = this.handleKeyUp.bind(this);
   }
@@ -188,89 +192,132 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     }
   }
 
-  handleMouseMove(e: React.MouseEvent) {
-    const targetRect = e.currentTarget.getBoundingClientRect();
-    const offsetX = e.pageX - targetRect.left;
-    const offsetY = e.pageY - targetRect.top;
-
-    console.log("plot cursor: " + this.width + "," + this.height, offsetX, offsetY)
-
+  plotCursor(x: number, y: number, time: number, value: number, color: string) {
     //const path = new Path(0, 0, '#F0F0F0');
-    const crossPath = new Path(0, 0, '#00F000');
+    const crossPath = new Path(0, 0, color);
     const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
-    const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, '#00F000', '#00F000');
+    const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, color, color);
     const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
-    const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, '#00F000', '#00F000')
+    const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, color, color)
 
-    const time = this.xcontrol.tx(offsetX);
     const timeZone = this.xcontrol.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
     const dateStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
 
-    let cursorY: number
-    let value: number;
-    if (offsetY < this.height - ChartView.AXISX_HEIGHT) {
-      value = this.ycontrol.vy(offsetY);
-      cursorY = offsetY;
-
-    } else { // enter axis-x area
-      value = this.quoteVar.getByTime(time).close;
-      cursorY = this.ycontrol.yv(value)
-    }
-
     // draw vertical cursor only when not enter axis-y area
-    if (offsetX < this.width - ChartView.AXISY_WIDTH) {
-      crossPath.moveto(offsetX, 0);
-      crossPath.lineto(offsetX, this.height)
+    if (x < this.width - ChartView.AXISY_WIDTH) {
+      crossPath.moveto(x, 0);
+      crossPath.lineto(x, this.height)
 
-      axisxText.text(offsetX + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
-      axisxPath.moveto(offsetX, 1);
-      axisxPath.lineto(offsetX + 12 * 4, 1);
-      axisxPath.lineto(offsetX + 12 * 4, ChartView.AXISX_HEIGHT - 3);
-      axisxPath.lineto(offsetX, ChartView.AXISX_HEIGHT - 3);
+      axisxText.text(x + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
+      axisxPath.moveto(x, 1);
+      axisxPath.lineto(x + 12 * 4, 1);
+      axisxPath.lineto(x + 12 * 4, ChartView.AXISX_HEIGHT - 3);
+      axisxPath.lineto(x, ChartView.AXISX_HEIGHT - 3);
       axisxPath.closepath();
     }
 
-    crossPath.moveto(0, cursorY);
-    crossPath.lineto(this.width, cursorY)
+    crossPath.moveto(0, y);
+    crossPath.lineto(this.width, y)
 
-    axisyText.text(4, cursorY, COMMON_DECIMAL_FORMAT.format(value));
-    axisyPath.moveto(0, cursorY);
-    axisyPath.lineto(0 + 12 * 4, cursorY);
-    axisyPath.lineto(0 + 12 * 4, cursorY - 12);
-    axisyPath.lineto(0, cursorY - 12);
+    axisyText.text(4, y, COMMON_DECIMAL_FORMAT.format(value));
+    axisyPath.moveto(0, y);
+    axisyPath.lineto(0 + 12 * 4, y);
+    axisyPath.lineto(0 + 12 * 4, y - 12);
+    axisyPath.lineto(0, y - 12);
     axisyPath.closepath();
 
+    return { crossPath, axisxText, axisxPath, axisyText, axisyPath }
+  }
+
+  handleMouseMove(e: React.MouseEvent) {
+    const targetRect = e.currentTarget.getBoundingClientRect();
+    const x = e.pageX - targetRect.left;
+    const y = e.pageY - targetRect.top;
+
+    const time = this.xcontrol.tx(x);
+
+    // align x to bar center
+    const b = this.xcontrol.bx(x);
+    const cursorX = this.xcontrol.xb(b)
+
+    let value: number;
+    let cursorY: number
+    if (y >= this.height - ChartView.AXISX_HEIGHT && this.xcontrol.exists(time)) {
+      // enter axis-x area
+      value = this.quoteVar.getByTime(time).close;
+      cursorY = this.ycontrol.yv(value)
+
+    } else {
+      value = this.ycontrol.vy(y);
+      cursorY = y;
+    }
+
+    const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
     this.setState({
-      cursorPaths: [crossPath, axisxPath, axisyPath],
-      cursorTexts: [axisxText, axisyText]
+      mouseCursorPaths: [crossPath, axisxPath, axisyPath],
+      mouseCursorTexts: [axisxText, axisyText]
     })
   }
 
   handleMouseLeave() {
-    this.setState({ cursorPaths: [], cursorTexts: [] })
+    this.setState({ mouseCursorPaths: [], mouseCursorTexts: [] })
+  }
+
+  handleMouseDown(e: React.MouseEvent) {
+    if (e.ctrlKey) {
+      // will selet chart on pane
+
+    } else {
+      // set refer cursor
+      const targetRect = e.currentTarget.getBoundingClientRect();
+      const x = e.pageX - targetRect.left;
+      const y = e.pageY - targetRect.top;
+
+      const time = this.xcontrol.tx(x);
+      if (!this.xcontrol.exists(time)) {
+        return;
+      }
+
+      // align x to bar center
+      const b = this.xcontrol.bx(x);
+      const cursorX = this.xcontrol.xb(b)
+
+      const value = this.quoteVar.getByTime(time).close;
+      const cursorY = this.ycontrol.yv(value)
+
+      if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height && b >= 1 && b <= this.xcontrol.nBars) {
+        const row = this.xcontrol.rb(b)
+        this.xcontrol.setReferCursorByRow(row, true)
+
+        const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+        this.setState({
+          referCursorPaths: [crossPath, axisxPath, axisyPath],
+          referCursorTexts: [axisxText, axisyText]
+        })
+      }
+    }
   }
 
   // onKeyDown upon <div/> should combine tabIndex={0} to work correctly.
   handleKeyDown(e: React.KeyboardEvent) {
-    this.setState({ cursorPaths: [] })
+    this.setState({ mouseCursorPaths: [] })
     this.keyhandler.keyPressed(e)
 
     const { chart, axisx, axisy } = this.plot();
-    this.setState({ chart, axisx, axisy, cursorPaths: [], cursorTexts: [] })
+    this.setState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
   handleKeyUp(e: React.KeyboardEvent) {
     console.log(e)
-    this.setState({ cursorPaths: [] })
+    this.setState({ mouseCursorPaths: [] })
     this.keyhandler.keyReleased(e)
 
     const { chart, axisx, axisy } = this.plot();
-    this.setState({ chart, axisx, axisy, cursorPaths: [], cursorTexts: [] })
+    this.setState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
   render() {
-
     return (
       <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
 
@@ -283,14 +330,17 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
           <svg width={this.width} height={this.height}
             onMouseMove={this.handleMouseMove}
             onMouseLeave={this.handleMouseLeave}
+            onMouseDown={this.handleMouseDown}
           >
             {this.state.chart.map(path => path.render())}
             {this.state.axisx.path.render()}
             {this.state.axisx.texts.render()}
             {this.state.axisy.path.render()}
             {this.state.axisy.texts.render()}
-            {this.state.cursorPaths.map(path => path.render())}
-            {this.state.cursorTexts.map(text => text.render())}
+            {this.state.mouseCursorPaths.map(path => path.render())}
+            {this.state.mouseCursorTexts.map(text => text.render())}
+            {this.state.referCursorPaths.map(path => path.render())}
+            {this.state.referCursorTexts.map(text => text.render())}
           </svg>
         </div>
       </div>

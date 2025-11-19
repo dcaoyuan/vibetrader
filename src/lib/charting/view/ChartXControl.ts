@@ -629,40 +629,37 @@ export class ChartViewKeyHandler /* extends KeyAdapter */ {
 }
 
 class ChartViewMouseWheelListener /* extends MouseWheelListener */ {
-  outer: ChartXControl;
+  xcontrol: ChartXControl;
 
-  constructor(outer: ChartXControl) {
-    this.outer = outer;
+  constructor(xcontrol: ChartXControl) {
+    this.xcontrol = xcontrol;
   }
 
   mouseWheelMoved(e: WheelEvent) {
-    const view = this.outer.internal_getCorrespondingChartView(e)
-    if (view === undefined || !view.isInteractive) {
-      return
-    }
-
-    const fastSteps = Math.floor(view.nBars() * 0.168)
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
     const delta = e.deltaX;
 
     if (e.shiftKey) {
       /** zoom in / zoom out */
-      this.outer.growWBar(delta)
+      this.xcontrol.growWBar(delta)
+
     } else if (e.ctrlKey) {
-      if (!view.isInteractive) {
+      if (!this.xcontrol.isInteractive) {
         return
       }
 
-      const unitsToScroll = this.outer.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
       /** move refer cursor left / right */
-      this.outer.scrollReferCursor(unitsToScroll, true)
+      this.xcontrol.scrollReferCursor(unitsToScroll, true)
+
     } else {
       if (!view.isInteractive) {
         return
       }
 
-      const unitsToScroll = this.outer.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
       /** keep referCursor stay same x in screen, and move */
-      this.outer.scrollChartsHorizontallyByBar(unitsToScroll)
+      this.xcontrol.scrollChartsHorizontallyByBar(unitsToScroll)
     }
   }
 }

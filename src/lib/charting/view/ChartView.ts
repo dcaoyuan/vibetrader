@@ -43,8 +43,11 @@ export interface ViewState {
   axisx: { path: Path, texts: Text };
   axisy: { path: Path, texts: Text };
 
-  cursorPaths: Path[]
-  cursorTexts: Text[]
+  mouseCursorPaths: Path[]
+  mouseCursorTexts: Text[]
+
+  referCursorPaths: Path[]
+  referCursorTexts: Text[]
 }
 
 /**
