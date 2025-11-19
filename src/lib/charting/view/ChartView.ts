@@ -4,7 +4,7 @@ import type { TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { Chart } from "../chart/Chart";
 import { Pane } from "../pane/Pane";
-import { ChartXControl } from "./ChartXControl";
+import { ChartViewKeyHandler, ChartXControl } from "./ChartXControl";
 import type { Scalar } from "./scalar/Scalar";
 import { ChartYControl } from "./ChartYControl";
 import { Component } from "react";
@@ -38,6 +38,10 @@ export interface ViewState {
 
   isInteractive: true
   isPinned: false
+
+  chart: Path[];
+  axisx: { path: Path, texts: Text };
+  axisy: { path: Path, texts: Text };
 
   cursorPaths: Path[]
   cursorTexts: Text[]
@@ -75,6 +79,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   readonly ycontrol: ChartYControl;
   baseSer?: TSer;
 
+
+  keyhandler: ChartViewKeyHandler;
+
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
@@ -90,6 +97,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.ycontrol.height = props.height - ChartView.AXISX_HEIGHT;
 
     this.baseSer = props.baseSer
+
+    this.keyhandler = new ChartViewKeyHandler(this.xcontrol);
 
     this.#createBasisComponents();
 

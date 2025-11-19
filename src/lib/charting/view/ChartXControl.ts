@@ -262,6 +262,7 @@ export class ChartXControl {
     this.#wBarIdx += increment
     if (this.#wBarIdx < 0) {
       this.#wBarIdx = 0
+
     } else if (this.#wBarIdx > ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1) {
       this.#wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
     }
@@ -559,50 +560,45 @@ export class ChartXControl {
  * =============================================================
  * Bellow are the private listener classes for key and mouse:
  */
-class ChartViewKeyAdapter /* extends KeyAdapter */ {
+export class ChartViewKeyHandler /* extends KeyAdapter */ {
   private static readonly LEFT = -1
   private static readonly RIGHT = 1
 
-  outer: ChartXControl;
+  xcontrol: ChartXControl;
 
-  constructor(outer: ChartXControl) {
-    this.outer = outer;
+  constructor(xcontrol: ChartXControl) {
+    this.xcontrol = xcontrol;
   }
 
-  keyPressed(e: KeyboardEvent) {
-    const view = this.outer.internal_getCorrespondingChartView(e)
-    if (view == null || !view.isInteractive) {
-      return
-    }
-
-    const fastSteps = Math.floor(view.nBars() * 0.168)
+  keyPressed(e: React.KeyboardEvent) {
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
 
     switch (e.key) {
       case "ArrowLeft":
         if (e.ctrlKey) {
-          this.moveCursorInDirection(fastSteps, ChartViewKeyAdapter.LEFT)
+          this.moveCursorInDirection(fastSteps, ChartViewKeyHandler.LEFT)
         } else {
-          this.moveChartsInDirection(fastSteps, ChartViewKeyAdapter.LEFT)
+          this.moveChartsInDirection(fastSteps, ChartViewKeyHandler.LEFT)
         }
         break;
 
       case "ArrowRight":
         if (e.ctrlKey) {
-          this.moveCursorInDirection(fastSteps, ChartViewKeyAdapter.RIGHT)
+          this.moveCursorInDirection(fastSteps, ChartViewKeyHandler.RIGHT)
         } else {
-          this.moveChartsInDirection(fastSteps, ChartViewKeyAdapter.RIGHT)
+          this.moveChartsInDirection(fastSteps, ChartViewKeyHandler.RIGHT)
         }
         break;
 
       case "ArrowUp":
         if (!e.ctrlKey) {
-          this.outer.growWBar(1)
+          this.xcontrol.growWBar(1)
         }
         break;
 
       case "ArrowDown":
         if (!e.ctrlKey) {
-          this.outer.growWBar(-1);
+          this.xcontrol.growWBar(-1);
         }
         break;
 
@@ -611,24 +607,24 @@ class ChartViewKeyAdapter /* extends KeyAdapter */ {
 
   }
 
-  keyReleased(e: KeyboardEvent) {
+  keyReleased(e: React.KeyboardEvent) {
     if (e.key === " ") {
-      this.outer.isCursorAccelerated = !this.outer.isCursorAccelerated
+      this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
     }
   }
 
   keyTyped(e: KeyboardEvent) { }
 
   private moveCursorInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.outer.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
 
-    this.outer.scrollReferCursor(steps, true)
+    this.xcontrol.scrollReferCursor(steps, true)
   }
 
   private moveChartsInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.outer.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
 
-    this.outer.scrollChartsHorizontallyByBar(steps)
+    this.xcontrol.scrollChartsHorizontallyByBar(steps)
   }
 }
 

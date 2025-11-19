@@ -5,22 +5,20 @@ import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
 import { Quote } from "../../domain/Quote";
 import AxisX from "../pane/AxisX";
-import './chartview.css';
 import AxisY from "../pane/AxisY";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
 import { TUnit } from "../../timeseris/TUnit";
-import { Theme } from "../theme/Theme";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
+import type React from "react";
+import './chartview.css';
 
 interface QuoteChartViewProps extends ViewProps {
   quoteVar: TVar<Quote>;
 }
 
-
 export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
-
   static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
     let newKind: QuoteChart.Kind;
     if (targetKind !== undefined) {
@@ -59,6 +57,8 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     this.height = props.height;
     this.isQuote = props.isQuote;
 
+    const { chart, axisx, axisy } = this.plot();
+
     this.state = {
       xcontrol: undefined,
       ycontrol: undefined,
@@ -81,16 +81,49 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
       cursorPaths: [],
       cursorTexts: [],
+      chart,
+      axisx,
+      axisy,
     };
 
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleKeyUp = this.handleKeyUp.bind(this);
   }
 
   maxVolume = 0.0;
   minVolume = 0.0
 
   protected initComponents(): void {
+  }
+
+  protected plot() {
+    this.computeGeometry();
+
+    const axisx = AxisX({
+      x: 0,
+      y: this.height - ChartView.AXISX_HEIGHT,
+      width: this.width,
+      height: ChartView.AXISX_HEIGHT,
+      xcontrol: this.xcontrol,
+      ycontrol: this.ycontrol,
+      view: this,
+    })
+
+    const axisy = AxisY({
+      x: this.width - ChartView.AXISY_WIDTH,
+      y: 0,
+      width: ChartView.AXISY_WIDTH,
+      height: this.height - ChartView.AXISX_HEIGHT,
+      xcontrol: this.xcontrol,
+      ycontrol: this.ycontrol,
+    })
+
+    const chart = this.quoteChart.paths()
+
+    return { chart, axisx, axisy }
+
   }
 
   protected putChartsOfMainSer() {
@@ -212,51 +245,50 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
       cursorPaths: [crossPath, axisxPath, axisyPath],
       cursorTexts: [axisxText, axisyText]
     })
-
-    console.log([crossPath])
   }
 
   handleMouseLeave() {
     this.setState({ cursorPaths: [], cursorTexts: [] })
   }
 
+  // onKeyDown upon <div/> should combine tabIndex={0} to work correctly.
+  handleKeyDown(e: React.KeyboardEvent) {
+    this.setState({ cursorPaths: [] })
+    this.keyhandler.keyPressed(e)
+
+    const { chart, axisx, axisy } = this.plot();
+    this.setState({ chart, axisx, axisy, cursorPaths: [], cursorTexts: [] })
+  }
+
+  handleKeyUp(e: React.KeyboardEvent) {
+    console.log(e)
+    this.setState({ cursorPaths: [] })
+    this.keyhandler.keyReleased(e)
+
+    const { chart, axisx, axisy } = this.plot();
+    this.setState({ chart, axisx, axisy, cursorPaths: [], cursorTexts: [] })
+  }
+
   render() {
-    this.computeGeometry();
-
-    const axisx = AxisX({
-      x: 0,
-      y: this.height - ChartView.AXISX_HEIGHT,
-      width: this.width,
-      height: ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
-      view: this,
-    })
-
-    const axisy = AxisY({
-      x: this.width - ChartView.AXISY_WIDTH,
-      y: 0,
-      width: ChartView.AXISY_WIDTH,
-      height: this.height - ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
-    })
-
-    const chart = this.quoteChart.paths()
 
     return (
       <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
 
-        <div style={{ width: this.width + 'px', height: this.height + 'px', position: "absolute" }}>
+        <div style={{ width: this.width + 'px', height: this.height + 'px', position: "absolute", }}
+          onKeyDown={this.handleKeyDown}
+          onKeyUp={this.handleKeyUp}
+          tabIndex={0}
+        >
+
           <svg width={this.width} height={this.height}
             onMouseMove={this.handleMouseMove}
             onMouseLeave={this.handleMouseLeave}
           >
-            {chart.map(path => path.render())}
-            {axisx.path.render()}
-            {axisx.texts.render()}
-            {axisy.path.render()}
-            {axisy.texts.render()}
+            {this.state.chart.map(path => path.render())}
+            {this.state.axisx.path.render()}
+            {this.state.axisx.texts.render()}
+            {this.state.axisy.path.render()}
+            {this.state.axisy.texts.render()}
             {this.state.cursorPaths.map(path => path.render())}
             {this.state.cursorTexts.map(text => text.render())}
           </svg>
