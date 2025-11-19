@@ -163,27 +163,57 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     console.log("plot cursor: " + this.width + "," + this.height, offsetX, offsetY)
 
     //const path = new Path(0, 0, '#F0F0F0');
-    const path = new Path(0, 0, '#00f000');
+    const crossPath = new Path(0, 0, '#00F000');
+    const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
+    const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, '#00F000', '#00F000');
+    const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
+    const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, '#00F000', '#00F000')
 
-    path.moveto(0, offsetY);
-    path.lineto(this.width, offsetY)
-    path.moveto(offsetX, 0);
-    path.lineto(offsetX, this.height)
-
-    const axisxTexts = new Text(0, this.height - ChartView.AXISX_HEIGHT, Theme.now().axisColor)
     const time = this.xcontrol.tx(offsetX);
     const timeZone = this.xcontrol.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
     const dateStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
-    axisxTexts.text(offsetX + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
 
-    const axisyTexts = new Text(this.width - ChartView.AXISY_WIDTH, 0, Theme.now().axisColor)
-    const value = this.ycontrol.vy(offsetY);
-    axisyTexts.text(4, offsetY, COMMON_DECIMAL_FORMAT.format(value));
+    let cursorY: number
+    let value: number;
+    if (offsetY < this.height - ChartView.AXISX_HEIGHT) {
+      value = this.ycontrol.vy(offsetY);
+      cursorY = offsetY;
 
-    this.setState({ cursorPaths: [path], cursorTexts: [axisxTexts, axisyTexts] })
+    } else { // enter axis-x area
+      value = this.quoteVar.getByTime(time).close;
+      cursorY = this.ycontrol.yv(value)
+    }
 
-    console.log([path])
+    // draw vertical cursor only when not enter axis-y area
+    if (offsetX < this.width - ChartView.AXISY_WIDTH) {
+      crossPath.moveto(offsetX, 0);
+      crossPath.lineto(offsetX, this.height)
+
+      axisxText.text(offsetX + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
+      axisxPath.moveto(offsetX, 1);
+      axisxPath.lineto(offsetX + 12 * 4, 1);
+      axisxPath.lineto(offsetX + 12 * 4, ChartView.AXISX_HEIGHT - 3);
+      axisxPath.lineto(offsetX, ChartView.AXISX_HEIGHT - 3);
+      axisxPath.closepath();
+    }
+
+    crossPath.moveto(0, cursorY);
+    crossPath.lineto(this.width, cursorY)
+
+    axisyText.text(4, cursorY, COMMON_DECIMAL_FORMAT.format(value));
+    axisyPath.moveto(0, cursorY);
+    axisyPath.lineto(0 + 12 * 4, cursorY);
+    axisyPath.lineto(0 + 12 * 4, cursorY - 12);
+    axisyPath.lineto(0, cursorY - 12);
+    axisyPath.closepath();
+
+    this.setState({
+      cursorPaths: [crossPath, axisxPath, axisyPath],
+      cursorTexts: [axisxText, axisyText]
+    })
+
+    console.log([crossPath])
   }
 
   handleMouseLeave() {
