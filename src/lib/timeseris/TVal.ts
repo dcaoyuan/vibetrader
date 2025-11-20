@@ -1,6 +1,11 @@
 export abstract class TVal {
   time: number;
 
+  /**
+   * default value
+   */
+  abstract get value(): number
+
   compareTo(that: TVal) {
     if (this.time > that.time) {
       return 1;

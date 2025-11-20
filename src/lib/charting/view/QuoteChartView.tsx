@@ -53,6 +53,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
     this.quoteChart = new QuoteChart(props.quoteVar, this.ycontrol);
     this.quoteVar = props.quoteVar;
+    this.tvar = this.quoteVar;
     this.width = props.width;
     this.height = props.height;
     this.isQuote = props.isQuote;
@@ -242,7 +243,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
         if (b >= 1 && b <= this.xcontrol.nBars) {
 
           const cursorX = this.xcontrol.xr(this.xcontrol.referCursorRow)
-          const value = this.quoteVar.getByTime(time).close;
+          const value = this.tvar.getByTime(time).value;
           const cursorY = this.ycontrol.yv(value)
 
           const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
@@ -260,6 +261,16 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     const x = e.pageX - targetRect.left;
     const y = e.pageY - targetRect.top;
 
+    if (x > this.width - ChartView.AXISY_WIDTH && y > this.height - ChartView.AXISX_HEIGHT) {
+      // enter right/bottom corner
+      this.updateState({
+        mouseCursorPaths: [],
+        mouseCursorTexts: []
+      })
+
+      return;
+    }
+
     const time = this.xcontrol.tx(x);
 
     // align x to bar center
@@ -270,7 +281,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     let cursorY: number
     if (y >= this.height - ChartView.AXISX_HEIGHT && this.xcontrol.exists(time)) {
       // enter axis-x area
-      value = this.quoteVar.getByTime(time).close;
+      value = this.tvar.getByTime(time).value;
       cursorY = this.ycontrol.yv(value)
 
     } else {

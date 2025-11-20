@@ -82,7 +82,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   readonly ycontrol: ChartYControl;
   baseSer?: TSer;
 
-
+  tvar: TVar<TVal>;
 
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)

@@ -9,6 +9,10 @@ export class Quote extends TVal {
   volume: number;
   isClosed: boolean;
 
+  get value() {
+    return this.close;
+  }
+
   constructor(
     time: number,
     open: number,
