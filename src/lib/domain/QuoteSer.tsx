@@ -57,7 +57,7 @@ export namespace QuoteSer {
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
     return (
-      <QuoteChartView baseSer={quoteSer} quoteVar={qvar} isQuote={true} width={width} height={height} />
+      <QuoteChartView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
     )
   }
 }

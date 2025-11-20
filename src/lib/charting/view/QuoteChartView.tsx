@@ -14,11 +14,7 @@ import { COMMON_DECIMAL_FORMAT } from "./Format";
 import type React from "react";
 import './chartview.css';
 
-interface QuoteChartViewProps extends ViewProps {
-  quoteVar: TVar<Quote>;
-}
-
-export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
+export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
     let newKind: QuoteChart.Kind;
     if (targetKind !== undefined) {
@@ -37,6 +33,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
         case QuoteChart.Kind.Line:
           newKind = QuoteChart.Kind.Candle
           break;
+
         default:
           newKind = QuoteChart.Kind.Candle
       }
@@ -48,12 +45,11 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
   quoteChart: QuoteChart
   quoteVar: TVar<Quote>;
 
-  constructor(props: QuoteChartViewProps) {
+  constructor(props: ViewProps) {
     super(props);
+    this.quoteVar = props.tvar as TVar<Quote>;
 
-    this.quoteChart = new QuoteChart(props.quoteVar, this.ycontrol);
-    this.quoteVar = props.quoteVar;
-    this.tvar = this.quoteVar;
+    this.quoteChart = new QuoteChart(this.quoteVar, this.ycontrol);
     this.width = props.width;
     this.height = props.height;
     this.isQuote = props.isQuote;

@@ -14,6 +14,7 @@ import { type Scalar } from "./scalar/Scalar";
 
 export interface ViewProps {
   baseSer: BaseTSer;
+  tvar: TVar<TVal>;
   width: number;
   height: number;
   isQuote: boolean;
@@ -80,7 +81,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   readonly xcontrol: ChartXControl;
   readonly ycontrol: ChartYControl;
-  baseSer?: TSer;
+  baseSer: TSer;
 
   tvar: TVar<TVal>;
 
@@ -98,17 +99,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.ycontrol = new ChartYControl(this);
     this.ycontrol.height = props.height - ChartView.AXISX_HEIGHT;
 
-    this.baseSer = props.baseSer
+    this.baseSer = props.baseSer;
+    this.tvar = props.tvar;
 
     this.#createBasisComponents();
 
     this.initComponents();
-    this.putChartsOfMainSer()
-
-
-    //listenTo(this._mainSer);
-
-    /** @TODO should consider: in case of overlapping indciators, how to avoid multiple repaint() */
+    this.putChartsOfMainSer();
   }
 
   protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
