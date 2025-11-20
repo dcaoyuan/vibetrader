@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { Path } from "../../svg/Path";
 import type { Seg } from "../../svg/Seg";
 
@@ -23,7 +24,7 @@ import type { Seg } from "../../svg/Seg";
  * Another solution is define 1 n-colors chart as n 1-color charts (implemented).
  */
 
-export interface Chart {//extends Widget with Ordered[Chart] {
+export interface Chart {
 
   isFirstPlotting: boolean;
   isSelected: boolean;
@@ -31,7 +32,7 @@ export interface Chart {//extends Widget with Ordered[Chart] {
   stroke: string;
   strockWidth: number;
 
-  plot(): Seg[];
+  render(): JSX.Element;
   reset(): void;
 }
 

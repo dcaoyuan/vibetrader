@@ -1,9 +1,8 @@
-import { Chart, StrokeType } from './Chart';
-import { Geometry } from './Geometry';
-import { Path } from '../../svg/Path';
+import { Chart } from './Chart';
 import { ChartXControl } from '../view/ChartXControl';
 import type { ChartYControl } from '../view/ChartYControl';
 import type { Seg } from '../../svg/Seg';
+import type { JSX } from 'react';
 
 abstract class AbstractChart implements Chart {
   protected _ycontrol: ChartYControl;
@@ -31,7 +30,7 @@ abstract class AbstractChart implements Chart {
 
   #markPoints: DOMPoint[] = [];
 
-  plot(): Seg[] {
+  render(): JSX.Element {
     this.nBars = this._xcontrol.nBars
     this.wBar = this._xcontrol.wBar
 
@@ -40,7 +39,13 @@ abstract class AbstractChart implements Chart {
 
     this.nBarsCompressed = this._xcontrol.nBarsCompressed
 
-    return this.plotChart();
+    const segs = this.plotChart();
+
+    return (
+      <>
+        {segs.map(seg => seg.render())}
+      </>
+    )
   }
 
   protected abstract plotChart(): Seg[];
@@ -146,4 +151,4 @@ abstract class AbstractChart implements Chart {
   }
 }
 
-export { AbstractChart, StrokeType };
+export { AbstractChart };

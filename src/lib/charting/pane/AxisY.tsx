@@ -23,6 +23,8 @@ export const AxisY = (props: Props) => {
   const { x, y, width, height, xcontrol, ycontrol } = props;
   const symmetricByMiddleValue = false;
 
+  const segs = plot();
+
   // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
   // const [state, setState] = useState<State>(plotAxisY())
 
@@ -132,8 +134,11 @@ export const AxisY = (props: Props) => {
     return [path, texts];
   }
 
-
-  return plot();
+  return (
+    <>
+      {segs.map(seg => seg.render())}
+    </>
+  );
 }
 
 export default AxisY;

@@ -6,7 +6,7 @@ import { Chart } from "../chart/Chart";
 import { Pane } from "../pane/Pane";
 import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
-import { Component } from "react";
+import { Component, type JSX } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
 import { type Scalar } from "./scalar/Scalar";
 import type { Seg } from "../../svg/Seg";
@@ -39,12 +39,12 @@ export interface ViewState {
   isInteractive: true
   isPinned: false
 
-  chartSegs: Seg[];
-  axisxSegs: Seg[];
-  axisySegs: Seg[];
+  chart: JSX.Element;
+  axisx: JSX.Element;
+  axisy: JSX.Element;
 
-  mouseCursorSegs: Seg[]
-  referCursorSegs: Seg[]
+  mouseCursor: JSX.Element
+  referCursor: JSX.Element
 }
 
 /**
@@ -213,10 +213,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // compute x first;
     this.xcontrol.computeGeometry();
 
-    /**
-     * We only need computeMaxMin() once when a this should be repainted,
-     * so do it here.
-     */
     this.computeMaxMin();
 
     // compute y after compute maxmin

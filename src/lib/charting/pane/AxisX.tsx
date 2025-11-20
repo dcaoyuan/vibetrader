@@ -19,76 +19,10 @@ type Props = {
   height: number,
 }
 
-type State = {
-  path: Path,
-  texts: Text
-}
-
 const AxisX = (props: Props) => {
   const { xcontrol, x, y, width, height } = props;
 
-  // const [state, setState] = useState<State>(plotAxisX())
-
-  // private mouseCursorLabel: unknown;
-  // private referCursorLabel: unknown;
-
-  // setTimeZone(timeZone: string) {
-  //   this.timeZone = timeZone
-  //   this.cal = Calendar.getInstance(timeZone)
-  //   this.currDate = cal.getTime
-  //   this.prevDate = cal.getTime
-  // }
-
-  // private updateMouseCursorLabel() {
-  //   this.#datumPlane.computeGeometry()
-  //   const controller = this.#view.control
-
-  //   if (controller.isMouseEnteredAnyChartPane) {
-  //     const mousePosition = controller.mouseCursorRow
-  //     const mouseTime = controller.mouseCursorTime
-  //     const freq = controller.baseSer.freq
-  //     const x = this.#datumPlane.xr(mousePosition)
-  //     cal.setTimeInMillis(mouseTime)
-  //     const dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
-
-  //     mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
-  //     mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
-  //     mouseCursorLabel.setFont(LookFeel().axisFont)
-  //     mouseCursorLabel.setText(dateStr)
-  //     const fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
-  //     mouseCursorLabel.setBounds(x + 1, 1, fm.stringWidth(mouseCursorLabel.getText) + 2, getHeight - 2)
-
-  //     mouseCursorLabel.setVisible(true)
-  //   } else {
-  //     mouseCursorLabel.setVisible(false)
-  //   }
-
-  // }
-
-  // private updateReferCursorLabel() {
-  //   this.#datumPlane.computeGeometry()
-  //   const control = this.#view.control
-
-  //   const referPosition = control.referCursorRow
-  //   const referTime = control.referCursorTime
-  //   const freq = control.baseSer.freq
-  //   const x = this.#datumPlane.xr(referPosition).toInt
-  //   cal.setTimeInMillis(referTime)
-  //   const dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
-
-  //   referCursorLabel.setForeground(LookFeel().referCursorTextColor)
-  //   referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
-  //   referCursorLabel.setFont(LookFeel().axisFont)
-  //   referCursorLabel.setText(dateStr)
-  //   const fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
-  //   referCursorLabel.setBounds(x + 1, 1, fm.stringWidth(referCursorLabel.getText) + 2, getHeight - 2)
-
-  //   referCursorLabel.setVisible(true)
-  // }
-
-  // syncWithView() {
-  //   updateReferCursorLabel
-  // }
+  const segs = plot();
 
   function plot() {
     const nTicks = width / TICK_SPACING
@@ -173,7 +107,76 @@ const AxisX = (props: Props) => {
     return [path, texts];
   }
 
-  return plot();
+
+  // const [state, setState] = useState<State>(plotAxisX())
+
+  // private mouseCursorLabel: unknown;
+  // private referCursorLabel: unknown;
+
+  // setTimeZone(timeZone: string) {
+  //   this.timeZone = timeZone
+  //   this.cal = Calendar.getInstance(timeZone)
+  //   this.currDate = cal.getTime
+  //   this.prevDate = cal.getTime
+  // }
+
+  // private updateMouseCursorLabel() {
+  //   this.#datumPlane.computeGeometry()
+  //   const controller = this.#view.control
+
+  //   if (controller.isMouseEnteredAnyChartPane) {
+  //     const mousePosition = controller.mouseCursorRow
+  //     const mouseTime = controller.mouseCursorTime
+  //     const freq = controller.baseSer.freq
+  //     const x = this.#datumPlane.xr(mousePosition)
+  //     cal.setTimeInMillis(mouseTime)
+  //     const dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
+
+  //     mouseCursorLabel.setForeground(LookFeel().mouseCursorTextColor)
+  //     mouseCursorLabel.setBackground(LookFeel().mouseCursorTextBgColor)
+  //     mouseCursorLabel.setFont(LookFeel().axisFont)
+  //     mouseCursorLabel.setText(dateStr)
+  //     const fm = mouseCursorLabel.getFontMetrics(mouseCursorLabel.getFont)
+  //     mouseCursorLabel.setBounds(x + 1, 1, fm.stringWidth(mouseCursorLabel.getText) + 2, getHeight - 2)
+
+  //     mouseCursorLabel.setVisible(true)
+  //   } else {
+  //     mouseCursorLabel.setVisible(false)
+  //   }
+
+  // }
+
+  // private updateReferCursorLabel() {
+  //   this.#datumPlane.computeGeometry()
+  //   const control = this.#view.control
+
+  //   const referPosition = control.referCursorRow
+  //   const referTime = control.referCursorTime
+  //   const freq = control.baseSer.freq
+  //   const x = this.#datumPlane.xr(referPosition).toInt
+  //   cal.setTimeInMillis(referTime)
+  //   const dateStr = freq.unit.formatNormalDate(cal.getTime, timeZone)
+
+  //   referCursorLabel.setForeground(LookFeel().referCursorTextColor)
+  //   referCursorLabel.setBackground(LookFeel().referCursorTextBgColor)
+  //   referCursorLabel.setFont(LookFeel().axisFont)
+  //   referCursorLabel.setText(dateStr)
+  //   const fm = referCursorLabel.getFontMetrics(referCursorLabel.getFont)
+  //   referCursorLabel.setBounds(x + 1, 1, fm.stringWidth(referCursorLabel.getText) + 2, getHeight - 2)
+
+  //   referCursorLabel.setVisible(true)
+  // }
+
+  // syncWithView() {
+  //   updateReferCursorLabel
+  // }
+
+
+  return (
+    <>
+      {segs.map(seg => seg.render())}
+    </>
+  );
 }
 
 export default AxisX;

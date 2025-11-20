@@ -70,7 +70,7 @@ export class QuoteChart extends AbstractChart {
       let i = 0
       while (i < this.nBarsCompressed) {
         const time = this.tb(bar + i)
-        if (this.#quoteVar.exists(time)) {
+        if (this.exists(time)) {
           const quote = this.#quoteVar.getByTime(time);
           if (quote && quote.open != 0) {
             if (open === undefined) {
@@ -89,7 +89,7 @@ export class QuoteChart extends AbstractChart {
       if (close !== undefined && close != 0) {
         const path = close >= open ? this.#posPath : this.#negPath || this.#posPath;
 
-        const x = this.xb(bar);
+        const xCenter = this.xb(bar);
 
         const yOpen = this.yv(open)
         const yHigh = this.yv(high)
@@ -98,11 +98,11 @@ export class QuoteChart extends AbstractChart {
 
         switch (kind) {
           case QuoteChart.Kind.Candle:
-            this.#plotCandleBar(yOpen, yHigh, yLow, yClose, x, path);
+            this.#plotCandleBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break;
 
           case QuoteChart.Kind.Ohlc:
-            this.#plotOHLCBar(yOpen, yHigh, yLow, yClose, x, path);
+            this.#plotOHLCBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break
 
           default:
