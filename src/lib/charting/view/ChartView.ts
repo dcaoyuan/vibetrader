@@ -83,7 +83,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   baseSer?: TSer;
 
 
-  keyhandler: ChartViewKeyHandler;
 
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
@@ -100,8 +99,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.ycontrol.height = props.height - ChartView.AXISX_HEIGHT;
 
     this.baseSer = props.baseSer
-
-    this.keyhandler = new ChartViewKeyHandler(this.xcontrol);
 
     this.#createBasisComponents();
 

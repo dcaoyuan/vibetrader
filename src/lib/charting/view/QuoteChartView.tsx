@@ -350,25 +350,75 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
-  // onKeyDown upon <div/> should combine tabIndex={0} to work correctly.
   handleKeyDown(e: React.KeyboardEvent) {
-    this.keyhandler.keyPressed(e)
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
+
+    switch (e.key) {
+      case "ArrowLeft":
+        if (e.ctrlKey) {
+          this.#moveCursorInDirection(fastSteps, -1)
+        } else {
+          this.#moveChartsInDirection(fastSteps, -1)
+        }
+        break;
+
+      case "ArrowRight":
+        if (e.ctrlKey) {
+          this.#moveCursorInDirection(fastSteps, 1)
+        } else {
+          this.#moveChartsInDirection(fastSteps, 1)
+        }
+        break;
+
+      case "ArrowUp":
+        if (!e.ctrlKey) {
+          this.xcontrol.growWBar(1)
+        }
+        break;
+
+      case "ArrowDown":
+        if (!e.ctrlKey) {
+          this.xcontrol.growWBar(-1);
+        }
+        break;
+
+      default:
+    }
 
     const { chart, axisx, axisy } = this.plot();
     this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
-  handleKeyUp(e: React.KeyboardEvent) {
-    this.keyhandler.keyReleased(e)
+  #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
 
-    if (e.key === "Escape") {
-      this.xcontrol.referCursorRow = undefined;
-      this.updateState({})
+    this.xcontrol.scrollReferCursor(steps, true)
+  }
+
+  #moveChartsInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+
+    this.xcontrol.scrollChartsHorizontallyByBar(steps)
+  }
+
+  handleKeyUp(e: React.KeyboardEvent) {
+    switch (e.key) {
+      case " ":
+        this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
+        break;
+
+      case "Escape":
+        this.xcontrol.referCursorRow = undefined;
+        this.updateState({})
+        break;
+
+      default:
     }
   }
 
   render() {
     return (
+      // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
       <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
 
         <div style={{ width: this.width + 'px', height: this.height + 'px', position: "absolute", }}
