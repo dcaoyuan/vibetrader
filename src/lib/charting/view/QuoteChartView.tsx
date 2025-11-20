@@ -125,7 +125,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     const chart = this.quoteChart.paths()
 
     return { chart, axisx, axisy }
-
   }
 
   protected putChartsOfMainSer() {
@@ -242,7 +241,14 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
           const value = this.tvar.getByTime(time).value;
           const cursorY = this.ycontrol.yv(value)
 
-          const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+          const {
+            crossPath,
+            axisxText,
+            axisxPath,
+            axisyText,
+            axisyPath
+          } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+
           referCursorPaths = [crossPath, axisxPath, axisyPath]
           referCursorTexts = [axisxText, axisyText]
         }
@@ -285,7 +291,14 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       cursorY = y;
     }
 
-    const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+    const {
+      crossPath,
+      axisxText,
+      axisxPath,
+      axisyText,
+      axisyPath
+    } = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+
     this.updateState({
       mouseCursorPaths: [crossPath, axisxPath, axisyPath],
       mouseCursorTexts: [axisxText, axisyText]
@@ -313,6 +326,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
       // align x to bar center
       const b = this.xcontrol.bx(x);
+
       if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height && b >= 1 && b <= this.xcontrol.nBars) {
         const row = this.xcontrol.rb(b)
         this.xcontrol.setReferCursorByRow(row, true)

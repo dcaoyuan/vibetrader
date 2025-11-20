@@ -139,9 +139,9 @@ abstract class AbstractChart implements Chart {
   }
 
   compare(another: Chart): number {
-    return this.depth === another.depth ?
-      0 :
-      this.depth < another.depth ? -1 : 1;
+    return this.depth === another.depth
+      ? 0
+      : this.depth < another.depth ? -1 : 1;
   }
 
   abstract paths(): Path[];

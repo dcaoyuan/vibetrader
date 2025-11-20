@@ -412,8 +412,12 @@ class ItrOnOccurred implements TStampsIterator {
   constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
     this.#outer = outer;
     this.#freq = outer.freq;
-    this.fromTime = fromTime === undefined ? outer.firstOccurredTime() : outer.freq.trunc(fromTime, this.#outer.timeZone);
-    this.toTime = toTime === undefined ? outer.lastOccurredTime() : toTime;
+    this.fromTime = fromTime === undefined
+      ? outer.firstOccurredTime()
+      : outer.freq.trunc(fromTime, this.#outer.timeZone);
+    this.toTime = toTime === undefined
+      ? outer.lastOccurredTime()
+      : toTime;
     this.#cursorTime = this.fromTime;
     this.#expectedModCount = this.#outer.modCount;
   }
@@ -426,7 +430,9 @@ class ItrOnOccurred implements TStampsIterator {
     this.#checkForComodification();
     try {
       this.#cursorRow++;
-      const next = (this.#cursorRow >= this.#outer.size()) ? this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
+      const next = (this.#cursorRow >= this.#outer.size())
+        ? this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone)
+        : this.#outer.get(this.#cursorRow);
       this.#cursorTime = next;
       this.#lastReturnTime = this.#cursorTime;
       return next;
@@ -451,7 +457,9 @@ class ItrOnOccurred implements TStampsIterator {
     this.#checkForComodification();
     try {
       this.#cursorRow--;
-      const prev1 = this.#cursorRow < 0 ? this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone) : this.#outer.get(this.#cursorRow);
+      const prev1 = this.#cursorRow < 0
+        ? this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone)
+        : this.#outer.get(this.#cursorRow);
       this.#cursorTime = prev1;
       this.#lastReturnTime = this.#cursorTime;
       return prev1;
@@ -710,8 +718,12 @@ class ItrOnCalendar implements TStampsIterator {
   constructor(outer: TStampsOnCalendar, fromTime?: number, toTime?: number) {
     this.#outer = outer;
     this.#freq = outer.freq;
-    this.fromTime = fromTime === undefined ? outer.firstOccurredTime() : outer.freq.trunc(fromTime, outer.timeZone);
-    this.toTime = toTime === undefined ? outer.lastOccurredTime() : toTime;
+    this.fromTime = fromTime === undefined
+      ? outer.firstOccurredTime()
+      : outer.freq.trunc(fromTime, outer.timeZone);
+    this.toTime = toTime === undefined
+      ? outer.lastOccurredTime()
+      : toTime;
     this.#cursorTime = this.fromTime;
     this.#expectedModCount = this.#outer.modCount;
   }

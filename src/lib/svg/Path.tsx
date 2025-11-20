@@ -10,6 +10,7 @@ export class Path {
   pathDatas: PathData[] = [];
   stroke: string;
   stroke_width: number;
+  stroke_dasharray: number[];
   fill: string;
   opacity: number;
 
@@ -118,6 +119,7 @@ export class Path {
         fill={this.fill}
         stroke={this.stroke}
         strokeWidth={this.stroke_width}
+        strokeDasharray={this.stroke_dasharray}
         opacity={this.opacity}
       />
     )
