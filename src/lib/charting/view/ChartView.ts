@@ -1,16 +1,16 @@
 import { TVal } from "../../timeseris/TVal";
-import type { BaseTSer } from "../../timeseris/BaseTSer";
-import type { TSer } from "../../timeseris/TSer";
+import { type BaseTSer } from "../../timeseris/BaseTSer";
+import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { Chart } from "../chart/Chart";
 import { Pane } from "../pane/Pane";
-import { ChartViewKeyHandler, ChartXControl } from "./ChartXControl";
-import type { Scalar } from "./scalar/Scalar";
+import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
+import { type Scalar } from "./scalar/Scalar";
 
 export interface ViewProps {
   baseSer: BaseTSer;
@@ -142,7 +142,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   maxValue = 1.0
   minValue = 0.0
 
-  #isInteractive = true
+  isReferCuroseVisible = false
+  isInteractive = true
+
   #isPinned = false
 
   protected abstract initComponents(): void;
@@ -276,15 +278,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
   set isSelected(b: boolean) {
     //this.glassPane.isSelected = b;
-  }
-
-  get isInteractive() {
-    return this.#isInteractive;
-  }
-  set isInteractive(b: boolean) {
-    //this.glassPane.interactive(b);
-
-    this.#isInteractive = b;
   }
 
   get isPinned(): boolean {

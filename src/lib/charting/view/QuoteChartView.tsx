@@ -234,7 +234,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
   updateState(state: object) {
     let referCursorPaths: Path[] = []
     let referCursorTexts: Text[] = []
-    if (this.xcontrol.referCursorRow !== undefined && !isNaN(this.xcontrol.referCursorRow)) {
+    if (this.isReferCuroseVisible) {
       const time = this.xcontrol.tr(this.xcontrol.referCursorRow)
       if (this.xcontrol.exists(time)) {
         const b = this.xcontrol.bt(time)
@@ -309,6 +309,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
       if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height && b >= 1 && b <= this.xcontrol.nBars) {
         const row = this.xcontrol.rb(b)
         this.xcontrol.setReferCursorByRow(row, true)
+        this.isReferCuroseVisible = true;
         this.updateState({});
       }
     }
@@ -408,7 +409,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
         break;
 
       case "Escape":
-        this.xcontrol.referCursorRow = undefined;
+        this.isReferCuroseVisible = false;
         this.updateState({})
         break;
 

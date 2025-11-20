@@ -194,7 +194,7 @@ export class ChartXControl {
      * don't set row directly, instead, use setCursorByRow(row, row);
      */
     const row = this.baseSer.lastOccurredRow();
-    this.setCursorByRow(undefined, row, true)
+    this.setCursorByRow(row, row, true)
 
     this.mouseCursorRow = this.referCursorRow;
   }
@@ -330,17 +330,17 @@ export class ChartXControl {
     /** set right cursor row first and directly */
     this.#internal_setRightSideRow(rightRow, willUpdateViews)
 
-    const oldValue = this.referCursorRow ? this.referCursorRow : 0;
+    const oldValue = this.referCursorRow
     this.scrollReferCursor(referRow - oldValue, willUpdateViews)
   }
 
   setReferCursorByRow(row: number, willUpdateViews: boolean) {
-    const increment = row - (this.referCursorRow ? this.referCursorRow : 0)
+    const increment = row - this.referCursorRow
     this.scrollReferCursor(increment, willUpdateViews)
   }
 
   scrollReferCursor(increment: number, willUpdateViews: boolean) {
-    const referRow = (this.referCursorRow ? this.referCursorRow : 0) + increment
+    const referRow = this.referCursorRow + increment
     const rightRow = this.rightSideRow
 
     // if refCursor is near left/right side, check if need to scroll chart except referCursur
@@ -394,7 +394,7 @@ export class ChartXControl {
   }
 
   referCursorTime() {
-    return this.baseSer.timeOfRow(this.referCursorRow ? this.referCursorRow : 0);
+    return this.baseSer.timeOfRow(this.referCursorRow);
   }
 
   rightSideTime(): number {
