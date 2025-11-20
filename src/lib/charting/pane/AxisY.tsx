@@ -63,8 +63,6 @@ export const AxisY = (props: Props) => {
     //const hFm = fm.getHeight
     const hFm = 12;
 
-    console.log(width, height)
-
     let nTicks = 6.0;
     while (Math.floor(ycontrol.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
       nTicks -= 2 // always keep even

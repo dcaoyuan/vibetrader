@@ -92,6 +92,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     this.handleMouseMove = this.handleMouseMove.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleWheel = this.handleWheel.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleKeyUp = this.handleKeyUp.bind(this);
   }
@@ -230,6 +231,30 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     return { crossPath, axisxText, axisxPath, axisyText, axisyPath }
   }
 
+  updateState(state: object) {
+    let referCursorPaths: Path[] = []
+    let referCursorTexts: Text[] = []
+    if (this.xcontrol.referCursorRow !== undefined && !isNaN(this.xcontrol.referCursorRow)) {
+      const time = this.xcontrol.tr(this.xcontrol.referCursorRow)
+      if (this.xcontrol.exists(time)) {
+        const b = this.xcontrol.bt(time)
+
+        if (b >= 1 && b <= this.xcontrol.nBars) {
+
+          const cursorX = this.xcontrol.xr(this.xcontrol.referCursorRow)
+          const value = this.quoteVar.getByTime(time).close;
+          const cursorY = this.ycontrol.yv(value)
+
+          const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+          referCursorPaths = [crossPath, axisxPath, axisyPath]
+          referCursorTexts = [axisxText, axisyText]
+        }
+      }
+    }
+
+    this.setState({ ...state, referCursorPaths, referCursorTexts })
+  }
+
   handleMouseMove(e: React.MouseEvent) {
     const targetRect = e.currentTarget.getBoundingClientRect();
     const x = e.pageX - targetRect.left;
@@ -254,19 +279,19 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
     }
 
     const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
-    this.setState({
+    this.updateState({
       mouseCursorPaths: [crossPath, axisxPath, axisyPath],
       mouseCursorTexts: [axisxText, axisyText]
     })
   }
 
   handleMouseLeave() {
-    this.setState({ mouseCursorPaths: [], mouseCursorTexts: [] })
+    this.updateState({ mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
   handleMouseDown(e: React.MouseEvent) {
     if (e.ctrlKey) {
-      // will selet chart on pane
+      // will select chart on pane
 
     } else {
       // set refer cursor
@@ -281,40 +306,65 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
 
       // align x to bar center
       const b = this.xcontrol.bx(x);
-      const cursorX = this.xcontrol.xb(b)
-
-      const value = this.quoteVar.getByTime(time).close;
-      const cursorY = this.ycontrol.yv(value)
-
       if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height && b >= 1 && b <= this.xcontrol.nBars) {
         const row = this.xcontrol.rb(b)
         this.xcontrol.setReferCursorByRow(row, true)
-
-        const { crossPath, axisxText, axisxPath, axisyText, axisyPath } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
-        this.setState({
-          referCursorPaths: [crossPath, axisxPath, axisyPath],
-          referCursorTexts: [axisxText, axisyText]
-        })
+        this.updateState({});
       }
     }
   }
 
+  handleWheel(e: React.WheelEvent) {
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
+    const delta = Math.round(e.deltaY / this.xcontrol.nBars);
+    console.log(e, delta)
+
+    if (e.shiftKey) {
+      /** zoom in / zoom out */
+      this.xcontrol.growWBar(delta)
+
+    } else if (e.ctrlKey) {
+      if (!this.isInteractive) {
+        return
+      }
+
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      /** move refer cursor left / right */
+      this.xcontrol.scrollReferCursor(unitsToScroll, true)
+
+    } else {
+      if (!this.isInteractive) {
+        return
+      }
+
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      /** keep referCursor stay same x in screen, and move */
+      this.xcontrol.scrollChartsHorizontallyByBar(unitsToScroll)
+    }
+
+    if (!this.xcontrol.referCursorRow) {
+      this.xcontrol.referCursorRow = 0;
+    }
+
+    const { chart, axisx, axisy } = this.plot();
+    this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
+  }
+
   // onKeyDown upon <div/> should combine tabIndex={0} to work correctly.
   handleKeyDown(e: React.KeyboardEvent) {
-    this.setState({ mouseCursorPaths: [] })
     this.keyhandler.keyPressed(e)
 
     const { chart, axisx, axisy } = this.plot();
-    this.setState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
+    this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
   }
 
   handleKeyUp(e: React.KeyboardEvent) {
-    console.log(e)
-    this.setState({ mouseCursorPaths: [] })
     this.keyhandler.keyReleased(e)
 
-    const { chart, axisx, axisy } = this.plot();
-    this.setState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
+    if (e.key === "Escape") {
+      this.xcontrol.referCursorRow = undefined;
+      this.updateState({})
+    }
   }
 
   render() {
@@ -331,6 +381,7 @@ export class QuoteChartView extends ChartView<QuoteChartViewProps, ViewState> {
             onMouseMove={this.handleMouseMove}
             onMouseLeave={this.handleMouseLeave}
             onMouseDown={this.handleMouseDown}
+            onWheel={this.handleWheel}
           >
             {this.state.chart.map(path => path.render())}
             {this.state.axisx.path.render()}

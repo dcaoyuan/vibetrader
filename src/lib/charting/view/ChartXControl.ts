@@ -184,18 +184,6 @@ export class ChartXControl {
     this.#viewContainer = viewContainer
 
     this.internal_initCursorRow()
-
-    // reactions += {
-    //   /** this reaction only process loading, update events to check if need to update cursor */
-    //   case TSerEvent.Loaded(_, _, fromTime, toTime, _, _) => updateView(toTime)
-    //     case TSerEvent.Refresh(_, _, fromTime, toTime, _, _) => updateView(toTime)
-    //     case TSerEvent.Updated(_, _, fromTime, toTime, _, _) => updateView(toTime)
-    //     case _ =>
-    //   }
-
-    // listenTo(baseSer)
-
-    // addKeyMouseListenersTo(viewContainer)
   }
 
   private internal_initCursorRow() {
@@ -206,7 +194,7 @@ export class ChartXControl {
      * don't set row directly, instead, use setCursorByRow(row, row);
      */
     const row = this.baseSer.lastOccurredRow();
-    this.setCursorByRow(row, row, true)
+    this.setCursorByRow(undefined, row, true)
 
     this.mouseCursorRow = this.referCursorRow;
   }
@@ -334,7 +322,6 @@ export class ChartXControl {
       this.internal_setReferCursorByTime(referCursorTime1);
       this.internal_setRightCursorByTime(rightCursorTime1);
 
-      // this.notifyChanged(classOf<ChartValidityObserver>)
       this.updateViews()
     }
   }
@@ -343,17 +330,17 @@ export class ChartXControl {
     /** set right cursor row first and directly */
     this.#internal_setRightSideRow(rightRow, willUpdateViews)
 
-    const oldValue = this.referCursorRow
+    const oldValue = this.referCursorRow ? this.referCursorRow : 0;
     this.scrollReferCursor(referRow - oldValue, willUpdateViews)
   }
 
   setReferCursorByRow(row: number, willUpdateViews: boolean) {
-    const increment = row - this.referCursorRow
+    const increment = row - (this.referCursorRow ? this.referCursorRow : 0)
     this.scrollReferCursor(increment, willUpdateViews)
   }
 
   scrollReferCursor(increment: number, willUpdateViews: boolean) {
-    const referRow = this.referCursorRow + increment
+    const referRow = (this.referCursorRow ? this.referCursorRow : 0) + increment
     const rightRow = this.rightSideRow
 
     // if refCursor is near left/right side, check if need to scroll chart except referCursur
@@ -407,7 +394,7 @@ export class ChartXControl {
   }
 
   referCursorTime() {
-    return this.baseSer.timeOfRow(this.referCursorRow);
+    return this.baseSer.timeOfRow(this.referCursorRow ? this.referCursorRow : 0);
   }
 
   rightSideTime(): number {
@@ -449,23 +436,14 @@ export class ChartXControl {
     }
   }
 
-  private internal_setReferCursorRow(row: number, notify: boolean = true) {
-    const oldValue = this.referCursorRow
+  private internal_setReferCursorRow(row: number, boolean = true) {
     this.referCursorRow = row
     /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
     this.#lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
-    if (this.referCursorRow !== oldValue && notify) {
-      //this.notifyChanged(classOf<ReferCursorObserver>)
-      //this.notifyChanged(classOf<ChartValidityObserver>)
-    }
   }
 
   #internal_setRightSideRow(row: number, notify: boolean = true) {
-    const oldValue = this.rightSideRow
     this.rightSideRow = row
-    if (this.rightSideRow !== oldValue && notify) {
-      //this.notifyChanged(classOf<ChartValidityObserver>)
-    }
   }
 
   private internal_setReferCursorByTime(time: number, notify: boolean = true) {
@@ -477,14 +455,7 @@ export class ChartXControl {
   }
 
   private internal_setMouseCursorRow(row: number) {
-    const oldValue = this.mouseCursorRow;
     this.mouseCursorRow = row;
-
-    /**
-     * even mouseCursor row not changed, the mouse's y may has been changed,
-     * so, notify observers without comparing the oldValue and newValue.
-     */
-    //this.notifyChanged(classOf<MouseCursorObserver>)
   }
 
   // popupViewToDesktop(view: ChartView, dim: DOMRect, alwaysOnTop: boolean, joint: boolean) {
@@ -607,9 +578,17 @@ export class ChartViewKeyHandler /* extends KeyAdapter */ {
 
   }
 
-  keyReleased(e: React.KeyboardEvent) {
-    if (e.key === " ") {
-      this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
+  keyReleased(e: React.KeyboardEvent): boolean {
+    switch (e.key) {
+      case " ":
+        this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
+        return true;
+
+      case "Escape":
+        return true;
+
+      default:
+        return false;
     }
   }
 

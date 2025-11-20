@@ -102,8 +102,8 @@ export class Theme {
   getChartColor(depth: number): string {
     const multiple = Math.floor(depth / this.chartColors.length)
     const remainder = depth % this.chartColors.length
-    var color = this.chartColors[remainder]
-    var i = 1
+    const color = this.chartColors[remainder]
+    let i = 1
     while (i <= multiple) {
       //color = color.darker();
       i++;
@@ -112,19 +112,19 @@ export class Theme {
   }
 
   getPositiveColor() {
-    return Theme.isPositiveNegativeColorReversed ? this.negativeColor : this.positiveColor;
+    return this.isPositiveNegativeColorReversed ? this.negativeColor : this.positiveColor;
   }
 
   getNegativeColor() {
-    return Theme.isPositiveNegativeColorReversed ? this.positiveColor : this.negativeColor;
+    return this.isPositiveNegativeColorReversed ? this.positiveColor : this.negativeColor;
   }
 
   getPositiveBgColor() {
-    return Theme.isPositiveNegativeColorReversed ? this.negativeBgColor : this.positiveBgColor;
+    return this.isPositiveNegativeColorReversed ? this.negativeBgColor : this.positiveBgColor;
   }
 
   getNegativeBgColor() {
-    return Theme.isPositiveNegativeColorReversed ? this.positiveBgColor : this.negativeBgColor;
+    return this.isPositiveNegativeColorReversed ? this.positiveBgColor : this.negativeBgColor;
   }
 
   getMonthColor(month: number) {
