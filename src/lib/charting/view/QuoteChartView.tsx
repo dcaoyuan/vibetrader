@@ -189,7 +189,9 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   }
 
   plotCursor(x: number, y: number, time: number, value: number, color: string): Seg[] {
-    //const path = new Path(0, 0, '#F0F0F0');
+    const w = 12 * 4; // annotation width
+    const h = 12;     // annotation height
+
     const crossPath = new Path(0, 0, color);
     const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
     const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, color, color);
@@ -198,29 +200,33 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
     const timeZone = this.xcontrol.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-    const dateStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+    const dtStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+
+    const valueStr = COMMON_DECIMAL_FORMAT.format(value);
 
     // axis-x
     crossPath.moveto(x, 0);
     crossPath.lineto(x, this.height)
 
-    axisxText.text(x + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
-    axisxPath.moveto(x, 1);
-    axisxPath.lineto(x + 12 * 4, 1);
-    axisxPath.lineto(x + 12 * 4, ChartView.AXISX_HEIGHT - 3);
-    axisxPath.lineto(x, ChartView.AXISX_HEIGHT - 3);
+    const y0 = 1;
+    axisxPath.moveto(x, y0);
+    axisxPath.lineto(x + w, y0);
+    axisxPath.lineto(x + w, y0 + h);
+    axisxPath.lineto(x, y0 + h);
     axisxPath.closepath();
+    axisxText.text(x + 1, y0 + h, dtStr);
 
     // axis-y
     crossPath.moveto(0, y);
     crossPath.lineto(this.width, y)
 
-    axisyText.text(4, y, COMMON_DECIMAL_FORMAT.format(value));
-    axisyPath.moveto(0, y);
-    axisyPath.lineto(0 + 12 * 4, y);
-    axisyPath.lineto(0 + 12 * 4, y - 12);
-    axisyPath.lineto(0, y - 12);
+    const x0 = 1
+    axisyPath.moveto(x0, y);
+    axisyPath.lineto(x0 + w, y);
+    axisyPath.lineto(x0 + w, y - h);
+    axisyPath.lineto(x0, y - h);
     axisyPath.closepath();
+    axisyText.text(x0 + 1, y, valueStr);
 
     // Pay attention to the order to avoid text being overlapped
     return [crossPath, axisxPath, axisxText, axisyPath, axisyText]
