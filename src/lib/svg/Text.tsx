@@ -1,6 +1,8 @@
+import type { Seg } from "./Seg";
+
 export type TextData = { x: number, y: number, text: string }
 
-export class Text {
+export class Text implements Seg {
   #x0: number;
   #y0: number;
   texts: TextData[] = [];

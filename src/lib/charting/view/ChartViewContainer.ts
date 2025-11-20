@@ -88,7 +88,7 @@ export class ChartViewContainer {
     //   numSlaveViews++ 
     // }
 
-    if (numSlaveViews == 1 && sumSlaveViewsHeight == 0) {
+    if (numSlaveViews === 1 && sumSlaveViewsHeight === 0) {
       /** first slaveView added */
       sumSlaveViewsHeight = 0.382 * this.masterView.height
     }

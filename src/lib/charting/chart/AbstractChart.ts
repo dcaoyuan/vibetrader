@@ -3,6 +3,7 @@ import { Geometry } from './Geometry';
 import { Path } from '../../svg/Path';
 import { ChartXControl } from '../view/ChartXControl';
 import type { ChartYControl } from '../view/ChartYControl';
+import type { Seg } from '../../svg/Seg';
 
 abstract class AbstractChart implements Chart {
   protected _ycontrol: ChartYControl;
@@ -30,7 +31,7 @@ abstract class AbstractChart implements Chart {
 
   #markPoints: DOMPoint[] = [];
 
-  plot() {
+  plot(): Seg[] {
     this.nBars = this._xcontrol.nBars
     this.wBar = this._xcontrol.wBar
 
@@ -39,10 +40,10 @@ abstract class AbstractChart implements Chart {
 
     this.nBarsCompressed = this._xcontrol.nBarsCompressed
 
-    this.plotChart();
+    return this.plotChart();
   }
 
-  protected abstract plotChart(): void;
+  protected abstract plotChart(): Seg[];
 
   reset() {
     this.#markPoints.length = 0;
@@ -143,8 +144,6 @@ abstract class AbstractChart implements Chart {
       ? 0
       : this.depth < another.depth ? -1 : 1;
   }
-
-  abstract paths(): Path[];
 }
 
 export { AbstractChart, StrokeType };

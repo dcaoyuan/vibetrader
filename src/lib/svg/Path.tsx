@@ -1,9 +1,11 @@
+import type { Seg } from "./Seg";
+
 /**
  * https://svgwg.org/svg2-draft/paths.html#PathElement
  */
 export type PathData = { type: string, values: number[] }
 
-export class Path {
+export class Path implements Seg {
   #x0: number;
   #y0: number;
 

@@ -13,6 +13,7 @@ import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 import type React from "react";
 import './chartview.css';
+import type { Seg } from "../../svg/Seg";
 
 export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
@@ -54,7 +55,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     this.height = props.height;
     this.isQuote = props.isQuote;
 
-    const { chart, axisx, axisy } = this.plot();
+    const { chartSegs, axisxSegs, axisySegs } = this.plot();
 
     this.state = {
       xcontrol: undefined,
@@ -76,14 +77,12 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       isInteractive: true,
       isPinned: false,
 
-      mouseCursorPaths: [],
-      mouseCursorTexts: [],
-      referCursorPaths: [],
-      referCursorTexts: [],
+      chartSegs,
+      axisxSegs,
+      axisySegs,
 
-      chart,
-      axisx,
-      axisy,
+      mouseCursorSegs: [],
+      referCursorSegs: [],
     };
 
     this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -103,7 +102,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   protected plot() {
     this.computeGeometry();
 
-    const axisx = AxisX({
+    const axisxSegs = AxisX({
       x: 0,
       y: this.height - ChartView.AXISX_HEIGHT,
       width: this.width,
@@ -113,7 +112,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       view: this,
     })
 
-    const axisy = AxisY({
+    const axisySegs = AxisY({
       x: this.width - ChartView.AXISY_WIDTH,
       y: 0,
       width: ChartView.AXISY_WIDTH,
@@ -122,9 +121,9 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       ycontrol: this.ycontrol,
     })
 
-    const chart = this.quoteChart.paths()
+    const chartSegs = this.quoteChart.plot()
 
-    return { chart, axisx, axisy }
+    return { chartSegs, axisxSegs, axisySegs }
   }
 
   protected putChartsOfMainSer() {
@@ -189,7 +188,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     }
   }
 
-  plotCursor(x: number, y: number, time: number, value: number, color: string) {
+  plotCursor(x: number, y: number, time: number, value: number, color: string): Seg[] {
     //const path = new Path(0, 0, '#F0F0F0');
     const crossPath = new Path(0, 0, color);
     const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
@@ -224,12 +223,12 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     axisyPath.lineto(0, y - 12);
     axisyPath.closepath();
 
-    return { crossPath, axisxText, axisxPath, axisyText, axisyPath }
+    // Pay attention to the order to avoid text being overlapped
+    return [crossPath, axisxPath, axisxText, axisyPath, axisyText]
   }
 
   updateState(state: object) {
-    let referCursorPaths: Path[] = []
-    let referCursorTexts: Text[] = []
+    let referCursorSegs: Seg[] = []
     if (this.isReferCuroseVisible) {
       const time = this.xcontrol.tr(this.xcontrol.referCursorRow)
       if (this.xcontrol.exists(time)) {
@@ -241,21 +240,12 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
           const value = this.tvar.getByTime(time).value;
           const cursorY = this.ycontrol.yv(value)
 
-          const {
-            crossPath,
-            axisxText,
-            axisxPath,
-            axisyText,
-            axisyPath
-          } = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
-
-          referCursorPaths = [crossPath, axisxPath, axisyPath]
-          referCursorTexts = [axisxText, axisyText]
+          referCursorSegs = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
         }
       }
     }
 
-    this.setState({ ...state, referCursorPaths, referCursorTexts })
+    this.setState({ ...state, referCursorSegs })
   }
 
   handleMouseMove(e: React.MouseEvent) {
@@ -265,10 +255,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
     if (x > this.width - ChartView.AXISY_WIDTH && y > this.height - ChartView.AXISX_HEIGHT) {
       // enter right/bottom corner
-      this.updateState({
-        mouseCursorPaths: [],
-        mouseCursorTexts: []
-      })
+      this.updateState({ mouseCursorSegs: [] })
 
       return;
     }
@@ -291,22 +278,13 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       cursorY = y;
     }
 
-    const {
-      crossPath,
-      axisxText,
-      axisxPath,
-      axisyText,
-      axisyPath
-    } = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+    const mouseCursorSegs = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
 
-    this.updateState({
-      mouseCursorPaths: [crossPath, axisxPath, axisyPath],
-      mouseCursorTexts: [axisxText, axisyText]
-    })
+    this.updateState({ mouseCursorSegs })
   }
 
   handleMouseLeave() {
-    this.updateState({ mouseCursorPaths: [], mouseCursorTexts: [] })
+    this.updateState({ mouseCursorSegs: [] })
   }
 
   handleMouseDown(e: React.MouseEvent) {
@@ -368,8 +346,8 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       this.xcontrol.referCursorRow = 0;
     }
 
-    const { chart, axisx, axisy } = this.plot();
-    this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
+    const { chartSegs, axisxSegs, axisySegs } = this.plot();
+    this.updateState({ chartSegs, axisxSegs, axisySegs, mouseCursorSegs: [] })
   }
 
   handleKeyDown(e: React.KeyboardEvent) {
@@ -407,8 +385,8 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       default:
     }
 
-    const { chart, axisx, axisy } = this.plot();
-    this.updateState({ chart, axisx, axisy, mouseCursorPaths: [], mouseCursorTexts: [] })
+    const { chartSegs, axisxSegs, axisySegs } = this.plot();
+    this.updateState({ chartSegs, axisxSegs, axisySegs, mouseCursorSegs: [] })
   }
 
   #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
@@ -455,15 +433,11 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
             onMouseDown={this.handleMouseDown}
             onWheel={this.handleWheel}
           >
-            {this.state.chart.map(path => path.render())}
-            {this.state.axisx.path.render()}
-            {this.state.axisx.texts.render()}
-            {this.state.axisy.path.render()}
-            {this.state.axisy.texts.render()}
-            {this.state.mouseCursorPaths.map(path => path.render())}
-            {this.state.mouseCursorTexts.map(text => text.render())}
-            {this.state.referCursorPaths.map(path => path.render())}
-            {this.state.referCursorTexts.map(text => text.render())}
+            {this.state.chartSegs.map(seg => seg.render())}
+            {this.state.axisxSegs.map(seg => seg.render())}
+            {this.state.axisySegs.map(seg => seg.render())}
+            {this.state.mouseCursorSegs.map(seg => seg.render())}
+            {this.state.referCursorSegs.map(seg => seg.render())}
           </svg>
         </div>
       </div>

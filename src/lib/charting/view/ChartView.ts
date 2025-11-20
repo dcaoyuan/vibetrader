@@ -8,9 +8,8 @@ import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
-import { Path } from "../../svg/Path";
-import { Text } from "../../svg/Text";
 import { type Scalar } from "./scalar/Scalar";
+import type { Seg } from "../../svg/Seg";
 
 export interface ViewProps {
   baseSer: BaseTSer;
@@ -40,15 +39,12 @@ export interface ViewState {
   isInteractive: true
   isPinned: false
 
-  chart: Path[];
-  axisx: { path: Path, texts: Text };
-  axisy: { path: Path, texts: Text };
+  chartSegs: Seg[];
+  axisxSegs: Seg[];
+  axisySegs: Seg[];
 
-  mouseCursorPaths: Path[]
-  mouseCursorTexts: Text[]
-
-  referCursorPaths: Path[]
-  referCursorTexts: Text[]
+  mouseCursorSegs: Seg[]
+  referCursorSegs: Seg[]
 }
 
 /**

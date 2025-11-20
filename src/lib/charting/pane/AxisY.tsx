@@ -129,20 +129,11 @@ export const AxisY = (props: Props) => {
       i++;
     }
 
-    return { path: path, texts: texts };
+    return [path, texts];
   }
 
 
   return plot();
-  // (
-  //   // use div style to force the dimension and avoid extra 4px height at bottom of parent container.
-  //   <div style={{ width: width + 'px', height: height + 'px' }}>
-  //     <svg width={width} height={height}>
-  //       {state.path.render()}
-  //       {state.texts.map((text) => text.render())}
-  //     </svg>
-  //   </div>
-  // );
 }
 
 export default AxisY;

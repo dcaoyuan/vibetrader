@@ -53,6 +53,8 @@ export class QuoteChart extends AbstractChart {
       default:
         this.#plotCandleOrOhlcChart(this.kind);
     }
+
+    return this.#negPath ? [this.#posPath, this.#negPath] : [this.#posPath]
   }
 
   #plotCandleOrOhlcChart(kind: QuoteChart.Kind) {
@@ -243,12 +245,6 @@ export class QuoteChart extends AbstractChart {
 
       bar++;
     }
-  }
-
-  paths() {
-    this.plot();
-
-    return this.#negPath ? [this.#posPath, this.#negPath] : [this.#posPath]
   }
 }
 

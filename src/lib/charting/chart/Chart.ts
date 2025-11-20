@@ -1,4 +1,5 @@
 import { Path } from "../../svg/Path";
+import type { Seg } from "../../svg/Seg";
 
 //   const BASE_STROKES = [ 
 //     new BasicStroke(1.0f),
@@ -30,8 +31,7 @@ export interface Chart {//extends Widget with Ordered[Chart] {
   stroke: string;
   strockWidth: number;
 
-  //plot(): void;
-  paths(): Path[];
+  plot(): Seg[];
   reset(): void;
 }
 
