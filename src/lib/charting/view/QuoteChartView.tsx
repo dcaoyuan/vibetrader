@@ -200,19 +200,18 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
     const dateStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
 
-    // draw vertical cursor only when not enter axis-y area
-    if (x < this.width - ChartView.AXISY_WIDTH) {
-      crossPath.moveto(x, 0);
-      crossPath.lineto(x, this.height)
+    // axis-x
+    crossPath.moveto(x, 0);
+    crossPath.lineto(x, this.height)
 
-      axisxText.text(x + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
-      axisxPath.moveto(x, 1);
-      axisxPath.lineto(x + 12 * 4, 1);
-      axisxPath.lineto(x + 12 * 4, ChartView.AXISX_HEIGHT - 3);
-      axisxPath.lineto(x, ChartView.AXISX_HEIGHT - 3);
-      axisxPath.closepath();
-    }
+    axisxText.text(x + 1, ChartView.AXISX_HEIGHT - 3, dateStr);
+    axisxPath.moveto(x, 1);
+    axisxPath.lineto(x + 12 * 4, 1);
+    axisxPath.lineto(x + 12 * 4, ChartView.AXISX_HEIGHT - 3);
+    axisxPath.lineto(x, ChartView.AXISX_HEIGHT - 3);
+    axisxPath.closepath();
 
+    // axis-y
     crossPath.moveto(0, y);
     crossPath.lineto(this.width, y)
 
@@ -253,13 +252,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     const x = e.pageX - targetRect.left;
     const y = e.pageY - targetRect.top;
 
-    if (x > this.width - ChartView.AXISY_WIDTH && y > this.height - ChartView.AXISX_HEIGHT) {
-      // enter right/bottom corner
-      this.updateState({ mouseCursorSegs: [] })
-
-      return;
-    }
-
     const time = this.xcontrol.tx(x);
 
     // align x to bar center
@@ -278,9 +270,15 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       cursorY = y;
     }
 
-    const mouseCursorSegs = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+    // draw mouse cursor only when not in the axis-y area
+    if (x < this.width - ChartView.AXISY_WIDTH) {
+      const mouseCursorSegs = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
 
-    this.updateState({ mouseCursorSegs })
+      this.updateState({ mouseCursorSegs })
+
+    } else {
+      this.updateState({ mouseCursorSegs: [] })
+    }
   }
 
   handleMouseLeave() {
@@ -305,11 +303,17 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       // align x to bar center
       const b = this.xcontrol.bx(x);
 
-      if (y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height && b >= 1 && b <= this.xcontrol.nBars) {
-        const row = this.xcontrol.rb(b)
-        this.xcontrol.setReferCursorByRow(row, true)
-        this.isReferCuroseVisible = true;
-        this.updateState({});
+      // draw refer cursor only when not in the axis-y area
+      if (x < this.width - ChartView.AXISY_WIDTH) {
+        if (
+          y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height &&
+          b >= 1 && b <= this.xcontrol.nBars
+        ) {
+          const row = this.xcontrol.rb(b)
+          this.xcontrol.setReferCursorByRow(row, true)
+          this.isReferCuroseVisible = true;
+          this.updateState({});
+        }
       }
     }
   }
@@ -347,6 +351,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     }
 
     const { chartSegs, axisxSegs, axisySegs } = this.plot();
+
     this.updateState({ chartSegs, axisxSegs, axisySegs, mouseCursorSegs: [] })
   }
 
