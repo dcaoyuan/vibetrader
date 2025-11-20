@@ -48,7 +48,6 @@ export class ChartXControl {
   rightSideRow = 0;
 
   referCursorRow = 0;
-  mouseCursorRow = 0;
 
   fixedNBars?: number;
   fixedLeftSideTime?: number;
@@ -65,7 +64,7 @@ export class ChartXControl {
   isCursorCrossVisible = true;
 
   setViewContainer(viewContainer: ChartViewContainer) {
-    this.internal_setChartViewContainer(viewContainer);
+    this.#internal_setChartViewContainer(viewContainer);
   }
 
   computeGeometry() {
@@ -180,13 +179,13 @@ export class ChartXControl {
     return this.br(this.baseSer.rowOfTime(time))
   }
 
-  private internal_setChartViewContainer(viewContainer: ChartViewContainer) {
+  #internal_setChartViewContainer(viewContainer: ChartViewContainer) {
     this.#viewContainer = viewContainer
 
-    this.internal_initCursorRow()
+    this.#internal_initCursorRow()
   }
 
-  private internal_initCursorRow() {
+  #internal_initCursorRow() {
     /**
      * baseSer may have finished computing at this time, to adjust
      * the cursor to proper row, update it here.
@@ -195,8 +194,6 @@ export class ChartXControl {
      */
     const row = this.baseSer.lastOccurredRow();
     this.setCursorByRow(row, row, true)
-
-    this.mouseCursorRow = this.referCursorRow;
   }
 
   // private addKeyMouseListenersTo(component: JComponent) {
@@ -255,7 +252,7 @@ export class ChartXControl {
       this.#wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
     }
 
-    this.internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]);
+    this.#internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]);
     this.updateViews();
   }
 
@@ -301,7 +298,7 @@ export class ChartXControl {
       }
     }
 
-    this.internal_setWBar(newWBar)
+    this.#internal_setWBar(newWBar)
     this.updateViews()
   }
 
@@ -319,8 +316,8 @@ export class ChartXControl {
         this.baseSer.toOnOccurredMode()
       }
 
-      this.internal_setReferCursorByTime(referCursorTime1);
-      this.internal_setRightCursorByTime(rightCursorTime1);
+      this.#internal_setReferCursorByTime(referCursorTime1);
+      this.#internal_setRightCursorByTime(rightCursorTime1);
 
       this.updateViews()
     }
@@ -357,7 +354,7 @@ export class ChartXControl {
       }
     }
 
-    this.internal_setReferCursorRow(referRow, willUpdateViews)
+    this.#internal_setReferCursorRow(referRow, willUpdateViews)
     if (willUpdateViews) {
       this.updateViews()
     }
@@ -375,10 +372,6 @@ export class ChartXControl {
     const rightRow = this.rightSideRow;
     const leftRow = rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
     this.setReferCursorByRow(leftRow, true)
-  }
-
-  setMouseCursorByRow(row: number) {
-    this.internal_setMouseCursorRow(row)
   }
 
   updateViews() {
@@ -405,10 +398,6 @@ export class ChartXControl {
     return this.baseSer.timeOfRow(this.leftSideRow());
   }
 
-  mouseCursorTime() {
-    return this.baseSer.timeOfRow(this.mouseCursorRow)
-  }
-
   leftSideRow(): number {
     const rightRow = this.rightSideRow
     return rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
@@ -428,7 +417,7 @@ export class ChartXControl {
    * as we don't like referCursor and rightCursor being set directly by others,
    * the following setter methods are named internal_setXXX, and are private.
    */
-  private internal_setWBar(wBar: number) {
+  #internal_setWBar(wBar: number) {
     const oldValue = this.wBar
     this.wBar = wBar
     if (this.wBar != oldValue) {
@@ -436,7 +425,7 @@ export class ChartXControl {
     }
   }
 
-  private internal_setReferCursorRow(row: number, boolean = true) {
+  #internal_setReferCursorRow(row: number, boolean = true) {
     this.referCursorRow = row
     /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
     this.#lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
@@ -446,16 +435,12 @@ export class ChartXControl {
     this.rightSideRow = row
   }
 
-  private internal_setReferCursorByTime(time: number, notify: boolean = true) {
-    this.internal_setReferCursorRow(this.baseSer.rowOfTime(time), notify)
+  #internal_setReferCursorByTime(time: number, notify: boolean = true) {
+    this.#internal_setReferCursorRow(this.baseSer.rowOfTime(time), notify)
   }
 
-  private internal_setRightCursorByTime(time: number) {
+  #internal_setRightCursorByTime(time: number) {
     this.#internal_setRightSideRow(this.baseSer.rowOfTime(time))
-  }
-
-  private internal_setMouseCursorRow(row: number) {
-    this.mouseCursorRow = row;
   }
 
   // popupViewToDesktop(view: ChartView, dim: DOMRect, alwaysOnTop: boolean, joint: boolean) {
@@ -513,17 +498,6 @@ export class ChartXControl {
     //this.notifyChanged(classOf<ChartValidityObserver>)
   }
 
-  internal_getCorrespondingChartView(e: UIEvent): ChartView<ViewProps, ViewState> | undefined {
-    return e.target as unknown as ChartView<ViewProps, ViewState>;
-    // switch (e.target) {
-    //   case source: ChartViewContainer:
-    //     return source.masterView;
-    //   case source: ChartView:
-    //     return source;
-    //   default:
-    //     return undefined;
-    // }
-  }
 }
 
 
