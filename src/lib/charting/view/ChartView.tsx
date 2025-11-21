@@ -27,6 +27,7 @@ export interface ViewProps {
   width: number;
   height: number;
   isQuote: boolean;
+  isMasterView: boolean;
 }
 
 export interface ViewState {
@@ -81,9 +82,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   static readonly CONTROL_HEIGHT = 12
   static readonly TITLE_HEIGHT_PER_LINE = 12
 
-  readonly xc: ChartXControl;
-  readonly yc: ChartYControl;
+  width: number;
+  height: number;
+
+  xc: ChartXControl;
+  yc: ChartYControl;
   baseSer: TSer;
+  isMasterView: boolean;
 
   tvar: TVar<TVal>;
 
@@ -96,10 +101,15 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     super(props)
 
     this.xc = new ChartXControl(props.baseSer, props.width - ChartView.AXISY_WIDTH);
-    this.yc = new ChartYControl(props.baseSer, props.height - ChartView.AXISX_HEIGHT);
+    this.yc = new ChartYControl(props.baseSer, props.isMasterView ? props.height - ChartView.AXISX_HEIGHT : props.height);
 
     this.baseSer = props.baseSer;
     this.tvar = props.tvar;
+
+    this.width = props.width;
+    this.height = props.height;
+    this.isQuote = props.isQuote;
+    this.isMasterView = props.isMasterView;
 
     this.#createBasisComponents();
 
@@ -126,9 +136,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   //xControlPane?: XControlPane;
   // y-control pane, may be <code>null</code>
   yControlPane?: Pane; //YControlPane;
-
-  width: number;
-  height: number;
 
   isQuote = false;
   hasInnerVolume = false;
@@ -455,13 +462,15 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     crossPath.moveto(x, 0);
     crossPath.lineto(x, this.height)
 
-    const y0 = 1;
-    axisxPath.moveto(x, y0);
-    axisxPath.lineto(x + w, y0);
-    axisxPath.lineto(x + w, y0 + h);
-    axisxPath.lineto(x, y0 + h);
-    axisxPath.closepath();
-    axisxText.text(x + 1, y0 + h, dtStr);
+    if (this.isMasterView) {
+      const y0 = 1;
+      axisxPath.moveto(x, y0);
+      axisxPath.lineto(x + w, y0);
+      axisxPath.lineto(x + w, y0 + h);
+      axisxPath.lineto(x, y0 + h);
+      axisxPath.closepath();
+      axisxText.text(x + 1, y0 + h, dtStr);
+    }
 
     // axis-y
     crossPath.moveto(0, y);

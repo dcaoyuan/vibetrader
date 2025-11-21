@@ -52,15 +52,19 @@ export namespace QuoteSer {
   }
 
   export function testChart() {
-    const width = 800;
-    const height = 400;
     const quoteSer = loadSer();
     const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
+    const width = 800;
+    const hMasterView = 400;
+    const hSlaveView = 100;
+
+    const height = hMasterView + hSlaveView
+
     return (
-      <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
-        <QuoteChartView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
-        <VolumeView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
+      <div className="container" style={{ width: width + 'px', height: height + 'px' }} >
+        <QuoteChartView baseSer={quoteSer} tvar={qvar} isQuote={true} isMasterView={true} width={width} height={hMasterView} />
+        <VolumeView baseSer={quoteSer} tvar={qvar} isQuote={false} isMasterView={false} width={width} height={hSlaveView} />
       </div>
     )
   }

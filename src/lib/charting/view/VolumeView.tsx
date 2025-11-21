@@ -17,9 +17,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     super(props);
 
     this.quoteVar = props.tvar as TVar<Quote>;
-    this.width = props.width;
-    this.height = props.height;
-    this.isQuote = props.isQuote;
 
     const { chart, axisy } = this.plot();
 
