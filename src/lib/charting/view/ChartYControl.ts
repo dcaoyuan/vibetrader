@@ -1,6 +1,7 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer";
 import { Geometry } from "../chart/Geometry";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
+import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
 
 export class ChartYControl {

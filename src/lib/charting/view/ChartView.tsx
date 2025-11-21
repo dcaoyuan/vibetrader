@@ -494,7 +494,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     axisyPath.closepath();
     axisyText.text(x0 + 1, y, valueStr);
 
-    // Pay attention to the order to avoid text being overlapped
+    // pay attention to the order to avoid text being overlapped
     const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
 
     return (
@@ -666,12 +666,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       }
 
       const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
-      // keep referCursor stay same x in screen, and move
+      // keep referCursor staying same x in screen, and move
       this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
-    }
-
-    if (!this.xc.referCursorRow) {
-      this.xc.referCursorRow = 0;
     }
 
     this.props.notify(RefreshEvent.Chart);
@@ -724,13 +720,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       case "Escape":
         this.xc.isReferCuroseVisible = false;
         this.props.notify(RefreshEvent.Cursors)
-        // this.updateState({})
         break;
 
       default:
     }
   }
 
+  // Important: Be careful when calling setState within componentDidUpdate
+  // Ensure you have a conditional check to prevent infinite re-renders.
+  // If setState is called unconditionally, it will trigger another update,
+  // potentially leading to a loop.
   override componentDidUpdate(prevProps: ViewProps, prevState) {
     if (this.props.refreshChart !== prevProps.refreshChart) {
       this.updateChart();
@@ -739,26 +738,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     if (this.props.refreshCursors !== prevProps.refreshCursors) {
       this.updateCursors();
     }
-    // Check if a specific prop has changed
-    // if (this.props.someProp !== prevProps.someProp) {
-    //   console.log('someProp has changed!');
-    //   // Perform actions based on the prop change
-    //   // For example, update internal state or trigger a side effect
-    //   this.setState({ internalValue: this.props.someProp * 2 });
-    // }
-
-    // // You can also compare other props or state if necessary
-    // if (this.props.anotherProp !== prevProps.anotherProp) {
-    //   console.log('anotherProp has changed!');
-    //   // ...
-    // }
-
-    // Important: Be careful when calling setState within componentDidUpdate
-    // Ensure you have a conditional check to prevent infinite re-renders.
-    // If setState is called unconditionally, it will trigger another update,
-    // potentially leading to a loop.
   }
-
 
 }
 

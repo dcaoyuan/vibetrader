@@ -67,7 +67,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
       x: this.width - ChartView.AXISY_WIDTH,
       y: 0,
       width: ChartView.AXISY_WIDTH,
-      height: this.height - ChartView.AXISX_HEIGHT,
+      height: this.height,
       xc: this.xc,
       yc: this.yc,
     })

@@ -20,9 +20,9 @@ const VolmueChart = (props: Props) => {
     const posColor = Theme.now().getPositiveColor();
     const negColor = Theme.now().getNegativeColor();
 
-    const isFill = false// Theme.now().isFillBar;
+    const isFill = Theme.now().isFillBar;
 
-    const thin = false //Theme.now().isThinVolumeBar //|| m.thin
+    const thin = Theme.now().isThinVolumeBar; //|| m.thin
 
     const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
