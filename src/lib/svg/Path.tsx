@@ -12,7 +12,7 @@ export class Path implements Seg {
   pathDatas: PathData[] = [];
   stroke: string;
   stroke_width: number;
-  stroke_dasharray: number[];
+  stroke_dasharray: string | number;
   fill: string;
   opacity: number;
 

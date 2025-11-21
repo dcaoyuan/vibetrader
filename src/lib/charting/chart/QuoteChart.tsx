@@ -4,18 +4,13 @@ import { Quote } from "../../domain/Quote";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
-
-enum Kind {
-  Candle,
-  Ohlc,
-  Line,
-}
+import { QuoteChartKind } from "./Kinds";
 
 type Props = {
   xcontrol: ChartXControl,
   ycontrol: ChartYControl,
   quoteVar: TVar<Quote>,
-  kind: Kind,
+  kind: QuoteChartKind,
   depth: number;
 }
 
@@ -27,7 +22,7 @@ const QuoteChart = (props: Props) => {
   const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
 
   function plotChart() {
-    const isFill = kind === Kind.Candle && Theme.now().isFillBar;
+    const isFill = kind === QuoteChartKind.Candle && Theme.now().isFillBar;
 
     const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
@@ -35,12 +30,12 @@ const QuoteChart = (props: Props) => {
       : new Path(0, 0, negColor, isFill ? negColor : "none");
 
     switch (kind) {
-      case Kind.Candle:
-      case Kind.Ohlc:
+      case QuoteChartKind.Candle:
+      case QuoteChartKind.Ohlc:
         plotCandleOrOhlcChart(kind, posPath, negPath);
         break
 
-      case Kind.Line:
+      case QuoteChartKind.Line:
         plotLineChart(posPath, negPath);
         break;
 
@@ -51,7 +46,7 @@ const QuoteChart = (props: Props) => {
     return negPath ? [posPath, negPath] : [posPath]
   }
 
-  function plotCandleOrOhlcChart(kind: Kind, posPath: Path, negPath: Path) {
+  function plotCandleOrOhlcChart(kind: QuoteChartKind, posPath: Path, negPath: Path) {
     let bar = 1
     while (bar <= xcontrol.nBars) {
       /**
@@ -91,11 +86,11 @@ const QuoteChart = (props: Props) => {
         const yClose = ycontrol.yv(close)
 
         switch (kind) {
-          case Kind.Candle:
+          case QuoteChartKind.Candle:
             plotCandleBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break;
 
-          case Kind.Ohlc:
+          case QuoteChartKind.Ohlc:
             plotOHLCBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break
 
@@ -247,4 +242,4 @@ const QuoteChart = (props: Props) => {
   )
 }
 
-export { QuoteChart, Kind } 
+export default QuoteChart;

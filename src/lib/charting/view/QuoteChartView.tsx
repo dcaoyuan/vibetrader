@@ -1,4 +1,4 @@
-import * as QuoteChart from "../chart/QuoteChart"
+import QuoteChart from "../chart/QuoteChart"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
@@ -13,30 +13,31 @@ import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 import type React from "react";
 import './chartview.css';
+import { QuoteChartKind } from "../chart/Kinds";
 
 export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
-  static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
-    let newKind: QuoteChart.Kind;
+  static switchAllQuoteChartType(originalKind: QuoteChartKind, targetKind: QuoteChartKind): QuoteChartKind {
+    let newKind: QuoteChartKind
     if (targetKind !== undefined) {
       newKind = targetKind;
 
     } else {
       switch (originalKind) {
-        case QuoteChart.Kind.Candle:
-          newKind = QuoteChart.Kind.Ohlc
+        case QuoteChartKind.Candle:
+          newKind = QuoteChartKind.Ohlc
           break;
 
-        case QuoteChart.Kind.Ohlc:
-          newKind = QuoteChart.Kind.Line
+        case QuoteChartKind.Ohlc:
+          newKind = QuoteChartKind.Line
           break;
 
-        case QuoteChart.Kind.Line:
-          newKind = QuoteChart.Kind.Candle
+        case QuoteChartKind.Line:
+          newKind = QuoteChartKind.Candle
           break;
 
         default:
-          newKind = QuoteChart.Kind.Candle
+          newKind = QuoteChartKind.Candle
       }
     }
 
@@ -99,11 +100,11 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   protected plot() {
     this.computeGeometry();
 
-    const chart = QuoteChart.QuoteChart({
+    const chart = QuoteChart({
       quoteVar: this.quoteVar,
       ycontrol: this.ycontrol,
       xcontrol: this.xcontrol,
-      kind: QuoteChart.Kind.Candle,
+      kind: QuoteChartKind.Candle,
       depth: 0
     });
 
@@ -191,7 +192,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     }
   }
 
-  plotCursor(x: number, y: number, time: number, value: number, color: string): JSX.Element {
+  plotCursor(x: number, y: number, time: number, value: number, color: string) {
     const w = 12 * 4; // annotation width
     const h = 12;     // annotation height
 

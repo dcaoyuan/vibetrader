@@ -1,4 +1,4 @@
-import * as QuoteChart from "../chart/QuoteChart";
+import { QuoteChartKind } from "../chart/Kinds";
 
 export class Theme {
   private static current: Theme
@@ -27,7 +27,7 @@ export class Theme {
   }
 
   isPositiveNegativeColorReversed = false;
-  quoteChartType: QuoteChart.Kind = QuoteChart.Kind.Ohlc;
+  quoteChartType: QuoteChartKind = QuoteChartKind.Ohlc;
   isThinVolumeBar = false;
   isAutoHideScroll = false;
   isAllowMultipleIndicatorOnQuoteChartView = false;
