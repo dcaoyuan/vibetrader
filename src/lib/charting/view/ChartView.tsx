@@ -95,10 +95,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   constructor(props: P) {
     super(props)
 
-    this.xcontrol = new ChartXControl(props.baseSer);
-    this.xcontrol.setViewContainer(new ChartViewContainer(this.xcontrol, this));
-
-    this.ycontrol = new ChartYControl(this.xcontrol.baseSer, props.height - ChartView.AXISX_HEIGHT);
+    this.xcontrol = new ChartXControl(props.baseSer, props.width - ChartView.AXISY_WIDTH);
+    this.ycontrol = new ChartYControl(props.baseSer, props.height - ChartView.AXISX_HEIGHT);
 
     this.baseSer = props.baseSer;
     this.tvar = props.tvar;

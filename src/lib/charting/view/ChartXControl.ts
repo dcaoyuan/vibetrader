@@ -41,8 +41,13 @@ export class ChartXControl {
   nBars = 0;
   nBarsCompressed = 0;
 
-  constructor(baseSer: BaseTSer) {
+  wChart: number;
+
+  constructor(baseSer: BaseTSer, wChart: number) {
     this.baseSer = baseSer;
+    this.wChart = wChart;
+
+    this.#internal_initCursorRow()
   }
 
   rightSideRow = 0;
@@ -60,16 +65,11 @@ export class ChartXControl {
 
   readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
   private popupViews() { return this.#popupViewRefs.keys() };
-  #viewContainer?: ChartViewContainer;
   #lastOccurredRowOfBaseSer = 0;
   #isAutoScrollToNewData = true;
   #isMouseEnteredAnyChartPane = false;
 
   isCursorCrossVisible = true;
-
-  setViewContainer(viewContainer: ChartViewContainer) {
-    this.#internal_setChartViewContainer(viewContainer);
-  }
 
   computeGeometry() {
     /**
@@ -80,12 +80,12 @@ export class ChartXControl {
      * properly layouted (the width of mainChartPane is still not good)
      */
     this.wBar = this.isFixedNBars() ?
-      this.#viewContainer.masterView.wChart() * 1.0 / this.fixedNBars :
+      this.wChart * 1.0 / this.fixedNBars :
       ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
 
     const nBars1 = this.isFixedNBars() ?
       this.fixedNBars :
-      Math.floor(this.#viewContainer.masterView.wChart() / this.wBar)
+      Math.floor(this.wChart / this.wBar)
 
     /** avoid nBars == 0 */
     this.nBars = Math.max(nBars1, 1)
@@ -181,12 +181,6 @@ export class ChartXControl {
    */
   bt(time: number): number {
     return this.br(this.baseSer.rowOfTime(time))
-  }
-
-  #internal_setChartViewContainer(viewContainer: ChartViewContainer) {
-    this.#viewContainer = viewContainer
-
-    this.#internal_initCursorRow()
   }
 
   #internal_initCursorRow() {
@@ -385,10 +379,6 @@ export class ChartXControl {
   }
 
   updateViews() {
-    if (this.#viewContainer !== undefined) {
-      //this.viewContainer.repaint()
-    }
-
     /**
      * as repaint() may be called by awt in instance's initialization, before
      * popupViewSet is created, so, check null.
