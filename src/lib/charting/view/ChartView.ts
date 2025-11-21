@@ -20,10 +20,6 @@ export interface ViewProps {
 }
 
 export interface ViewState {
-  xcontrol: ChartXControl;
-  ycontrol: ChartYControl;
-
-  baseSer: BaseTSer;
 
   width: number;
   height: number;

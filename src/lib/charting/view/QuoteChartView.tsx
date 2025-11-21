@@ -59,11 +59,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     const { chart, axisx, axisy } = this.plot();
 
     this.state = {
-      xcontrol: undefined,
-      ycontrol: undefined,
-
-      baseSer: undefined,
-
       width: props.width,
       height: props.height,
 
