@@ -51,15 +51,17 @@ const AxisX = (props: Props) => {
     const xLastTick = xc.xb(nBars)
     let i = 1;
     while (i <= nBars) {
-      if (i % bTickUnit == 0 || i == nBars || i == 1) {
+      if (i % bTickUnit === 0 || i === nBars || i === 1) {
         const xCurrTick = xc.xb(i)
 
-        if (xLastTick - xCurrTick < TICK_SPACING && i != nBars) {
+        if (xLastTick - xCurrTick < TICK_SPACING && i !== nBars) {
           // too close
 
         } else {
-          path.moveto(xCurrTick, 1)
-          path.lineto(xCurrTick, hTick)
+          if (i !== 1) {
+            path.moveto(xCurrTick, 1)
+            path.lineto(xCurrTick, hTick)
+          }
 
           const time = xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -70,7 +72,7 @@ const AxisX = (props: Props) => {
               currDateYear = currDt.year;
               //cal.setTime(prevDate)
               prevDateYear = prevDt.year; // cal.get(Calendar.YEAR)
-              if (currDateYear > prevDateYear && i != nBars || i == 1) {
+              if (currDateYear > prevDateYear && i !== nBars || i === 1) {
                 stridingDate = true
               }
               break;
@@ -81,7 +83,7 @@ const AxisX = (props: Props) => {
               //cal.setTime(prevDate)
               currDateDay = currDt.daysInWeek;
               prevDateDay = prevDt.daysInMonth; //get(Calendar.DAY_OF_MONTH)
-              if (currDateDay > prevDateDay && i != nBars || i == 1) {
+              if (currDateDay > prevDateDay && i !== nBars || i === 1) {
                 stridingDate = true
               }
               break;

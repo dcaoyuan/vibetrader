@@ -32,9 +32,9 @@ export const AxisY = (props: Props) => {
     // sample : 0.032 
     let vTickUnit = vtUnit
     const roundedExponent = Math.round(Math.log10(vTickUnit)) - 1   // -2
-    const adjustFactor = Math.pow(10, -roundedExponent)               // 100
-    const adjustedValue = Math.round(vTickUnit * adjustFactor) // 3.2 -> 3
-    vTickUnit = adjustedValue / adjustFactor     // 0.03
+    const adjustFactor = Math.pow(10, -roundedExponent)             // 100
+    const adjustedValue = Math.round(vTickUnit * adjustFactor)      // 3.2 -> 3
+    vTickUnit = adjustedValue / adjustFactor                        // 0.03
 
     // following DecimalFormat <-> double converts are try to round the decimal 
     if (vTickUnit <= 0.001) {
@@ -121,7 +121,7 @@ export const AxisY = (props: Props) => {
           vTick = Math.abs(vTick)
         }
 
-        if (i == 0 && shouldScale) {
+        if (i === 0 && shouldScale) {
           const multiple = "x10000"
 
           texts.text(4, yTick, multiple);
