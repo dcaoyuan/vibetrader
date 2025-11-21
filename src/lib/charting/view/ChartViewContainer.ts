@@ -8,7 +8,7 @@ export interface ClassOfChartViewContainer {
 
 export class ChartViewContainer {
   //private descriptorToSlaveView = new Map<IndicatorDescriptor, ChartView>()
-  xcontrol: ChartXControl
+  xc: ChartXControl
   masterView: ChartView<ViewProps, ViewState>
 
   width: number;
@@ -17,8 +17,8 @@ export class ChartViewContainer {
   /**
    * init this viewContainer instance. binding with control (so, MasterSer and Descriptor) here
    */
-  constructor(xcontrol: ChartXControl, masterView: ChartView<ViewProps, ViewState>) {
-    this.xcontrol = xcontrol;
+  constructor(xc: ChartXControl, masterView: ChartView<ViewProps, ViewState>) {
+    this.xc = xc;
     this.masterView = masterView;
 
     this.initComponents();

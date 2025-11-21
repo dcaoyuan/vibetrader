@@ -6,14 +6,14 @@ import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
 
 type Props = {
-  xcontrol: ChartXControl,
-  ycontrol: ChartYControl,
+  xc: ChartXControl,
+  yc: ChartYControl,
   quoteVar: TVar<Quote>,
   depth: number;
 }
 
 const VolmueChart = (props: Props) => {
-  const { xcontrol, ycontrol, quoteVar } = props;
+  const { xc, yc, quoteVar } = props;
 
   function plotChart() {
 
@@ -30,18 +30,18 @@ const VolmueChart = (props: Props) => {
       : new Path(0, 0, negColor, isFill ? negColor : "none");
 
 
-    const xRadius = xcontrol.wBar < 2 ? 0 : Math.floor((xcontrol.wBar - 2) / 2);
+    const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
 
-    const y1 = ycontrol.yv(0)
+    const y1 = yc.yv(0)
     let bar = 1
-    while (bar <= xcontrol.nBars) {
+    while (bar <= xc.nBars) {
       let open = undefined as number;
       let close = undefined as number;
       let volume = Number.NEGATIVE_INFINITY; // we are going to get max of volume during nBarsCompressed
       let i = 0;
-      while (i < xcontrol.nBarsCompressed) {
-        const time = xcontrol.tb(bar + i)
-        if (xcontrol.exists(time)) {
+      while (i < xc.nBarsCompressed) {
+        const time = xc.tb(bar + i)
+        if (xc.exists(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote.close !== 0) {
             if (open === undefined) {
@@ -59,10 +59,10 @@ const VolmueChart = (props: Props) => {
       if (volume >= 0 /* means we've got volume value */) {
         const path = close >= open ? posPath : negPath || posPath;
 
-        const xCenter = xcontrol.xb(bar)
+        const xCenter = xc.xb(bar)
 
-        const y2 = ycontrol.yv(volume)
-        if (thin || xcontrol.wBar <= 2) {
+        const y2 = yc.yv(volume)
+        if (thin || xc.wBar <= 2) {
           path.moveto(xCenter, y1);
           path.lineto(xCenter, y2);
 
@@ -74,12 +74,11 @@ const VolmueChart = (props: Props) => {
         }
       }
 
-      bar += xcontrol.nBarsCompressed
+      bar += xc.nBarsCompressed
     }
 
     return negPath ? [posPath, negPath] : [posPath]
   }
-
 
   const segs = plotChart();
 

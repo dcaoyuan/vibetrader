@@ -7,15 +7,15 @@ import type { ChartXControl } from "../view/ChartXControl";
 import { QuoteChartKind } from "./Kinds";
 
 type Props = {
-  xcontrol: ChartXControl,
-  ycontrol: ChartYControl,
+  xc: ChartXControl,
+  yc: ChartYControl,
   quoteVar: TVar<Quote>,
   kind: QuoteChartKind,
   depth: number;
 }
 
 const QuoteChart = (props: Props) => {
-  const { xcontrol, ycontrol, quoteVar, kind, depth } = props;
+  const { xc, yc, quoteVar, kind, depth } = props;
 
   /** depth !== 0 is for comparing quotes charts */
   const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
@@ -48,7 +48,7 @@ const QuoteChart = (props: Props) => {
 
   function plotCandleOrOhlcChart(kind: QuoteChartKind, posPath: Path, negPath: Path) {
     let bar = 1
-    while (bar <= xcontrol.nBars) {
+    while (bar <= xc.nBars) {
       /**
        * use `undefiend` to test if value has been set at least one time
        */
@@ -57,9 +57,9 @@ const QuoteChart = (props: Props) => {
       let high = Number.NEGATIVE_INFINITY;
       let low = Number.POSITIVE_INFINITY
       let i = 0
-      while (i < xcontrol.nBarsCompressed) {
-        const time = xcontrol.tb(bar + i)
-        if (xcontrol.exists(time)) {
+      while (i < xc.nBarsCompressed) {
+        const time = xc.tb(bar + i)
+        if (xc.exists(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote && quote.open != 0) {
             if (open === undefined) {
@@ -78,12 +78,12 @@ const QuoteChart = (props: Props) => {
       if (close !== undefined && close != 0) {
         const path = close >= open ? posPath : negPath || posPath;
 
-        const xCenter = xcontrol.xb(bar);
+        const xCenter = xc.xb(bar);
 
-        const yOpen = ycontrol.yv(open)
-        const yHigh = ycontrol.yv(high)
-        const yLow = ycontrol.yv(low)
-        const yClose = ycontrol.yv(close)
+        const yOpen = yc.yv(open)
+        const yHigh = yc.yv(high)
+        const yLow = yc.yv(low)
+        const yClose = yc.yv(close)
 
         switch (kind) {
           case QuoteChartKind.Candle:
@@ -98,7 +98,7 @@ const QuoteChart = (props: Props) => {
         }
       }
 
-      bar += xcontrol.nBarsCompressed
+      bar += xc.nBarsCompressed
     }
   }
 
@@ -118,12 +118,12 @@ const QuoteChart = (props: Props) => {
    */
   function plotCandleBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
     /** why - 2 ? 1 for centre, 1 for space */
-    const xRadius = xcontrol.wBar < 2 ? 0 : Math.floor((xcontrol.wBar - 2) / 2);
+    const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
     /** upper and lower of candle's rectangle */
     const yUpper = Math.min(yOpen, yClose)
     const yLower = Math.max(yOpen, yClose)
 
-    if (xcontrol.wBar <= 2) {
+    if (xc.wBar <= 2) {
       path.moveto(xCenter, yHigh)
       path.lineto(xCenter, yLow)
 
@@ -154,7 +154,7 @@ const QuoteChart = (props: Props) => {
    *          |___|___ barCenter
    */
   function plotOHLCBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
-    const width = xcontrol.wBar;
+    const width = xc.wBar;
 
     /** why - 2 ? 1 for centre, 1 for space */
     const xRadius = width < 2 ? 0 : Math.floor((width - 2) / 2);
@@ -180,15 +180,15 @@ const QuoteChart = (props: Props) => {
     let y1: number = undefined as number // for prev
     let y2: number = undefined as number // for curr
     let bar = 1
-    while (bar <= xcontrol.nBars) {
+    while (bar <= xc.nBars) {
       // use `undefiend` to test if value has been set at least one time
       let open: number = undefined as number
       let close: number = undefined as number
       let max = Number.NEGATIVE_INFINITY;
       let min = Number.POSITIVE_INFINITY;
       let i = 0;
-      while (i < xcontrol.nBarsCompressed) {
-        const time = xcontrol.tb(bar + i)
+      while (i < xc.nBarsCompressed) {
+        const time = xc.tb(bar + i)
         if (quoteVar.exists(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote && quote.close !== 0) {
@@ -208,19 +208,19 @@ const QuoteChart = (props: Props) => {
       if (close !== undefined && close !== 0) {
         const path = close >= open ? posPath : negPath || posPath;
 
-        y2 = ycontrol.yv(close)
-        if (xcontrol.nBarsCompressed > 1) {
+        y2 = yc.yv(close)
+        if (xc.nBarsCompressed > 1) {
           // draw a vertical line to cover the min to max
-          const x = xcontrol.xb(bar)
-          path.moveto(x, ycontrol.yv(min));
-          path.lineto(x, ycontrol.yv(max));
+          const x = xc.xb(bar)
+          path.moveto(x, yc.yv(min));
+          path.lineto(x, yc.yv(max));
 
         } else {
           if (y1 !== undefined) {
             // x1 shoud be decided here, it may not equal prev x2:
             // think about the case of on calendar day mode
-            const x1 = xcontrol.xb(bar - xcontrol.nBarsCompressed)
-            const x2 = xcontrol.xb(bar)
+            const x1 = xc.xb(bar - xc.nBarsCompressed)
+            const x2 = xc.xb(bar)
             path.moveto(x1, y1);
             path.lineto(x2, y2);
           }

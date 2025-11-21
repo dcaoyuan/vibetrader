@@ -81,8 +81,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   static readonly CONTROL_HEIGHT = 12
   static readonly TITLE_HEIGHT_PER_LINE = 12
 
-  readonly xcontrol: ChartXControl;
-  readonly ycontrol: ChartYControl;
+  readonly xc: ChartXControl;
+  readonly yc: ChartYControl;
   baseSer: TSer;
 
   tvar: TVar<TVal>;
@@ -95,8 +95,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   constructor(props: P) {
     super(props)
 
-    this.xcontrol = new ChartXControl(props.baseSer, props.width - ChartView.AXISY_WIDTH);
-    this.ycontrol = new ChartYControl(props.baseSer, props.height - ChartView.AXISX_HEIGHT);
+    this.xc = new ChartXControl(props.baseSer, props.width - ChartView.AXISY_WIDTH);
+    this.yc = new ChartYControl(props.baseSer, props.height - ChartView.AXISX_HEIGHT);
 
     this.baseSer = props.baseSer;
     this.tvar = props.tvar;
@@ -215,12 +215,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
    */
   protected computeGeometry() {
     // compute x first;
-    this.xcontrol.computeGeometry();
+    this.xc.computeGeometry();
 
     this.computeMaxMin();
 
     // compute y after compute maxmin
-    this.ycontrol.computeGeometry(this.maxValue, this.minValue)
+    this.yc.computeGeometry(this.maxValue, this.minValue)
   }
 
   protected setMaxMinValue(max: number, min: number) {
@@ -445,9 +445,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
     const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, color, color)
 
-    const timeZone = this.xcontrol.baseSer.timeZone;
+    const timeZone = this.xc.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-    const dtStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+    const dtStr = this.xc.baseSer.freq.unit.formatNormalDate(dt, timeZone)
 
     const valueStr = COMMON_DECIMAL_FORMAT.format(value);
 
@@ -489,15 +489,15 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     let referCursor = <></>
     let mouseCursor = <></>
     if (this.isReferCuroseVisible) {
-      const time = this.xcontrol.tr(this.xcontrol.referCursorRow)
-      if (this.xcontrol.exists(time)) {
-        const b = this.xcontrol.bt(time)
+      const time = this.xc.tr(this.xc.referCursorRow)
+      if (this.xc.exists(time)) {
+        const b = this.xc.bt(time)
 
-        if (b >= 1 && b <= this.xcontrol.nBars) {
+        if (b >= 1 && b <= this.xc.nBars) {
 
-          const cursorX = this.xcontrol.xr(this.xcontrol.referCursorRow)
+          const cursorX = this.xc.xr(this.xc.referCursorRow)
           const value = this.valueAtTime(time);
-          const cursorY = this.ycontrol.yv(value)
+          const cursorY = this.yc.yv(value)
 
           referCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
         }
@@ -505,10 +505,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     if (this.isMouseCuroseVisible) {
-      const time = this.xcontrol.tr(this.xcontrol.mouseCursorRow)
-      const cursorX = this.xcontrol.xr(this.xcontrol.mouseCursorRow)
-      const value = this.xcontrol.mouseCursorValue;
-      const cursorY = this.xcontrol.mouseCursorY;
+      const time = this.xc.tr(this.xc.mouseCursorRow)
+      const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+      const value = this.xc.mouseCursorValue;
+      const cursorY = this.xc.mouseCursorY;
 
       mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
     }
@@ -526,28 +526,28 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const x = e.pageX - targetRect.left;
     const y = e.pageY - targetRect.top;
 
-    const time = this.xcontrol.tx(x);
+    const time = this.xc.tx(x);
 
     // align x to bar center
-    const b = this.xcontrol.bx(x);
-    const cursorX = this.xcontrol.xb(b)
+    const b = this.xc.bx(x);
+    const cursorX = this.xc.xb(b)
 
     let value: number;
     let cursorY: number
-    if (y >= this.height - ChartView.AXISX_HEIGHT && this.xcontrol.exists(time)) {
+    if (y >= this.height - ChartView.AXISX_HEIGHT && this.xc.exists(time)) {
       // enter axis-x area
       value = this.valueAtTime(time)
-      cursorY = this.ycontrol.yv(value)
+      cursorY = this.yc.yv(value)
 
     } else {
-      value = this.ycontrol.vy(y);
+      value = this.yc.vy(y);
       cursorY = y;
     }
 
     // draw mouse cursor only when not in the axis-y area
     if (x < this.width - ChartView.AXISY_WIDTH) {
-      const row = this.xcontrol.rb(b)
-      this.xcontrol.setMouseCursorByRow(row, value, cursorY)
+      const row = this.xc.rb(b)
+      this.xc.setMouseCursorByRow(row, value, cursorY)
       this.isMouseCuroseVisible = true
       this.updateState({})
 
@@ -567,22 +567,22 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       const x = e.pageX - targetRect.left;
       const y = e.pageY - targetRect.top;
 
-      const time = this.xcontrol.tx(x);
-      if (!this.xcontrol.exists(time)) {
+      const time = this.xc.tx(x);
+      if (!this.xc.exists(time)) {
         return;
       }
 
       // align x to bar center
-      const b = this.xcontrol.bx(x);
+      const b = this.xc.bx(x);
 
       // draw refer cursor only when not in the axis-y area
       if (x < this.width - ChartView.AXISY_WIDTH) {
         if (
           y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height &&
-          b >= 1 && b <= this.xcontrol.nBars
+          b >= 1 && b <= this.xc.nBars
         ) {
-          const row = this.xcontrol.rb(b)
-          this.xcontrol.setReferCursorByRow(row, true)
+          const row = this.xc.rb(b)
+          this.xc.setReferCursorByRow(row, true)
           this.isReferCuroseVisible = true;
           this.updateState({});
         }
@@ -591,35 +591,35 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   handleWheel(e: React.WheelEvent) {
-    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
-    const delta = Math.round(e.deltaY / this.xcontrol.nBars);
+    const fastSteps = Math.floor(this.xc.nBars * 0.168)
+    const delta = Math.round(e.deltaY / this.xc.nBars);
     console.log(e, delta)
 
     if (e.shiftKey) {
       // zoom in / zoom out 
-      this.xcontrol.growWBar(delta)
+      this.xc.growWBar(delta)
 
     } else if (e.ctrlKey) {
       if (!this.isInteractive) {
         return
       }
 
-      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
       // move refer cursor left / right 
-      this.xcontrol.scrollReferCursor(unitsToScroll, true)
+      this.xc.scrollReferCursor(unitsToScroll, true)
 
     } else {
       if (!this.isInteractive) {
         return
       }
 
-      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
       // keep referCursor stay same x in screen, and move
-      this.xcontrol.scrollChartsHorizontallyByBar(unitsToScroll)
+      this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
     }
 
-    if (!this.xcontrol.referCursorRow) {
-      this.xcontrol.referCursorRow = 0;
+    if (!this.xc.referCursorRow) {
+      this.xc.referCursorRow = 0;
     }
 
     const { chart, axisx, axisy } = this.plot();
@@ -628,7 +628,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   handleKeyDown(e: React.KeyboardEvent) {
-    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
+    const fastSteps = Math.floor(this.xc.nBars * 0.168)
 
     switch (e.key) {
       case "ArrowLeft":
@@ -649,13 +649,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
       case "ArrowUp":
         if (!e.ctrlKey) {
-          this.xcontrol.growWBar(1)
+          this.xc.growWBar(1)
         }
         break;
 
       case "ArrowDown":
         if (!e.ctrlKey) {
-          this.xcontrol.growWBar(-1);
+          this.xc.growWBar(-1);
         }
         break;
 
@@ -667,21 +667,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    const steps = (this.xc.isCursorAccelerated ? fastSteps : 1) * DIRECTION
 
-    this.xcontrol.scrollReferCursor(steps, true)
+    this.xc.scrollReferCursor(steps, true)
   }
 
   #moveChartsInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    const steps = (this.xc.isCursorAccelerated ? fastSteps : 1) * DIRECTION
 
-    this.xcontrol.scrollChartsHorizontallyByBar(steps)
+    this.xc.scrollChartsHorizontallyByBar(steps)
   }
 
   handleKeyUp(e: React.KeyboardEvent) {
     switch (e.key) {
       case " ":
-        this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
+        this.xc.isCursorAccelerated = !this.xc.isCursorAccelerated
         break;
 
       case "Escape":

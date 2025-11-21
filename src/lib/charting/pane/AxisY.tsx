@@ -10,8 +10,8 @@ type Props = {
   y: number,
   width: number,
   height: number,
-  xcontrol: ChartXControl,
-  ycontrol: ChartYControl
+  xc: ChartXControl,
+  yc: ChartYControl
 }
 
 type State = {
@@ -20,7 +20,7 @@ type State = {
 }
 
 export const AxisY = (props: Props) => {
-  const { x, y, width, height, xcontrol, ycontrol } = props;
+  const { x, y, width, height, xc, yc } = props;
   const symmetricByMiddleValue = false;
 
   const segs = plot();
@@ -66,15 +66,15 @@ export const AxisY = (props: Props) => {
     const hFm = 12;
 
     let nTicks = 6.0;
-    while (Math.floor(ycontrol.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
+    while (Math.floor(yc.hCanvas / nTicks) < hFm + 20 && nTicks > 2) {
       nTicks -= 2 // always keep even
     }
 
-    const maxValueOnCanvas = ycontrol.vy(ycontrol.yCanvasUpper)
+    const maxValueOnCanvas = yc.vy(yc.yCanvasUpper)
     const minValueOnCanvas =
       /* this.#view.yControlPane !== undefined ?
-        this.#ycontrol.vy(this.#ycontrol.yCanvasLower - this.#view.yControlPane.height) : */
-      ycontrol.vy(ycontrol.yCanvasLower)
+        this.#yc.vy(this.#yc.yCanvasLower - this.#view.yControlPane.height) : */
+      yc.vy(yc.yCanvasLower)
 
 
     const vMaxTick = maxValueOnCanvas
@@ -101,7 +101,7 @@ export const AxisY = (props: Props) => {
     let breakNow = false
     while (i < nTicks + 2 && !breakNow) {
       let vTick = vMinTick + vTickUnit * i
-      const yTick = ycontrol.yv(vTick)
+      const yTick = yc.yv(vTick)
 
       if (yTick < hFm) {
         breakNow = true

@@ -6,12 +6,6 @@ import { LG_SCALAR } from "./scalar/LgScalar";
 import { Quote } from "../../domain/Quote";
 import AxisX from "../pane/AxisX";
 import AxisY from "../pane/AxisY";
-import { Path } from "../../svg/Path";
-import { Text } from "../../svg/Text";
-import { Temporal } from "temporal-polyfill";
-import { TUnit } from "../../timeseris/TUnit";
-import { COMMON_DECIMAL_FORMAT } from "./Format";
-import type React from "react";
 import './chartview.css';
 import { QuoteChartKind } from "../chart/Kinds";
 
@@ -96,8 +90,8 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
     const chart = QuoteChart({
       quoteVar: this.quoteVar,
-      ycontrol: this.ycontrol,
-      xcontrol: this.xcontrol,
+      xc: this.xc,
+      yc: this.yc,
       kind: QuoteChartKind.Candle,
       depth: 0
     });
@@ -107,8 +101,8 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       y: this.height - ChartView.AXISX_HEIGHT,
       width: this.width,
       height: ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
+      xc: this.xc,
+      yc: this.yc,
       view: this,
     })
 
@@ -117,8 +111,8 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       y: 0,
       width: ChartView.AXISY_WIDTH,
       height: this.height - ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
+      xc: this.xc,
+      yc: this.yc,
     })
 
     return { chart, axisx, axisy }
@@ -145,9 +139,9 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     this.maxVolume = Number.NEGATIVE_INFINITY;
     this.minVolume = 0
     let i = 1
-    while (i <= this.xcontrol.nBars) {
-      const time = this.xcontrol.tb(i)
-      if (this.xcontrol.exists(time)) {
+    while (i <= this.xc.nBars) {
+      const time = this.xc.tb(i)
+      if (this.xc.exists(time)) {
         const quote = this.quoteVar.getByTime(time);
         if (quote.close > 0) {
           max = Math.max(max, quote.high)
@@ -176,13 +170,13 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   }
 
   swithScalarType() {
-    switch (this.ycontrol.valueScalar.kind) {
+    switch (this.yc.valueScalar.kind) {
       case LINEAR_SCALAR.kind:
-        this.ycontrol.valueScalar = LG_SCALAR;
+        this.yc.valueScalar = LG_SCALAR;
         break;
 
       default:
-        this.ycontrol.valueScalar = LINEAR_SCALAR;
+        this.yc.valueScalar = LINEAR_SCALAR;
     }
   }
 

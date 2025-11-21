@@ -14,11 +14,11 @@ export abstract class Pane {
 
 
   readonly view: ChartView<ViewProps, ViewState>;
-  readonly ycontrol: ChartYControl;
+  readonly yc: ChartYControl;
 
-  constructor(view: ChartView<ViewProps, ViewState>, ycontrol: ChartYControl) {
+  constructor(view: ChartView<ViewProps, ViewState>, yc: ChartYControl) {
     this.view = view;
-    this.ycontrol = ycontrol;
+    this.yc = yc;
 
     // if (this.isInstanceOf<WithCursorChart>) {
     //   createCursorChart(this.datumPlane)
@@ -116,7 +116,7 @@ export abstract class Pane {
      * just ask the Objects that depend on datumPlane and may be painted
      * earlier than datumPlane, call datumPlane.computeGeomtry() first.
      */
-    this.ycontrol.computeGeometry(this.view.maxValue, this.view.minValue, this.view.maxVolume, this.view.minVolume)
+    this.yc.computeGeometry(this.view.maxValue, this.view.minValue, this.view.maxVolume, this.view.minVolume)
   }
 
   // protected postPaintComponent() {
@@ -218,7 +218,7 @@ export abstract class Pane {
   // }
 
   isCursorCrossVisible(): boolean {
-    return this.view.xcontrol.isCursorCrossVisible
+    return this.view.xc.isCursorCrossVisible
   }
 
   /*- @RESERVER

@@ -11,8 +11,8 @@ const TICK_SPACING = 100 // in pixels
 
 type Props = {
   view: ChartView<ViewProps, ViewState>,
-  ycontrol: ChartYControl,
-  xcontrol: ChartXControl,
+  xc: ChartXControl,
+  yc: ChartYControl,
   x: number,
   y: number,
   width: number,
@@ -20,14 +20,14 @@ type Props = {
 }
 
 const AxisX = (props: Props) => {
-  const { xcontrol, x, y, width, height } = props;
+  const { xc, x, y, width, height } = props;
 
   const segs = plot();
 
   function plot() {
     const nTicks = width / TICK_SPACING
 
-    const nBars = xcontrol.nBars
+    const nBars = xc.nBars
     /** bTickUnit(bars per tick) cound not be 0, actually it should not less then 2 */
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
@@ -41,7 +41,7 @@ const AxisX = (props: Props) => {
     path.moveto(0, height)
     path.lineto(width, height)
 
-    const timeZone = xcontrol.baseSer.timeZone;
+    const timeZone = xc.baseSer.timeZone;
     let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDt = Temporal.Now.zonedDateTimeISO(timeZone);
     let currDateYear: number;
@@ -50,11 +50,11 @@ const AxisX = (props: Props) => {
     let prevDateDay: number;
 
     const hTick = height;
-    const xLastTick = xcontrol.xb(nBars)
+    const xLastTick = xc.xb(nBars)
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit == 0 || i == nBars || i == 1) {
-        const xCurrTick = xcontrol.xb(i)
+        const xCurrTick = xc.xb(i)
 
         if (xLastTick - xCurrTick < TICK_SPACING && i != nBars) {
           /** too close */
@@ -63,10 +63,10 @@ const AxisX = (props: Props) => {
           path.moveto(xCurrTick, 1)
           path.lineto(xCurrTick, hTick)
 
-          const time = xcontrol.tb(i)
+          const time = xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
           let stridingDate = false
-          const freqUnit = xcontrol.baseSer.freq.unit
+          const freqUnit = xc.baseSer.freq.unit
           switch (freqUnit) {
             case TUnit.Day:
               currDateYear = currDt.year;

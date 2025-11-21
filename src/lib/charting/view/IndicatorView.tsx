@@ -4,14 +4,7 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
 import { Quote } from "../../domain/Quote";
-import AxisX from "../pane/AxisX";
 import AxisY from "../pane/AxisY";
-import { Path } from "../../svg/Path";
-import { Text } from "../../svg/Text";
-import { Temporal } from "temporal-polyfill";
-import { TUnit } from "../../timeseris/TUnit";
-import { COMMON_DECIMAL_FORMAT } from "./Format";
-import type React from "react";
 import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
 
@@ -68,8 +61,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
     const chart = VolmueChart({
       quoteVar: this.quoteVar,
-      ycontrol: this.ycontrol,
-      xcontrol: this.xcontrol,
+      xc: this.xc,
+      yc: this.yc,
       depth: 0
     });
 
@@ -78,8 +71,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
       y: 0,
       width: ChartView.AXISY_WIDTH,
       height: this.height - ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
+      xc: this.xc,
+      yc: this.yc,
     })
 
     return { chart, axisy }
@@ -103,9 +96,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     const min = 0// Number.POSITIVE_INFINITY;
 
     let i = 1
-    while (i <= this.xcontrol.nBars) {
-      const time = this.xcontrol.tb(i)
-      if (this.xcontrol.exists(time)) {
+    while (i <= this.xc.nBars) {
+      const time = this.xc.tb(i)
+      if (this.xc.exists(time)) {
         const quote = this.quoteVar.getByTime(time);
         if (quote.close > 0) {
           max = Math.max(max, quote.volume)
@@ -132,13 +125,13 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
   }
 
   swithScalarType() {
-    switch (this.ycontrol.valueScalar.kind) {
+    switch (this.yc.valueScalar.kind) {
       case LINEAR_SCALAR.kind:
-        this.ycontrol.valueScalar = LG_SCALAR;
+        this.yc.valueScalar = LG_SCALAR;
         break;
 
       default:
-        this.ycontrol.valueScalar = LINEAR_SCALAR;
+        this.yc.valueScalar = LINEAR_SCALAR;
     }
   }
 
