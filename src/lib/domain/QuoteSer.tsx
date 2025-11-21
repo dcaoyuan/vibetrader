@@ -4,7 +4,7 @@ import { Quote } from "./Quote";
 import { TFreq } from "../timeseris/TFreq";
 import { TVar } from "../timeseris/TVar";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
-import { IndicatorView } from "../charting/view/IndicatorView";
+import { VolumeView } from "../charting/view/VolumeView";
 
 export namespace QuoteSer {
   //const timeZone = "America/Los_Angeles";
@@ -60,7 +60,7 @@ export namespace QuoteSer {
     return (
       <div className="container" style={{ width: this.width + 'px', height: this.height + 'px' }} >
         <QuoteChartView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
-        <IndicatorView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
+        <VolumeView baseSer={quoteSer} tvar={qvar} isQuote={true} width={width} height={height} />
       </div>
     )
   }

@@ -8,7 +8,7 @@ import AxisY from "../pane/AxisY";
 import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
 
-export class IndicatorView extends ChartView<ViewProps, ViewState> {
+export class VolumeView extends ChartView<ViewProps, ViewState> {
   quoteVar: TVar<Quote>;
   maxVolume = 0.0;
   minVolume = 0.0
