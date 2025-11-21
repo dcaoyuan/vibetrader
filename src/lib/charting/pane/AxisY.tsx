@@ -135,9 +135,9 @@ export const AxisY = (props: Props) => {
   }
 
   return (
-    <>
+    <g shapeRendering="crispEdges">
       {segs.map(seg => seg.render())}
-    </>
+    </g>
   );
 }
 

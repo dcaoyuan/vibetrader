@@ -37,8 +37,8 @@ export class Theme {
   protected readonly planetColors: string[];
   protected readonly chartColors: string[];
 
-  protected readonly positiveColor = "#FF0000";
-  protected readonly negativeColor = "#00FF00";
+  protected readonly positiveColor = "#FF0000B3";
+  protected readonly negativeColor = "#00AA00B3"//"#00FF00B3";
   protected readonly positiveBgColor = "";
   protected readonly negativeBgColor: string;
   protected readonly neutralColor: string;
@@ -57,7 +57,7 @@ export class Theme {
   readonly axisBackgroundColor: string;
   readonly stickChartColor: string;
   readonly borderColor: string;
-  readonly axisColor = "#FF0000";
+  readonly axisColor = '#000000' //"#FF0000B3";
   /** same as new Color(0.0f, 0.0f, 1.0f, 0.382f) */
   readonly referCursorColor: string; //new Color(0.5f, 0.0f, 0.5f, 0.618f); //new Color(0.0f, 0.0f, 1.0f, 0.618f);
   //new Color(131, 129, 221);

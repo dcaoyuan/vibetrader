@@ -150,6 +150,9 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
           onMouseLeave={this.handleMouseLeave}
           onMouseDown={this.handleMouseDown}
           onWheel={this.handleWheel}
+          // shapeRendering="crispEdges"
+          // textRendering="auto"
+          vectorEffect="non-scaling-stroke"
         >
           {this.state.chart}
           {this.state.axisy}

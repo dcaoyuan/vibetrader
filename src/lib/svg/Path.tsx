@@ -107,10 +107,7 @@ export class Path implements Seg {
       path = path + type;
       let i = 0;
       while (i < values.length) {
-        path = path + values[i]
-        if (i < values.length - 1) {
-          path = path + " ";
-        }
+        path = path + values[i] + " "
         i++;
       }
     }
