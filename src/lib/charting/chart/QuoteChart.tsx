@@ -1,65 +1,59 @@
 import { TVar } from "../../timeseris/TVar";
-import { AbstractChart } from "./AbstractChart";
 import { Theme } from "../theme/Theme";
 import { Quote } from "../../domain/Quote";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
+import type { ChartXControl } from "../view/ChartXControl";
 
-export class QuoteChart extends AbstractChart {
-  kind: QuoteChart.Kind = QuoteChart.Kind.Candle;
+enum Kind {
+  Candle,
+  Ohlc,
+  Line,
+}
 
-  #quoteVar: TVar<Quote>;
+type Props = {
+  xcontrol: ChartXControl,
+  ycontrol: ChartYControl,
+  quoteVar: TVar<Quote>,
+  kind: Kind,
+  depth: number;
+}
 
-  #posColor?: string
-  #negColor?: string
+const QuoteChart = (props: Props) => {
+  const { xcontrol, ycontrol, quoteVar, kind, depth } = props;
 
-  #posPath: Path;
-  #negPath?: Path;
+  /** depth !== 0 is for comparing quotes charts */
+  const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
+  const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
 
-  constructor(quoteVar: TVar<Quote>, ycontrol: ChartYControl, depth = 0) {
-    super(ycontrol, depth);
-    this.#quoteVar = quoteVar;
-  }
+  function plotChart() {
+    const isFill = kind === Kind.Candle && Theme.now().isFillBar;
 
-  protected plotChart() {
-    if (this.depth == 0) {
-      this.#posColor = Theme.now().getPositiveColor()
-      this.#negColor = Theme.now().getNegativeColor()
+    const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
+    const negPath = posColor === negColor
+      ? undefined
+      : new Path(0, 0, negColor, isFill ? negColor : "none");
 
-    } else {
-      /** for comparing quotes charts */
-      this.#posColor = Theme.now().getChartColor(this.depth)
-      this.#negColor = this.#posColor
-    }
-
-    const isFill = this.kind === QuoteChart.Kind.Candle && Theme.now().isFillBar;
-
-    this.#posPath = new Path(0, 0, this.#posColor, isFill ? this.#posColor : "none");
-    if (this.#posColor !== this.#negColor) {
-      this.#negPath = new Path(0, 0, this.#negColor, isFill ? this.#negColor : "none");
-    }
-
-    //const kind: QuoteChart.Kind = QuoteChart.Kind.Candle; // this.datumPlane.view.asInstanceOf<WithQuoteChart>.quoteChartType
-    switch (this.kind) {
-      case QuoteChart.Kind.Candle:
-      case QuoteChart.Kind.Ohlc:
-        this.#plotCandleOrOhlcChart(this.kind);
+    switch (kind) {
+      case Kind.Candle:
+      case Kind.Ohlc:
+        plotCandleOrOhlcChart(kind, posPath, negPath);
         break
 
-      case QuoteChart.Kind.Line:
-        this.#plotLineChart();
+      case Kind.Line:
+        plotLineChart(posPath, negPath);
         break;
 
       default:
-        this.#plotCandleOrOhlcChart(this.kind);
+        plotCandleOrOhlcChart(kind, posPath, negPath);
     }
 
-    return this.#negPath ? [this.#posPath, this.#negPath] : [this.#posPath]
+    return negPath ? [posPath, negPath] : [posPath]
   }
 
-  #plotCandleOrOhlcChart(kind: QuoteChart.Kind) {
+  function plotCandleOrOhlcChart(kind: Kind, posPath: Path, negPath: Path) {
     let bar = 1
-    while (bar <= this.nBars) {
+    while (bar <= xcontrol.nBars) {
       /**
        * use `undefiend` to test if value has been set at least one time
        */
@@ -68,10 +62,10 @@ export class QuoteChart extends AbstractChart {
       let high = Number.NEGATIVE_INFINITY;
       let low = Number.POSITIVE_INFINITY
       let i = 0
-      while (i < this.nBarsCompressed) {
-        const time = this.tb(bar + i)
-        if (this.exists(time)) {
-          const quote = this.#quoteVar.getByTime(time);
+      while (i < xcontrol.nBarsCompressed) {
+        const time = xcontrol.tb(bar + i)
+        if (xcontrol.exists(time)) {
+          const quote = quoteVar.getByTime(time);
           if (quote && quote.open != 0) {
             if (open === undefined) {
               /** only get the first open as compressing period's open */
@@ -87,29 +81,29 @@ export class QuoteChart extends AbstractChart {
       }
 
       if (close !== undefined && close != 0) {
-        const path = close >= open ? this.#posPath : this.#negPath || this.#posPath;
+        const path = close >= open ? posPath : negPath || posPath;
 
-        const xCenter = this.xb(bar);
+        const xCenter = xcontrol.xb(bar);
 
-        const yOpen = this.yv(open)
-        const yHigh = this.yv(high)
-        const yLow = this.yv(low)
-        const yClose = this.yv(close)
+        const yOpen = ycontrol.yv(open)
+        const yHigh = ycontrol.yv(high)
+        const yLow = ycontrol.yv(low)
+        const yClose = ycontrol.yv(close)
 
         switch (kind) {
-          case QuoteChart.Kind.Candle:
-            this.#plotCandleBar(yOpen, yHigh, yLow, yClose, xCenter, path);
+          case Kind.Candle:
+            plotCandleBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break;
 
-          case QuoteChart.Kind.Ohlc:
-            this.#plotOHLCBar(yOpen, yHigh, yLow, yClose, xCenter, path);
+          case Kind.Ohlc:
+            plotOHLCBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break
 
           default:
         }
       }
 
-      bar += this.nBarsCompressed
+      bar += xcontrol.nBarsCompressed
     }
   }
 
@@ -127,8 +121,8 @@ export class QuoteChart extends AbstractChart {
    *          ^   ^
    *          |___|___ barCenter
    */
-  #plotCandleBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
-    const width = this.wBar;
+  function plotCandleBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+    const width = xcontrol.wBar;
 
     /** why - 2 ? 1 for centre, 1 for space */
     const xRadius = width < 2 ? 0 : Math.floor((width - 2) / 2);
@@ -166,8 +160,8 @@ export class QuoteChart extends AbstractChart {
    *          ^   ^
    *          |___|___ barCenter
    */
-  #plotOHLCBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
-    const width = this.wBar;
+  function plotOHLCBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+    const width = xcontrol.wBar;
 
     /** why - 2 ? 1 for centre, 1 for space */
     const xRadius = width < 2 ? 0 : Math.floor((width - 2) / 2);
@@ -189,21 +183,21 @@ export class QuoteChart extends AbstractChart {
 
   }
 
-  #plotLineChart() {
+  function plotLineChart(posPath: Path, negPath: Path) {
     let y1: number = undefined as number // for prev
     let y2: number = undefined as number // for curr
     let bar = 1
-    while (bar <= this.nBars) {
+    while (bar <= xcontrol.nBars) {
       // use `undefiend` to test if value has been set at least one time
       let open: number = undefined as number
       let close: number = undefined as number
       let max = Number.NEGATIVE_INFINITY;
       let min = Number.POSITIVE_INFINITY;
       let i = 0;
-      while (i < this.nBarsCompressed) {
-        const time = this.tb(bar + i)
-        if (this.#quoteVar.exists(time)) {
-          const quote = this.#quoteVar.getByTime(time);
+      while (i < xcontrol.nBarsCompressed) {
+        const time = xcontrol.tb(bar + i)
+        if (quoteVar.exists(time)) {
+          const quote = quoteVar.getByTime(time);
           if (quote && quote.close !== 0) {
             if (open === undefined) {
               /** only get the first open as compressing period's open */
@@ -219,24 +213,23 @@ export class QuoteChart extends AbstractChart {
       }
 
       if (close !== undefined && close !== 0) {
-        const path = close >= open ? this.#posPath : this.#negPath || this.#posPath;
+        const path = close >= open ? posPath : negPath || posPath;
 
-        y2 = this.yv(close)
-        if (this.nBarsCompressed > 1) {
+        y2 = ycontrol.yv(close)
+        if (xcontrol.nBarsCompressed > 1) {
           // draw a vertical line to cover the min to max
-          const x = this.xb(bar)
-          path.moveto(x, this.yv(min));
-          path.lineto(x, this.yv(max));
+          const x = xcontrol.xb(bar)
+          path.moveto(x, ycontrol.yv(min));
+          path.lineto(x, ycontrol.yv(max));
 
         } else {
           if (y1 !== undefined) {
             // x1 shoud be decided here, it may not equal prev x2:
             // think about the case of on calendar day mode
-            const x1 = this.xb(bar - this.nBarsCompressed)
-            const x2 = this.xb(bar)
+            const x1 = xcontrol.xb(bar - xcontrol.nBarsCompressed)
+            const x2 = xcontrol.xb(bar)
             path.moveto(x1, y1);
             path.lineto(x2, y2);
-            // <path d="M 70 70 L 70 70" stroke="blue" stroke-width="2" stroke-linecap="round" />
           }
         }
         y1 = y2;
@@ -246,12 +239,12 @@ export class QuoteChart extends AbstractChart {
       bar++;
     }
   }
+
+  const segs = plotChart();
+
+  return (
+    <>{segs.map(seg => seg.render())}</>
+  )
 }
 
-export namespace QuoteChart {
-  export enum Kind {
-    Candle,
-    Ohlc,
-    Line,
-  }
-}
+export { QuoteChart, Kind } 

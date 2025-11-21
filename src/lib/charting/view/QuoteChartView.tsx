@@ -1,4 +1,4 @@
-import { QuoteChart } from "../chart/QuoteChart"
+import * as QuoteChart from "../chart/QuoteChart"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
@@ -13,9 +13,9 @@ import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 import type React from "react";
 import './chartview.css';
-import type { JSX } from "react";
 
 export class QuoteChartView extends ChartView<ViewProps, ViewState> {
+
   static switchAllQuoteChartType(originalKind: QuoteChart.Kind, targetKind: QuoteChart.Kind): QuoteChart.Kind {
     let newKind: QuoteChart.Kind;
     if (targetKind !== undefined) {
@@ -43,14 +43,14 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     return newKind;
   }
 
-  quoteChart: QuoteChart
   quoteVar: TVar<Quote>;
+  maxVolume = 0.0;
+  minVolume = 0.0
 
   constructor(props: ViewProps) {
     super(props);
-    this.quoteVar = props.tvar as TVar<Quote>;
 
-    this.quoteChart = new QuoteChart(this.quoteVar, this.ycontrol);
+    this.quoteVar = props.tvar as TVar<Quote>;
     this.width = props.width;
     this.height = props.height;
     this.isQuote = props.isQuote;
@@ -93,14 +93,19 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     this.handleKeyUp = this.handleKeyUp.bind(this);
   }
 
-  maxVolume = 0.0;
-  minVolume = 0.0
-
   protected initComponents(): void {
   }
 
   protected plot() {
     this.computeGeometry();
+
+    const chart = QuoteChart.QuoteChart({
+      quoteVar: this.quoteVar,
+      ycontrol: this.ycontrol,
+      xcontrol: this.xcontrol,
+      kind: QuoteChart.Kind.Candle,
+      depth: 0
+    });
 
     const axisx = AxisX({
       x: 0,
@@ -120,8 +125,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       xcontrol: this.xcontrol,
       ycontrol: this.ycontrol,
     })
-
-    const chart = this.quoteChart.render()
 
     return { chart, axisx, axisy }
   }

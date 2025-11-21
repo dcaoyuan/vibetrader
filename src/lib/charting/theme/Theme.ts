@@ -1,5 +1,4 @@
-import { Colors } from "../../Colors";
-import { QuoteChart } from "../chart/QuoteChart";
+import * as QuoteChart from "../chart/QuoteChart";
 
 export class Theme {
   private static current: Theme
