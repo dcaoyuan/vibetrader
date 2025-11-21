@@ -9,7 +9,6 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
 import { type Scalar } from "./scalar/Scalar";
-import type { Seg } from "../../svg/Seg";
 
 export interface ViewProps {
   baseSer: BaseTSer;

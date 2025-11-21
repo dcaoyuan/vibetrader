@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import { Path } from "../../svg/Path";
 import type { Seg } from "../../svg/Seg";
 
 //   const BASE_STROKES = [ 
@@ -25,15 +24,13 @@ import type { Seg } from "../../svg/Seg";
  */
 
 export interface Chart {
+  segs: Seg[];
 
   isFirstPlotting: boolean;
   isSelected: boolean;
   depth: number;
-  stroke: string;
-  strockWidth: number;
 
   render(): JSX.Element;
-  reset(): void;
 }
 
 export namespace Chart {
@@ -71,11 +68,6 @@ export namespace Chart {
   //   new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0, DASH_PATTERN, 0),
   //   new BasicStroke(5, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0, DASH_PATTERN, 0)
   // ];
-}
-
-export enum StrokeType {
-  Base,
-  Dash
 }
 
 
