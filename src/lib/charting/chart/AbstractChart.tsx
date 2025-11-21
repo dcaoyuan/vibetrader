@@ -5,14 +5,14 @@ import type { Seg } from '../../svg/Seg';
 import type { JSX } from 'react';
 
 abstract class AbstractChart implements Chart {
-  protected _ycontrol: ChartYControl;
-  protected _xcontrol: ChartXControl;
+  protected ycontrol: ChartYControl;
+  protected xcontrol: ChartXControl;
 
   depth;
 
-  constructor(ycontrol: ChartYControl, depth = 0) {
-    this._ycontrol = ycontrol;
-    this._xcontrol = ycontrol.view.xcontrol;
+  constructor(xcontrol: ChartXControl, ycontrol: ChartYControl, depth = 0) {
+    this.xcontrol = xcontrol;
+    this.ycontrol = ycontrol;
     this.depth = depth;
   }
 
@@ -31,13 +31,13 @@ abstract class AbstractChart implements Chart {
   #markPoints: DOMPoint[] = [];
 
   render(): JSX.Element {
-    this.nBars = this._xcontrol.nBars
-    this.wBar = this._xcontrol.wBar
+    this.nBars = this.xcontrol.nBars
+    this.wBar = this.xcontrol.wBar
 
     // wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
     // nSegs = (nBars * wBar / wSeg).toInt + 1
 
-    this.nBarsCompressed = this._xcontrol.nBarsCompressed
+    this.nBarsCompressed = this.xcontrol.nBarsCompressed
 
     const segs = this.plotChart();
 
@@ -101,27 +101,27 @@ abstract class AbstractChart implements Chart {
   }
 
   protected xb(barIndex: number): number {
-    return this._xcontrol.xb(barIndex);
+    return this.xcontrol.xb(barIndex);
   }
 
   protected yv(value: number): number {
-    return this._ycontrol.yv(value);
+    return this.ycontrol.yv(value);
   }
 
   protected bx(x: number): number {
-    return this._xcontrol.bx(x);
+    return this.xcontrol.bx(x);
   }
 
   protected vy(y: number): number {
-    return this._ycontrol.vy(y);
+    return this.ycontrol.vy(y);
   }
 
   protected rb(barIndex: number): number {
-    return this._xcontrol.rb(barIndex);
+    return this.xcontrol.rb(barIndex);
   }
 
   protected br(row: number): number {
-    return this._xcontrol.br(row);
+    return this.xcontrol.br(row);
   }
 
   protected sb(barIdx: number): number {
@@ -133,15 +133,15 @@ abstract class AbstractChart implements Chart {
   }
 
   protected tb(barIdx: number): number {
-    return this._xcontrol.tb(barIdx);
+    return this.xcontrol.tb(barIdx);
   }
 
   protected bt(time: number): number {
-    return this._xcontrol.bt(time);
+    return this.xcontrol.bt(time);
   }
 
   protected exists(time: number): boolean {
-    return this._xcontrol.exists(time);
+    return this.xcontrol.exists(time);
   }
 
   compare(another: Chart): number {

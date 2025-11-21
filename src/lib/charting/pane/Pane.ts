@@ -116,7 +116,7 @@ export abstract class Pane {
      * just ask the Objects that depend on datumPlane and may be painted
      * earlier than datumPlane, call datumPlane.computeGeomtry() first.
      */
-    this.ycontrol.computeGeometry()
+    this.ycontrol.computeGeometry(this.view.maxValue, this.view.minValue, this.view.maxVolume, this.view.minVolume)
   }
 
   // protected postPaintComponent() {

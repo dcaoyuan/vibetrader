@@ -88,8 +88,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.xcontrol = new ChartXControl(props.baseSer);
     this.xcontrol.setViewContainer(new ChartViewContainer(this.xcontrol, this));
 
-    this.ycontrol = new ChartYControl(this);
-    this.ycontrol.height = props.height - ChartView.AXISX_HEIGHT;
+    this.ycontrol = new ChartYControl(this.xcontrol.baseSer, props.height - ChartView.AXISX_HEIGHT);
 
     this.baseSer = props.baseSer;
     this.tvar = props.tvar;
@@ -212,7 +211,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.computeMaxMin();
 
     // compute y after compute maxmin
-    this.ycontrol.computeGeometry()
+    this.ycontrol.computeGeometry(this.maxValue, this.minValue)
   }
 
   protected setMaxMinValue(max: number, min: number) {

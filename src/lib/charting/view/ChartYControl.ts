@@ -1,29 +1,16 @@
 import type { BaseTSer } from "../../timeseris/BaseTSer";
 import { Geometry } from "../chart/Geometry";
-import { ChartView, type ViewProps, type ViewState } from "../view/ChartView";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import type { Scalar } from "../view/scalar/Scalar";
 
-/**
- *
- * @todo the ChangeObservable should notify according to priority
- *
- * call super(view, null) will let the super know this pane will be its
- * own datumPlane.
- * @see Pane#Pane(ChartView, DatumPlane)
- */
 export class ChartYControl {
-  view: ChartView<ViewProps, ViewState>;
   baseSer: BaseTSer;
-
-  constructor(view: ChartView<ViewProps, ViewState>) {
-    this.view = view;
-    this.baseSer = this.view.xcontrol.baseSer;
-  }
-
-  isGeometryValid = false;
-
   height: number;
+
+  constructor(baseSer: BaseTSer, height: number) {
+    this.baseSer = baseSer;
+    this.height = height;
+  }
 
   /** geometry that need to be set before chart plotting and render */
   #hChart = 0               // chart height in pixels, corresponds to the value range (maxValue - minValue)
@@ -55,7 +42,10 @@ export class ChartYControl {
   /** the pixels used to record the chart vertically moving */
   #hChartScrolled: number = 0;
 
-  computeGeometry() {
+  computeGeometry(
+    maxValue: number, minValue: number,
+    maxVolume: number = undefined, minVolume: number = undefined
+  ) {
     /**
      * @TIPS:
      * if want to leave spare space at lower side, do hCanvas -= space
@@ -70,17 +60,13 @@ export class ChartYControl {
 
     /** default values: */
     this.#hSpaceUpper = 0
-    this.#maxValue = this.view.maxValue
-    this.#minValue = this.view.minValue
+    this.#maxValue = maxValue
+    this.#minValue = minValue
 
     /** adjust if necessary */
-    if (this as unknown as ChartYControl === this.view.ycontrol) {
-      this.#hSpaceUpper += ChartView.TITLE_HEIGHT_PER_LINE
-      //let x = (this.view as unknown as WithVolumePane).volumeChartPane
-
-    } else if (this.view.hasInnerVolume) {
-      this.#maxValue = this.view.maxVolume;
-      this.#minValue = this.view.minVolume;
+    if (maxVolume !== undefined && minVolume !== undefined) {
+      this.#maxValue = maxVolume;
+      this.#minValue = minVolume;
     }
 
     this.#maxScaledValue = this.valueScalar.doScale(this.#maxValue)
@@ -127,18 +113,13 @@ export class ChartYControl {
       },
     )
 
-    this.isGeometryValid = true
   }
 
-  get yChartScale(): number { return this.#yChartScale; }
+  get yChartScale(): number {
+    return this.#yChartScale;
+  }
   set yChartScale(yChartScale: number) {
-    const oldValue = this.#yChartScale
     this.#yChartScale = yChartScale
-
-    if (oldValue != this.#yChartScale) {
-      this.isGeometryValid = false
-      //repaint();
-    }
   }
 
   growYChartScale(increment: number) {
@@ -222,14 +203,6 @@ export class ChartYControl {
   get minValue(): number {
     return this.#minValue;
   }
-
-  // @throws(classOf[Throwable])
-  // override protected def finalize {
-  //   view.control.removeObserversOf(this)
-  //   view.removeObserversOf(this)
-
-  //   super.finalize
-  // }
 
 }
 
