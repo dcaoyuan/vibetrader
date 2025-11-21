@@ -1,9 +1,9 @@
-import { QuoteSer } from '../domain/QuoteSer';
+import QuoteSerView from '../domain/QuoteSerView';
 
 const Screen = () => {
   return (
     <div>
-      {QuoteSer.testChart()}
+      <QuoteSerView />
     </div>
   )
 };

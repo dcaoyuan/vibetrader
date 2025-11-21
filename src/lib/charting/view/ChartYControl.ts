@@ -29,10 +29,11 @@ export class ChartYControl {
   valueScalar: Scalar = LINEAR_SCALAR
 
   isMouseEntered: boolean;
-  yMouse: number;
   referCursorValue: number;
   isAutoReferCursorValue: boolean;
 
+  mouseCursorValue: number;
+  mouseCursorY: number;
 
   /**
    * the percent of hCanvas to be used to render charty, is can be used to scale the chart
@@ -121,6 +122,13 @@ export class ChartYControl {
   set yChartScale(yChartScale: number) {
     this.#yChartScale = yChartScale
   }
+
+  setMouseCursorValue(mouseCursorValue: number, mouseCursorY: number) {
+    this.mouseCursorValue = mouseCursorValue;
+    this.mouseCursorY = mouseCursorY;
+  }
+
+
 
   growYChartScale(increment: number) {
     this.yChartScale += increment;

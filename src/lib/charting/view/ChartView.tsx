@@ -7,13 +7,16 @@ import { Pane } from "../pane/Pane";
 import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
-import { ChartViewContainer } from "./ChartViewContainer";
-import { type Scalar } from "./scalar/Scalar";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
 import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
+
+export enum RefreshEvent {
+  Chart,
+  Cursors
+}
 
 export type ChartParts = {
   chart: JSX.Element,
@@ -22,16 +25,20 @@ export type ChartParts = {
 }
 
 export interface ViewProps {
+  xc: ChartXControl;
   baseSer: BaseTSer;
   tvar: TVar<TVal>;
   width: number;
   height: number;
   isQuote: boolean;
   isMasterView: boolean;
+  notify: (event: RefreshEvent) => void;
+  refreshChart: number;
+  refreshCursors: number;
+  name: string;
 }
 
 export interface ViewState {
-
   width: number;
   height: number;
 
@@ -92,6 +99,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   tvar: TVar<TVal>;
 
+  name: string
+
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
   //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
@@ -100,7 +109,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   constructor(props: P) {
     super(props)
 
-    this.xc = new ChartXControl(props.baseSer, props.width - ChartView.AXISY_WIDTH);
+    // share same xc through all views in the same viewcontainer.
+    this.xc = props.xc
     this.yc = new ChartYControl(props.baseSer, props.isMasterView ? props.height - ChartView.AXISX_HEIGHT : props.height);
 
     this.baseSer = props.baseSer;
@@ -110,6 +120,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.height = props.height;
     this.isQuote = props.isQuote;
     this.isMasterView = props.isMasterView;
+
+    this.name = props.name;
 
     this.#createBasisComponents();
 
@@ -145,8 +157,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   maxValue = 1.0
   minValue = 0.0
 
-  isReferCuroseVisible = false
-  isMouseCuroseVisible = false
   isInteractive = true
 
   #isPinned = false
@@ -494,10 +504,20 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     )
   }
 
+  updateChart() {
+    this.xc.isMouseCuroseVisible = false;
+    const chartParts = this.plot();
+    this.updateState(chartParts);
+  }
+
+  updateCursors() {
+    this.updateState({});
+  }
+
   updateState(state: object) {
     let referCursor = <></>
     let mouseCursor = <></>
-    if (this.isReferCuroseVisible) {
+    if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.exists(time)) {
         const b = this.xc.bt(time)
@@ -513,11 +533,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       }
     }
 
-    if (this.isMouseCuroseVisible) {
+    if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
       const cursorX = this.xc.xr(this.xc.mouseCursorRow)
-      const value = this.xc.mouseCursorValue;
-      const cursorY = this.xc.mouseCursorY;
+      const value = this.yc.mouseCursorValue;
+      const cursorY = this.yc.mouseCursorY;
 
       mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
     }
@@ -526,8 +546,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   handleMouseLeave() {
-    this.isMouseCuroseVisible = false;
-    this.updateState({})
+    this.xc.isMouseCuroseVisible = false;
+    this.props.notify(RefreshEvent.Cursors);
+    // this.updateState({})
   }
 
   handleMouseMove(e: React.MouseEvent) {
@@ -556,14 +577,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // draw mouse cursor only when not in the axis-y area
     if (x < this.width - ChartView.AXISY_WIDTH) {
       const row = this.xc.rb(b)
-      this.xc.setMouseCursorByRow(row, value, cursorY)
-      this.isMouseCuroseVisible = true
-      this.updateState({})
+      this.xc.setMouseCursorByRow(row)
+      this.yc.setMouseCursorValue(value, cursorY)
+      this.xc.isMouseCuroseVisible = true
 
     } else {
-      this.isMouseCuroseVisible = false;
-      this.updateState({})
+      this.xc.isMouseCuroseVisible = false;
     }
+
+    // this.updateState({})
+    this.props.notify(RefreshEvent.Cursors);
   }
 
   handleMouseDown(e: React.MouseEvent) {
@@ -592,8 +615,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         ) {
           const row = this.xc.rb(b)
           this.xc.setReferCursorByRow(row, true)
-          this.isReferCuroseVisible = true;
-          this.updateState({});
+          this.xc.isReferCuroseVisible = true;
+          this.props.notify(RefreshEvent.Cursors);
+          // this.updateState({});
         }
       }
     }
@@ -632,7 +656,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     const { chart, axisx, axisy } = this.plot();
-
     this.updateState({ chart, axisx, axisy, mouseCursor: <></> })
   }
 
@@ -671,8 +694,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       default:
     }
 
-    const { chart, axisx, axisy } = this.plot();
-    this.updateState({ chart, axisx, axisy, mouseCursor: <></> })
+    this.props.notify(RefreshEvent.Chart)
   }
 
   #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
@@ -694,13 +716,43 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         break;
 
       case "Escape":
-        this.isReferCuroseVisible = false;
-        this.updateState({})
+        this.xc.isReferCuroseVisible = false;
+        this.props.notify(RefreshEvent.Cursors)
+        // this.updateState({})
         break;
 
       default:
     }
   }
+
+  override componentDidUpdate(prevProps: ViewProps, prevState) {
+    if (this.props.refreshChart !== prevProps.refreshChart) {
+      this.updateChart();
+    }
+
+    if (this.props.refreshCursors !== prevProps.refreshCursors) {
+      this.updateCursors();
+    }
+    // Check if a specific prop has changed
+    // if (this.props.someProp !== prevProps.someProp) {
+    //   console.log('someProp has changed!');
+    //   // Perform actions based on the prop change
+    //   // For example, update internal state or trigger a side effect
+    //   this.setState({ internalValue: this.props.someProp * 2 });
+    // }
+
+    // // You can also compare other props or state if necessary
+    // if (this.props.anotherProp !== prevProps.anotherProp) {
+    //   console.log('anotherProp has changed!');
+    //   // ...
+    // }
+
+    // Important: Be careful when calling setState within componentDidUpdate
+    // Ensure you have a conditional check to prevent infinite re-renders.
+    // If setState is called unconditionally, it will trigger another update,
+    // potentially leading to a loop.
+  }
+
 
 }
 
