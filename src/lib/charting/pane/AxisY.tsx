@@ -29,27 +29,30 @@ export const AxisY = (props: Props) => {
   // const [state, setState] = useState<State>(plotAxisY())
 
   function roundTickUnit(vtUnit: number) {
-    /** sample : 0.032 */
+    // sample : 0.032 
     let vTickUnit = vtUnit
     const roundedExponent = Math.round(Math.log10(vTickUnit)) - 1   // -2
     const adjustFactor = Math.pow(10, -roundedExponent)               // 100
     const adjustedValue = Math.round(vTickUnit * adjustFactor) // 3.2 -> 3
     vTickUnit = adjustedValue / adjustFactor     // 0.03
 
-    /** following DecimalFormat <-> double converts are try to round the decimal */
+    // following DecimalFormat <-> double converts are try to round the decimal 
     if (vTickUnit <= 0.001) {
-      /** for currency */
+      // for currency 
       vTickUnit = 0.001
+
     } else if (vTickUnit > 0.001 && vTickUnit < 0.005) {
-      /** for currency */
+      // for currency
       const unitStr = CURRENCY_DECIMAL_FORMAT.format(vTickUnit)
       try {
         vTickUnit = Number(unitStr.trim);
+
       } catch (ex) {
         // todo 
       }
+
     } else if (vTickUnit > 0.005 && vTickUnit < 1) {
-      /** for stock */
+      // for stock 
       const unitStr = COMMON_DECIMAL_FORMAT.format(vTickUnit)
       try {
         vTickUnit = Number(unitStr.trim);
@@ -92,7 +95,7 @@ export const AxisY = (props: Props) => {
     const path = new Path(x, y, color);
     const texts = new Text(x, y, color);
 
-    /** Draw left border line */
+    // draw left border line */
     path.moveto(0, 0)
     path.lineto(0, height)
 

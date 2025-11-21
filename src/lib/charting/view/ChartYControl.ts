@@ -54,7 +54,7 @@ export class ChartYControl {
      * if want to leave spare space at upper side, do hChart = hCanvas - space
      *     hOne = hChart / (maxValue - minValue)
      */
-    this.#hSpaceLower = 1
+    this.#hSpaceLower = 0
     // if (this.view.xControlPane !== undefined) {
     //   /** leave xControlPane's space at lower side */
     //   this.#hSpaceLower += this.view.xControlPane.getHeight

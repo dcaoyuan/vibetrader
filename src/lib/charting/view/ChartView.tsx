@@ -453,8 +453,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   plotCursor(x: number, y: number, time: number, value: number, color: string) {
-    const w = 12 * 4; // annotation width
-    const h = 12;     // annotation height
+    const w = 48; // annotation width
+    const h = 13; // annotation height
 
     const crossPath = new Path(0, 0, color);
     const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
@@ -473,13 +473,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     crossPath.lineto(x, this.height)
 
     if (this.isMasterView) {
-      const y0 = 1;
+      const y0 = 2;
       axisxPath.moveto(x, y0);
       axisxPath.lineto(x + w, y0);
       axisxPath.lineto(x + w, y0 + h);
       axisxPath.lineto(x, y0 + h);
       axisxPath.closepath();
-      axisxText.text(x + 1, y0 + h, dtStr);
+      axisxText.text(x + 1, h, dtStr);
     }
 
     // axis-y

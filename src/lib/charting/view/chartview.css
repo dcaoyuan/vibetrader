@@ -24,6 +24,13 @@
   padding: 0px;
 }
 
+.container div.chartview {
+  border-style: solid;
+  /* top, right, bottom, left */
+  border-width: 0px 1px 1px 1px;
+  border-color: black
+}
+
 .container div.header {
   grid-area: header;
 }

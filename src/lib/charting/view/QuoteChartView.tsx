@@ -184,7 +184,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   render() {
     return (
       // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-      <div style={{ width: this.width + 'px', height: this.height + 'px' }}
+      <div className='chartview' style={{ width: this.width + 'px', height: this.height + 'px' }}
         onKeyDown={this.handleKeyDown}
         onKeyUp={this.handleKeyUp}
         tabIndex={0}
@@ -195,8 +195,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
           onMouseLeave={this.handleMouseLeave}
           onMouseDown={this.handleMouseDown}
           onWheel={this.handleWheel}
-          // shapeRendering="crispEdges"
-          // textRendering="auto"
           vectorEffect="non-scaling-stroke"
         >
           {this.state.chart}

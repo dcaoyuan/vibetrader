@@ -35,11 +35,9 @@ const AxisX = (props: Props) => {
     const path = new Path(x, y, color);
     const texts = new Text(x, y, color);
 
-    // draw border line 
+    // draw axis-x line 
     path.moveto(0, 0)
     path.lineto(width, 0)
-    path.moveto(0, height - 1)
-    path.lineto(width, height - 1)
 
     const timeZone = xc.baseSer.timeZone;
     let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -91,11 +89,11 @@ const AxisX = (props: Props) => {
             default:
           }
 
-          const dateStr = stridingDate ?
-            freqUnit.formatStrideDate(currDt, timeZone) :
-            freqUnit.formatNormalDate(currDt, timeZone)
+          const dateStr = stridingDate
+            ? freqUnit.formatStrideDate(currDt, timeZone)
+            : freqUnit.formatNormalDate(currDt, timeZone)
 
-          texts.text(xCurrTick + 2, height - 4, dateStr);
+          texts.text(xCurrTick + 2, height - 3, dateStr);
 
           prevDt = currDt;
         }
