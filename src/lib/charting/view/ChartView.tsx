@@ -504,17 +504,20 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     )
   }
 
-  updateChart() {
+  protected updateChart() {
+    // clear mouse cursor and prev value
     this.xc.isMouseCuroseVisible = false;
+    this.yc.setMouseCursorValue(undefined, undefined)
+
     const chartParts = this.plot();
     this.updateState(chartParts);
   }
 
-  updateCursors() {
+  protected updateCursors() {
     this.updateState({});
   }
 
-  updateState(state: object) {
+  protected updateState(state: object) {
     let referCursor = <></>
     let mouseCursor = <></>
     if (this.xc.isReferCuroseVisible) {
@@ -535,20 +538,29 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
-      const cursorX = this.xc.xr(this.xc.mouseCursorRow)
-      const value = this.yc.mouseCursorValue;
-      const cursorY = this.yc.mouseCursorY;
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
 
-      mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+        let value = this.yc.mouseCursorValue;
+        let cursorY = this.yc.mouseCursorY;
+        if (value === undefined) {
+          value = this.valueAtTime(time);
+          cursorY = this.yc.yv(value)
+        }
+
+        mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+      }
     }
 
     this.setState({ ...state, referCursor, mouseCursor })
   }
 
   handleMouseLeave() {
+    // clear mouse cursor and prev value
     this.xc.isMouseCuroseVisible = false;
+    this.yc.setMouseCursorValue(undefined, undefined)
+
     this.props.notify(RefreshEvent.Cursors);
-    // this.updateState({})
   }
 
   handleMouseMove(e: React.MouseEvent) {
@@ -558,9 +570,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     const time = this.xc.tx(x);
 
-    // align x to bar center
     const b = this.xc.bx(x);
-    const cursorX = this.xc.xb(b)
 
     let value: number;
     let cursorY: number
@@ -582,10 +592,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       this.xc.isMouseCuroseVisible = true
 
     } else {
+      // clear mouse cursor and prev value
       this.xc.isMouseCuroseVisible = false;
+      this.yc.setMouseCursorValue(undefined, undefined)
     }
 
-    // this.updateState({})
     this.props.notify(RefreshEvent.Cursors);
   }
 
@@ -616,8 +627,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
           const row = this.xc.rb(b)
           this.xc.setReferCursorByRow(row, true)
           this.xc.isReferCuroseVisible = true;
+
           this.props.notify(RefreshEvent.Cursors);
-          // this.updateState({});
         }
       }
     }
@@ -655,8 +666,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       this.xc.referCursorRow = 0;
     }
 
-    const { chart, axisx, axisy } = this.plot();
-    this.updateState({ chart, axisx, axisy, mouseCursor: <></> })
+    this.props.notify(RefreshEvent.Chart);
   }
 
   handleKeyDown(e: React.KeyboardEvent) {
