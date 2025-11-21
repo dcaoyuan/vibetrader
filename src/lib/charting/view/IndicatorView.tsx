@@ -13,37 +13,9 @@ import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 import type React from "react";
 import './chartview.css';
-import { QuoteChartKind } from "../chart/Kinds";
+import VolmueChart from "../chart/VolumeChart";
 
-export class QuoteChartView extends ChartView<ViewProps, ViewState> {
-
-  static switchAllQuoteChartType(originalKind: QuoteChartKind, targetKind: QuoteChartKind): QuoteChartKind {
-    let newKind: QuoteChartKind
-    if (targetKind !== undefined) {
-      newKind = targetKind;
-
-    } else {
-      switch (originalKind) {
-        case QuoteChartKind.Candle:
-          newKind = QuoteChartKind.Ohlc
-          break;
-
-        case QuoteChartKind.Ohlc:
-          newKind = QuoteChartKind.Line
-          break;
-
-        case QuoteChartKind.Line:
-          newKind = QuoteChartKind.Candle
-          break;
-
-        default:
-          newKind = QuoteChartKind.Candle
-      }
-    }
-
-    return newKind;
-  }
-
+export class IndicatorView extends ChartView<ViewProps, ViewState> {
   quoteVar: TVar<Quote>;
   maxVolume = 0.0;
   minVolume = 0.0
@@ -56,7 +28,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     this.height = props.height;
     this.isQuote = props.isQuote;
 
-    const { chart, axisx, axisy } = this.plot();
+    const { chart, axisy } = this.plot();
 
     this.state = {
       width: props.width,
@@ -74,7 +46,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       isPinned: false,
 
       chart,
-      axisx,
+      axisx: <></>,
       axisy,
 
       mouseCursor: <></>,
@@ -94,23 +66,12 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   override plot() {
     this.computeGeometry();
 
-    const chart = QuoteChart({
+    const chart = VolmueChart({
       quoteVar: this.quoteVar,
       ycontrol: this.ycontrol,
       xcontrol: this.xcontrol,
-      kind: QuoteChartKind.Candle,
       depth: 0
     });
-
-    const axisx = AxisX({
-      x: 0,
-      y: this.height - ChartView.AXISX_HEIGHT,
-      width: this.width,
-      height: ChartView.AXISX_HEIGHT,
-      xcontrol: this.xcontrol,
-      ycontrol: this.ycontrol,
-      view: this,
-    })
 
     const axisy = AxisY({
       x: this.width - ChartView.AXISY_WIDTH,
@@ -121,7 +82,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       ycontrol: this.ycontrol,
     })
 
-    return { chart, axisx, axisy }
+    return { chart, axisy }
   }
 
   protected putChartsOfMainSer() {
@@ -139,38 +100,33 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
   override computeMaxMin() {
     let max = Number.NEGATIVE_INFINITY;
-    let min = Number.POSITIVE_INFINITY;
+    const min = 0// Number.POSITIVE_INFINITY;
 
-    /** minimum volume should be 0 */
-    this.maxVolume = Number.NEGATIVE_INFINITY;
-    this.minVolume = 0
     let i = 1
     while (i <= this.xcontrol.nBars) {
       const time = this.xcontrol.tb(i)
       if (this.xcontrol.exists(time)) {
         const quote = this.quoteVar.getByTime(time);
         if (quote.close > 0) {
-          max = Math.max(max, quote.high)
-          min = Math.min(min, quote.low)
-          this.maxVolume = Math.max(this.maxVolume, quote.volume)
+          max = Math.max(max, quote.volume)
         }
       }
 
       i++
     }
 
-    if (this.maxVolume == 0) {
-      this.maxVolume = 1
+    if (max === 0) {
+      max = 1
     }
 
-    if (this.maxVolume == this.minVolume) {
+    if (max === min) {
       this.maxVolume++;
     }
 
-    if (max == min) {
-      max *= 1.05
-      min *= 0.95
-    }
+    // if (max === min) {
+    //   max *= 1.05
+    //   min *= 0.95
+    // }
 
     this.setMaxMinValue(max, min)
   }
@@ -187,7 +143,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   }
 
   override valueAtTime(time: number) {
-    return this.quoteVar.getByTime(time).close;
+    return this.quoteVar.getByTime(time).volume //value;
   }
 
   render() {
@@ -206,7 +162,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
           onWheel={this.handleWheel}
         >
           {this.state.chart}
-          {this.state.axisx}
           {this.state.axisy}
           {this.state.mouseCursor}
           {this.state.referCursor}

@@ -49,6 +49,10 @@ export class ChartXControl {
 
   referCursorRow = 0;
 
+  mouseCursorRow = 0;
+  mouseCursorValue: number;
+  mouseCursorY: number;
+
   fixedNBars?: number;
   fixedLeftSideTime?: number;
 
@@ -334,6 +338,12 @@ export class ChartXControl {
   setReferCursorByRow(row: number, willUpdateViews: boolean) {
     const increment = row - this.referCursorRow
     this.scrollReferCursor(increment, willUpdateViews)
+  }
+
+  setMouseCursorByRow(row: number, mouseCursorValue: number, mouseCursorY: number) {
+    this.mouseCursorRow = row
+    this.mouseCursorValue = mouseCursorValue;
+    this.mouseCursorY = mouseCursorY;
   }
 
   scrollReferCursor(increment: number, willUpdateViews: boolean) {

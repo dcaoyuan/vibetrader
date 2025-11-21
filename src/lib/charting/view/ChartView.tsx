@@ -9,6 +9,17 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { ChartViewContainer } from "./ChartViewContainer";
 import { type Scalar } from "./scalar/Scalar";
+import { Path } from "../../svg/Path";
+import { Text } from "../../svg/Text";
+import { Temporal } from "temporal-polyfill";
+import { TUnit } from "../../timeseris/TUnit";
+import { COMMON_DECIMAL_FORMAT } from "./Format";
+
+export type ChartParts = {
+  chart: JSX.Element,
+  axisx?: JSX.Element,
+  axisy: JSX.Element
+}
 
 export interface ViewProps {
   baseSer: BaseTSer;
@@ -130,6 +141,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   minValue = 0.0
 
   isReferCuroseVisible = false
+  isMouseCuroseVisible = false
   isInteractive = true
 
   #isPinned = false
@@ -246,10 +258,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   }
 
-  nBars(): number {
-    return this.xcontrol.nBars;
-  }
-
   // should decide width by this component's width and constant AXISY_WIDTH, since the width of children may not be decided yet.
   wChart(): number {
     return this.width - ChartView.AXISY_WIDTH;
@@ -276,46 +284,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     //this.glassPane.pin(false);
 
     this.#isPinned = false;
-  }
-
-  get yChartScale() {
-    return this.ycontrol.yChartScale;
-  }
-  set yChartScale(yChartScale: number) {
-    this.ycontrol.yChartScale = yChartScale
-  }
-
-  valueScalar(valueScalar: Scalar) {
-    this.ycontrol.valueScalar = valueScalar
-  }
-
-  adjustYChartScale(increment: number) {
-    this.ycontrol.growYChartScale(increment)
-  }
-
-  yChartScaleByCanvasValueRange(canvasValueRange: number) {
-    this.ycontrol.yChartScaleByCanvasValueRange(canvasValueRange)
-  }
-
-  scrollChartsVerticallyByPixel(increment: number) {
-    this.ycontrol.scrollChartsVerticallyByPixel(increment)
-    //repaint()
-  }
-
-  tb(barIndex: number): number {
-    return this.xcontrol.tb(barIndex)
-  }
-
-  rb(barIndex: number): number {
-    return this.xcontrol.rb(barIndex);
-  }
-
-  bt(time: number): number {
-    return this.xcontrol.bt(time);
-  }
-
-  br(row: number): number {
-    return this.xcontrol.br(row);
   }
 
   chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
@@ -462,6 +430,271 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   //     deafTo(_mainSer)
   //     super.finalize
   //   }
+
+  abstract plot(): ChartParts;
+
+  valueAtTime(time: number) {
+    return this.tvar.getByTime(time).value;
+  }
+
+  plotCursor(x: number, y: number, time: number, value: number, color: string) {
+    const w = 12 * 4; // annotation width
+    const h = 12;     // annotation height
+
+    const crossPath = new Path(0, 0, color);
+    const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
+    const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, color, color);
+    const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
+    const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, color, color)
+
+    const timeZone = this.xcontrol.baseSer.timeZone;
+    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+    const dtStr = this.xcontrol.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+
+    const valueStr = COMMON_DECIMAL_FORMAT.format(value);
+
+    // axis-x
+    crossPath.moveto(x, 0);
+    crossPath.lineto(x, this.height)
+
+    const y0 = 1;
+    axisxPath.moveto(x, y0);
+    axisxPath.lineto(x + w, y0);
+    axisxPath.lineto(x + w, y0 + h);
+    axisxPath.lineto(x, y0 + h);
+    axisxPath.closepath();
+    axisxText.text(x + 1, y0 + h, dtStr);
+
+    // axis-y
+    crossPath.moveto(0, y);
+    crossPath.lineto(this.width, y)
+
+    const x0 = 1
+    axisyPath.moveto(x0, y);
+    axisyPath.lineto(x0 + w, y);
+    axisyPath.lineto(x0 + w, y - h);
+    axisyPath.lineto(x0, y - h);
+    axisyPath.closepath();
+    axisyText.text(x0 + 1, y, valueStr);
+
+    // Pay attention to the order to avoid text being overlapped
+    const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
+
+    return (
+      <>
+        {segs.map(seg => seg.render())}
+      </>
+    )
+  }
+
+  updateState(state: object) {
+    let referCursor = <></>
+    let mouseCursor = <></>
+    if (this.isReferCuroseVisible) {
+      const time = this.xcontrol.tr(this.xcontrol.referCursorRow)
+      if (this.xcontrol.exists(time)) {
+        const b = this.xcontrol.bt(time)
+
+        if (b >= 1 && b <= this.xcontrol.nBars) {
+
+          const cursorX = this.xcontrol.xr(this.xcontrol.referCursorRow)
+          const value = this.valueAtTime(time);
+          const cursorY = this.ycontrol.yv(value)
+
+          referCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+        }
+      }
+    }
+
+    if (this.isMouseCuroseVisible) {
+      const time = this.xcontrol.tr(this.xcontrol.mouseCursorRow)
+      const cursorX = this.xcontrol.xr(this.xcontrol.mouseCursorRow)
+      const value = this.xcontrol.mouseCursorValue;
+      const cursorY = this.xcontrol.mouseCursorY;
+
+      mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
+    }
+
+    this.setState({ ...state, referCursor, mouseCursor })
+  }
+
+  handleMouseLeave() {
+    this.isMouseCuroseVisible = false;
+    this.updateState({})
+  }
+
+  handleMouseMove(e: React.MouseEvent) {
+    const targetRect = e.currentTarget.getBoundingClientRect();
+    const x = e.pageX - targetRect.left;
+    const y = e.pageY - targetRect.top;
+
+    const time = this.xcontrol.tx(x);
+
+    // align x to bar center
+    const b = this.xcontrol.bx(x);
+    const cursorX = this.xcontrol.xb(b)
+
+    let value: number;
+    let cursorY: number
+    if (y >= this.height - ChartView.AXISX_HEIGHT && this.xcontrol.exists(time)) {
+      // enter axis-x area
+      value = this.valueAtTime(time)
+      cursorY = this.ycontrol.yv(value)
+
+    } else {
+      value = this.ycontrol.vy(y);
+      cursorY = y;
+    }
+
+    // draw mouse cursor only when not in the axis-y area
+    if (x < this.width - ChartView.AXISY_WIDTH) {
+      const row = this.xcontrol.rb(b)
+      this.xcontrol.setMouseCursorByRow(row, value, cursorY)
+      this.isMouseCuroseVisible = true
+      this.updateState({})
+
+    } else {
+      this.isMouseCuroseVisible = false;
+      this.updateState({})
+    }
+  }
+
+  handleMouseDown(e: React.MouseEvent) {
+    if (e.ctrlKey) {
+      // will select chart on pane
+
+    } else {
+      // set refer cursor
+      const targetRect = e.currentTarget.getBoundingClientRect();
+      const x = e.pageX - targetRect.left;
+      const y = e.pageY - targetRect.top;
+
+      const time = this.xcontrol.tx(x);
+      if (!this.xcontrol.exists(time)) {
+        return;
+      }
+
+      // align x to bar center
+      const b = this.xcontrol.bx(x);
+
+      // draw refer cursor only when not in the axis-y area
+      if (x < this.width - ChartView.AXISY_WIDTH) {
+        if (
+          y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height &&
+          b >= 1 && b <= this.xcontrol.nBars
+        ) {
+          const row = this.xcontrol.rb(b)
+          this.xcontrol.setReferCursorByRow(row, true)
+          this.isReferCuroseVisible = true;
+          this.updateState({});
+        }
+      }
+    }
+  }
+
+  handleWheel(e: React.WheelEvent) {
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
+    const delta = Math.round(e.deltaY / this.xcontrol.nBars);
+    console.log(e, delta)
+
+    if (e.shiftKey) {
+      // zoom in / zoom out 
+      this.xcontrol.growWBar(delta)
+
+    } else if (e.ctrlKey) {
+      if (!this.isInteractive) {
+        return
+      }
+
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      // move refer cursor left / right 
+      this.xcontrol.scrollReferCursor(unitsToScroll, true)
+
+    } else {
+      if (!this.isInteractive) {
+        return
+      }
+
+      const unitsToScroll = this.xcontrol.isCursorAccelerated ? delta * fastSteps : delta;
+      // keep referCursor stay same x in screen, and move
+      this.xcontrol.scrollChartsHorizontallyByBar(unitsToScroll)
+    }
+
+    if (!this.xcontrol.referCursorRow) {
+      this.xcontrol.referCursorRow = 0;
+    }
+
+    const { chart, axisx, axisy } = this.plot();
+
+    this.updateState({ chart, axisx, axisy, mouseCursor: <></> })
+  }
+
+  handleKeyDown(e: React.KeyboardEvent) {
+    const fastSteps = Math.floor(this.xcontrol.nBars * 0.168)
+
+    switch (e.key) {
+      case "ArrowLeft":
+        if (e.ctrlKey) {
+          this.#moveCursorInDirection(fastSteps, -1)
+        } else {
+          this.#moveChartsInDirection(fastSteps, -1)
+        }
+        break;
+
+      case "ArrowRight":
+        if (e.ctrlKey) {
+          this.#moveCursorInDirection(fastSteps, 1)
+        } else {
+          this.#moveChartsInDirection(fastSteps, 1)
+        }
+        break;
+
+      case "ArrowUp":
+        if (!e.ctrlKey) {
+          this.xcontrol.growWBar(1)
+        }
+        break;
+
+      case "ArrowDown":
+        if (!e.ctrlKey) {
+          this.xcontrol.growWBar(-1);
+        }
+        break;
+
+      default:
+    }
+
+    const { chart, axisx, axisy } = this.plot();
+    this.updateState({ chart, axisx, axisy, mouseCursor: <></> })
+  }
+
+  #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+
+    this.xcontrol.scrollReferCursor(steps, true)
+  }
+
+  #moveChartsInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.xcontrol.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+
+    this.xcontrol.scrollChartsHorizontallyByBar(steps)
+  }
+
+  handleKeyUp(e: React.KeyboardEvent) {
+    switch (e.key) {
+      case " ":
+        this.xcontrol.isCursorAccelerated = !this.xcontrol.isCursorAccelerated
+        break;
+
+      case "Escape":
+        this.isReferCuroseVisible = false;
+        this.updateState({})
+        break;
+
+      default:
+    }
+  }
+
 }
 
 

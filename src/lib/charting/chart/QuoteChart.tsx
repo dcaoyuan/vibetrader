@@ -117,15 +117,13 @@ const QuoteChart = (props: Props) => {
    *          |___|___ barCenter
    */
   function plotCandleBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
-    const width = xcontrol.wBar;
-
     /** why - 2 ? 1 for centre, 1 for space */
-    const xRadius = width < 2 ? 0 : Math.floor((width - 2) / 2);
+    const xRadius = xcontrol.wBar < 2 ? 0 : Math.floor((xcontrol.wBar - 2) / 2);
     /** upper and lower of candle's rectangle */
     const yUpper = Math.min(yOpen, yClose)
     const yLower = Math.max(yOpen, yClose)
 
-    if (width <= 2) {
+    if (xcontrol.wBar <= 2) {
       path.moveto(xCenter, yHigh)
       path.lineto(xCenter, yLow)
 

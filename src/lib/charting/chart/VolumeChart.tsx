@@ -20,9 +20,9 @@ const VolmueChart = (props: Props) => {
     const posColor = Theme.now().getPositiveColor();
     const negColor = Theme.now().getNegativeColor();
 
-    const isFill = Theme.now().isFillBar;
+    const isFill = false// Theme.now().isFillBar;
 
-    const thin = Theme.now().isThinVolumeBar //|| m.thin
+    const thin = false //Theme.now().isThinVolumeBar //|| m.thin
 
     const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
@@ -30,16 +30,13 @@ const VolmueChart = (props: Props) => {
       : new Path(0, 0, negColor, isFill ? negColor : "none");
 
 
-    const xRadius = xcontrol.wBar < 2 ? 0 : Math.floor((xcontrol.nBars - 2) / 2);
+    const xRadius = xcontrol.wBar < 2 ? 0 : Math.floor((xcontrol.wBar - 2) / 2);
 
     const y1 = ycontrol.yv(0)
     let bar = 1
     while (bar <= xcontrol.nBars) {
-
       let open = undefined as number;
       let close = undefined as number;
-      let high = Number.NEGATIVE_INFINITY;
-      let low = Number.POSITIVE_INFINITY;
       let volume = Number.NEGATIVE_INFINITY; // we are going to get max of volume during nBarsCompressed
       let i = 0;
       while (i < xcontrol.nBarsCompressed) {
@@ -52,8 +49,6 @@ const VolmueChart = (props: Props) => {
               open = quote.open;
             }
             close = quote.close
-            high = Math.max(high, quote.high)
-            low = Math.min(low, quote.low)
             volume = Math.max(volume, quote.volume)
           }
         }
@@ -65,6 +60,7 @@ const VolmueChart = (props: Props) => {
         const path = close >= open ? posPath : negPath || posPath;
 
         const xCenter = xcontrol.xb(bar)
+
         const y2 = ycontrol.yv(volume)
         if (thin || xcontrol.wBar <= 2) {
           path.moveto(xCenter, y1);
@@ -75,7 +71,6 @@ const VolmueChart = (props: Props) => {
           path.lineto(xCenter - xRadius, y2)
           path.lineto(xCenter + xRadius, y2)
           path.lineto(xCenter + xRadius, y1)
-          path.closepath();
         }
       }
 
