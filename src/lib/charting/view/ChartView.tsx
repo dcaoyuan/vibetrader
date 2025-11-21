@@ -492,7 +492,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     axisyPath.lineto(x0 + w, y - h);
     axisyPath.lineto(x0, y - h);
     axisyPath.closepath();
-    axisyText.text(x0 + 1, y, valueStr);
+    axisyText.text(4, y, valueStr);
 
     // pay attention to the order to avoid text being overlapped
     const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]

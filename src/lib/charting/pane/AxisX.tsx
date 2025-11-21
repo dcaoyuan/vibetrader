@@ -104,12 +104,17 @@ const AxisX = (props: Props) => {
       i++;
     }
 
-    return [path, texts];
+    return { path, texts };
   }
 
   return (
-    <g shapeRendering="crispEdges">
-      {segs.map(seg => seg.render())}
+    <g>
+      <g shapeRendering="crispEdges" >
+        {segs.path.render()}
+      </g>
+      <g>
+        {segs.texts.render()}
+      </g>
     </g>
   );
 }
