@@ -426,7 +426,7 @@ export class ChartXControl {
 
   #internal_setReferCursorRow(row: number, boolean = true) {
     this.referCursorRow = row
-    /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
+    // remember the lastRow for decision if need update cursor, see changeCursorByRow() 
     this.#lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
   }
 
@@ -441,6 +441,21 @@ export class ChartXControl {
   #internal_setRightCursorByTime(time: number) {
     this.#internal_setRightSideRow(this.baseSer.rowOfTime(time))
   }
+
+  // DIRECTION = -1: Left
+  // DIRECTION = 1: Right 
+  moveCursorInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+
+    this.scrollReferCursor(steps, true)
+  }
+
+  moveChartsInDirection(fastSteps: number, DIRECTION: number) {
+    const steps = (this.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+
+    this.scrollChartsHorizontallyByBar(steps)
+  }
+
 
   // popupViewToDesktop(view: ChartView, dim: DOMRect, alwaysOnTop: boolean, joint: boolean) {
   //   const popupView = view;

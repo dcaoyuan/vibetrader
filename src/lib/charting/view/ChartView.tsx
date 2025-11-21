@@ -555,6 +555,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.setState({ ...state, referCursor, mouseCursor })
   }
 
+  protected isInAxisXArea(y: number) {
+    return this.isMasterView && y >= this.height - ChartView.AXISX_HEIGHT
+  }
+
+  protected isInAxisYArea(x: number) {
+    return x < this.width - ChartView.AXISY_WIDTH
+  }
+
   handleMouseLeave() {
     // clear mouse cursor and prev value
     this.xc.isMouseCuroseVisible = false;
@@ -574,8 +582,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     let value: number;
     let cursorY: number
-    if (y >= this.height - ChartView.AXISX_HEIGHT && this.xc.exists(time)) {
-      // enter axis-x area
+    if (this.isInAxisXArea(y) && this.xc.exists(time)) {
+      // it's in the axis-x area
       value = this.valueAtTime(time)
       cursorY = this.yc.yv(value)
 
@@ -584,8 +592,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       cursorY = y;
     }
 
-    // draw mouse cursor only when not in the axis-y area
-    if (x < this.width - ChartView.AXISY_WIDTH) {
+    if (this.isInAxisYArea(x)) {
+      // draw mouse cursor only when not in the axis-y area
       const row = this.xc.rb(b)
       this.xc.setMouseCursorByRow(row)
       this.yc.setMouseCursorValue(value, cursorY)
@@ -618,8 +626,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       // align x to bar center
       const b = this.xc.bx(x);
 
-      // draw refer cursor only when not in the axis-y area
-      if (x < this.width - ChartView.AXISY_WIDTH) {
+      if (this.isInAxisYArea(x)) {
+        // draw refer cursor only when not in the axis-y area
         if (
           y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height &&
           b >= 1 && b <= this.xc.nBars
@@ -675,17 +683,17 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     switch (e.key) {
       case "ArrowLeft":
         if (e.ctrlKey) {
-          this.#moveCursorInDirection(fastSteps, -1)
+          this.xc.moveCursorInDirection(fastSteps, -1)
         } else {
-          this.#moveChartsInDirection(fastSteps, -1)
+          this.xc.moveChartsInDirection(fastSteps, -1)
         }
         break;
 
       case "ArrowRight":
         if (e.ctrlKey) {
-          this.#moveCursorInDirection(fastSteps, 1)
+          this.xc.moveCursorInDirection(fastSteps, 1)
         } else {
-          this.#moveChartsInDirection(fastSteps, 1)
+          this.xc.moveChartsInDirection(fastSteps, 1)
         }
         break;
 
@@ -705,18 +713,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     this.props.notify(RefreshEvent.Chart)
-  }
-
-  #moveCursorInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.xc.isCursorAccelerated ? fastSteps : 1) * DIRECTION
-
-    this.xc.scrollReferCursor(steps, true)
-  }
-
-  #moveChartsInDirection(fastSteps: number, DIRECTION: number) {
-    const steps = (this.xc.isCursorAccelerated ? fastSteps : 1) * DIRECTION
-
-    this.xc.scrollChartsHorizontallyByBar(steps)
   }
 
   handleKeyUp(e: React.KeyboardEvent) {
