@@ -4,7 +4,7 @@ import { loadSer } from '../domain/QuoteSer';
 import QuoteSerView from '../domain/QuoteSerView';
 
 const Screen = () => {
-  const width = 1000;
+  const width = 900;
   const varName = "ETC";
   const { quoteSer } = loadSer(varName);
   const xc = new ChartXControl(quoteSer, width - ChartView.AXISY_WIDTH);

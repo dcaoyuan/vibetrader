@@ -5,7 +5,6 @@ import { loadSer } from "./QuoteSer";
 import { ChartXControl } from "../charting/view/ChartXControl";
 import { ChartView, RefreshEvent } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
-import { ref } from "process";
 import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
 import type { Quote } from "./Quote";
@@ -46,18 +45,16 @@ const QuoteSerView = (props: Props) => {
   const [refreshChart, setRefreshChart] = useState(0);
   const [refreshCursors, setRefreshCursors] = useState(0);
 
-  const [cursors, setCursors] = useState<JSX.Element[]>([]);
+  const cursors = plotCursors()
 
   const notify = (event: RefreshEvent) => {
     switch (event) {
       case RefreshEvent.Chart:
         setRefreshChart(refreshChart + 1);
-        updateCursors();
         break;
 
       case RefreshEvent.Cursors:
         setRefreshCursors(refreshCursors + 1)
-        updateCursors();
         break;
 
       default:
@@ -68,25 +65,19 @@ const QuoteSerView = (props: Props) => {
     const crossPath = new Path(color);
     crossPath.moveto(x, 0);
     crossPath.lineto(x, height)
-    return (
-      <g shapeRendering="crispEdges">
-        {crossPath.render()}
-      </g>
-    )
+
+    return crossPath.render()
   }
 
-  function updateCursors() {
+  function plotCursors() {
     let referCursor = <></>
     let mouseCursor = <></>
     const referColor = '#00F0F0'; // 'orange'
     if (xc.isReferCuroseVisible) {
       const time = xc.tr(xc.referCursorRow)
       if (xc.exists(time)) {
-        const b = xc.bt(time)
-        if (b >= 1 && b <= xc.nBars) {
-          const cursorX = xc.xr(xc.referCursorRow)
-          referCursor = plotCursor(cursorX, referColor)
-        }
+        const cursorX = xc.xr(xc.referCursorRow)
+        referCursor = plotCursor(cursorX, referColor)
       }
     }
 
@@ -98,8 +89,12 @@ const QuoteSerView = (props: Props) => {
       }
     }
 
-    console.log([mouseCursor, referCursor]);
-    setCursors([mouseCursor, referCursor]);
+    return (
+      <g shapeRendering="crispEdges">
+        {referCursor}
+        {mouseCursor}
+      </g>
+    )
   }
 
 
@@ -220,7 +215,7 @@ const QuoteSerView = (props: Props) => {
       xc.scrollChartsHorizontallyByBar(unitsToScroll)
     }
 
-    this.props.notify(RefreshEvent.Chart);
+    notify(RefreshEvent.Chart);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

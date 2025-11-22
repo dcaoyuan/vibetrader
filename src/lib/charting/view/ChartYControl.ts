@@ -99,23 +99,23 @@ export class ChartYControl {
     /** avoid hOne == 0 */
     this.#hOne = Math.max(this.#hOne, 0.0000000001)
 
-    console.log(
-      {
-        hCanvas: this.#hCanvas,
-        hChart: this.#hChart,
-        hChartOffsetToCanvas: this.#hChartOffsetToCanvas,
-        hOne: this.#hOne,
-        hSpaceLower: this.#hSpaceLower,
-        hSpaceUpper: this.#hSpaceUpper,
-        maxValue: this.#maxValue,
-        minValue: this.#minValue,
-        maxScaledValue: this.#maxScalarValue,
-        minScaledValue: this.#minScalarValue,
-        yCanvasLower: this.#yCanvasLower,
-        yChartLower: this.#yChartLower,
-        yChartScale: this.#yChartScale
-      },
-    )
+    // console.log('ChartYControl computeGeometry:',
+    //   {
+    //     hCanvas: this.#hCanvas,
+    //     hChart: this.#hChart,
+    //     hChartOffsetToCanvas: this.#hChartOffsetToCanvas,
+    //     hOne: this.#hOne,
+    //     hSpaceLower: this.#hSpaceLower,
+    //     hSpaceUpper: this.#hSpaceUpper,
+    //     maxValue: this.#maxValue,
+    //     minValue: this.#minValue,
+    //     maxScaledValue: this.#maxScalarValue,
+    //     minScaledValue: this.#minScalarValue,
+    //     yCanvasLower: this.#yCanvasLower,
+    //     yChartLower: this.#yChartLower,
+    //     yChartScale: this.#yChartScale
+    //   },
+    // )
 
   }
 

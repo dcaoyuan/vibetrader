@@ -49,8 +49,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
     const { chart, axisy } = this.plot();
 
-    console.log("QuoteChartView constructor plot chart");
-
     this.state = {
       width: props.width,
       height: props.height,

@@ -41,6 +41,8 @@ class AxisX extends Component<Props, State> {
 
     const chart = this.plot();
     this.state = { chart, referCursor: <></>, mouseCursor: <></> };
+
+    console.log("AxisX render");
   }
 
   plot() {
@@ -201,7 +203,6 @@ class AxisX extends Component<Props, State> {
   render() {
     const transform = `translate(${this.x} ${this.y})`;
 
-    console.log("AxisX render");
     return (
       <g transform={transform}>
         {this.state.chart}

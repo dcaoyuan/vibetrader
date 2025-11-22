@@ -72,7 +72,7 @@ export class ChartXControl {
 
   isCursorCrossVisible = true;
 
-  computeGeometry() {
+  #updateGeometry() {
     /**
      * !NOTE
      * 1.Should get wBar firstly, then calculator nBars
@@ -97,16 +97,15 @@ export class ChartXControl {
       this.setLeftSideRowByTime(this.fixedLeftSideTime, false)
     }
 
-    console.log({
-      wBar: this.wBar,
-      nBars: this.nBars,
-      nBarsCompressed: this.nBarsCompressed,
-      rightSideRow: this.rightSideRow,
-      isFixedLeftSideTime: this.isFixedLeftSideTime()
-    })
+    // console.log('ChartXControl updateGeometry:', {
+    //   wBar: this.wBar,
+    //   nBars: this.nBars,
+    //   nBarsCompressed: this.nBarsCompressed,
+    //   rightSideRow: this.rightSideRow,
+    //   isFixedLeftSideTime: this.isFixedLeftSideTime()
+    // })
   }
 
-  // --- x geometry methods:
   exists(time: number): boolean {
     return this.baseSer.exists(time);
   }
@@ -218,7 +217,7 @@ export class ChartXControl {
       /** this cleanups mouse cursor */
       if (this.#isMouseEnteredAnyChartPane != oldValue) {
         //this.notifyChanged(classOf<MouseCursorObserver>);
-        this.updateViews()
+        this.#updateGeometry();
       }
     }
   }
@@ -252,7 +251,8 @@ export class ChartXControl {
     }
 
     this.#internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]);
-    this.updateViews();
+
+    this.#updateGeometry()
   }
 
 
@@ -298,7 +298,8 @@ export class ChartXControl {
     }
 
     this.#internal_setWBar(newWBar)
-    this.updateViews()
+
+    this.#updateGeometry()
   }
 
   get isOnCalendarMode() {
@@ -318,7 +319,7 @@ export class ChartXControl {
       this.#internal_setReferCursorByTime(referCursorTime1);
       this.#internal_setRightCursorByTime(rightCursorTime1);
 
-      this.updateViews()
+      this.#updateGeometry();
     }
   }
 
@@ -358,9 +359,8 @@ export class ChartXControl {
     }
 
     this.#internal_setReferCursorRow(referRow, willUpdateViews)
-    if (willUpdateViews) {
-      this.updateViews()
-    }
+
+    this.#updateGeometry();
   }
 
   /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
@@ -375,14 +375,6 @@ export class ChartXControl {
     const rightRow = this.rightSideRow;
     const leftRow = rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
     this.setReferCursorByRow(leftRow, true)
-  }
-
-  updateViews() {
-    /**
-     * as repaint() may be called by awt in instance's initialization, before
-     * popupViewSet is created, so, check null.
-     */
-    //this.popupViews().forEach(x => x.repaint())
   }
 
   referCursorTime() {

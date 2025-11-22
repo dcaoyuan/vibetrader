@@ -234,9 +234,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
    * and if success, the newNBars computed here will equals the newNBars you want.
    */
   protected computeGeometry() {
-    // compute x first;
-    this.xc.computeGeometry();
-
     this.computeMaxMin();
 
     // compute y after compute maxmin
@@ -536,20 +533,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.exists(time)) {
-        const b = this.xc.bt(time)
+        const cursorX = this.xc.xr(this.xc.referCursorRow)
 
-        if (b >= 1 && b <= this.xc.nBars) {
+        let value = this.valueAtTime(time);
+        const cursorY = this.yc.yv(value)
 
-          const cursorX = this.xc.xr(this.xc.referCursorRow)
-          let value = this.valueAtTime(time);
-          const cursorY = this.yc.yv(value)
-
-          if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-            value = value / ChartYControl.VALUE_SCALE_UNIT
-          }
-
-          referCursor = this.plotCursor(cursorX, cursorY, time, value, referColor)
+        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+          value = value / ChartYControl.VALUE_SCALE_UNIT
         }
+
+        referCursor = this.plotCursor(cursorX, cursorY, time, value, referColor)
       }
     }
 
