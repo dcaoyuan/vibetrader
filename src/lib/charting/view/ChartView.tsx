@@ -8,7 +8,7 @@ import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
-import { Text } from "../../svg/Text";
+import { Texts } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
 import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
@@ -459,23 +459,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const w = 48; // annotation width
     const h = 13; // annotation height
 
-    const crossPath = new Path(0, 0, color);
-    //crossPath.stroke_dasharray = '1, 1'
-    const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
-    const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, color, color);
-    const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
-    const axisyPath = new Path(this.width - ChartView.AXISY_WIDTH, 0, color, color)
-
     const timeZone = this.xc.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
     const dtStr = this.xc.baseSer.freq.unit.formatNormalDate(dt, timeZone)
 
     const valueStr = COMMON_DECIMAL_FORMAT.format(value);
 
-    // axis-x
+    const crossPath = new Path(color);
+    //crossPath.stroke_dasharray = '1, 1'
     crossPath.moveto(x, 0);
     crossPath.lineto(x, this.height)
+    crossPath.moveto(0, y);
+    crossPath.lineto(this.width, y)
 
+    const axisxText = new Texts('#000000')
+    const axisxPath = new Path(color, color);
     if (this.isMasterView) {
       const y0 = 2;
       axisxPath.moveto(x, y0);
@@ -486,10 +484,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       axisxText.text(x + 1, h, dtStr);
     }
 
-    // axis-y
-    crossPath.moveto(0, y);
-    crossPath.lineto(this.width, y)
-
+    const axisyText = new Texts('#000000')
+    const axisyPath = new Path(color, color)
     const x0 = 1
     axisyPath.moveto(x0, y);
     axisyPath.lineto(x0 + w, y);
@@ -498,15 +494,22 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     axisyPath.closepath();
     axisyText.text(4, y - 1, valueStr);
 
-    // pay attention to the order to avoid text being overlapped
-    const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
-
-    const transform = `translate(${x}, ${y})`
+    const transformx = `translate(${0}, ${this.height - ChartView.AXISX_HEIGHT})`
+    const transformy = `translate(${this.width - ChartView.AXISY_WIDTH}, ${0})`
 
     return (
-      <g>
-        {segs.map(seg => seg.render())}
-      </g>
+      // pay attention to the order to avoid text being overlapped
+      <>
+        <g  >
+          {crossPath.render()}
+        </g>
+        <g transform={transformx}>
+          {[axisxPath, axisxText].map(seg => seg.render())}
+        </g>
+        <g transform={transformy}>
+          {[axisyPath, axisyText].map(seg => seg.render())}
+        </g>
+      </>
     )
   }
 
@@ -582,7 +585,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   // Ensure you have a conditional check to prevent infinite re-renders.
   // If setState is called unconditionally, it will trigger another update,
   // potentially leading to a loop.
-  override componentDidUpdate(prevProps: ViewProps, prevState) {
+  override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
     if (this.props.refreshChart !== prevProps.refreshChart) {
       this.updateChart();
     }

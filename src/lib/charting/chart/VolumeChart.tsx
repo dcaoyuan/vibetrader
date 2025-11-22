@@ -24,10 +24,10 @@ const VolmueChart = (props: Props) => {
 
     const thin = Theme.now().isThinVolumeBar; //|| m.thin
 
-    const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
+    const posPath = new Path(posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
       ? undefined
-      : new Path(0, 0, negColor, isFill ? negColor : "none");
+      : new Path(negColor, isFill ? negColor : "none");
 
 
     const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);

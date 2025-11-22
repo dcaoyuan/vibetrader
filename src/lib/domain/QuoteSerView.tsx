@@ -278,6 +278,8 @@ const QuoteSerView = (props: Props) => {
           width={width}
           height={hAxisx}
           xc={xc}
+          refreshChart={refreshChart}
+          refreshCursors={refreshCursors}
         />
       </svg>
     </div>

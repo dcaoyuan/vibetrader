@@ -1,6 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
-import { Text } from "../../svg/Text";
+import { Texts } from "../../svg/Text";
 import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
 import { COMMON_DECIMAL_FORMAT, CURRENCY_DECIMAL_FORMAT } from "../view/Format";
@@ -17,7 +17,7 @@ type Props = {
 
 type State = {
   path: Path,
-  texts: Text,
+  texts: Texts,
 }
 
 export const AxisY = (props: Props) => {
@@ -96,8 +96,8 @@ export const AxisY = (props: Props) => {
     const multiple = "x" + ChartYControl.VALUE_SCALE_UNIT;
 
     const color = Theme.now().axisColor;
-    const path = new Path(0, 0, color);
-    const texts = new Text(0, 0, color);
+    const path = new Path(color);
+    const texts = new Texts(color);
 
     // draw left border line */
     path.moveto(0, 0)

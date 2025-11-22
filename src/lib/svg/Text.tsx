@@ -2,22 +2,18 @@ import type { Seg } from "./Seg";
 
 export type TextData = { x: number, y: number, text: string }
 
-export class Text implements Seg {
-  #x0: number;
-  #y0: number;
+export class Texts implements Seg {
   texts: TextData[] = [];
 
   fill?: string;
   opacity?: number;
 
-  constructor(x: number, y: number, fill: string) {
-    this.#x0 = x;
-    this.#y0 = y;
+  constructor(fill: string) {
     this.fill = fill;
   }
 
   text(x: number, y: number, text: string) {
-    this.texts.push({ x: x + this.#x0, y: y + this.#y0, text })
+    this.texts.push({ x, y, text })
   }
 
   render() {

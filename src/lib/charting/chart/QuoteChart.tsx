@@ -24,10 +24,10 @@ const QuoteChart = (props: Props) => {
   function plotChart() {
     const isFill = kind === QuoteChartKind.Candle && Theme.now().isFillBar;
 
-    const posPath = new Path(0, 0, posColor, isFill ? posColor : "none");
+    const posPath = new Path(posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
       ? undefined
-      : new Path(0, 0, negColor, isFill ? negColor : "none");
+      : new Path(negColor, isFill ? negColor : "none");
 
     switch (kind) {
       case QuoteChartKind.Candle:

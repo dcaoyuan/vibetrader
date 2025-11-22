@@ -6,9 +6,6 @@ import type { Seg } from "./Seg";
 export type PathData = { type: string, values: number[] }
 
 export class Path implements Seg {
-  #x0: number;
-  #y0: number;
-
   pathDatas: PathData[] = [];
   stroke: string;
   stroke_width: number;
@@ -16,9 +13,7 @@ export class Path implements Seg {
   fill: string;
   opacity: number;
 
-  constructor(x: number, y: number, stroke: string, fill: string = "none") {
-    this.#x0 = x;
-    this.#y0 = y;
+  constructor(stroke: string, fill: string = "none") {
     this.stroke = stroke;
     this.fill = fill;
   }
@@ -26,7 +21,7 @@ export class Path implements Seg {
   moveto(x: number, y: number, relative = false) {
     const c = relative ?
       { type: "m", values: [Math.round(x), Math.round(y)] } :
-      { type: "M", values: [Math.round(x) + this.#x0, Math.round(y) + this.#y0] }
+      { type: "M", values: [Math.round(x), Math.round(y)] }
 
     this.pathDatas.push(c)
   }
@@ -40,7 +35,7 @@ export class Path implements Seg {
   lineto(x: number, y: number, relative = false) {
     const c = relative ?
       { type: "l", values: [Math.round(x), Math.round(y)] } :
-      { type: "L", values: [Math.round(x) + this.#x0, Math.round(y) + this.#y0] }
+      { type: "L", values: [Math.round(x), Math.round(y)] }
 
     this.pathDatas.push(c)
   }
