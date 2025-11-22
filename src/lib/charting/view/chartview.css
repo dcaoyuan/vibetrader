@@ -27,7 +27,7 @@
 .container div.chartview {
   border-style: solid;
   /* top, right, bottom, left */
-  border-width: 0px 1px 1px 1px;
+  border-width: 0px 0px 1px 1px;
   border-color: black
 }
 

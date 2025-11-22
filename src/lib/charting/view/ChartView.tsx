@@ -457,6 +457,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const h = 13; // annotation height
 
     const crossPath = new Path(0, 0, color);
+    //crossPath.stroke_dasharray = '1, 1'
     const axisxText = new Text(0, this.height - ChartView.AXISX_HEIGHT, '#000000')
     const axisxPath = new Path(0, this.height - ChartView.AXISX_HEIGHT, color, color);
     const axisyText = new Text(this.width - ChartView.AXISY_WIDTH, 0, '#000000')
@@ -498,9 +499,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
 
     return (
-      <>
+      <g>
         {segs.map(seg => seg.render())}
-      </>
+      </g>
     )
   }
 
@@ -520,6 +521,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   protected updateState(state: object) {
     let referCursor = <></>
     let mouseCursor = <></>
+    const referColor = '#00F0F0'; // 'orange'
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.exists(time)) {
@@ -535,7 +537,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             value = value / ChartYControl.VALUE_SCALE_UNIT
           }
 
-          referCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
+          referCursor = this.plotCursor(cursorX, cursorY, time, value, referColor)
         }
       }
     }

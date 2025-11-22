@@ -100,7 +100,6 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       height: ChartView.AXISX_HEIGHT,
       xc: this.xc,
       yc: this.yc,
-      view: this,
     })
 
     const axisy = AxisY({
@@ -110,6 +109,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       height: this.height - ChartView.AXISX_HEIGHT,
       xc: this.xc,
       yc: this.yc,
+      isMasterView: true
     })
 
     return { chart, axisx, axisy }

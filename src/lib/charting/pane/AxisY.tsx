@@ -12,6 +12,7 @@ type Props = {
   height: number,
   xc: ChartXControl,
   yc: ChartYControl
+  isMasterView?: boolean,
 }
 
 type State = {
@@ -20,7 +21,7 @@ type State = {
 }
 
 export const AxisY = (props: Props) => {
-  const { x, y, width, height, xc, yc } = props;
+  const { x, y, width, height, xc, yc, isMasterView } = props;
   const symmetricByMiddleValue = false;
 
   const segs = plot();
@@ -132,6 +133,11 @@ export const AxisY = (props: Props) => {
       }
 
       i++;
+    }
+
+    if (isMasterView) {
+      path.moveto(0, 0);
+      path.lineto(8, 0);
     }
 
     return { path, texts };
