@@ -79,9 +79,6 @@ export class DefaultTSer implements TSer {
   protected _lname = ""; // Long description 
   protected _sname = ""; // Short description
 
-  #tsLogCheckedCursor = 0;
-  #tsLogCheckedSize = 0;
-
   isOverlapping = false;
 
   #isInLoading = false;
