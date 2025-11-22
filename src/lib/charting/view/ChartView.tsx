@@ -472,9 +472,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     crossPath.moveto(0, y);
     crossPath.lineto(this.width, y)
 
+    const useful = false; // TODO: decide if axis-x is useful
     const axisxText = new Texts('#000000')
     const axisxPath = new Path(color, color);
-    if (this.isMasterView) {
+    if (useful) {
       const y0 = 2;
       axisxPath.moveto(x, y0);
       axisxPath.lineto(x + w, y0);

@@ -131,6 +131,61 @@ class AxisX extends Component<Props, State> {
     );
   }
 
+  protected updateState(state: object) {
+    let referCursor = <></>
+    let mouseCursor = <></>
+    const referColor = '#00F0F0'; // 'orange'
+    if (this.xc.isReferCuroseVisible) {
+      const time = this.xc.tr(this.xc.referCursorRow)
+      if (this.xc.exists(time)) {
+        const b = this.xc.bt(time)
+
+        if (b >= 1 && b <= this.xc.nBars) {
+          const cursorX = this.xc.xr(this.xc.referCursorRow)
+
+          referCursor = this.plotCursor(cursorX, time, referColor)
+        }
+      }
+    }
+
+    if (this.xc.isMouseCuroseVisible) {
+      const time = this.xc.tr(this.xc.mouseCursorRow)
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+
+        mouseCursor = this.plotCursor(cursorX, time, '#00F000')
+      }
+    }
+
+    this.setState({ ...state, referCursor, mouseCursor })
+  }
+
+  plotCursor(x: number, time: number, color: string) {
+    const w = 48; // annotation width
+    const h = 13; // annotation height
+
+    const timeZone = this.xc.baseSer.timeZone;
+    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+    const dtStr = this.xc.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+
+
+    const axisxText = new Texts('#000000')
+    const axisxPath = new Path(color, color);
+    const y0 = 2;
+    axisxPath.moveto(x, y0);
+    axisxPath.lineto(x + w, y0);
+    axisxPath.lineto(x + w, y0 + h);
+    axisxPath.lineto(x, y0 + h);
+    axisxPath.closepath();
+    axisxText.text(x + 1, h, dtStr);
+
+    return (
+      <g>
+        {[axisxPath, axisxText].map(seg => seg.render())}
+      </g>
+    )
+  }
+
   protected updateChart() {
     // clear mouse cursor and prev value
     this.xc.isMouseCuroseVisible = false;
@@ -141,12 +196,6 @@ class AxisX extends Component<Props, State> {
 
   protected updateCursors() {
     this.updateState({});
-  }
-
-  protected updateState(state: object) {
-    const referCursor = <></>
-    const mouseCursor = <></>
-    this.setState({ ...state, referCursor, mouseCursor })
   }
 
   render() {
