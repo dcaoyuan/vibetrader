@@ -411,7 +411,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     const axisyText = new Texts('#000000')
     const axisyPath = new Path(color, color)
-    const x0 = 1
+    const x0 = 2
     axisyPath.moveto(x0, y);
     axisyPath.lineto(x0 + w, y);
     axisyPath.lineto(x0 + w, y - h);

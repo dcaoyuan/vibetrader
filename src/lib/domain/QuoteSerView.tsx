@@ -108,6 +108,7 @@ const QuoteSerView = (props: Props) => {
       const yEnd = yStart + hViews[i];
       if (y >= yStart && y <= yEnd) {
         yMouses.push(y - yStart);
+
       } else {
         yMouses.push(undefined);
       }

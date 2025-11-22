@@ -52,7 +52,7 @@ class AxisX extends Component<Props, State> {
     const nTicks = this.width / TICK_SPACING
 
     const nBars = this.xc.nBars
-    // bTickUnit(bars per tick) cound not be 0, actually it should not less then 2
+    // bTickUnit(bars per tick) cound not be 0, it should not less then 2
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
     const color = Theme.now().axisColor;
@@ -76,14 +76,14 @@ class AxisX extends Component<Props, State> {
     let i = 1;
     while (i <= nBars) {
       if (i % bTickUnit === 0 || i === nBars || i === 1) {
-        const xCurrTick = this.xc.xb(i)
+        const xTick = this.xc.xb(i)
 
-        if (xLastTick - xCurrTick < TICK_SPACING && i !== nBars) {
+        if (xLastTick - xTick < TICK_SPACING && i !== nBars) {
           // too close
 
         } else {
-          path.moveto(xCurrTick, 1)
-          path.lineto(xCurrTick, hTick)
+          path.moveto(xTick, 1)
+          path.lineto(xTick, hTick)
 
           const time = this.xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -115,7 +115,7 @@ class AxisX extends Component<Props, State> {
             ? freqUnit.formatStrideDate(currDt, timeZone)
             : freqUnit.formatNormalDate(currDt, timeZone)
 
-          texts.text(xCurrTick + 2, this.height - 3, dateStr);
+          texts.text(xTick + 2, this.height - 3, dateStr);
 
           prevDt = currDt;
         }
@@ -123,6 +123,10 @@ class AxisX extends Component<Props, State> {
 
       i++;
     }
+
+    // draw end line
+    path.moveto(0, 1);
+    path.lineto(0, 8);
 
     return (
       <>

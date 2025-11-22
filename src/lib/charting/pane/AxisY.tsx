@@ -99,10 +99,11 @@ export const AxisY = (props: Props) => {
     const path = new Path(color);
     const texts = new Texts(color);
 
-    // draw left border line */
+    // draw axis-y line */
     path.moveto(0, 0)
     path.lineto(0, height)
 
+    const wTick = 4;
     let i = 0
     let breakNow = false
     while (i < nTicks + 2 && !breakNow) {
@@ -113,8 +114,8 @@ export const AxisY = (props: Props) => {
         breakNow = true
 
       } else {
-        path.moveto(0, yTick)
-        path.lineto(4, yTick)
+        path.moveto(1, yTick)
+        path.lineto(wTick, yTick)
 
         if (shouldScale) {
           vTick = Math.abs(vTick / 100000.0)
@@ -124,7 +125,6 @@ export const AxisY = (props: Props) => {
         }
 
         if (i === 0 && shouldScale) {
-
           texts.text(4, yTick, multiple);
 
         } else {
@@ -135,7 +135,8 @@ export const AxisY = (props: Props) => {
       i++;
     }
 
-    path.moveto(0, 0);
+    // draw end line 
+    path.moveto(1, 0);
     path.lineto(8, 0);
 
     return { path, texts };
