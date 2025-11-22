@@ -21,7 +21,7 @@ type State = {
 }
 
 export const AxisY = (props: Props) => {
-  const { x, y, width, height, xc, yc, isMasterView } = props;
+  const { x, y, width, height, yc } = props;
   const symmetricByMiddleValue = false;
 
   const segs = plot();
@@ -96,8 +96,8 @@ export const AxisY = (props: Props) => {
     const multiple = "x" + ChartYControl.VALUE_SCALE_UNIT;
 
     const color = Theme.now().axisColor;
-    const path = new Path(x, y, color);
-    const texts = new Text(x, y, color);
+    const path = new Path(0, 0, color);
+    const texts = new Text(0, 0, color);
 
     // draw left border line */
     path.moveto(0, 0)
@@ -135,16 +135,15 @@ export const AxisY = (props: Props) => {
       i++;
     }
 
-    if (isMasterView) {
-      path.moveto(0, 0);
-      path.lineto(8, 0);
-    }
+    path.moveto(0, 0);
+    path.lineto(8, 0);
 
     return { path, texts };
   }
 
+  const transform = `translate(${x} ${y})`;
   return (
-    <g>
+    <g transform={transform} >
       <g shapeRendering="crispEdges" >
         {segs.path.render()}
       </g>

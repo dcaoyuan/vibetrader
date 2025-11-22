@@ -10,6 +10,12 @@ export interface TSer {
   timestamps(): TStamps;
   vars(): Map<string, TVar<TVal>>;
 
+  /**
+   * @param name 
+   * @returns var of name, will create one if non exist yet.
+   */
+  varOf(name: string): TVar<TVal>;
+
   valuesCapacity: number;
 
   isLoaded: boolean;

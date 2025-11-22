@@ -47,7 +47,9 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
 
     this.quoteVar = props.tvar as TVar<Quote>;
 
-    const { chart, axisx, axisy } = this.plot();
+    const { chart, axisy } = this.plot();
+
+    console.log("QuoteChartView constructor plot chart");
 
     this.state = {
       width: props.width,
@@ -65,19 +67,18 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       isPinned: false,
 
       chart,
-      axisx,
       axisy,
 
       mouseCursor: <></>,
       referCursor: <></>,
     };
 
-    this.handleMouseMove = this.handleMouseMove.bind(this);
-    this.handleMouseLeave = this.handleMouseLeave.bind(this);
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleWheel = this.handleWheel.bind(this);
-    this.handleKeyDown = this.handleKeyDown.bind(this);
-    this.handleKeyUp = this.handleKeyUp.bind(this);
+    // this.handleMouseMove = this.handleMouseMove.bind(this);
+    // this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    // this.handleMouseDown = this.handleMouseDown.bind(this);
+    // this.handleWheel = this.handleWheel.bind(this);
+    // this.handleKeyDown = this.handleKeyDown.bind(this);
+    // this.handleKeyUp = this.handleKeyUp.bind(this);
   }
 
   protected initComponents() { }
@@ -93,26 +94,17 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       depth: 0
     });
 
-    const axisx = AxisX({
-      x: 0,
-      y: this.height - ChartView.AXISX_HEIGHT,
-      width: this.width,
-      height: ChartView.AXISX_HEIGHT,
-      xc: this.xc,
-      yc: this.yc,
-    })
-
     const axisy = AxisY({
       x: this.width - ChartView.AXISY_WIDTH,
       y: 0,
       width: ChartView.AXISY_WIDTH,
-      height: this.height - ChartView.AXISX_HEIGHT,
+      height: this.height,
       xc: this.xc,
       yc: this.yc,
       isMasterView: true
     })
 
-    return { chart, axisx, axisy }
+    return { chart, axisy }
   }
 
   protected putChartsOfMainSer() {
@@ -182,28 +174,14 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   }
 
   render() {
+    const transform = `translate(${this.props.x} ${this.props.y})`;
     return (
-      // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-      <div className='chartview' style={{ width: this.width + 'px', height: this.height + 'px' }}
-        onKeyDown={this.handleKeyDown}
-        onKeyUp={this.handleKeyUp}
-        tabIndex={0}
-      >
-
-        <svg width={this.width} height={this.height}
-          onMouseMove={this.handleMouseMove}
-          onMouseLeave={this.handleMouseLeave}
-          onMouseDown={this.handleMouseDown}
-          onWheel={this.handleWheel}
-          vectorEffect="non-scaling-stroke"
-        >
-          {this.state.chart}
-          {this.state.axisx}
-          {this.state.axisy}
-          {this.state.mouseCursor}
-          {this.state.referCursor}
-        </svg>
-      </div>
+      <g transform={transform}>
+        {this.state.chart}
+        {this.state.axisy}
+        {this.state.mouseCursor}
+        {this.state.referCursor}
+      </g >
     )
   }
 }

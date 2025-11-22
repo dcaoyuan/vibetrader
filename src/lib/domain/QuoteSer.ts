@@ -8,7 +8,7 @@ import type { TVar } from "../timeseris/TVar";
 const timeZone = "America/Vancouver";
 const varName = "ETH";
 
-export function loadSer() {
+export function loadSer(varName: string) {
   const qs = quotesJson //.reverse();
 
   const quoteSer = new DefaultBaseTSer(TFreq.DAILY, timeZone, 1000);
@@ -25,7 +25,7 @@ export function loadSer() {
 }
 
 export function testSer() {
-  const { quoteSer } = loadSer();
+  const { quoteSer } = loadSer(varName);
 
   const qvar = quoteSer.varOf(varName) as TVar<Quote>;
   console.log(qvar.values());

@@ -25,14 +25,16 @@ export type ChartParts = {
 }
 
 export interface ViewProps {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   xc: ChartXControl;
   baseSer: BaseTSer;
   tvar: TVar<TVal>;
-  width: number;
-  height: number;
-  isQuote: boolean;
-  isMasterView: boolean;
-  notify: (event: RefreshEvent) => void;
+  isQuote?: boolean;
+  isMasterView?: boolean;
+  // notify: (event: RefreshEvent) => void;
   refreshChart: number;
   refreshCursors: number;
   name: string;
@@ -54,7 +56,6 @@ export interface ViewState {
   isPinned: false
 
   chart: JSX.Element;
-  axisx: JSX.Element;
   axisy: JSX.Element;
 
   mouseCursor: JSX.Element
@@ -111,7 +112,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // share same xc through all views in the same viewcontainer.
     this.xc = props.xc
-    this.yc = new ChartYControl(props.baseSer, props.isMasterView ? props.height - ChartView.AXISX_HEIGHT : props.height);
+    this.yc = new ChartYControl(props.baseSer, props.height);
 
     this.baseSer = props.baseSer;
     this.tvar = props.tvar;
@@ -127,6 +128,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     this.initComponents();
     this.putChartsOfMainSer();
+
+    console.log(`${this.name} ChartView render`)
   }
 
   protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
@@ -498,6 +501,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // pay attention to the order to avoid text being overlapped
     const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
 
+    const transform = `translate(${x}, ${y})`
+
     return (
       <g>
         {segs.map(seg => seg.render())}
@@ -571,169 +576,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   protected isInAxisYArea(x: number) {
     return x < this.width - ChartView.AXISY_WIDTH
-  }
-
-  handleMouseLeave() {
-    // clear mouse cursor and prev value
-    this.xc.isMouseCuroseVisible = false;
-    this.yc.setMouseCursorValue(undefined, undefined)
-
-    this.props.notify(RefreshEvent.Cursors);
-  }
-
-  handleMouseMove(e: React.MouseEvent) {
-    const targetRect = e.currentTarget.getBoundingClientRect();
-    const x = e.pageX - targetRect.left;
-    const y = e.pageY - targetRect.top;
-
-    const time = this.xc.tx(x);
-
-    const b = this.xc.bx(x);
-
-    let value: number;
-    let cursorY: number
-    if (this.isInAxisXArea(y) && this.xc.exists(time)) {
-      // it's in the axis-x area
-      value = this.valueAtTime(time)
-      cursorY = this.yc.yv(value)
-
-    } else {
-      value = this.yc.vy(y);
-      cursorY = y;
-    }
-
-    if (this.isInAxisYArea(x)) {
-      // draw mouse cursor only when not in the axis-y area
-      const row = this.xc.rb(b)
-      this.xc.setMouseCursorByRow(row)
-      this.yc.setMouseCursorValue(value, cursorY)
-      this.xc.isMouseCuroseVisible = true
-
-    } else {
-      // clear mouse cursor and prev value
-      this.xc.isMouseCuroseVisible = false;
-      this.yc.setMouseCursorValue(undefined, undefined)
-    }
-
-    this.props.notify(RefreshEvent.Cursors);
-  }
-
-  handleMouseDown(e: React.MouseEvent) {
-    if (e.ctrlKey) {
-      // will select chart on pane
-
-    } else {
-      // set refer cursor
-      const targetRect = e.currentTarget.getBoundingClientRect();
-      const x = e.pageX - targetRect.left;
-      const y = e.pageY - targetRect.top;
-
-      const time = this.xc.tx(x);
-      if (!this.xc.exists(time)) {
-        return;
-      }
-
-      // align x to bar center
-      const b = this.xc.bx(x);
-
-      if (this.isInAxisYArea(x)) {
-        // draw refer cursor only when not in the axis-y area
-        if (
-          y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= this.height &&
-          b >= 1 && b <= this.xc.nBars
-        ) {
-          const row = this.xc.rb(b)
-          this.xc.setReferCursorByRow(row, true)
-          this.xc.isReferCuroseVisible = true;
-
-          this.props.notify(RefreshEvent.Cursors);
-        }
-      }
-    }
-  }
-
-  handleWheel(e: React.WheelEvent) {
-    const fastSteps = Math.floor(this.xc.nBars * 0.168)
-    const delta = Math.round(e.deltaY / this.xc.nBars);
-    console.log(e, delta)
-
-    if (e.shiftKey) {
-      // zoom in / zoom out 
-      this.xc.growWBar(delta)
-
-    } else if (e.ctrlKey) {
-      if (!this.isInteractive) {
-        return
-      }
-
-      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
-      // move refer cursor left / right 
-      this.xc.scrollReferCursor(unitsToScroll, true)
-
-    } else {
-      if (!this.isInteractive) {
-        return
-      }
-
-      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
-      // keep referCursor staying same x in screen, and move
-      this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
-    }
-
-    this.props.notify(RefreshEvent.Chart);
-  }
-
-  handleKeyDown(e: React.KeyboardEvent) {
-    const fastSteps = Math.floor(this.xc.nBars * 0.168)
-
-    switch (e.key) {
-      case "ArrowLeft":
-        if (e.ctrlKey) {
-          this.xc.moveCursorInDirection(fastSteps, -1)
-        } else {
-          this.xc.moveChartsInDirection(fastSteps, -1)
-        }
-        break;
-
-      case "ArrowRight":
-        if (e.ctrlKey) {
-          this.xc.moveCursorInDirection(fastSteps, 1)
-        } else {
-          this.xc.moveChartsInDirection(fastSteps, 1)
-        }
-        break;
-
-      case "ArrowUp":
-        if (!e.ctrlKey) {
-          this.xc.growWBar(1)
-        }
-        break;
-
-      case "ArrowDown":
-        if (!e.ctrlKey) {
-          this.xc.growWBar(-1);
-        }
-        break;
-
-      default:
-    }
-
-    this.props.notify(RefreshEvent.Chart)
-  }
-
-  handleKeyUp(e: React.KeyboardEvent) {
-    switch (e.key) {
-      case " ":
-        this.xc.isCursorAccelerated = !this.xc.isCursorAccelerated
-        break;
-
-      case "Escape":
-        this.xc.isReferCuroseVisible = false;
-        this.props.notify(RefreshEvent.Cursors)
-        break;
-
-      default:
-    }
   }
 
   // Important: Be careful when calling setState within componentDidUpdate

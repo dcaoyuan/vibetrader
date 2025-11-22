@@ -10,10 +10,9 @@ import type { ChartYControl } from "../view/ChartYControl";
 const TICK_SPACING = 100 // in pixels
 
 type Props = {
-  xc: ChartXControl,
-  yc: ChartYControl,
   x: number,
   y: number,
+  xc: ChartXControl,
   width: number,
   height: number,
 }
@@ -31,8 +30,8 @@ const AxisX = (props: Props) => {
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
     const color = Theme.now().axisColor;
-    const path = new Path(x, y, color);
-    const texts = new Text(x, y, color);
+    const path = new Path(0, 0, color);
+    const texts = new Text(0, 0, color);
 
     // draw axis-x line 
     path.moveto(0, 0)
@@ -46,7 +45,7 @@ const AxisX = (props: Props) => {
     let prevDateYear: number;
     let prevDateDay: number;
 
-    const hTick = height;
+    const hTick = 4;
     const xLastTick = xc.xb(nBars)
     let i = 1;
     while (i <= nBars) {
@@ -57,10 +56,8 @@ const AxisX = (props: Props) => {
           // too close
 
         } else {
-          if (i !== 1) {
-            path.moveto(xCurrTick, 1)
-            path.lineto(xCurrTick, hTick)
-          }
+          path.moveto(xCurrTick, 1)
+          path.lineto(xCurrTick, hTick)
 
           const time = xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -69,8 +66,7 @@ const AxisX = (props: Props) => {
           switch (freqUnit) {
             case TUnit.Day:
               currDateYear = currDt.year;
-              //cal.setTime(prevDate)
-              prevDateYear = prevDt.year; // cal.get(Calendar.YEAR)
+              prevDateYear = prevDt.year;
               if (currDateYear > prevDateYear && i !== nBars || i === 1) {
                 stridingDate = true
               }
@@ -79,9 +75,8 @@ const AxisX = (props: Props) => {
             case TUnit.Hour:
             case TUnit.Minute:
             case TUnit.Second:
-              //cal.setTime(prevDate)
               currDateDay = currDt.daysInWeek;
-              prevDateDay = prevDt.daysInMonth; //get(Calendar.DAY_OF_MONTH)
+              prevDateDay = prevDt.daysInMonth;
               if (currDateDay > prevDateDay && i !== nBars || i === 1) {
                 stridingDate = true
               }
@@ -106,8 +101,11 @@ const AxisX = (props: Props) => {
     return { path, texts };
   }
 
+  const transform = `translate(${x} ${y})`;
+
+  console.log("AxisX render");
   return (
-    <g>
+    <g transform={transform} >
       <g shapeRendering="crispEdges" >
         {segs.path.render()}
       </g>
