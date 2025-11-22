@@ -12,7 +12,6 @@ export function loadSer(varName: string) {
   const qs = quotesJson //.reverse();
 
   const quoteSer = new DefaultBaseTSer(TFreq.DAILY, timeZone, 1000);
-  const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
   //console.log(qs)
 
@@ -21,11 +20,11 @@ export function loadSer(varName: string) {
     quoteSer.addToVar(varName, quote);
   }
 
-  return { quoteSer, qvar };
+  return quoteSer;
 }
 
 export function testSer() {
-  const { quoteSer } = loadSer(varName);
+  const quoteSer = loadSer(varName);
 
   const qvar = quoteSer.varOf(varName) as TVar<Quote>;
   console.log(qvar.values());
