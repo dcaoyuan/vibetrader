@@ -42,15 +42,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
       referCursor: <></>,
     };
 
-    // this.handleMouseMove = this.handleMouseMove.bind(this);
-    // this.handleMouseLeave = this.handleMouseLeave.bind(this);
-    // this.handleMouseDown = this.handleMouseDown.bind(this);
-    // this.handleWheel = this.handleWheel.bind(this);
-    // this.handleKeyDown = this.handleKeyDown.bind(this);
-    // this.handleKeyUp = this.handleKeyUp.bind(this);
   }
-
-  protected initComponents() { }
 
   override plot() {
     this.computeGeometry();

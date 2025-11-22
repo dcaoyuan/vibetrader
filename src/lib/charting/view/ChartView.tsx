@@ -107,15 +107,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   name: string
   id: number;
 
-  //readonly glassPane = new GlassPane(this, this.mainChartPane)
-  //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
-  //readonly axisYPane = new AxisYPane(this, this.mainChartPane)
-  //readonly divisionPane = new DivisionPane(this, this.mainChartPane)
-
   constructor(props: P) {
     super(props)
 
-    // share same xc through all views in the same viewcontainer.
+    // share same xc through all views that are in the same viewcontainer.
     this.xc = props.xc
     this.yc = new ChartYControl(props.baseSer, props.height);
 
@@ -130,11 +125,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.name = props.name;
     this.id = props.id;
 
-    this.#createBasisComponents();
-
-    this.initComponents();
-    this.putChartsOfMainSer();
-
     console.log(`${this.name} ChartView render`)
   }
 
@@ -142,20 +132,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-  //   const mainLayeredPane = new JLayeredPane {
-  //     /** this will let the pane components getting the proper size when init */
-  //     override protected def paintComponent(g: Graphics) {
-  //       val width = getWidth
-  //       val height = getHeight
-  //       for (c <- getComponents if c.isInstanceOf[Pane]) {
-  //         c.setBounds(0, 0, width, height)
-  //       }
-  //     }
-  //   }
-
-  // x-control pane, may be <code>null</code>
-  //xControlPane?: XControlPane;
-  // y-control pane, may be <code>null</code>
   yControlPane?: Pane; //YControlPane;
 
   isQuote = false;
@@ -170,66 +146,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   #isPinned = false
 
-  protected abstract initComponents(): void;
-
-  #createBasisComponents() {
-
-    /**
-     * !NOTICE
-     * To make background works, should keep three conditions:
-     * 1. It should be a JPanel instead of a JComponent(which may have no background);
-     * 2. It should be opaque;
-     * 3. If override paintComponent(g0), should call super.paintComponent(g0) ?
-     */
-    // setOpaque(true);
-
-    // this.mainLayeredPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-    // this.mainLayeredPane.add(mainChartPane, JLayeredPane.DEFAULT_LAYER)
-
-    // this.glassPane.setPreferredSize(new Dimension(10, (10 - 10 / 6.18).toInt))
-
-    // this.axisXPane.setPreferredSize(new Dimension(10, AXISX_HEIGHT))
-    // this.axisYPane.setPreferredSize(new Dimension(AXISY_WIDTH, 10))
-    // this.divisionPane.setPreferredSize(new Dimension(10, 1))
-  }
-
-  /**
-   * The paintComponent() method will always be called automatically whenever
-   * the component need to be reconstructed as it is a JComponent.
-   */
-  protected paintComponent() {
-    this.prePaintComponent()
-
-    // if (isOpaque) {
-    //   /**
-    //    * Process background by self,
-    //    *
-    //    * @NOTICE
-    //    * don't forget to setBackgroud() to keep this component's properties consistent
-    //    */
-    //   setBackground(LookFeel().backgroundColor)
-    //   g.setColor(getBackground)
-    //   g.fillRect(0, 0, getWidth, getHeight)
-    // }
-
-    /**
-     * @NOTICE:
-     * if we call:
-     *   super.paintComponent(g);
-     * here, this.paintComponent(g) will be called three times!!!, the reason
-     * may be that isOpaque() == true
-     */
-    this.postPaintComponent()
-  }
-
-  protected prePaintComponent() {
-    this.computeGeometry()
-  }
-
   /**
    * what may affect the geometry:
    * 1. the size of this component changed;
-   * 2. the rightCursorRow changed;
    * 3. the ser's value changed or its items added, which need computeMaxMin();
    *
    * The control only define wBar (the width of each bar), this component
@@ -251,35 +170,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.minValue = min;
   }
 
-  protected postPaintComponent() {
-    /**
-     * update controlPane's scrolling thumb position etc.
-     *
-     * @NOTICE
-     * We choose here do update controlPane, because the paint() called in
-     * Java Swing is async, we not sure when it will be really called from
-     * outside, even in this's container, so here is relative safe place to
-     * try, because here means the paint() is truely beging called by awt.
-     */
-    // if (this.axisXPane != null) {
-    //   this.axisXPane.syncWithView
-    // }
-
-    // if (this.axisYPane != null) {
-    //   this.axisYPane.syncWithView
-    // }
-
-    // if (this.xControlPane != null) {
-    //   this.xControlPane.syncWithView
-    // }
-
-    // if (this.yControlPane != null) {
-    //   this.yControlPane.syncWithView
-    // }
-
-  }
-
-  // should decide width by this component's width and constant AXISY_WIDTH, since the width of children may not be decided yet.
   wChart(): number {
     return this.width - ChartView.AXISY_WIDTH;
   }
@@ -416,41 +306,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   // }
 
   computeMaxMin() {
-    /** if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 */
+    // if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 
     this.maxValue = 1;
     this.minValue = 0;
   }
-
-  protected abstract putChartsOfMainSer(): void
-
-  /** this method only process FinishedComputing event, if you want more, do it in subclass */
-  // protected updateView(evt: TSerEvent) {
-  //   switch (evt) {
-  //     case TSerEvent.Computed(_, _, _, _, _, _):
-  //       switch (this) {
-  //         case drawPane: WithDrawingPane:
-  //           const drawing = drawPane.selectedDrawing
-  //           if (drawing !== undefined && drawing.isInDrawing) {
-  //             return
-  //           }
-  //           break;
-  //         default:
-  //       }
-
-  //       notifyChanged(classOf[ChartValidityObserver])
-
-  //       // repaint this chart view
-  //       repaint();
-  //       break;
-  //     default:
-  //   }
-  // }
-
-  //   @throws(classOf[Throwable])
-  //   override protected def finalize {
-  //     deafTo(_mainSer)
-  //     super.finalize
-  //   }
 
   abstract plot(): ChartParts;
 
