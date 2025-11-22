@@ -64,6 +64,8 @@ const QuoteSerView = (props: Props) => {
 
   function plotCursor(x: number, color: string) {
     const crossPath = new Path(color);
+    // crossPath.stroke_dasharray = '1, 1'
+    // vertical line
     crossPath.moveto(x, 0);
     crossPath.lineto(x, height)
 

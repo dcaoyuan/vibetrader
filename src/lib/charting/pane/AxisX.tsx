@@ -21,9 +21,10 @@ type Props = {
 }
 
 type State = {
+  chart: JSX.Element,
+
   referCursor: JSX.Element,
   mouseCursor: JSX.Element,
-  chart: JSX.Element,
 }
 
 class AxisX extends Component<Props, State> {
@@ -135,20 +136,30 @@ class AxisX extends Component<Props, State> {
     );
   }
 
+  protected updateChart() {
+    // clear mouse cursor and prev value
+    this.xc.isMouseCuroseVisible = false;
+
+    const chart = this.plot();
+    this.updateState({ chart });
+  }
+
+  protected updateCursors() {
+    this.updateState({});
+  }
+
   protected updateState(state: object) {
     let referCursor = <></>
     let mouseCursor = <></>
     const referColor = '#00F0F0'; // 'orange'
+    const mouseColor = '#00F000';
+
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.exists(time)) {
-        const b = this.xc.bt(time)
+        const cursorX = this.xc.xr(this.xc.referCursorRow)
 
-        if (b >= 1 && b <= this.xc.nBars) {
-          const cursorX = this.xc.xr(this.xc.referCursorRow)
-
-          referCursor = this.plotCursor(cursorX, time, referColor)
-        }
+        referCursor = this.#plotCursor(cursorX, time, referColor)
       }
     }
 
@@ -157,14 +168,14 @@ class AxisX extends Component<Props, State> {
       if (this.xc.exists(time)) {
         const cursorX = this.xc.xr(this.xc.mouseCursorRow)
 
-        mouseCursor = this.plotCursor(cursorX, time, '#00F000')
+        mouseCursor = this.#plotCursor(cursorX, time, mouseColor)
       }
     }
 
     this.setState({ ...state, referCursor, mouseCursor })
   }
 
-  plotCursor(x: number, time: number, color: string) {
+  #plotCursor(x: number, time: number, color: string) {
     const w = 48; // annotation width
     const h = 13; // annotation height
 
@@ -188,18 +199,6 @@ class AxisX extends Component<Props, State> {
         {[axisxPath, axisxText].map(seg => seg.render())}
       </g>
     )
-  }
-
-  protected updateChart() {
-    // clear mouse cursor and prev value
-    this.xc.isMouseCuroseVisible = false;
-
-    const chart = this.plot();
-    this.updateState({ chart });
-  }
-
-  protected updateCursors() {
-    this.updateState({});
   }
 
   render() {

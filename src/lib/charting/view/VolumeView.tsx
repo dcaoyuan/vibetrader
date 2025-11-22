@@ -66,19 +66,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     return { chart, axisy }
   }
 
-  protected putChartsOfMainSer() {
-    // const vars = new Set<TVar<TVal>>();
-    // for (let [name, v] of this.mainSer.vars()) {
-    //   if (v.plot === Plot.Quote) {
-    //     vars.add(v);
-    //     this.quoteVar = v as TVar<Quote>;
-    //   }
-    // }
-    // //mainSerChartToVars.put(this.quoteChart, vars)
-
-    // this.mainChartPane.putChart(this.quoteChart)
-  }
-
   override computeMaxMin() {
     let max = Number.NEGATIVE_INFINITY;
     const min = 0// Number.POSITIVE_INFINITY;

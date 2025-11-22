@@ -60,7 +60,7 @@ export interface ViewState {
   isPinned: false
 
   chart: JSX.Element;
-  axisy: JSX.Element;
+  axisy?: JSX.Element;
 
   mouseCursor: JSX.Element
   referCursor: JSX.Element
@@ -311,13 +311,75 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.minValue = 0;
   }
 
-  abstract plot(): ChartParts;
-
   valueAtTime(time: number) {
     return this.tvar.getByTime(time).value;
   }
 
-  plotCursor(x: number, y: number, time: number, value: number, color: string) {
+  abstract plot(): ChartParts;
+
+  protected updateChart() {
+    // clear mouse cursor and prev value
+    this.xc.isMouseCuroseVisible = false;
+    this.yc.setMouseCursorValue(undefined, undefined)
+
+    const chartParts = this.plot();
+    this.updateState(chartParts);
+  }
+
+  protected updateCursors(yMouse: number) {
+    this.updateState({}, yMouse);
+  }
+
+  protected updateState(state: object, yMouse?: number) {
+    let referCursor = <></>
+    let mouseCursor = <></>
+    const referColor = '#00F0F0'; // 'orange'
+    const mouseColor = '#00F000';
+
+    if (this.xc.isReferCuroseVisible) {
+      const time = this.xc.tr(this.xc.referCursorRow)
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.referCursorRow)
+
+        let value = this.valueAtTime(time);
+        const cursorY = this.yc.yv(value)
+
+        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+          value /= ChartYControl.VALUE_SCALE_UNIT
+        }
+
+        referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
+      }
+    }
+
+    if (this.xc.isMouseCuroseVisible) {
+      const time = this.xc.tr(this.xc.mouseCursorRow)
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+
+        let value: number;
+        let cursorY: number;
+        if (yMouse === undefined) {
+          value = this.valueAtTime(time);
+          cursorY = this.yc.yv(value);
+
+        } else {
+          cursorY = yMouse;
+          value = this.yc.vy(cursorY);
+        }
+
+        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+          value /= ChartYControl.VALUE_SCALE_UNIT
+        }
+
+        mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+      }
+    }
+
+    this.setState({ ...state, referCursor, mouseCursor })
+  }
+
+  #plotCursor(x: number, y: number, time: number, value: number, color: string) {
     const w = 48; // annotation width
     const h = 13; // annotation height
 
@@ -328,9 +390,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const valueStr = COMMON_DECIMAL_FORMAT.format(value);
 
     const crossPath = new Path(color);
-    //crossPath.stroke_dasharray = '1, 1'
-    // crossPath.moveto(x, 0);
-    // crossPath.lineto(x, this.height)
+    // crossPath.stroke_dasharray = '1, 1'
 
     // horizontal line
     crossPath.moveto(0, y);
@@ -376,75 +436,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         </g>
       </>
     )
-  }
-
-  protected updateChart() {
-    // clear mouse cursor and prev value
-    this.xc.isMouseCuroseVisible = false;
-    this.yc.setMouseCursorValue(undefined, undefined)
-
-    const chartParts = this.plot();
-    this.updateState(chartParts);
-  }
-
-  protected updateCursors(yMouse: number) {
-    this.updateState({}, yMouse);
-  }
-
-  protected updateState(state: object, yMouse?: number) {
-    let referCursor = <></>
-    let mouseCursor = <></>
-    const referColor = '#00F0F0'; // 'orange'
-
-    if (this.xc.isReferCuroseVisible) {
-      const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.exists(time)) {
-        const cursorX = this.xc.xr(this.xc.referCursorRow)
-
-        let value = this.valueAtTime(time);
-        const cursorY = this.yc.yv(value)
-
-        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value /= ChartYControl.VALUE_SCALE_UNIT
-        }
-
-        referCursor = this.plotCursor(cursorX, cursorY, time, value, referColor)
-      }
-    }
-
-    if (this.xc.isMouseCuroseVisible) {
-      const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.exists(time)) {
-        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
-
-        let value: number;
-        let cursorY: number;
-        if (yMouse === undefined) {
-          value = this.valueAtTime(time);
-          cursorY = this.yc.yv(value);
-
-        } else {
-          cursorY = yMouse;
-          value = this.yc.vy(cursorY);
-        }
-
-        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value /= ChartYControl.VALUE_SCALE_UNIT
-        }
-
-        mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
-      }
-    }
-
-    this.setState({ ...state, referCursor, mouseCursor })
-  }
-
-  protected isInAxisXArea(y: number) {
-    return this.isMasterView && y >= this.height - ChartView.AXISX_HEIGHT
-  }
-
-  protected isInAxisYArea(x: number) {
-    return x < this.width - ChartView.AXISY_WIDTH
   }
 
   // Important: Be careful when calling setState within componentDidUpdate
