@@ -492,7 +492,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     axisyPath.lineto(x0 + w, y - h);
     axisyPath.lineto(x0, y - h);
     axisyPath.closepath();
-    axisyText.text(4, y, valueStr);
+    axisyText.text(4, y - 1, valueStr);
 
     // pay attention to the order to avoid text being overlapped
     const segs = [crossPath, axisxPath, axisxText, axisyPath, axisyText]
@@ -528,8 +528,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (b >= 1 && b <= this.xc.nBars) {
 
           const cursorX = this.xc.xr(this.xc.referCursorRow)
-          const value = this.valueAtTime(time);
+          let value = this.valueAtTime(time);
           const cursorY = this.yc.yv(value)
+
+          if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+            value = value / ChartYControl.VALUE_SCALE_UNIT
+          }
 
           referCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F0F0')
         }
@@ -546,6 +550,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (value === undefined) {
           value = this.valueAtTime(time);
           cursorY = this.yc.yv(value)
+        }
+
+        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+          value = value / ChartYControl.VALUE_SCALE_UNIT
         }
 
         mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')

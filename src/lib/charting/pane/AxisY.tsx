@@ -2,7 +2,7 @@ import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
 import { Text } from "../../svg/Text";
 import { Theme } from "../theme/Theme";
-import type { ChartYControl } from "../view/ChartYControl";
+import { ChartYControl } from "../view/ChartYControl";
 import { COMMON_DECIMAL_FORMAT, CURRENCY_DECIMAL_FORMAT } from "../view/Format";
 
 type Props = {
@@ -91,6 +91,9 @@ export const AxisY = (props: Props) => {
       vMinTick = Math.ceil(vMinTick / vTickUnit) * vTickUnit
     }
 
+    const shouldScale = Math.abs(vMaxTick) >= ChartYControl.VALUE_SCALE_UNIT;
+    const multiple = "x" + ChartYControl.VALUE_SCALE_UNIT;
+
     const color = Theme.now().axisColor;
     const path = new Path(x, y, color);
     const texts = new Text(x, y, color);
@@ -99,7 +102,6 @@ export const AxisY = (props: Props) => {
     path.moveto(0, 0)
     path.lineto(0, height)
 
-    let shouldScale = false
     let i = 0
     let breakNow = false
     while (i < nTicks + 2 && !breakNow) {
@@ -113,16 +115,14 @@ export const AxisY = (props: Props) => {
         path.moveto(0, yTick)
         path.lineto(4, yTick)
 
-        if (Math.abs(vTick) >= 100000) {
+        if (shouldScale) {
           vTick = Math.abs(vTick / 100000.0)
-          shouldScale = true
 
         } else {
           vTick = Math.abs(vTick)
         }
 
         if (i === 0 && shouldScale) {
-          const multiple = "x10000"
 
           texts.text(4, yTick, multiple);
 

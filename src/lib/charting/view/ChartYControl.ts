@@ -5,6 +5,8 @@ import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
 
 export class ChartYControl {
+  static readonly VALUE_SCALE_UNIT = 100000;
+
   baseSer: BaseTSer;
   height: number;
 
@@ -24,8 +26,8 @@ export class ChartYControl {
   #hOne = 0.0               // pixels per 1.0 value
   #maxValue = 0.0           // fetched from view
   #minValue = 0.0           // fetched from view
-  #maxScaledValue = 0.0
-  #minScaledValue = 0.0
+  #maxScalarValue = 0.0
+  #minScalarValue = 0.0
 
   valueScalar: Scalar = LINEAR_SCALAR
 
@@ -71,8 +73,8 @@ export class ChartYControl {
       this.#minValue = minVolume;
     }
 
-    this.#maxScaledValue = this.valueScalar.doScale(this.#maxValue)
-    this.#minScaledValue = this.valueScalar.doScale(this.#minValue)
+    this.#maxScalarValue = this.valueScalar.doScale(this.#maxValue)
+    this.#minScalarValue = this.valueScalar.doScale(this.#minValue)
 
     this.#hCanvas = this.height - this.#hSpaceLower - this.#hSpaceUpper;
 
@@ -92,7 +94,7 @@ export class ChartYControl {
      * the chart height corresponds to value range.
      * (not canvas height, which may contain values exceed max/min)
      */
-    this.#hOne = this.#hChart / (this.#maxScaledValue - this.#minScaledValue)
+    this.#hOne = this.#hChart / (this.#maxScalarValue - this.#minScalarValue)
 
     /** avoid hOne == 0 */
     this.#hOne = Math.max(this.#hOne, 0.0000000001)
@@ -107,8 +109,8 @@ export class ChartYControl {
         hSpaceUpper: this.#hSpaceUpper,
         maxValue: this.#maxValue,
         minValue: this.#minValue,
-        maxScaledValue: this.#maxScaledValue,
-        minScaledValue: this.#minScaledValue,
+        maxScaledValue: this.#maxScalarValue,
+        minScaledValue: this.#minScalarValue,
         yCanvasLower: this.#yCanvasLower,
         yChartLower: this.#yChartLower,
         yChartScale: this.#yChartScale
@@ -128,8 +130,6 @@ export class ChartYControl {
     this.mouseCursorValue = mouseCursorValue;
     this.mouseCursorY = mouseCursorY;
   }
-
-
 
   growYChartScale(increment: number) {
     this.yChartScale += increment;
@@ -157,8 +157,8 @@ export class ChartYControl {
    * @return y on the pane
    */
   yv(value: number): number {
-    const scaledValue = this.valueScalar.doScale(value)
-    return Geometry.yv(scaledValue, this.#hOne, this.#minScaledValue, this.#yChartLower)
+    const scalarValue = this.valueScalar.doScale(value)
+    return Geometry.yv(scalarValue, this.#hOne, this.#minScalarValue, this.#yChartLower)
   }
 
   /**
@@ -167,8 +167,8 @@ export class ChartYControl {
    * @return value
    */
   vy(y: number): number {
-    const scaledValue = Geometry.vy(y, this.#hOne, this.#minScaledValue, this.#yChartLower)
-    return this.valueScalar.unScale(scaledValue);
+    const scalarValue = Geometry.vy(y, this.#hOne, this.#minScalarValue, this.#yChartLower)
+    return this.valueScalar.unScale(scalarValue);
   }
 
   /**
