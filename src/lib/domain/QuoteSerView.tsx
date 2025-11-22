@@ -1,4 +1,4 @@
-import { memo, useRef, useState } from "react";
+import { memo, useRef, useState, type JSX } from "react";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { loadSer } from "./QuoteSer";
@@ -9,21 +9,22 @@ import { ref } from "process";
 import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
 import type { Quote } from "./Quote";
+import { Path } from "../svg/Path";
 
 type Props = {
   xc: ChartXControl,
   varName: string,
+  width: number,
 }
 
 const QuoteSerView = (props: Props) => {
-  const { xc, varName } = props;
+  const { xc, varName, width } = props;
 
   const quoteSer = xc.baseSer as BaseTSer;
   const qvar = quoteSer.varOf(varName) as TVar<Quote>;
 
   const isInteractive = true;
 
-  const width = 800;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
@@ -45,19 +46,62 @@ const QuoteSerView = (props: Props) => {
   const [refreshChart, setRefreshChart] = useState(0);
   const [refreshCursors, setRefreshCursors] = useState(0);
 
+  const [cursors, setCursors] = useState<JSX.Element[]>([]);
+
   const notify = (event: RefreshEvent) => {
     switch (event) {
       case RefreshEvent.Chart:
         setRefreshChart(refreshChart + 1);
+        updateCursors();
         break;
 
       case RefreshEvent.Cursors:
         setRefreshCursors(refreshCursors + 1)
+        updateCursors();
         break;
 
       default:
     }
   }
+
+  function plotCursor(x: number, color: string) {
+    const crossPath = new Path(color);
+    crossPath.moveto(x, 0);
+    crossPath.lineto(x, height)
+    return (
+      <g shapeRendering="crispEdges">
+        {crossPath.render()}
+      </g>
+    )
+  }
+
+  function updateCursors() {
+    let referCursor = <></>
+    let mouseCursor = <></>
+    const referColor = '#00F0F0'; // 'orange'
+    if (xc.isReferCuroseVisible) {
+      const time = xc.tr(xc.referCursorRow)
+      if (xc.exists(time)) {
+        const b = xc.bt(time)
+        if (b >= 1 && b <= xc.nBars) {
+          const cursorX = xc.xr(xc.referCursorRow)
+          referCursor = plotCursor(cursorX, referColor)
+        }
+      }
+    }
+
+    if (xc.isMouseCuroseVisible) {
+      const time = xc.tr(xc.mouseCursorRow)
+      if (xc.exists(time)) {
+        const cursorX = xc.xr(xc.mouseCursorRow)
+        mouseCursor = plotCursor(cursorX, '#00F000')
+      }
+    }
+
+    console.log([mouseCursor, referCursor]);
+    setCursors([mouseCursor, referCursor]);
+  }
+
 
   function isInAxisXArea(y: number) {
     return false;
@@ -281,6 +325,7 @@ const QuoteSerView = (props: Props) => {
           refreshChart={refreshChart}
           refreshCursors={refreshCursors}
         />
+        {cursors}
       </svg>
     </div>
   )

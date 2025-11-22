@@ -467,8 +467,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     const crossPath = new Path(color);
     //crossPath.stroke_dasharray = '1, 1'
-    crossPath.moveto(x, 0);
-    crossPath.lineto(x, this.height)
+    // crossPath.moveto(x, 0);
+    // crossPath.lineto(x, this.height)
+
+    // horizontal line
     crossPath.moveto(0, y);
     crossPath.lineto(this.width, y)
 
@@ -501,7 +503,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     return (
       // pay attention to the order to avoid text being overlapped
       <>
-        <g  >
+        <g shapeRendering="crispEdges" >
           {crossPath.render()}
         </g>
         <g transform={transformx}>

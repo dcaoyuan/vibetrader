@@ -4,13 +4,13 @@ import { loadSer } from '../domain/QuoteSer';
 import QuoteSerView from '../domain/QuoteSerView';
 
 const Screen = () => {
-  const width = 800;
+  const width = 1000;
   const varName = "ETC";
-  const { quoteSer, qvar } = loadSer(varName);
+  const { quoteSer } = loadSer(varName);
   const xc = new ChartXControl(quoteSer, width - ChartView.AXISY_WIDTH);
   return (
     <div>
-      <QuoteSerView varName='ETC' xc={xc} />
+      <QuoteSerView varName='ETC' xc={xc} width={width} />
     </div>
   )
 };
