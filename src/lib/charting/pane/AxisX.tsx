@@ -4,18 +4,20 @@ import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
-import { Component, type JSX } from "react";
+import { Component, type JSX, } from "react";
+import type { RefreshCursor } from "../view/ChartView";
 
 const TICK_SPACING = 100 // in pixels
 
 type Props = {
+  id: number,
   x: number,
   y: number,
   xc: ChartXControl,
   width: number,
   height: number,
   refreshChart: number,
-  refreshCursors: number,
+  refreshCursors: RefreshCursor,
 }
 
 type State = {

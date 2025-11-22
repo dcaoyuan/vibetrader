@@ -347,7 +347,7 @@ export class DefaultTSer implements TSer {
   // }
 
   TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
-    return new TVar<V>(this as any as BaseTSer, name, kind);
+    return new TVar<V>(this as unknown as BaseTSer, name, kind);
   }
 
   // @todo SparseTVar

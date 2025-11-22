@@ -3,7 +3,7 @@ import { QuoteChartView } from "../charting/view/QuoteChartView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { loadSer } from "./QuoteSer";
 import { ChartXControl } from "../charting/view/ChartXControl";
-import { ChartView, RefreshEvent } from "../charting/view/ChartView";
+import { ChartView, RefreshEvent, type RefreshCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
 import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
@@ -29,32 +29,33 @@ const QuoteSerView = (props: Props) => {
   const hAxisx = ChartView.AXISX_HEIGHT;
   const padding = 10;
 
-  const heights = [hMasterView, hSlaveView, hAxisx];
+  const hViews = [hMasterView, hSlaveView, hAxisx];
 
-  const ys = [0];
-  let height = 0;
+  const yStarts = [0];
   let y = 0
-  for (let i = 0; i < heights.length - 1; i++) {
-    y += heights[i] + padding;
-    ys.push(y);
+  for (let i = 0; i < hViews.length - 1; i++) {
+    y += hViews[i] + padding;
+    yStarts.push(y);
   }
 
-  height = y + heights[heights.length - 1];
+  const height = y + hViews[hViews.length - 1];
+
+  const emptyYMouses = hViews.map(_ => undefined);
 
   console.log("QuoteSerView render");
   const [refreshChart, setRefreshChart] = useState(0);
-  const [refreshCursors, setRefreshCursors] = useState(0);
+  const [refreshCursors, setRefreshCursors] = useState<RefreshCursor>({ changed: 0, yMouses: emptyYMouses });
 
   const cursors = plotCursors()
 
-  const notify = (event: RefreshEvent) => {
+  const notify = (event: RefreshEvent, yMouses: number[] = emptyYMouses) => {
     switch (event) {
       case RefreshEvent.Chart:
         setRefreshChart(refreshChart + 1);
         break;
 
       case RefreshEvent.Cursors:
-        setRefreshCursors(refreshCursors + 1)
+        setRefreshCursors({ changed: refreshCursors.changed + 1, yMouses })
         break;
 
       default:
@@ -97,10 +98,20 @@ const QuoteSerView = (props: Props) => {
     )
   }
 
+  function calcYMouses(y: number) {
+    const yMouses: number[] = [];
 
-  function isInAxisXArea(y: number) {
-    return false;
-    //return this.isMasterView && y >= this.height - ChartView.AXISX_HEIGHT
+    for (let i = 0; i < hViews.length; i++) {
+      const yStart = yStarts[i];
+      const yEnd = yStart + hViews[i];
+      if (y >= yStart && y <= yEnd) {
+        yMouses.push(y - yStart);
+      } else {
+        yMouses.push(undefined);
+      }
+    }
+
+    return yMouses;
   }
 
   function isInAxisYArea(x: number) {
@@ -110,7 +121,6 @@ const QuoteSerView = (props: Props) => {
   function handleMouseLeave() {
     // clear mouse cursor and prev value
     xc.isMouseCuroseVisible = false;
-    //this.yc.setMouseCursorValue(undefined, undefined)
 
     notify(RefreshEvent.Cursors);
   }
@@ -120,37 +130,19 @@ const QuoteSerView = (props: Props) => {
     const x = e.pageX - targetRect.left;
     const y = e.pageY - targetRect.top;
 
-    const time = xc.tx(x);
-
     const b = xc.bx(x);
-
-    let value: number;
-    let cursorY: number
-    if (isInAxisXArea(y) && xc.exists(time)) {
-      // it's in the axis-x area
-      //value = this.valueAtTime(time)
-      //cursorY = this.yc.yv(value)
-
-    } else {
-      //value = this.yc.vy(y);
-      //cursorY = y;
-    }
 
     if (isInAxisYArea(x)) {
       // draw mouse cursor only when not in the axis-y area
       const row = xc.rb(b)
       xc.setMouseCursorByRow(row)
-      //this.yc.setMouseCursorValue(value, cursorY)
       xc.isMouseCuroseVisible = true
 
     } else {
-      // clear mouse cursor and prev value
       xc.isMouseCuroseVisible = false;
-      //this.yc.setMouseCursorValue(undefined, undefined)
     }
 
-    notify(RefreshEvent.Cursors);
-    //this.props.notify(RefreshEvent.Cursors);
+    notify(RefreshEvent.Cursors, calcYMouses(y));
   }
 
   function handleMouseDown(e: React.MouseEvent) {
@@ -283,12 +275,13 @@ const QuoteSerView = (props: Props) => {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onMouseDown={handleMouseDown}
-      // onWheel={handleWheel}
+        onWheel={handleWheel}
       >
         <QuoteChartView
+          id={0}
           name="ETH"
           x={0}
-          y={ys[0]}
+          y={yStarts[0]}
           xc={xc}
           baseSer={quoteSer}
           tvar={qvar}
@@ -300,9 +293,10 @@ const QuoteSerView = (props: Props) => {
           refreshCursors={refreshCursors}
         />
         <VolumeView
+          id={1}
           name="Vol"
           x={0}
-          y={ys[1]}
+          y={yStarts[1]}
           xc={xc}
           baseSer={quoteSer}
           tvar={qvar}
@@ -312,8 +306,9 @@ const QuoteSerView = (props: Props) => {
           refreshCursors={refreshCursors}
         />
         <AxisX
+          id={2}
           x={0}
-          y={ys[2]}
+          y={yStarts[2]}
           width={width}
           height={hAxisx}
           xc={xc}

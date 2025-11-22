@@ -20,11 +20,16 @@ export enum RefreshEvent {
 
 export type ChartParts = {
   chart: JSX.Element,
-  axisx?: JSX.Element,
   axisy: JSX.Element
 }
 
+export type RefreshCursor = {
+  changed: number,
+  yMouses: number[], // per view
+}
+
 export interface ViewProps {
+  id: number
   x: number;
   y: number;
   width: number;
@@ -34,9 +39,8 @@ export interface ViewProps {
   tvar: TVar<TVal>;
   isQuote?: boolean;
   isMasterView?: boolean;
-  // notify: (event: RefreshEvent) => void;
   refreshChart: number;
-  refreshCursors: number;
+  refreshCursors: RefreshCursor;
   name: string;
 }
 
@@ -101,6 +105,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   tvar: TVar<TVal>;
 
   name: string
+  id: number;
 
   //readonly glassPane = new GlassPane(this, this.mainChartPane)
   //readonly axisXPane = new AxisXPane(this, this.mainChartPane)
@@ -123,6 +128,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.isMasterView = props.isMasterView;
 
     this.name = props.name;
+    this.id = props.id;
 
     this.#createBasisComponents();
 
@@ -522,14 +528,15 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     this.updateState(chartParts);
   }
 
-  protected updateCursors() {
-    this.updateState({});
+  protected updateCursors(yMouse: number) {
+    this.updateState({}, yMouse);
   }
 
-  protected updateState(state: object) {
+  protected updateState(state: object, yMouse?: number) {
     let referCursor = <></>
     let mouseCursor = <></>
     const referColor = '#00F0F0'; // 'orange'
+
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.exists(time)) {
@@ -539,7 +546,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const cursorY = this.yc.yv(value)
 
         if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value = value / ChartYControl.VALUE_SCALE_UNIT
+          value /= ChartYControl.VALUE_SCALE_UNIT
         }
 
         referCursor = this.plotCursor(cursorX, cursorY, time, value, referColor)
@@ -551,15 +558,19 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       if (this.xc.exists(time)) {
         const cursorX = this.xc.xr(this.xc.mouseCursorRow)
 
-        let value = this.yc.mouseCursorValue;
-        let cursorY = this.yc.mouseCursorY;
-        if (value === undefined) {
+        let value: number;
+        let cursorY: number;
+        if (yMouse === undefined) {
           value = this.valueAtTime(time);
-          cursorY = this.yc.yv(value)
+          cursorY = this.yc.yv(value);
+
+        } else {
+          cursorY = yMouse;
+          value = this.yc.vy(cursorY);
         }
 
         if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value = value / ChartYControl.VALUE_SCALE_UNIT
+          value /= ChartYControl.VALUE_SCALE_UNIT
         }
 
         mouseCursor = this.plotCursor(cursorX, cursorY, time, value, '#00F000')
@@ -586,8 +597,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       this.updateChart();
     }
 
-    if (this.props.refreshCursors !== prevProps.refreshCursors) {
-      this.updateCursors();
+    if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
+      this.updateCursors(this.props.refreshCursors.yMouses[this.id]);
     }
   }
 
