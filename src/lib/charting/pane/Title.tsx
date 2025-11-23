@@ -64,8 +64,6 @@ class Title extends Component<Props, State> {
   protected updateState(state: object) {
     let referQuote: Quote = undefined
     let mouseQuote: Quote = undefined
-    const referColor = '#00F0F0'; // 'orange'
-    const mouseColor = Theme.now().axisColor //'#00F000';
 
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
@@ -94,15 +92,8 @@ class Title extends Component<Props, State> {
     return (
       // NOTE: The ListBox must have content that can be focused to enable keyboard navigation. 
       // So we use opacity to control visible.
-      <Virtualizer
-        layout={GridLayout}
-        layoutOptions={{
-          minItemSize: new Size(100, 10),
-          minSpace: new Size(0, 0)
-        }}
-      >
-        <ListBox
-          layout="grid" aria-label="Mouse quote" style={{ textAlign: 'left' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+        <ListBox layout="grid" aria-label="Mouse quote" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
           <ListBoxItem>
             <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>O </Text><Text style={{ color: mColor }}>{mQuote && mQuote.open}</Text>
           </ListBoxItem>
@@ -137,7 +128,7 @@ class Title extends Component<Props, State> {
             <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>V </Text><Text style={{ color: rColor }}>{rQuote && rQuote.volume}</Text>
           </ListBoxItem>
         </ListBox>
-      </Virtualizer>
+      </div>
     )
   }
 

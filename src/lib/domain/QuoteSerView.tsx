@@ -25,7 +25,7 @@ const QuoteSerView = (props: Props) => {
 
   const isInteractive = true;
 
-  const hTitle = 40;
+  const hTitle = 98;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
@@ -349,7 +349,7 @@ const QuoteSerView = (props: Props) => {
       tabIndex={0}
     >
       <div className="title" style={{ width: width, height: hTitle }}>
-        <div style={{ paddingLeft: '6px' }}>
+        <div style={{ paddingLeft: '0px' }}>
           <Title
             width={width}
             height={hTitle}
@@ -359,7 +359,7 @@ const QuoteSerView = (props: Props) => {
             refreshCursors={refreshCursors}
           />
         </div>
-        <div className="borderLeft" style={{ top: hTitle - 10 }} />
+        <div className="borderLeft" style={{ top: hTitle - 8 }} />
       </div>
       <div style={{ width: width + 'px', height: svgHeight + 'px' }}>
         <svg viewBox={`0, 0, ${width} ${svgHeight}`} width={width} height={svgHeight} vectorEffect="non-scaling-stroke"
