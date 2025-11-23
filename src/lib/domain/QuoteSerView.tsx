@@ -25,7 +25,7 @@ const QuoteSerView = (props: Props) => {
 
   const isInteractive = true;
 
-  const hTitle = 36;
+  const hTitle = 40;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
