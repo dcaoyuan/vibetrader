@@ -38,7 +38,7 @@ class AxisX extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.xc = props.xc;
-    this.x = props.x;
+    this.x = props.x || 0;
     this.y = props.y;
     this.width = props.width;
     this.height = props.height;
@@ -62,8 +62,8 @@ class AxisX extends Component<Props, State> {
 
     // draw axis-x line 
     if (this.props.up) {
-      path.moveto(0, this.height - 1)
-      path.lineto(this.width, this.height - 1)
+      path.moveto(0, this.height)
+      path.lineto(this.width, this.height)
 
     } else {
       path.moveto(0, 0)
@@ -97,9 +97,6 @@ class AxisX extends Component<Props, State> {
             path.moveto(xTick, 1)
             path.lineto(xTick, hTick)
           }
-
-          // path.moveto(xTick, 1)
-          // path.lineto(xTick, hTick)
 
           const time = this.xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -146,11 +143,11 @@ class AxisX extends Component<Props, State> {
 
     // draw end line
     if (this.props.up) {
-      path.moveto(0, this.height - 1);
-      path.lineto(0, this.height - 1 - 8);
+      path.moveto(0, this.height);
+      path.lineto(0, this.height - 8);
 
     } else {
-      path.moveto(0, 1);
+      path.moveto(0, 0);
       path.lineto(0, 8);
     }
 

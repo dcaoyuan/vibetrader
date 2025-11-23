@@ -92,7 +92,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   static readonly AXISX_HEIGHT = 16
   static readonly AXISY_WIDTH = 50
   static readonly CONTROL_HEIGHT = 12
-  static readonly TITLE_HEIGHT_PER_LINE = 12
+  static readonly TITLE_HEIGHT_PER_LINE = 14
 
   width: number;
   height: number;

@@ -1,7 +1,6 @@
 import { memo, useRef, useState, type JSX } from "react";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
 import { VolumeView } from "../charting/view/VolumeView";
-import { loadSer } from "./QuoteSer";
 import { ChartXControl } from "../charting/view/ChartXControl";
 import { ChartView, RefreshEvent, type RefreshCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
@@ -9,6 +8,8 @@ import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
 import type { Quote } from "./Quote";
 import { Path } from "../svg/Path";
+import Title from "../charting/pane/Title";
+import Padding from "../charting/pane/Padding";
 
 type Props = {
   xc: ChartXControl,
@@ -24,22 +25,27 @@ const QuoteSerView = (props: Props) => {
 
   const isInteractive = true;
 
-  const hTitle = ChartView.TITLE_HEIGHT_PER_LINE;
+  const hTitle = 40;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
-  const padding = 10;
 
-  const hViews = [hTitle, hMasterView, hSlaveView, hAxisx];
+  const hPadding = 10;
 
-  const yStarts = [0];
-  let y = 0
-  for (let i = 0; i < hViews.length - 1; i++) {
-    y += hViews[i] + padding;
-    yStarts.push(y);
+  const hViews = [hPadding, hPadding, hMasterView, hPadding, hSlaveView, hPadding, hAxisx];
+  const iChartStart = 2; // index of first chart view
+
+  let yStart = 0
+  let svgHeight = 0;
+  const yStarts = [];
+  for (const hView of hViews) {
+    yStarts.push(yStart);
+    yStart += hView;
+    svgHeight += hView;
   }
 
-  const height = y + hViews[hViews.length - 1];
+  const yChartStart = yStarts[iChartStart];
+  const containerHeight = svgHeight + hTitle;
 
   const emptyYMouses = hViews.map(_ => undefined);
 
@@ -63,12 +69,13 @@ const QuoteSerView = (props: Props) => {
     }
   }
 
-  function plotCursor(x: number, color: string) {
+  function plotCursorVerticalLine(x: number, color: string) {
     const crossPath = new Path(color);
     // crossPath.stroke_dasharray = '1, 1'
+
     // vertical line
-    crossPath.moveto(x, 0);
-    crossPath.lineto(x, height)
+    crossPath.moveto(x, yChartStart);
+    crossPath.lineto(x, svgHeight)
 
     return crossPath.render()
   }
@@ -81,7 +88,7 @@ const QuoteSerView = (props: Props) => {
       const time = xc.tr(xc.referCursorRow)
       if (xc.exists(time)) {
         const cursorX = xc.xr(xc.referCursorRow)
-        referCursor = plotCursor(cursorX, referColor)
+        referCursor = plotCursorVerticalLine(cursorX, referColor)
       }
     }
 
@@ -89,7 +96,7 @@ const QuoteSerView = (props: Props) => {
       const time = xc.tr(xc.mouseCursorRow)
       if (xc.exists(time)) {
         const cursorX = xc.xr(xc.mouseCursorRow)
-        mouseCursor = plotCursor(cursorX, '#00F000')
+        mouseCursor = plotCursorVerticalLine(cursorX, '#00F000')
       }
     }
 
@@ -123,7 +130,7 @@ const QuoteSerView = (props: Props) => {
   }
 
   function handleMouseLeave() {
-    // clear mouse cursor and prev value
+    // clear mouse cursor
     xc.isMouseCuroseVisible = false;
 
     notify(RefreshEvent.Cursors);
@@ -170,7 +177,7 @@ const QuoteSerView = (props: Props) => {
       if (isInAxisYArea(x)) {
         // draw refer cursor only when not in the axis-y area
         if (
-          y >= ChartView.TITLE_HEIGHT_PER_LINE && y <= height &&
+          y >= yChartStart && y <= svgHeight &&
           b >= 1 && b <= xc.nBars
         ) {
           const row = xc.rb(b)
@@ -268,70 +275,105 @@ const QuoteSerView = (props: Props) => {
     }
   }
 
+  const padding = (i: number, upOrDown?: string) => {
+    return (
+      <Padding
+        id={i}
+        y={yStarts[i]}
+        height={hViews[i]}
+        x={0}
+        width={width}
+        upOrDown={upOrDown}
+      />
+    )
+  }
+
+  const quoteChartView = (i: number) => {
+    return (
+      <QuoteChartView
+        id={i}
+        y={yStarts[i]}
+        height={hViews[i]}
+        x={0}
+        width={width}
+        name="ETH"
+        xc={xc}
+        baseSer={quoteSer}
+        tvar={qvar}
+        isQuote={true}
+        isMasterView={true}
+        refreshChart={refreshChart}
+        refreshCursors={refreshCursors}
+      />
+    )
+  }
+
+  const volumeView = (i: number) => {
+    return (
+      <VolumeView
+        id={i}
+        y={yStarts[i]}
+        height={hViews[i]}
+        x={0}
+        width={width}
+        name="Vol"
+        xc={xc}
+        baseSer={quoteSer}
+        tvar={qvar}
+        refreshChart={refreshChart}
+        refreshCursors={refreshCursors}
+      />
+    )
+  }
+
+  const axisX = (i: number) => {
+    return (
+      <AxisX
+        id={i}
+        y={yStarts[i]}
+        height={hViews[i]}
+        x={0}
+        width={width}
+        xc={xc}
+        refreshChart={refreshChart}
+        refreshCursors={refreshCursors}
+      />
+    )
+  }
+
   return (
     // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-    <div className="container" style={{ width: width + 'px', height: height + 'px' }}
+    <div className="container" style={{ width: width + 'px', height: containerHeight + 'px' }}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       tabIndex={0}
     >
-      <svg width={width} height={height} vectorEffect="non-scaling-stroke"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onMouseDown={handleMouseDown}
-        onWheel={handleWheel}
-      >
-        <AxisX
-          id={0}
-          x={0}
-          y={yStarts[0]}
-          width={width}
-          height={hAxisx}
-          xc={xc}
-          refreshChart={refreshChart}
-          refreshCursors={refreshCursors}
-          up={true}
-        />
-        <QuoteChartView
-          id={1}
-          name="ETH"
-          x={0}
-          y={yStarts[1]}
-          xc={xc}
-          baseSer={quoteSer}
-          tvar={qvar}
-          isQuote={true}
-          isMasterView={true}
-          width={width}
-          height={hMasterView}
-          refreshChart={refreshChart}
-          refreshCursors={refreshCursors}
-        />
-        <VolumeView
-          id={2}
-          name="Vol"
-          x={0}
-          y={yStarts[2]}
-          xc={xc}
-          baseSer={quoteSer}
-          tvar={qvar}
-          width={width}
-          height={hSlaveView}
-          refreshChart={refreshChart}
-          refreshCursors={refreshCursors}
-        />
-        <AxisX
-          id={3}
-          x={0}
-          y={yStarts[3]}
-          width={width}
-          height={hAxisx}
-          xc={xc}
-          refreshChart={refreshChart}
-          refreshCursors={refreshCursors}
-        />
-        {cursors}
-      </svg>
+      <Title
+        width={width}
+        height={hTitle}
+        xc={xc}
+        tvar={qvar}
+        refreshChart={refreshChart}
+        refreshCursors={refreshCursors}
+      />
+
+      <div style={{ width: width + 'px', height: svgHeight + 'px' }}>
+        <svg viewBox={`0, 0, ${width} ${svgHeight}`} width={width} height={svgHeight} vectorEffect="non-scaling-stroke"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onMouseDown={handleMouseDown}
+          onWheel={handleWheel}
+        >
+          {padding(0, "up")}
+          {padding(1)}
+          {quoteChartView(2)}
+          {padding(3)}
+          {volumeView(4)}
+          {padding(5)}
+          {axisX(6)}
+          {cursors}
+        </svg>
+      </div>
     </div>
   )
 }

@@ -136,7 +136,7 @@ export const AxisY = (props: Props) => {
     }
 
     // draw end line 
-    path.moveto(1, 0);
+    path.moveto(0, 0);
     path.lineto(8, 0);
 
     return { path, texts };
