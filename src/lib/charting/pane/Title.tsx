@@ -7,6 +7,7 @@ import '../view/chartview.css';
 import { Theme } from "../theme/Theme";
 import { ListBox, ListBoxItem, Virtualizer } from 'react-aria-components';
 import { GridLayout, Size, Text } from 'react-aria-components';
+import type { ChartYControl } from "../view/ChartYControl";
 
 type Props = {
   xc: ChartXControl,
@@ -14,7 +15,6 @@ type Props = {
   height: number,
   refreshChart: number,
   refreshCursors: RefreshCursor,
-
   tvar: TVar<Quote>;
 }
 
@@ -23,6 +23,7 @@ type State = {
 
   referQuote: Quote,
   mouseQuote: Quote,
+  delta: { period: number, percent: number, volumeSum: number }
 }
 
 class Title extends Component<Props, State> {
@@ -37,7 +38,7 @@ class Title extends Component<Props, State> {
     this.height = props.height;
 
     const chart = this.plot();
-    this.state = { chart, mouseQuote: undefined, referQuote: undefined };
+    this.state = { chart, mouseQuote: undefined, referQuote: undefined, delta: undefined };
 
     console.log("Title render", props);
   }
@@ -79,15 +80,68 @@ class Title extends Component<Props, State> {
       }
     }
 
-    this.setState({ ...state, referQuote, mouseQuote })
+    const delta = this.calcDelta()
+
+    this.setState({ ...state, referQuote, mouseQuote, delta })
+  }
+
+  calcDelta() {
+    if (!this.xc.isReferCuroseVisible || !this.xc.isMouseCuroseVisible) {
+      return undefined;
+    }
+
+    const isAutoReferCursorValue = true; // TODO
+
+    const rRow = this.xc.referCursorRow;
+    const mRow = this.xc.mouseCursorRow;
+    if (isAutoReferCursorValue) { // normal QuoteChartView
+      const rTime = this.xc.tr(rRow)
+      const mTime = this.xc.tr(mRow)
+      if (this.xc.exists(rTime) && this.xc.exists(mTime)) {
+        const rQuote = this.props.tvar.getByTime(rTime);
+        const rValue = rQuote.close;
+
+        const period = this.xc.br(mRow) - this.xc.br(rRow)
+        const mValue = this.props.tvar.getByTime(mTime).close
+        const percent = mRow > rRow
+          ? 100 * (mValue - rValue) / rValue
+          : 100 * (rValue - mValue) / mValue
+
+        let volumeSum = 0.0
+        const rowBeg = Math.min(rRow, mRow)
+        const rowEnd = Math.max(rRow, mRow)
+        let i = rowBeg
+        while (i <= rowEnd) {
+          const time = this.xc.tr(i)
+          if (this.xc.exists(time)) {
+            const mQuote = this.props.tvar.getByTime(time);
+            volumeSum += mQuote.volume;
+          }
+          i += 1
+        }
+
+        return { period, percent, volumeSum }
+      }
+
+    } else { // else, usually RealtimeQuoteChartView
+      // const vRefer = GlassPane.this.referCursorValue
+      // const vYMouse = datumPlane.vy(y)
+      // const percent = vRefer === 0 ? 0.0 : 100 * (vYMouse - vRefer) / vRefer
+
+      //new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vYMouse)).append("  ").append("%+3.2f".format(percent)).append("%").toString
+    }
+
+    return undefined;
   }
 
   render() {
     const lColor = "red"
     const rColor = '#00F0F0'; // 'orange'
     const mColor = '#00F000'//Theme.now().axisColor //'#00F000';
+    const dColor = Theme.now().axisColor
     const rQuote = this.state.referQuote
     const mQuote = this.state.mouseQuote
+    const delta = this.state.delta;
 
     return (
       // NOTE: The ListBox must have content that can be focused to enable keyboard navigation. 
@@ -104,14 +158,19 @@ class Title extends Component<Props, State> {
             <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>L </Text><Text style={{ color: mColor }}>{mQuote && mQuote.low}</Text>
           </ListBoxItem>
           <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>C </Text><Text style={{ color: mColor }}>{mQuote && mQuote.close}</Text>
+            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>C </Text>
+            <Text style={{ color: mColor }}>
+              {delta
+                ? mQuote && (mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)})`)
+                : mQuote && mQuote.close
+              }
+            </Text>
           </ListBoxItem>
           <ListBoxItem>
             <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>V </Text><Text style={{ color: mColor }}>{mQuote && mQuote.volume}</Text>
           </ListBoxItem>
         </ListBox>
-        <ListBox
-          layout="grid" aria-label="Refer quote" style={{ textAlign: 'left' }}>
+        <ListBox layout="grid" aria-label="Refer quote" style={{ textAlign: 'left' }}>
           <ListBoxItem>
             <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>O </Text><Text style={{ color: rColor }}>{rQuote && rQuote.open}</Text>
           </ListBoxItem>

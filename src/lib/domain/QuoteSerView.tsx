@@ -10,6 +10,7 @@ import type { Quote } from "./Quote";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
 import Spacing from "../charting/pane/Spacing";
+import { ChartYControl } from "../charting/view/ChartYControl";
 
 type Props = {
   xc: ChartXControl,
