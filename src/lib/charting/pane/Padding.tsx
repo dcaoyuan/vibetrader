@@ -19,8 +19,8 @@ class Padding extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    const { x, y, width, height, upOrDown } = props;
-    const path = upOrDown ? new Path(Theme.now().axisColor) : undefined;
+    const { width, height, upOrDown } = props;
+    const path = new Path(Theme.now().axisColor);
 
     switch (upOrDown) {
       case "up":
@@ -44,10 +44,17 @@ class Padding extends Component<Props, State> {
         break;
 
       default:
-        break;
+        // it seems we have to draw something to occupy the space, at least for Firefox
+        path.opacity = 0.0;
+
+        path.moveto(0, 0);
+        path.lineto(width, 0);
+
+        path.moveto(0, 0);
+        path.lineto(0, 8);
     }
 
-    this.state = { path: path && path.render() };
+    this.state = { path: path.render() };
   }
 
   render() {
@@ -56,9 +63,9 @@ class Padding extends Component<Props, State> {
     const transform = `translate(${this.props.x} ${this.props.y})`;
 
     return (
-      this.state.path && (<g transform={transform} shapeRendering="crispEdges" >
+      <g transform={transform} shapeRendering="crispEdges" >
         {this.state.path}
-      </g>)
+      </g>
     )
 
   }
