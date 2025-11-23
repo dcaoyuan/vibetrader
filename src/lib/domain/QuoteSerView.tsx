@@ -24,12 +24,13 @@ const QuoteSerView = (props: Props) => {
 
   const isInteractive = true;
 
+  const hTitle = ChartView.TITLE_HEIGHT_PER_LINE;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
   const padding = 10;
 
-  const hViews = [hMasterView, hSlaveView, hAxisx];
+  const hViews = [hTitle, hMasterView, hSlaveView, hAxisx];
 
   const yStarts = [0];
   let y = 0
@@ -280,11 +281,22 @@ const QuoteSerView = (props: Props) => {
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
       >
-        <QuoteChartView
+        <AxisX
           id={0}
-          name="ETH"
           x={0}
           y={yStarts[0]}
+          width={width}
+          height={hAxisx}
+          xc={xc}
+          refreshChart={refreshChart}
+          refreshCursors={refreshCursors}
+          up={true}
+        />
+        <QuoteChartView
+          id={1}
+          name="ETH"
+          x={0}
+          y={yStarts[1]}
           xc={xc}
           baseSer={quoteSer}
           tvar={qvar}
@@ -296,10 +308,10 @@ const QuoteSerView = (props: Props) => {
           refreshCursors={refreshCursors}
         />
         <VolumeView
-          id={1}
+          id={2}
           name="Vol"
           x={0}
-          y={yStarts[1]}
+          y={yStarts[2]}
           xc={xc}
           baseSer={quoteSer}
           tvar={qvar}
@@ -309,9 +321,9 @@ const QuoteSerView = (props: Props) => {
           refreshCursors={refreshCursors}
         />
         <AxisX
-          id={2}
+          id={3}
           x={0}
-          y={yStarts[2]}
+          y={yStarts[3]}
           width={width}
           height={hAxisx}
           xc={xc}

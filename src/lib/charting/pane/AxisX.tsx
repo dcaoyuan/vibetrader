@@ -18,6 +18,7 @@ type Props = {
   height: number,
   refreshChart: number,
   refreshCursors: RefreshCursor,
+  up?: boolean
 }
 
 type State = {
@@ -60,8 +61,14 @@ class AxisX extends Component<Props, State> {
     const texts = new Texts(color);
 
     // draw axis-x line 
-    path.moveto(0, 0)
-    path.lineto(this.width, 0)
+    if (this.props.up) {
+      path.moveto(0, this.height - 1)
+      path.lineto(this.width, this.height - 1)
+
+    } else {
+      path.moveto(0, 0)
+      path.lineto(this.width, 0)
+    }
 
     const timeZone = this.xc.baseSer.timeZone;
     let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
@@ -82,8 +89,17 @@ class AxisX extends Component<Props, State> {
           // too close
 
         } else {
-          path.moveto(xTick, 1)
-          path.lineto(xTick, hTick)
+          if (this.props.up) {
+            path.moveto(xTick, this.height - 1)
+            path.lineto(xTick, this.height - hTick)
+
+          } else {
+            path.moveto(xTick, 1)
+            path.lineto(xTick, hTick)
+          }
+
+          // path.moveto(xTick, 1)
+          // path.lineto(xTick, hTick)
 
           const time = this.xc.tb(i)
           currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -115,7 +131,11 @@ class AxisX extends Component<Props, State> {
             ? freqUnit.formatStrideDate(currDt, timeZone)
             : freqUnit.formatNormalDate(currDt, timeZone)
 
-          texts.text(xTick + 2, this.height - 3, dateStr);
+          if (this.props.up) {
+            texts.text(xTick + 2, this.height - hTick, dateStr);
+          } else {
+            texts.text(xTick + 2, this.height - 3, dateStr);
+          }
 
           prevDt = currDt;
         }
@@ -125,8 +145,14 @@ class AxisX extends Component<Props, State> {
     }
 
     // draw end line
-    path.moveto(0, 1);
-    path.lineto(0, 8);
+    if (this.props.up) {
+      path.moveto(0, this.height - 1);
+      path.lineto(0, this.height - 1 - 8);
+
+    } else {
+      path.moveto(0, 1);
+      path.lineto(0, 8);
+    }
 
     return (
       <>
@@ -190,13 +216,13 @@ class AxisX extends Component<Props, State> {
 
     const axisxText = new Texts('#000000')
     const axisxPath = new Path(color, color);
-    const y0 = 2;
+    const y0 = this.props.up ? 1 : 2;
     axisxPath.moveto(x, y0);
     axisxPath.lineto(x + w, y0);
     axisxPath.lineto(x + w, y0 + h);
     axisxPath.lineto(x, y0 + h);
     axisxPath.closepath();
-    axisxText.text(x + 1, h, dtStr);
+    axisxText.text(x + 1, this.props.up ? h - 1 : h, dtStr);
 
     return (
       <g>
