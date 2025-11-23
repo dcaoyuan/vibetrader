@@ -9,7 +9,7 @@ import type { TVar } from "../timeseris/TVar";
 import type { Quote } from "./Quote";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
-import Padding from "../charting/pane/Padding";
+import Spacing from "../charting/pane/Spacing";
 
 type Props = {
   xc: ChartXControl,
@@ -30,9 +30,9 @@ const QuoteSerView = (props: Props) => {
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
 
-  const hPadding = 10;
+  const hSpacing = 10;
 
-  const hViews = [hPadding, hMasterView, hPadding, hSlaveView, hPadding, hAxisx];
+  const hViews = [hSpacing, hMasterView, hSpacing, hSlaveView, hSpacing, hAxisx];
   const iChartStart = 1; // index of first chart view
 
   let yStart = 0
@@ -275,9 +275,9 @@ const QuoteSerView = (props: Props) => {
     }
   }
 
-  const padding = (i: number, upOrDown?: string) => {
+  const spacing = (i: number, upOrDown?: string) => {
     return (
-      <Padding
+      <Spacing
         id={i}
         y={yStarts[i]}
         height={hViews[i]}
@@ -368,11 +368,11 @@ const QuoteSerView = (props: Props) => {
           onMouseDown={handleMouseDown}
           onWheel={handleWheel}
         >
-          {padding(0)}
+          {spacing(0)}
           {quoteChartView(1)}
-          {padding(2)}
+          {spacing(2)}
           {volumeView(3)}
-          {padding(4)}
+          {spacing(4)}
           {axisX(5)}
           {cursors}
         </svg>

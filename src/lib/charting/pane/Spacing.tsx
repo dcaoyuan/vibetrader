@@ -15,7 +15,7 @@ type State = {
   path?: JSX.Element
 }
 
-class Padding extends Component<Props, State> {
+class Spacing extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
@@ -85,4 +85,4 @@ class Padding extends Component<Props, State> {
   }
 }
 
-export default Padding;
+export default Spacing;
