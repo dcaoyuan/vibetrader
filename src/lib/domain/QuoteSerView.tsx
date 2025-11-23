@@ -25,15 +25,15 @@ const QuoteSerView = (props: Props) => {
 
   const isInteractive = true;
 
-  const hTitle = 40;
+  const hTitle = 36;
   const hMasterView = 400;
   const hSlaveView = 100;
   const hAxisx = ChartView.AXISX_HEIGHT;
 
   const hPadding = 10;
 
-  const hViews = [hPadding, hPadding, hMasterView, hPadding, hSlaveView, hPadding, hAxisx];
-  const iChartStart = 2; // index of first chart view
+  const hViews = [hPadding, hMasterView, hPadding, hSlaveView, hPadding, hAxisx];
+  const iChartStart = 1; // index of first chart view
 
   let yStart = 0
   let svgHeight = 0;
@@ -348,15 +348,19 @@ const QuoteSerView = (props: Props) => {
       onKeyUp={handleKeyUp}
       tabIndex={0}
     >
-      <Title
-        width={width}
-        height={hTitle}
-        xc={xc}
-        tvar={qvar}
-        refreshChart={refreshChart}
-        refreshCursors={refreshCursors}
-      />
-
+      <div className="title" style={{ width: width, height: hTitle }}>
+        <div style={{ paddingLeft: '6px' }}>
+          <Title
+            width={width}
+            height={hTitle}
+            xc={xc}
+            tvar={qvar}
+            refreshChart={refreshChart}
+            refreshCursors={refreshCursors}
+          />
+        </div>
+        <div className="borderLeft" style={{ top: hTitle - 10 }} />
+      </div>
       <div style={{ width: width + 'px', height: svgHeight + 'px' }}>
         <svg viewBox={`0, 0, ${width} ${svgHeight}`} width={width} height={svgHeight} vectorEffect="non-scaling-stroke"
           onMouseMove={handleMouseMove}
@@ -364,13 +368,12 @@ const QuoteSerView = (props: Props) => {
           onMouseDown={handleMouseDown}
           onWheel={handleWheel}
         >
-          {padding(0, "up")}
-          {padding(1)}
-          {quoteChartView(2)}
-          {padding(3)}
-          {volumeView(4)}
-          {padding(5)}
-          {axisX(6)}
+          {padding(0)}
+          {quoteChartView(1)}
+          {padding(2)}
+          {volumeView(3)}
+          {padding(4)}
+          {axisX(5)}
           {cursors}
         </svg>
       </div>

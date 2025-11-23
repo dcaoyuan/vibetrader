@@ -62,8 +62,8 @@ class Title extends Component<Props, State> {
   }
 
   protected updateState(state: object) {
-    let referCursor = <label></label>
-    let mouseCursor = <label></label>
+    let referCursor = <Label></Label>
+    let mouseCursor = <Label></Label>
     const referColor = '#00F0F0'; // 'orange'
     const mouseColor = '#00F000';
 
@@ -101,8 +101,8 @@ class Title extends Component<Props, State> {
   render() {
     return (
       <div style={{ width: this.width, height: this.height, textAlign: 'left' }}>
-        {this.state.referCursor}
         {this.state.mouseCursor}
+        {this.state.referCursor}
       </div>
     )
   }

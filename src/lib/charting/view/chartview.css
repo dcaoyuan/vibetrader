@@ -53,3 +53,16 @@
 .container div.footer {
   grid-area: footer;
 }
+
+.container div.title {
+  position: relative;
+  border-bottom: 1px solid white;
+  background: #333333;
+}
+
+.container div.borderLeft {
+  border-left: 1px solid white;
+  position: absolute;
+  top: 80%;
+  bottom: 0;
+}
