@@ -52,6 +52,7 @@ class AxisX extends Component<Props, State> {
   plot() {
     const nTicks = this.width / TICK_SPACING
 
+    const hFont = 16;
     const nBars = this.xc.nBars
     // bTickUnit(bars per tick) cound not be 0, it should not less then 2
     const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
@@ -90,8 +91,8 @@ class AxisX extends Component<Props, State> {
 
         } else {
           if (this.props.up) {
-            path.moveto(xTick, this.height - 1)
-            path.lineto(xTick, this.height - hTick)
+            path.moveto(xTick, hFont - 1)
+            path.lineto(xTick, hFont - hTick)
 
           } else {
             path.moveto(xTick, 1)
@@ -129,9 +130,10 @@ class AxisX extends Component<Props, State> {
             : freqUnit.formatNormalDate(currDt, timeZone)
 
           if (this.props.up) {
-            texts.text(xTick + 2, this.height - hTick, dateStr);
+            texts.text(xTick + 2, hFont - hTick, dateStr);
+
           } else {
-            texts.text(xTick + 2, this.height - 3, dateStr);
+            texts.text(xTick + 2, hFont - 3, dateStr);
           }
 
           prevDt = currDt;

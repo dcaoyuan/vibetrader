@@ -3,7 +3,6 @@ import { type BaseTSer } from "../../timeseris/BaseTSer";
 import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { Chart } from "../chart/Chart";
-import { Pane } from "../pane/Pane";
 import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
@@ -131,8 +130,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
-
-  yControlPane?: Pane; //YControlPane;
 
   isQuote = false;
   hasInnerVolume = false;
@@ -380,8 +377,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   #plotCursor(x: number, y: number, time: number, value: number, color: string) {
-    const w = 48; // annotation width
-    const h = 13; // annotation height
+    const wAnnot = 48; // annotation width
+    const hAnnot = 13; // annotation height
 
     const timeZone = this.xc.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -394,7 +391,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // horizontal line
     crossPath.moveto(0, y);
-    crossPath.lineto(this.width, y)
+    crossPath.lineto(this.width - ChartView.AXISY_WIDTH, y)
 
     const useful = false; // TODO: decide if axis-x is useful
     const axisxText = new Texts('#000000')
@@ -402,25 +399,25 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     if (useful) {
       const y0 = 2;
       axisxPath.moveto(x, y0);
-      axisxPath.lineto(x + w, y0);
-      axisxPath.lineto(x + w, y0 + h);
-      axisxPath.lineto(x, y0 + h);
+      axisxPath.lineto(x + wAnnot, y0);
+      axisxPath.lineto(x + wAnnot, y0 + hAnnot);
+      axisxPath.lineto(x, y0 + hAnnot);
       axisxPath.closepath();
-      axisxText.text(x + 1, h, dtStr);
+      axisxText.text(x + 1, hAnnot, dtStr);
     }
 
     const axisyText = new Texts('#000000')
     const axisyPath = new Path(color, color)
     const x0 = 2
     axisyPath.moveto(x0, y);
-    axisyPath.lineto(x0 + w, y);
-    axisyPath.lineto(x0 + w, y - h);
-    axisyPath.lineto(x0, y - h);
+    axisyPath.lineto(x0 + wAnnot, y);
+    axisyPath.lineto(x0 + wAnnot, y - hAnnot);
+    axisyPath.lineto(x0, y - hAnnot);
     axisyPath.closepath();
     axisyText.text(4, y - 1, valueStr);
 
-    const transformx = `translate(${0}, ${this.height - ChartView.AXISX_HEIGHT})`
-    const transformy = `translate(${this.width - ChartView.AXISY_WIDTH}, ${0})`
+    const transformXannot = `translate(${0}, ${this.height - ChartView.AXISX_HEIGHT})`
+    const transformYannot = `translate(${this.width - ChartView.AXISY_WIDTH}, ${0})`
 
     return (
       // pay attention to the order to avoid text being overlapped
@@ -428,10 +425,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         <g shapeRendering="crispEdges" >
           {crossPath.render()}
         </g>
-        <g transform={transformx}>
+        <g transform={transformXannot}>
           {[axisxPath, axisxText].map(seg => seg.render())}
         </g>
-        <g transform={transformy}>
+        <g transform={transformYannot}>
           {[axisyPath, axisyText].map(seg => seg.render())}
         </g>
       </>

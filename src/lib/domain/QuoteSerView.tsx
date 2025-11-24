@@ -10,7 +10,6 @@ import type { Quote } from "./Quote";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
 import Spacing from "../charting/pane/Spacing";
-import { ChartYControl } from "../charting/view/ChartYControl";
 
 type Props = {
   xc: ChartXControl,
@@ -29,12 +28,11 @@ const QuoteSerView = (props: Props) => {
   const hTitle = 98;
   const hMasterView = 400;
   const hSlaveView = 100;
-  const hAxisx = ChartView.AXISX_HEIGHT;
+  const hAxisx = ChartView.AXISX_HEIGHT * 2;
 
   const hSpacing = 10;
 
   const hViews = [hSpacing, hMasterView, hSpacing, hSlaveView, hSpacing, hAxisx];
-  const iChartStart = 1; // index of first chart view
 
   let yStart = 0
   let svgHeight = 0;
@@ -45,18 +43,18 @@ const QuoteSerView = (props: Props) => {
     svgHeight += hView;
   }
 
-  const yChartStart = yStarts[iChartStart];
   const containerHeight = svgHeight + hTitle;
 
-  const emptyYMouses = hViews.map(_ => undefined);
+  const yCursorRange = [yStarts[1], yStarts[5]];
+  const UNDEFINED_YMouses = hViews.map(_ => undefined);
 
   console.log("QuoteSerView render");
   const [refreshChart, setRefreshChart] = useState(0);
-  const [refreshCursors, setRefreshCursors] = useState<RefreshCursor>({ changed: 0, yMouses: emptyYMouses });
+  const [refreshCursors, setRefreshCursors] = useState<RefreshCursor>({ changed: 0, yMouses: UNDEFINED_YMouses });
 
   const cursors = plotCursors()
 
-  const notify = (event: RefreshEvent, yMouses: number[] = emptyYMouses) => {
+  const notify = (event: RefreshEvent, yMouses: number[] = UNDEFINED_YMouses) => {
     switch (event) {
       case RefreshEvent.Chart:
         setRefreshChart(refreshChart + 1);
@@ -75,8 +73,8 @@ const QuoteSerView = (props: Props) => {
     // crossPath.stroke_dasharray = '1, 1'
 
     // vertical line
-    crossPath.moveto(x, yChartStart);
-    crossPath.lineto(x, svgHeight)
+    crossPath.moveto(x, yCursorRange[0]);
+    crossPath.lineto(x, yCursorRange[1])
 
     return crossPath.render()
   }
@@ -178,7 +176,7 @@ const QuoteSerView = (props: Props) => {
       if (isInAxisYArea(x)) {
         // draw refer cursor only when not in the axis-y area
         if (
-          y >= yChartStart && y <= svgHeight &&
+          y >= yCursorRange[0] && y <= svgHeight &&
           b >= 1 && b <= xc.nBars
         ) {
           const row = xc.rb(b)
