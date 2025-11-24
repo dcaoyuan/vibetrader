@@ -135,10 +135,9 @@ class Title extends Component<Props, State> {
   }
 
   render() {
-    const lColor = "red"
+    const lColor = '#F00000'; // Theme.now().axisColor
     const rColor = '#00F0F0'; // 'orange'
-    const mColor = '#00F000'//Theme.now().axisColor //'#00F000';
-    const dColor = Theme.now().axisColor
+    const mColor = '#00F000'; // Theme.now().axisColor 
     const rQuote = this.state.referQuote
     const mQuote = this.state.mouseQuote
     const delta = this.state.delta;

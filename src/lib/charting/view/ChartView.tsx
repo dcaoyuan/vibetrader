@@ -88,7 +88,6 @@ export interface ViewState {
  */
 export abstract class ChartView<P extends ViewProps, S extends ViewState> extends Component<P, S> {
 
-  static readonly AXISX_HEIGHT = 16
   static readonly AXISY_WIDTH = 50
   static readonly CONTROL_HEIGHT = 12
   static readonly TITLE_HEIGHT_PER_LINE = 14

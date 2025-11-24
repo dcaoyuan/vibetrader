@@ -93,7 +93,7 @@ export const AxisY = (props: Props) => {
     }
 
     const shouldScale = Math.abs(vMaxTick) >= ChartYControl.VALUE_SCALE_UNIT;
-    const multiple = "x" + ChartYControl.VALUE_SCALE_UNIT;
+    const multiple = "x10^" + Math.log10(ChartYControl.VALUE_SCALE_UNIT);
 
     const color = Theme.now().axisColor;
     const path = new Path(color);

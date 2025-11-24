@@ -28,7 +28,7 @@ const QuoteSerView = (props: Props) => {
   const hTitle = 98;
   const hMasterView = 400;
   const hSlaveView = 100;
-  const hAxisx = ChartView.AXISX_HEIGHT * 2;
+  const hAxisx = 32;
 
   const hSpacing = 10;
 
