@@ -39,7 +39,7 @@ class Title extends Component<Props, State> {
     const chart = this.plot();
     this.state = { chart, mouseQuote: undefined, referQuote: undefined, delta: undefined };
 
-    console.log("Title render", props);
+    console.log("Title render");
   }
 
   plot() {

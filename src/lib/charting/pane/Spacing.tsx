@@ -54,12 +54,11 @@ class Spacing extends Component<Props, State> {
         path.lineto(0, 8);
     }
 
+    console.log("Spacing render");
     this.state = { path: path.render() };
   }
 
   render() {
-    console.log("Padding render", this.props);
-
     const transform = `translate(${this.props.x} ${this.props.y})`;
 
     return (

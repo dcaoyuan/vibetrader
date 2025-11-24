@@ -1,4 +1,4 @@
-import { memo, useRef, useState, type JSX } from "react";
+import { Component, memo, useRef, useState, type JSX, type ReactNode } from "react";
 import { QuoteChartView } from "../charting/view/QuoteChartView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
@@ -17,102 +17,140 @@ type Props = {
   width: number,
 }
 
-const QuoteSerView = (props: Props) => {
-  const { xc, varName, width } = props;
+type State = {
+  refreshChart: number;
+  refreshCursors: RefreshCursor;
 
-  const quoteSer = xc.baseSer as BaseTSer;
-  const qvar = quoteSer.varOf(varName) as TVar<Quote>;
+  mouseCursor: JSX.Element
+  referCursor: JSX.Element
+}
 
-  const isInteractive = true;
+class QuoteSerView extends Component<Props, State> {
 
-  const hTitle = 98;
-  const hMasterView = 400;
-  const hSlaveView = 100;
-  const hAxisx = 40;
+  xc: ChartXControl
+  quoteSer: BaseTSer;
+  qvar: TVar<Quote>;
+  varName: string;
+  width: number;
+  isInteractive: boolean;
 
-  const hSpacing = 10;
+  hTitle = 98;
+  hMasterView = 400;
+  hSlaveView = 100;
+  hAxisx = 40;
+  hSpacing = 10;
 
-  const hViews = [hSpacing, hMasterView, hSpacing, hSlaveView, hSpacing, hAxisx];
+  hViews = [this.hSpacing, this.hMasterView, this.hSpacing, this.hSlaveView, this.hSpacing, this.hAxisx];
+  UNDEFINED_YMouses = this.hViews.map(_ => undefined);
 
-  let yStart = 0
-  let svgHeight = 0;
-  const yStarts = [];
-  for (const hView of hViews) {
-    yStarts.push(yStart);
-    yStart += hView;
-    svgHeight += hView;
+  yStarts: number[];
+
+  svgHeight: number;
+  containerHeight: number;
+
+  yCursorRange: number[];
+
+  constructor(props: Props) {
+    super(props);
+
+    this.xc = props.xc;
+    this.varName = props.varName;
+    this.width = props.width;
+
+    this.quoteSer = this.xc.baseSer as BaseTSer;
+    this.qvar = this.quoteSer.varOf(this.varName) as TVar<Quote>;
+
+    this.isInteractive = true;
+
+    this.svgHeight = 0;
+    this.yStarts = [];
+    let yStart = 0
+    for (const hView of this.hViews) {
+      this.yStarts.push(yStart);
+      yStart += hView;
+      this.svgHeight += hView;
+    }
+
+    this.containerHeight = this.svgHeight + this.hTitle;
+
+    this.yCursorRange = [this.yStarts[0], this.yStarts[5]];
+
+    console.log("QuoteSerView render");
+
+    this.state = {
+      refreshChart: 0,
+      refreshCursors: { changed: 0, yMouses: this.UNDEFINED_YMouses },
+      referCursor: <></>,
+      mouseCursor: <></>,
+    }
+
+    this.handleKeyDown = this.handleKeyDown.bind(this);
+    this.handleKeyUp = this.handleKeyUp.bind(this);
+    this.handleMouseDown = this.handleMouseDown.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.handleMouseMove = this.handleMouseMove.bind(this);
+    this.handleWheel = this.handleWheel.bind(this);
   }
 
-  const containerHeight = svgHeight + hTitle;
 
-  const yCursorRange = [yStarts[1], yStarts[5]];
-  const UNDEFINED_YMouses = hViews.map(_ => undefined);
-
-  console.log("QuoteSerView render");
-  const [refreshChart, setRefreshChart] = useState(0);
-  const [refreshCursors, setRefreshCursors] = useState<RefreshCursor>({ changed: 0, yMouses: UNDEFINED_YMouses });
-
-  const cursors = plotCursors()
-
-  const notify = (event: RefreshEvent, yMouses: number[] = UNDEFINED_YMouses) => {
+  notify(event: RefreshEvent, yMouses: number[] = this.UNDEFINED_YMouses) {
     switch (event) {
       case RefreshEvent.Chart:
-        setRefreshChart(refreshChart + 1);
+        this.updateState({ refreshChart: this.state.refreshChart + 1 });
         break;
 
       case RefreshEvent.Cursors:
-        setRefreshCursors({ changed: refreshCursors.changed + 1, yMouses })
+        this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, yMouses } })
         break;
 
       default:
     }
   }
 
-  function plotCursorVerticalLine(x: number, color: string) {
+  updateState(state: object) {
+    let referCursor = <></>
+    let mouseCursor = <></>
+    const referColor = '#00F0F0'; // 'orange'
+    if (this.xc.isReferCuroseVisible) {
+      const time = this.xc.tr(this.xc.referCursorRow)
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.referCursorRow)
+        referCursor = this.#plotCursor(cursorX, referColor)
+      }
+    }
+
+    if (this.xc.isMouseCuroseVisible) {
+      const time = this.xc.tr(this.xc.mouseCursorRow)
+      if (this.xc.exists(time)) {
+        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+        mouseCursor = this.#plotCursor(cursorX, '#00F000')
+      }
+    }
+
+    this.setState({ ...state, referCursor, mouseCursor })
+  }
+
+  #plotCursor(x: number, color: string) {
     const crossPath = new Path(color);
     // crossPath.stroke_dasharray = '1, 1'
 
     // vertical line
-    crossPath.moveto(x, yCursorRange[0]);
-    crossPath.lineto(x, yCursorRange[1])
-
-    return crossPath.render()
-  }
-
-  function plotCursors() {
-    let referCursor = <></>
-    let mouseCursor = <></>
-    const referColor = '#00F0F0'; // 'orange'
-    if (xc.isReferCuroseVisible) {
-      const time = xc.tr(xc.referCursorRow)
-      if (xc.exists(time)) {
-        const cursorX = xc.xr(xc.referCursorRow)
-        referCursor = plotCursorVerticalLine(cursorX, referColor)
-      }
-    }
-
-    if (xc.isMouseCuroseVisible) {
-      const time = xc.tr(xc.mouseCursorRow)
-      if (xc.exists(time)) {
-        const cursorX = xc.xr(xc.mouseCursorRow)
-        mouseCursor = plotCursorVerticalLine(cursorX, '#00F000')
-      }
-    }
+    crossPath.moveto(x, this.yCursorRange[0]);
+    crossPath.lineto(x, this.yCursorRange[1])
 
     return (
-      <g shapeRendering="crispEdges">
-        {referCursor}
-        {mouseCursor}
+      <g shapeRendering="crispEdges" >
+        {crossPath.render()}
       </g>
     )
   }
 
-  function calcYMouses(y: number) {
+  calcYMouses(y: number) {
     const yMouses: number[] = [];
 
-    for (let i = 0; i < hViews.length; i++) {
-      const yStart = yStarts[i];
-      const yEnd = yStart + hViews[i];
+    for (let i = 0; i < this.hViews.length; i++) {
+      const yStart = this.yStarts[i];
+      const yEnd = yStart + this.hViews[i];
       if (y >= yStart && y <= yEnd) {
         yMouses.push(y - yStart);
 
@@ -124,38 +162,38 @@ const QuoteSerView = (props: Props) => {
     return yMouses;
   }
 
-  function isInAxisYArea(x: number) {
-    return x < width - ChartView.AXISY_WIDTH
+  isInAxisYArea(x: number) {
+    return x < this.width - ChartView.AXISY_WIDTH
   }
 
-  function handleMouseLeave() {
+  handleMouseLeave() {
     // clear mouse cursor
-    xc.isMouseCuroseVisible = false;
+    this.xc.isMouseCuroseVisible = false;
 
-    notify(RefreshEvent.Cursors);
+    this.notify(RefreshEvent.Cursors);
   }
 
-  function handleMouseMove(e: React.MouseEvent) {
+  handleMouseMove(e: React.MouseEvent) {
     const targetRect = e.currentTarget.getBoundingClientRect();
     const x = e.pageX - targetRect.left;
     const y = e.pageY - targetRect.top;
 
-    const b = xc.bx(x);
+    const b = this.xc.bx(x);
 
-    if (isInAxisYArea(x)) {
+    if (this.isInAxisYArea(x)) {
       // draw mouse cursor only when not in the axis-y area
-      const row = xc.rb(b)
-      xc.setMouseCursorByRow(row)
-      xc.isMouseCuroseVisible = true
+      const row = this.xc.rb(b)
+      this.xc.setMouseCursorByRow(row)
+      this.xc.isMouseCuroseVisible = true
 
     } else {
-      xc.isMouseCuroseVisible = false;
+      this.xc.isMouseCuroseVisible = false;
     }
 
-    notify(RefreshEvent.Cursors, calcYMouses(y));
+    this.notify(RefreshEvent.Cursors, this.calcYMouses(y));
   }
 
-  function handleMouseDown(e: React.MouseEvent) {
+  handleMouseDown(e: React.MouseEvent) {
     if (e.ctrlKey) {
       // will select chart on pane
 
@@ -165,33 +203,33 @@ const QuoteSerView = (props: Props) => {
       const x = e.pageX - targetRect.left;
       const y = e.pageY - targetRect.top;
 
-      const time = xc.tx(x);
-      if (!xc.exists(time)) {
+      const time = this.xc.tx(x);
+      if (!this.xc.exists(time)) {
         return;
       }
 
       // align x to bar center
-      const b = xc.bx(x);
+      const b = this.xc.bx(x);
 
-      if (isInAxisYArea(x)) {
+      if (this.isInAxisYArea(x)) {
         // draw refer cursor only when not in the axis-y area
         if (
-          y >= yCursorRange[0] && y <= svgHeight &&
-          b >= 1 && b <= xc.nBars
+          y >= this.yCursorRange[0] && y <= this.svgHeight &&
+          b >= 1 && b <= this.xc.nBars
         ) {
-          const row = xc.rb(b)
-          xc.setReferCursorByRow(row, true)
-          xc.isReferCuroseVisible = true;
+          const row = this.xc.rb(b)
+          this.xc.setReferCursorByRow(row, true)
+          this.xc.isReferCuroseVisible = true;
 
-          notify(RefreshEvent.Cursors);
+          this.notify(RefreshEvent.Cursors);
         }
       }
     }
   }
 
-  function handleWheel(e: React.WheelEvent) {
-    const fastSteps = Math.floor(xc.nBars * 0.168)
-    const delta = Math.round(e.deltaY / xc.nBars);
+  handleWheel(e: React.WheelEvent) {
+    const fastSteps = Math.floor(this.xc.nBars * 0.168)
+    const delta = Math.round(e.deltaY / this.xc.nBars);
     console.log(e, delta)
 
     if (e.shiftKey) {
@@ -199,185 +237,188 @@ const QuoteSerView = (props: Props) => {
       this.xc.growWBar(delta)
 
     } else if (e.ctrlKey) {
-      if (!isInteractive) {
+      if (!this.isInteractive) {
         return
       }
 
-      const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
       // move refer cursor left / right 
-      xc.scrollReferCursor(unitsToScroll, true)
+      this.xc.scrollReferCursor(unitsToScroll, true)
 
     } else {
-      if (!isInteractive) {
+      if (!this.isInteractive) {
         return
       }
 
-      const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
+      const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
       // keep referCursor staying same x in screen, and move
-      xc.scrollChartsHorizontallyByBar(unitsToScroll)
+      this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
     }
 
-    notify(RefreshEvent.Chart);
+    this.notify(RefreshEvent.Chart);
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    const fastSteps = Math.floor(xc.nBars * 0.168)
+  handleKeyDown(e: React.KeyboardEvent) {
+    const fastSteps = Math.floor(this.xc.nBars * 0.168)
 
     switch (e.key) {
       case "ArrowLeft":
         if (e.ctrlKey) {
-          xc.moveCursorInDirection(fastSteps, -1)
+          this.xc.moveCursorInDirection(fastSteps, -1)
 
         } else {
-          xc.moveChartsInDirection(fastSteps, -1)
+          this.xc.moveChartsInDirection(fastSteps, -1)
         }
         break;
 
       case "ArrowRight":
         if (e.ctrlKey) {
-          xc.moveCursorInDirection(fastSteps, 1)
+          this.xc.moveCursorInDirection(fastSteps, 1)
         } else {
-          xc.moveChartsInDirection(fastSteps, 1)
+          this.xc.moveChartsInDirection(fastSteps, 1)
         }
         break;
 
       case "ArrowUp":
         if (!e.ctrlKey) {
-          xc.growWBar(1)
+          this.xc.growWBar(1)
         }
         break;
 
       case "ArrowDown":
         if (!e.ctrlKey) {
-          xc.growWBar(-1);
+          this.xc.growWBar(-1);
         }
         break;
 
       default:
     }
 
-    notify(RefreshEvent.Chart)
+    this.notify(RefreshEvent.Chart)
   }
 
-  function handleKeyUp(e: React.KeyboardEvent) {
+  handleKeyUp(e: React.KeyboardEvent) {
     switch (e.key) {
       case " ":
-        xc.isCursorAccelerated = !xc.isCursorAccelerated
+        this.xc.isCursorAccelerated = !this.xc.isCursorAccelerated
         break;
 
       case "Escape":
-        xc.isReferCuroseVisible = false;
-        notify(RefreshEvent.Cursors)
+        this.xc.isReferCuroseVisible = false;
+        this.notify(RefreshEvent.Cursors)
         break;
 
       default:
     }
   }
 
-  const spacing = (i: number, upOrDown?: string) => {
+  spacing = (i: number, upOrDown?: string) => {
     return (
       <Spacing
         id={i}
-        y={yStarts[i]}
-        height={hViews[i]}
+        y={this.yStarts[i]}
+        height={this.hViews[i]}
         x={0}
-        width={width}
+        width={this.width}
         upOrDown={upOrDown}
       />
     )
   }
 
-  const quoteChartView = (i: number) => {
+  quoteChartView = (i: number) => {
     return (
       <QuoteChartView
         id={i}
-        y={yStarts[i]}
-        height={hViews[i]}
+        y={this.yStarts[i]}
+        height={this.hViews[i]}
         x={0}
-        width={width}
+        width={this.width}
         name="ETH"
-        xc={xc}
-        baseSer={quoteSer}
-        tvar={qvar}
+        xc={this.xc}
+        baseSer={this.quoteSer}
+        tvar={this.qvar}
         isQuote={true}
         isMasterView={true}
-        refreshChart={refreshChart}
-        refreshCursors={refreshCursors}
+        refreshChart={this.state.refreshChart}
+        refreshCursors={this.state.refreshCursors}
       />
     )
   }
 
-  const volumeView = (i: number) => {
+  volumeView = (i: number) => {
     return (
       <VolumeView
         id={i}
-        y={yStarts[i]}
-        height={hViews[i]}
+        y={this.yStarts[i]}
+        height={this.hViews[i]}
         x={0}
-        width={width}
+        width={this.width}
         name="Vol"
-        xc={xc}
-        baseSer={quoteSer}
-        tvar={qvar}
-        refreshChart={refreshChart}
-        refreshCursors={refreshCursors}
+        xc={this.xc}
+        baseSer={this.quoteSer}
+        tvar={this.qvar}
+        refreshChart={this.state.refreshChart}
+        refreshCursors={this.state.refreshCursors}
       />
     )
   }
 
-  const axisX = (i: number) => {
+  axisX = (i: number) => {
     return (
       <AxisX
         id={i}
-        y={yStarts[i]}
-        height={hViews[i]}
+        y={this.yStarts[i]}
+        height={this.hViews[i]}
         x={0}
-        width={width}
-        xc={xc}
-        refreshChart={refreshChart}
-        refreshCursors={refreshCursors}
+        width={this.width}
+        xc={this.xc}
+        refreshChart={this.state.refreshChart}
+        refreshCursors={this.state.refreshCursors}
       />
     )
   }
 
-  return (
-    // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-    <div className="container" style={{ width: width + 'px', height: containerHeight + 'px' }}
-      onKeyDown={handleKeyDown}
-      onKeyUp={handleKeyUp}
-      tabIndex={0}
-    >
-      <div className="title" style={{ width: width, height: hTitle }}>
-        <div style={{ paddingLeft: '0px' }}>
-          <Title
-            width={width}
-            height={hTitle}
-            xc={xc}
-            tvar={qvar}
-            refreshChart={refreshChart}
-            refreshCursors={refreshCursors}
-          />
+  render() {
+    return (
+      // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
+      <div className="container" style={{ width: this.width + 'px', height: this.containerHeight + 'px' }}
+        onKeyDown={this.handleKeyDown}
+        onKeyUp={this.handleKeyUp}
+        tabIndex={0}
+      >
+        <div className="title" style={{ width: this.width, height: this.hTitle }}>
+          <div style={{ paddingLeft: '0px' }}>
+            <Title
+              width={this.width}
+              height={this.hTitle}
+              xc={this.xc}
+              tvar={this.qvar}
+              refreshChart={this.state.refreshChart}
+              refreshCursors={this.state.refreshCursors}
+            />
+          </div>
+          <div className="borderLeft" style={{ top: this.hTitle - 8 }} />
         </div>
-        <div className="borderLeft" style={{ top: hTitle - 8 }} />
-      </div>
-      <div style={{ width: width + 'px', height: svgHeight + 'px' }}>
-        <svg viewBox={`0, 0, ${width} ${svgHeight}`} width={width} height={svgHeight} vectorEffect="non-scaling-stroke"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onMouseDown={handleMouseDown}
-          onWheel={handleWheel}
-        >
-          {spacing(0)}
-          {quoteChartView(1)}
-          {spacing(2)}
-          {volumeView(3)}
-          {spacing(4)}
-          {axisX(5)}
-          {cursors}
-        </svg>
-      </div>
-    </div>
-  )
+        <div style={{ width: this.width + 'px', height: this.svgHeight + 'px' }}>
+          <svg viewBox={`0, 0, ${this.width} ${this.svgHeight}`} width={this.width} height={this.svgHeight} vectorEffect="non-scaling-stroke"
+            onMouseMove={this.handleMouseMove}
+            onMouseLeave={this.handleMouseLeave}
+            onMouseDown={this.handleMouseDown}
+            onWheel={this.handleWheel}
+          >
+            {this.spacing(0)}
+            {this.quoteChartView(1)}
+            {this.spacing(2)}
+            {this.volumeView(3)}
+            {this.spacing(4)}
+            {this.axisX(5)}
+            {this.state.referCursor}
+            {this.state.mouseCursor}
+          </svg>
+        </div>
+      </div >
+    )
+  }
 }
 
 export default QuoteSerView 
