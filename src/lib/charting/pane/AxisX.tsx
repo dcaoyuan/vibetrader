@@ -259,7 +259,7 @@ class AxisX extends Component<Props, State> {
       this.updateChart();
     }
 
-    if (this.props.refreshCursors !== prevProps.refreshCursors) {
+    if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
       this.updateCursors();
     }
   }

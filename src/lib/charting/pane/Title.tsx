@@ -5,9 +5,8 @@ import type { TVar } from "../../timeseris/TVar";
 import type { Quote } from "../../domain/Quote";
 import '../view/chartview.css';
 import { Theme } from "../theme/Theme";
-import { ListBox, ListBoxItem, Virtualizer } from 'react-aria-components';
-import { GridLayout, Size, Text } from 'react-aria-components';
-import type { ChartYControl } from "../view/ChartYControl";
+import { ListBox, ListBoxItem } from 'react-aria-components';
+import { Text } from 'react-aria-components';
 
 type Props = {
   xc: ChartXControl,
@@ -147,47 +146,75 @@ class Title extends Component<Props, State> {
     const delta = this.state.delta;
 
     return (
-      // NOTE: The ListBox must have content that can be focused to enable keyboard navigation. 
-      // So we use opacity to control visible.
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
         <ListBox layout="grid" aria-label="Mouse quote" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>O </Text><Text style={{ color: mColor }}>{mQuote && mQuote.open}</Text>
+          <ListBoxItem textValue="O">
+            {mQuote && <>
+              <Text style={{ color: lColor }}>O </Text>
+              <Text style={{ color: mColor }}>{mQuote.open}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>H </Text><Text style={{ color: mColor }}>{mQuote && mQuote.high}</Text>
+          <ListBoxItem textValue="H">
+            {mQuote && <>
+              <Text style={{ color: lColor }}>H </Text>
+              <Text style={{ color: mColor }}>{mQuote.high}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>L </Text><Text style={{ color: mColor }}>{mQuote && mQuote.low}</Text>
+          <ListBoxItem textValue="L">
+            {mQuote && <>
+              <Text style={{ color: lColor }}>L </Text>
+              <Text style={{ color: mColor }}>{mQuote.low}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>C </Text>
-            <Text style={{ color: mColor }}>
-              {delta
-                ? mQuote && (mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)} ${delta.freqName})`)
-                : mQuote && mQuote.close
-              }
-            </Text>
+          <ListBoxItem textValue="C">
+            {mQuote && <>
+              <Text style={{ color: lColor }}>C </Text>
+              <Text style={{ color: mColor }}>
+                {delta
+                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)} ${delta.freqName})`
+                  : mQuote.close
+                }
+              </Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>V </Text><Text style={{ color: mColor }}>{mQuote && mQuote.volume}</Text>
+          <ListBoxItem textValue="V">
+            {mQuote && <>
+              <Text style={{ color: lColor }}>V </Text>
+              <Text style={{ color: mColor }}>{mQuote.volume}</Text>
+            </>}
           </ListBoxItem>
         </ListBox>
+
         <ListBox layout="grid" aria-label="Refer quote" style={{ textAlign: 'left' }}>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>O </Text><Text style={{ color: rColor }}>{rQuote && rQuote.open}</Text>
+          <ListBoxItem textValue="O">
+            {rQuote && <>
+              <Text style={{ color: lColor }}>O </Text>
+              <Text style={{ color: rColor }}>{rQuote.open}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>H </Text><Text style={{ color: rColor }}>{rQuote && rQuote.high}</Text>
+          <ListBoxItem textValue="H">
+            {rQuote && <>
+              <Text style={{ color: lColor }}>H </Text>
+              <Text style={{ color: rColor }}>{rQuote.high}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>L </Text><Text style={{ color: rColor }}>{rQuote && rQuote.low}</Text>
+          <ListBoxItem textValue="L">
+            {rQuote && <>
+              <Text style={{ color: lColor }}>L </Text>
+              <Text style={{ color: rColor }}>{rQuote.low}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>C </Text><Text style={{ color: rColor }}>{rQuote && rQuote.close}</Text>
+          <ListBoxItem textValue="C">
+            {rQuote && <>
+              <Text style={{ color: lColor }}>C </Text>
+              <Text style={{ color: rColor }}>{rQuote.close}</Text>
+            </>}
           </ListBoxItem>
-          <ListBoxItem>
-            <Text style={{ color: lColor, opacity: rQuote ? 1 : 0 }}>V </Text><Text style={{ color: rColor }}>{rQuote && rQuote.volume}</Text>
+          <ListBoxItem textValue="V">
+            {rQuote && <>
+              <Text style={{ color: lColor }}>V </Text>
+              <Text style={{ color: rColor }}>{rQuote.volume}</Text>
+            </>}
           </ListBoxItem>
         </ListBox>
       </div>
@@ -203,7 +230,7 @@ class Title extends Component<Props, State> {
       this.updateChart();
     }
 
-    if (this.props.refreshCursors !== prevProps.refreshCursors) {
+    if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
       this.updateCursors();
     }
   }
