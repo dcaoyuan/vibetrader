@@ -380,9 +380,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     const wAnnot = 48; // annotation width
     const hAnnot = 13; // annotation height
 
-    const timeZone = this.xc.baseSer.timeZone;
-    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-    const dtStr = this.xc.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+    const wAxisY = ChartView.AXISY_WIDTH
 
     const valueStr = COMMON_DECIMAL_FORMAT.format(value);
 
@@ -391,20 +389,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // horizontal line
     crossPath.moveto(0, y);
-    crossPath.lineto(this.width - ChartView.AXISY_WIDTH, y)
-
-    const useful = false; // TODO: decide if axis-x is useful
-    const axisxText = new Texts('#000000')
-    const axisxPath = new Path(color, color);
-    if (useful) {
-      const y0 = 2;
-      axisxPath.moveto(x, y0);
-      axisxPath.lineto(x + wAnnot, y0);
-      axisxPath.lineto(x + wAnnot, y0 + hAnnot);
-      axisxPath.lineto(x, y0 + hAnnot);
-      axisxPath.closepath();
-      axisxText.text(x + 1, hAnnot, dtStr);
-    }
+    crossPath.lineto(this.width - wAxisY, y)
 
     const axisyText = new Texts('#000000')
     const axisyPath = new Path(color, color)
@@ -416,8 +401,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     axisyPath.closepath();
     axisyText.text(4, y - 1, valueStr);
 
-    const transformXannot = `translate(${0}, ${this.height - ChartView.AXISX_HEIGHT})`
-    const transformYannot = `translate(${this.width - ChartView.AXISY_WIDTH}, ${0})`
+    const transformYAnnot = `translate(${this.width - wAxisY}, ${0})`
 
     return (
       // pay attention to the order to avoid text being overlapped
@@ -425,10 +409,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         <g shapeRendering="crispEdges" >
           {crossPath.render()}
         </g>
-        <g transform={transformXannot}>
-          {[axisxPath, axisxText].map(seg => seg.render())}
-        </g>
-        <g transform={transformYannot}>
+        <g transform={transformYAnnot}>
           {[axisyPath, axisyText].map(seg => seg.render())}
         </g>
       </>
