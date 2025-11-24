@@ -200,8 +200,6 @@ export class ChartViewContainer {
     } else {
       this._selectedChart = undefined
     }
-
-    //repaint()
   }
 
 }

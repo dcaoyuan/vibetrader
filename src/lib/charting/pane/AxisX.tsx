@@ -4,8 +4,10 @@ import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
-import { Component, type JSX, } from "react";
+import { Component, createRef, useEffect, type JSX, type Ref, type RefObject, } from "react";
 import type { RefreshCursor } from "../view/ChartView";
+import { textMetrics } from "../view/Format";
+import React from "react";
 
 const MIN_TICK_SPACING = 60 // in pixels
 
@@ -34,6 +36,8 @@ class AxisX extends Component<Props, State> {
   y: number;
   width: number;
   height: number;
+  ref: RefObject<SVGAElement>;
+  font: string;
 
   constructor(props: Props) {
     super(props);
@@ -42,6 +46,8 @@ class AxisX extends Component<Props, State> {
     this.y = props.y;
     this.width = props.width;
     this.height = props.height;
+
+    this.ref = React.createRef();
 
     const chart = this.plot();
     this.state = { chart, referCursor: <></>, mouseCursor: <></> };
@@ -73,10 +79,15 @@ class AxisX extends Component<Props, State> {
     let prevXTick: number;
     let currXTick: number;
 
-    const df = new Intl.DateTimeFormat("en-US", {
+    const dfYM = new Intl.DateTimeFormat("en-US", {
       timeZone: timeZone,
       year: "numeric",
       month: "short",
+    });
+
+    const dfY = new Intl.DateTimeFormat("en-US", {
+      timeZone: timeZone,
+      year: "numeric",
     });
 
 
@@ -85,7 +96,7 @@ class AxisX extends Component<Props, State> {
     while (i <= nBars) {
       const time = this.xc.tb(i)
       currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-      if (prevDt !== undefined && currDt.month > prevDt.month) {
+      if (prevDt !== undefined && (currDt.month !== prevDt.month || currDt.year !== prevDt.year)) {
         // new month begins
         const xTick = this.xc.xb(i);
         currXTick = xTick;
@@ -100,13 +111,16 @@ class AxisX extends Component<Props, State> {
             path.lineto(xTick, hTick)
           }
 
-          const xText = xTick - 22;
-          const dtStr = df.format(new Date(currDt.epochMilliseconds));
+          const date = new Date(currDt.epochMilliseconds);
+          const tickStr = (currDt.year !== prevDt.year) ? dfY.format(date) : dfYM.format(date);
+          const wTickStr = textMetrics(tickStr, this.font).width;
+          const xText = xTick - Math.round(wTickStr / 2);
+
           if (this.props.up) {
-            texts.text(xText, hFont - hTick, dtStr);
+            texts.text(xText, hFont - hTick, tickStr);
 
           } else {
-            texts.text(xText, hFont + 1, dtStr);
+            texts.text(xText, hFont + 1, tickStr);
           }
 
           prevXTick = currXTick;
@@ -194,8 +208,8 @@ class AxisX extends Component<Props, State> {
     const axisxPath = new Path(color, color);
     const y0 = this.props.up ? 1 : 6;
     // draw arrow
-    axisxPath.moveto(x, 0);
-    axisxPath.lineto(x - 3, y0);
+    axisxPath.moveto(x - 3, y0);
+    axisxPath.lineto(x, 0);
     axisxPath.lineto(x + 3, y0)
 
     axisxPath.moveto(x0, y0);
@@ -216,12 +230,24 @@ class AxisX extends Component<Props, State> {
     const transform = `translate(${this.x} ${this.y})`;
 
     return (
-      <g transform={transform}>
+      <g transform={transform} ref={this.ref}>
         {this.state.chart}
         {this.state.mouseCursor}
         {this.state.referCursor}
       </g >
     )
+  }
+
+  // Code to run after initial render, equivalent to useEffect with an 
+  // empty dependency array ([])
+  override componentDidMount() {
+    if (this.ref.current) {
+      const computedStyle = window.getComputedStyle(this.ref.current);
+      const fontSize = computedStyle.getPropertyValue('font-size');
+      const fontFamily = computedStyle.getPropertyValue('font-family');
+
+      this.font = fontSize + ' ' + fontFamily;
+    }
   }
 
   // Important: Be careful when calling setState within componentDidUpdate
@@ -237,7 +263,6 @@ class AxisX extends Component<Props, State> {
       this.updateCursors();
     }
   }
-
 }
 
 export default AxisX;

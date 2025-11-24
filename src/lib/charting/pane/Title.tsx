@@ -23,7 +23,7 @@ type State = {
 
   referQuote: Quote,
   mouseQuote: Quote,
-  delta: { period: number, percent: number, volumeSum: number }
+  delta: { period: number, percent: number, volumeSum: number, freqName: string }
 }
 
 class Title extends Component<Props, State> {
@@ -110,7 +110,7 @@ class Title extends Component<Props, State> {
         let volumeSum = 0.0
         const rowBeg = Math.min(rRow, mRow)
         const rowEnd = Math.max(rRow, mRow)
-        let i = rowBeg
+        let i = rowBeg + 1
         while (i <= rowEnd) {
           const time = this.xc.tr(i)
           if (this.xc.exists(time)) {
@@ -120,7 +120,11 @@ class Title extends Component<Props, State> {
           i += 1
         }
 
-        return { period, percent, volumeSum }
+        let freqName = this.xc.baseSer.freq.compactName;
+        freqName = period === 1 ? freqName : freqName + 's'
+        freqName = freqName.startsWith('1') ? freqName.slice(1).toLowerCase() : '(' + freqName.toLowerCase + ')'
+
+        return { period, percent, volumeSum, freqName }
       }
 
     } else { // else, usually RealtimeQuoteChartView
@@ -160,7 +164,7 @@ class Title extends Component<Props, State> {
             <Text style={{ color: lColor, opacity: mQuote ? 1 : 0 }}>C </Text>
             <Text style={{ color: mColor }}>
               {delta
-                ? mQuote && (mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)})`)
+                ? mQuote && (mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)} ${delta.freqName})`)
                 : mQuote && mQuote.close
               }
             </Text>
