@@ -7,7 +7,7 @@ import { Temporal } from "temporal-polyfill";
 import { Component, type JSX, } from "react";
 import type { RefreshCursor } from "../view/ChartView";
 
-const TICK_SPACING = 100 // in pixels
+const MIN_TICK_SPACING = 60 // in pixels
 
 type Props = {
   id: number,
@@ -50,12 +50,8 @@ class AxisX extends Component<Props, State> {
   }
 
   plot() {
-    const nTicks = this.width / TICK_SPACING
-
     const hFont = 16;
     const nBars = this.xc.nBars
-    // bTickUnit(bars per tick) cound not be 0, it should not less then 2
-    const bTickUnit = Math.max(Math.round(nBars / nTicks), 2)
 
     const color = Theme.now().axisColor;
     const path = new Path(color);
@@ -72,24 +68,29 @@ class AxisX extends Component<Props, State> {
     }
 
     const timeZone = this.xc.baseSer.timeZone;
-    let prevDt = Temporal.Now.zonedDateTimeISO(timeZone);
-    let currDt = Temporal.Now.zonedDateTimeISO(timeZone);
-    let currDateYear: number;
-    let currDateDay: number;
-    let prevDateYear: number;
-    let prevDateDay: number;
+    let prevDt: Temporal.ZonedDateTime;
+    let currDt: Temporal.ZonedDateTime;
+    let prevXTick: number;
+    let currXTick: number;
+
+    const df = new Intl.DateTimeFormat("en-US", {
+      timeZone: timeZone,
+      year: "numeric",
+      month: "short",
+    });
+
 
     const hTick = 4;
-    const xLastTick = this.xc.xb(nBars)
     let i = 1;
     while (i <= nBars) {
-      if (i % bTickUnit === 0 || i === nBars || i === 1) {
-        const xTick = this.xc.xb(i)
+      const time = this.xc.tb(i)
+      currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+      if (prevDt !== undefined && currDt.month > prevDt.month) {
+        // new month begins
+        const xTick = this.xc.xb(i);
+        currXTick = xTick;
 
-        if (xLastTick - xTick < TICK_SPACING && i !== nBars) {
-          // too close
-
-        } else {
+        if (prevXTick === undefined || currXTick - prevXTick > MIN_TICK_SPACING) {
           if (this.props.up) {
             path.moveto(xTick, hFont - 1)
             path.lineto(xTick, hFont - hTick)
@@ -99,46 +100,20 @@ class AxisX extends Component<Props, State> {
             path.lineto(xTick, hTick)
           }
 
-          const time = this.xc.tb(i)
-          currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-          let stridingDate = false
-          const freqUnit = this.xc.baseSer.freq.unit
-          switch (freqUnit) {
-            case TUnit.Day:
-              currDateYear = currDt.year;
-              prevDateYear = prevDt.year;
-              if (currDateYear > prevDateYear && i !== nBars || i === 1) {
-                stridingDate = true
-              }
-              break;
-
-            case TUnit.Hour:
-            case TUnit.Minute:
-            case TUnit.Second:
-              currDateDay = currDt.daysInWeek;
-              prevDateDay = prevDt.daysInMonth;
-              if (currDateDay > prevDateDay && i !== nBars || i === 1) {
-                stridingDate = true
-              }
-              break;
-
-            default:
-          }
-
-          const dateStr = stridingDate
-            ? freqUnit.formatStrideDate(currDt, timeZone)
-            : freqUnit.formatNormalDate(currDt, timeZone)
-
+          const xText = xTick - 22;
+          const dtStr = df.format(new Date(currDt.epochMilliseconds));
           if (this.props.up) {
-            texts.text(xTick + 2, hFont - hTick, dateStr);
+            texts.text(xText, hFont - hTick, dtStr);
 
           } else {
-            texts.text(xTick + 2, hFont - 3, dateStr);
+            texts.text(xText, hFont + 1, dtStr);
           }
 
-          prevDt = currDt;
+          prevXTick = currXTick;
         }
       }
+
+      prevDt = currDt;
 
       i++;
     }
@@ -205,8 +180,10 @@ class AxisX extends Component<Props, State> {
   }
 
   #plotCursor(x: number, time: number, color: string) {
-    const w = 48; // annotation width
+    const w = 50; // annotation width
     const h = 13; // annotation height
+
+    const x0 = x - 24;
 
     const timeZone = this.xc.baseSer.timeZone;
     const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
@@ -215,13 +192,18 @@ class AxisX extends Component<Props, State> {
 
     const axisxText = new Texts('#000000')
     const axisxPath = new Path(color, color);
-    const y0 = this.props.up ? 1 : 2;
-    axisxPath.moveto(x, y0);
-    axisxPath.lineto(x + w, y0);
-    axisxPath.lineto(x + w, y0 + h);
-    axisxPath.lineto(x, y0 + h);
+    const y0 = this.props.up ? 1 : 6;
+    // draw arrow
+    axisxPath.moveto(x, 0);
+    axisxPath.lineto(x - 3, y0);
+    axisxPath.lineto(x + 3, y0)
+
+    axisxPath.moveto(x0, y0);
+    axisxPath.lineto(x0 + w, y0);
+    axisxPath.lineto(x0 + w, y0 + h);
+    axisxPath.lineto(x0, y0 + h);
     axisxPath.closepath();
-    axisxText.text(x + 1, this.props.up ? h - 1 : h, dtStr);
+    axisxText.text(x0 + 1, this.props.up ? h - 1 : h + 4, dtStr);
 
     return (
       <g>

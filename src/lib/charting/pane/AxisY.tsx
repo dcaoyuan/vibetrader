@@ -114,22 +114,14 @@ export const AxisY = (props: Props) => {
         breakNow = true
 
       } else {
-        path.moveto(1, yTick)
+        path.moveto(0, yTick)
         path.lineto(wTick, yTick)
 
-        if (shouldScale) {
-          vTick = Math.abs(vTick / 100000.0)
+        vTick = shouldScale ? Math.abs(vTick / ChartYControl.VALUE_SCALE_UNIT) : Math.abs(vTick);
+        const vStr = i === 0 && shouldScale ? multiple : vTick.toPrecision();
 
-        } else {
-          vTick = Math.abs(vTick)
-        }
-
-        if (i === 0 && shouldScale) {
-          texts.text(4, yTick, multiple);
-
-        } else {
-          texts.text(4, yTick, COMMON_DECIMAL_FORMAT.format(vTick));
-        }
+        const yText = yTick + 4
+        texts.text(8, yText, vStr);
       }
 
       i++;

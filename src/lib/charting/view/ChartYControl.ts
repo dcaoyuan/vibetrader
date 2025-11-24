@@ -5,7 +5,7 @@ import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
 
 export class ChartYControl {
-  static readonly VALUE_SCALE_UNIT = 100000;
+  static readonly VALUE_SCALE_UNIT = 10000;
 
   baseSer: BaseTSer;
   height: number;

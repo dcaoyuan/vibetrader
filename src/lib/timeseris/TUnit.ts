@@ -216,65 +216,59 @@ export class TUnit {
     switch (this) {
       case TUnit.Second:
         // "13:31:26"
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
         break;
 
       case TUnit.Minute:
         // "13:31"
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         break;
 
       case TUnit.Hour:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         break;
 
       case TUnit.Day:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
         break;
 
       case TUnit.Week:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
         break;
 
       default:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
     }
 
     return df.format(new Date(dt.epochMilliseconds));
@@ -285,65 +279,59 @@ export class TUnit {
     switch (this) {
       case TUnit.Second:
         // "13:31:26"
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
         break;
 
       case TUnit.Minute:
         // "13:31"
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         break;
 
       case TUnit.Hour:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            hourCycle: "h24",
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          hourCycle: "h24",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         break;
 
       case TUnit.Day:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
         break;
 
       case TUnit.Week:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
         break;
 
       default:
-        df = new Intl.DateTimeFormat("en-US",
-          {
-            timeZone: timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-          });
+        df = new Intl.DateTimeFormat("en-US", {
+          timeZone: timeZone,
+          year: "2-digit",
+          month: "2-digit",
+          day: "2-digit",
+        });
     }
 
     return df.format(new Date(dt.epochMilliseconds));

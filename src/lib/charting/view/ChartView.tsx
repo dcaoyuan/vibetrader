@@ -377,12 +377,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   }
 
   #plotCursor(x: number, y: number, time: number, value: number, color: string) {
-    const wAnnot = 48; // annotation width
-    const hAnnot = 13; // annotation height
+    const wAnnot = 44; // annotation width
+    const hAnnot = 12; // annotation height
 
     const wAxisY = ChartView.AXISY_WIDTH
 
-    const valueStr = COMMON_DECIMAL_FORMAT.format(value);
+    const valueStr = value.toPrecision(5);
 
     const crossPath = new Path(color);
     // crossPath.stroke_dasharray = '1, 1'
@@ -393,13 +393,19 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     const axisyText = new Texts('#000000')
     const axisyPath = new Path(color, color)
-    const x0 = 2
-    axisyPath.moveto(x0, y);
-    axisyPath.lineto(x0 + wAnnot, y);
-    axisyPath.lineto(x0 + wAnnot, y - hAnnot);
-    axisyPath.lineto(x0, y - hAnnot);
+    const y0 = y + 6
+    const x0 = 6
+    // draw arrow
+    axisyPath.moveto(6, y - 3);
+    axisyPath.lineto(0, y);
+    axisyPath.lineto(6, y + 3);
+
+    axisyPath.moveto(x0, y0);
+    axisyPath.lineto(x0 + wAnnot, y0);
+    axisyPath.lineto(x0 + wAnnot, y0 - hAnnot);
+    axisyPath.lineto(x0, y0 - hAnnot);
     axisyPath.closepath();
-    axisyText.text(4, y - 1, valueStr);
+    axisyText.text(8, y0 - 1, valueStr);
 
     const transformYAnnot = `translate(${this.width - wAxisY}, ${0})`
 
