@@ -22,13 +22,14 @@ type State = {
 
   referQuote: Quote,
   mouseQuote: Quote,
-  delta: { period: number, percent: number, volumeSum: number, freqName: string }
+  delta: { period: number, percent: number, volumeSum: number }
 }
 
 class Title extends Component<Props, State> {
   xc: ChartXControl;
   width: number;
   height: number;
+  freqName: string;
 
   constructor(props: Props) {
     super(props);
@@ -38,6 +39,13 @@ class Title extends Component<Props, State> {
 
     const chart = this.plot();
     this.state = { chart, mouseQuote: undefined, referQuote: undefined, delta: undefined };
+
+    let freqName = this.xc.baseSer.freq.compactName.toLowerCase();
+    const matchLeadingNumbers = freqName.match(/^\d+/);
+    const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
+    freqName = leadingNumbers === '1' ? freqName.slice(1) : '(' + freqName + ')'
+
+    this.freqName = freqName;
 
     console.log("Title render");
   }
@@ -100,7 +108,7 @@ class Title extends Component<Props, State> {
         const rQuote = this.props.tvar.getByTime(rTime);
         const rValue = rQuote.close;
 
-        const period = this.xc.br(mRow) - this.xc.br(rRow)
+        const period = Math.abs(this.xc.br(mRow) - this.xc.br(rRow))
         const mValue = this.props.tvar.getByTime(mTime).close
         const percent = mRow > rRow
           ? 100 * (mValue - rValue) / rValue
@@ -119,11 +127,7 @@ class Title extends Component<Props, State> {
           i += 1
         }
 
-        let freqName = this.xc.baseSer.freq.compactName;
-        freqName = period === 1 ? freqName : freqName + 's'
-        freqName = freqName.startsWith('1') ? freqName.slice(1).toLowerCase() : '(' + freqName.toLowerCase + ')'
-
-        return { period, percent, volumeSum, freqName }
+        return { period, percent, volumeSum }
       }
 
     } else { // else, usually RealtimeQuoteChartView
@@ -171,7 +175,7 @@ class Title extends Component<Props, State> {
               <Text style={{ color: lColor }}>C </Text>
               <Text style={{ color: mColor }}>
                 {delta
-                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${Math.abs(delta.period)} ${delta.freqName})`
+                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.freqName : this.freqName + 's'})`
                   : mQuote.close
                 }
               </Text>
