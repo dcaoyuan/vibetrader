@@ -16,11 +16,12 @@ export class Texts implements Seg {
     this.texts.push({ x, y, text })
   }
 
-  render() {
+  render(key: string) {
     return (
       <>
-        {this.texts.map(text =>
+        {this.texts.map((text, i) =>
           <text
+            key={key + i}
             x={text.x}
             y={text.y}
             fill={this.fill}

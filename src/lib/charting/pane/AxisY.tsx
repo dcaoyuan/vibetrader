@@ -24,7 +24,7 @@ export const AxisY = (props: Props) => {
   const { x, y, width, height, yc } = props;
   const symmetricByMiddleValue = false;
 
-  const segs = plot();
+  const chart = plot();
 
   // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
   // const [state, setState] = useState<State>(plotAxisY())
@@ -138,10 +138,10 @@ export const AxisY = (props: Props) => {
   return (
     <g transform={transform} >
       <g shapeRendering="crispEdges" >
-        {segs.path.render()}
+        {chart.path.render('axisy-tick')}
       </g>
       <g>
-        {segs.texts.render()}
+        {chart.texts.render('axisy-text')}
       </g>
     </g>
   );

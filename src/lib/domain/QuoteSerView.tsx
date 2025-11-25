@@ -140,7 +140,7 @@ class QuoteSerView extends Component<Props, State> {
 
     return (
       <g shapeRendering="crispEdges" >
-        {crossPath.render()}
+        {crossPath.render('container-cross')}
       </g>
     )
   }

@@ -145,10 +145,10 @@ class AxisX extends Component<Props, State> {
     return (
       <>
         <g shapeRendering="crispEdges" >
-          {path.render()}
+          {path.render('axisx-tick')}
         </g>
-        <g>
-          {texts.render()}
+        <g key='texts'>
+          {texts.render('axisx-text')}
         </g>
       </>
     );
@@ -221,7 +221,8 @@ class AxisX extends Component<Props, State> {
 
     return (
       <g>
-        {[axisxPath, axisxText].map(seg => seg.render())}
+        {axisxPath.render('axisx-tick')}
+        {axisxText.render('axisx-annot')}
       </g>
     )
   }

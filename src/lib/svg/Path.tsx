@@ -96,7 +96,7 @@ export class Path implements Seg {
     this.pathDatas.push(c)
   }
 
-  render() {
+  render(key: string) {
     let path = '';
     for (const { type, values } of this.pathDatas) {
       path = path + type;
@@ -109,6 +109,7 @@ export class Path implements Seg {
 
     return (
       <path
+        key={key}
         d={path}
         fill={this.fill}
         stroke={this.stroke}

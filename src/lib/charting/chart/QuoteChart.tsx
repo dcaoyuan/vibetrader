@@ -43,7 +43,7 @@ const QuoteChart = (props: Props) => {
         plotCandleOrOhlcChart(kind, posPath, negPath);
     }
 
-    return negPath ? [posPath, negPath] : [posPath]
+    return { posPath, negPath }
   }
 
   function plotCandleOrOhlcChart(kind: QuoteChartKind, posPath: Path, negPath: Path) {
@@ -233,10 +233,13 @@ const QuoteChart = (props: Props) => {
     }
   }
 
-  const segs = plotChart();
+  const { posPath, negPath } = plotChart();
 
   return (
-    <>{segs.map(seg => seg.render())}</>
+    <>
+      {posPath && posPath.render('quote-pos')}
+      {negPath && negPath.render('quote-neg')}
+    </>
   )
 }
 

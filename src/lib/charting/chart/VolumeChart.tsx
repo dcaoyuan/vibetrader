@@ -77,13 +77,16 @@ const VolmueChart = (props: Props) => {
       bar += xc.nBarsCompressed
     }
 
-    return negPath ? [posPath, negPath] : [posPath]
+    return { posPath, negPath }
   }
 
-  const segs = plotChart();
+  const { posPath, negPath } = plotChart();
 
   return (
-    <>{segs.map(seg => seg.render())}</>
+    <>
+      {posPath && posPath.render('volume-pos')}
+      {negPath && negPath.render('volume-neg')}
+    </>
   )
 }
 

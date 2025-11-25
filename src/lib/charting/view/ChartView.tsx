@@ -412,10 +412,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
       // pay attention to the order to avoid text being overlapped
       <>
         <g shapeRendering="crispEdges" >
-          {crossPath.render()}
+          {crossPath.render('axisy-cross')}
         </g>
         <g transform={transformYAnnot}>
-          {[axisyPath, axisyText].map(seg => seg.render())}
+          {axisyPath.render('axisy-tick')}
+          {axisyText.render('axisy-annot')}
         </g>
       </>
     )
