@@ -106,8 +106,8 @@ export class ChartXControl {
     // })
   }
 
-  exists(time: number): boolean {
-    return this.baseSer.exists(time);
+  occurred(time: number): boolean {
+    return this.baseSer.occurred(time);
   }
 
   /**

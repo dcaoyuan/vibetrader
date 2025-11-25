@@ -121,7 +121,7 @@ export class DefaultTSer implements TSer {
   }
 
   nonExists(time: number): boolean {
-    return !this.exists(time);
+    return !this.occurred(time);
   }
 
   isAscending<V extends TVal>(values: V[]): boolean {
@@ -154,7 +154,7 @@ export class DefaultTSer implements TSer {
     return this._holders.size();
   }
 
-  exists(time: number): boolean {
+  occurred(time: number): boolean {
     /**
      * @NOTE: 
      * Should only get index from timestamps which has the proper position <-> time <-> item mapping

@@ -67,14 +67,14 @@ class Title extends Component<Props, State> {
 
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         referQuote = this.props.tvar.getByTime(time);
       }
     }
 
     if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         mouseQuote = this.props.tvar.getByTime(time);
       }
     }
@@ -96,7 +96,7 @@ class Title extends Component<Props, State> {
     if (isAutoReferCursorValue) { // normal QuoteChartView
       const rTime = this.xc.tr(rRow)
       const mTime = this.xc.tr(mRow)
-      if (this.xc.exists(rTime) && this.xc.exists(mTime)) {
+      if (this.xc.occurred(rTime) && this.xc.occurred(mTime)) {
         const rQuote = this.props.tvar.getByTime(rTime);
         const rValue = rQuote.close;
 
@@ -112,7 +112,7 @@ class Title extends Component<Props, State> {
         let i = rowBeg + 1
         while (i <= rowEnd) {
           const time = this.xc.tr(i)
-          if (this.xc.exists(time)) {
+          if (this.xc.occurred(time)) {
             const mQuote = this.props.tvar.getByTime(time);
             volumeSum += mQuote.volume;
           }

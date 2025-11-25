@@ -34,8 +34,8 @@ export class TVar<V extends TVal> {
     return this.belongsTo.timestamps();
   }
 
-  exists(time: number) {
-    return this.belongsTo.exists(time);
+  occurred(time: number) {
+    return this.belongsTo.occurred(time);
   }
 
   /**

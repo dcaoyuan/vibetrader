@@ -220,7 +220,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
   addToVar(name: string, value: TVal): BaseTSer {
     const theVar = this.varOf(name);
     const time = this.freq.trunc(value.time, this.timeZone);
-    if (!this.exists(time)) {
+    if (!this.occurred(time)) {
       this.createOrReset(time);
     }
     theVar.setByTime(time, value);

@@ -113,7 +113,7 @@ class QuoteSerView extends Component<Props, State> {
     const referColor = '#00F0F0'; // 'orange'
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         const cursorX = this.xc.xr(this.xc.referCursorRow)
         referCursor = this.#plotCursor(cursorX, referColor)
       }
@@ -121,7 +121,7 @@ class QuoteSerView extends Component<Props, State> {
 
     if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         const cursorX = this.xc.xr(this.xc.mouseCursorRow)
         mouseCursor = this.#plotCursor(cursorX, '#00F000')
       }
@@ -204,7 +204,7 @@ class QuoteSerView extends Component<Props, State> {
       const y = e.pageY - targetRect.top;
 
       const time = this.xc.tx(x);
-      if (!this.xc.exists(time)) {
+      if (!this.xc.occurred(time)) {
         return;
       }
 

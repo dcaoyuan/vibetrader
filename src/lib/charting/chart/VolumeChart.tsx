@@ -41,7 +41,7 @@ const VolmueChart = (props: Props) => {
       let i = 0;
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
-        if (xc.exists(time)) {
+        if (xc.occurred(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote.close !== 0) {
             if (open === undefined) {

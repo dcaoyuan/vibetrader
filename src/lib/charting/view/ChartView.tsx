@@ -334,7 +334,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         const cursorX = this.xc.xr(this.xc.referCursorRow)
 
         let value = this.valueAtTime(time);
@@ -350,7 +350,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         const cursorX = this.xc.xr(this.xc.mouseCursorRow)
 
         let value: number;

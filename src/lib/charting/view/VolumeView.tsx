@@ -73,7 +73,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     let i = 1
     while (i <= this.xc.nBars) {
       const time = this.xc.tb(i)
-      if (this.xc.exists(time)) {
+      if (this.xc.occurred(time)) {
         const quote = this.quoteVar.getByTime(time);
         if (quote.close > 0) {
           max = Math.max(max, quote.volume)

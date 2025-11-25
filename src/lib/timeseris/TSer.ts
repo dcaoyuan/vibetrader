@@ -32,7 +32,7 @@ export interface TSer {
 
   isOverlapping: boolean;
 
-  exists(time: number): boolean;
+  occurred(time: number): boolean;
 
   firstOccurredTime(): number;
   lastOccurredTime(): number;

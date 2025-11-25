@@ -59,7 +59,7 @@ const QuoteChart = (props: Props) => {
       let i = 0
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
-        if (xc.exists(time)) {
+        if (xc.occurred(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote && quote.open != 0) {
             if (open === undefined) {
@@ -189,7 +189,7 @@ const QuoteChart = (props: Props) => {
       let i = 0;
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
-        if (quoteVar.exists(time)) {
+        if (quoteVar.occurred(time)) {
           const quote = quoteVar.getByTime(time);
           if (quote && quote.close !== 0) {
             if (open === undefined) {
