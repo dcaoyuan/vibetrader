@@ -233,8 +233,8 @@ class AxisX extends Component<Props, State> {
     return (
       <g transform={transform} ref={this.ref}>
         {this.state.chart}
-        {this.state.mouseCursor}
         {this.state.referCursor}
+        {this.state.mouseCursor}
       </g >
     )
   }

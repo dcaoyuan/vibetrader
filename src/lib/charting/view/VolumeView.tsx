@@ -120,8 +120,8 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
       <g transform={transform}>
         {this.state.chart}
         {this.state.axisy}
-        {this.state.mouseCursor}
         {this.state.referCursor}
+        {this.state.mouseCursor}
       </g>
     )
   }
