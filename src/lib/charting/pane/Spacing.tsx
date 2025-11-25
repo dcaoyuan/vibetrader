@@ -12,14 +12,21 @@ type Props = {
 }
 
 type State = {
-  path?: JSX.Element
+  nothing: boolean
 }
 
 class Spacing extends Component<Props, State> {
+  chart: JSX.Element;
 
   constructor(props: Props) {
     super(props);
-    const { width, height, upOrDown } = props;
+
+    console.log("Spacing render");
+    this.chart = this.plot();
+  }
+
+  plot() {
+    const { width, height, upOrDown } = this.props;
     const path = new Path(Theme.now().axisColor);
 
     switch (upOrDown) {
@@ -54,8 +61,7 @@ class Spacing extends Component<Props, State> {
         path.lineto(0, 8);
     }
 
-    console.log("Spacing render");
-    this.state = { path: path.render() };
+    return path.render('spacing-' + this.props.id)
   }
 
   render() {
@@ -63,10 +69,9 @@ class Spacing extends Component<Props, State> {
 
     return (
       <g transform={transform} shapeRendering="crispEdges" >
-        {this.state.path}
+        {this.chart}
       </g>
     )
-
   }
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
