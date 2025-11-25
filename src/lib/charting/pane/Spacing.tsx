@@ -8,7 +8,7 @@ type Props = {
   y: number,
   width: number,
   height: number,
-  upOrDown?: string,
+  toward?: string,
 }
 
 type State = {
@@ -26,10 +26,10 @@ class Spacing extends Component<Props, State> {
   }
 
   plot() {
-    const { width, height, upOrDown } = this.props;
+    const { width, height, toward } = this.props;
     const path = new Path(Theme.now().axisColor);
 
-    switch (upOrDown) {
+    switch (toward) {
       case "up":
         // draw border line
         path.moveto(0, height);
@@ -80,7 +80,7 @@ class Spacing extends Component<Props, State> {
       this.props.y !== nextProps.y ||
       this.props.width !== nextProps.width ||
       this.props.height !== nextProps.height ||
-      this.props.upOrDown !== nextProps.upOrDown
+      this.props.toward !== nextProps.toward
     ) {
       return true;
     }

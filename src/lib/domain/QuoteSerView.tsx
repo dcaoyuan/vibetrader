@@ -312,7 +312,7 @@ class QuoteSerView extends Component<Props, State> {
     }
   }
 
-  spacing = (i: number, upOrDown?: string) => {
+  spacing = (i: number, toward?: string) => {
     return (
       <Spacing
         id={i}
@@ -320,7 +320,7 @@ class QuoteSerView extends Component<Props, State> {
         height={this.hViews[i]}
         x={0}
         width={this.width}
-        upOrDown={upOrDown}
+        toward={toward}
       />
     )
   }
