@@ -10,6 +10,7 @@ import type { Quote } from "./Quote";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
 import Spacing from "../charting/pane/Spacing";
+import { Help } from "../charting/pane/Help";
 
 type Props = {
   xc: ChartXControl,
@@ -35,6 +36,8 @@ class QuoteSerView extends Component<Props, State> {
   isInteractive: boolean;
 
   hTitle = 98;
+  hHelp = 80;
+
   hMasterView = 400;
   hSlaveView = 100;
   hAxisx = 40;
@@ -387,17 +390,15 @@ class QuoteSerView extends Component<Props, State> {
         tabIndex={0}
       >
         <div className="title" style={{ width: this.width, height: this.hTitle }}>
-          <div style={{ paddingLeft: '0px' }}>
-            <Title
-              width={this.width}
-              height={this.hTitle}
-              xc={this.xc}
-              tvar={this.qvar}
-              refreshChart={this.state.refreshChart}
-              refreshCursors={this.state.refreshCursors}
-            />
-          </div>
-          <div className="borderLeft" style={{ top: this.hTitle - 8 }} />
+          <Title
+            width={this.width}
+            height={this.hTitle}
+            xc={this.xc}
+            tvar={this.qvar}
+            refreshChart={this.state.refreshChart}
+            refreshCursors={this.state.refreshCursors}
+          />
+          <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
         </div>
         <div style={{ width: this.width + 'px', height: this.svgHeight + 'px' }}>
           <svg viewBox={`0, 0, ${this.width} ${this.svgHeight}`} width={this.width} height={this.svgHeight} vectorEffect="non-scaling-stroke"
@@ -416,6 +417,14 @@ class QuoteSerView extends Component<Props, State> {
             {this.state.mouseCursor}
           </svg>
         </div>
+        <div className="title" style={{ width: this.width, height: this.hHelp }}>
+          <Help
+            width={this.width}
+            height={this.hHelp}
+          />
+          <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />
+        </div>
+
       </div >
     )
   }

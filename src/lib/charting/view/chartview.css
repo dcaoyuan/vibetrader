@@ -60,9 +60,23 @@
   background: #333333;
 }
 
-.container div.borderLeft {
+.container div.borderLeftUp {
   border-left: 1px solid white;
   position: absolute;
   top: 80%;
   bottom: 0;
+}
+
+.container div.help {
+  position: relative;
+  border-top: 1px solid white;
+  color: #00F000;
+  background: #333333;
+}
+
+.container div.borderLeftDown {
+  border-left: 1px solid white;
+  position: absolute;
+  top: 0;
+  bottom: 80%;
 }
