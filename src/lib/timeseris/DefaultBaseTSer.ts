@@ -1,13 +1,13 @@
 import type { BaseTSer } from "./BaseTSer";
 import { DefaultTSer } from "./DefaultTSer";
-import { TFreq } from "./TFreq";
+import { TFrame } from "./TFrame";
 import { TStamps } from "./TStamps";
 import { TVal } from "./TVal";
 
 export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
 
-  constructor(freq: TFreq, timeZone: string, valuesCapacity: number) {
-    super(freq, timeZone, TStamps.of(freq, timeZone, valuesCapacity), valuesCapacity);
+  constructor(tframe: TFrame, tzone: string, valuesCapacity: number) {
+    super(tframe, tzone, TStamps.of(tframe, tzone, valuesCapacity), valuesCapacity);
   }
 
   isOnCalendarMode = false;
@@ -219,7 +219,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
    */
   addToVar(name: string, value: TVal): BaseTSer {
     const theVar = this.varOf(name);
-    const time = this.freq.trunc(value.time, this.timeZone);
+    const time = this.timeframe.trunc(value.time, this.timezone);
     if (!this.occurred(time)) {
       this.createOrReset(time);
     }
@@ -251,7 +251,7 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
     while (i >= 0 && i < lenth) {
       const value = values[i];
       if (value !== undefined) {
-        const time = this.freq.trunc(value.time, this.timeZone);
+        const time = this.timeframe.trunc(value.time, this.timezone);
         this.createOrReset(time);
         theVar.setByTime(time, value);
 

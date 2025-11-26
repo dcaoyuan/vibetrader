@@ -1,22 +1,22 @@
 import type { CIterator } from "../collection/CIterator";
 import type { Collection } from "../collection/Collection";
 import { ValueList } from "../collection/ValueList";
-import { TFreq } from "./TFreq";
+import { TFrame } from "./TFrame";
 
 export abstract class TStamps extends ValueList<number> {
   static readonly LONG_LONG_AGO = new Date(Date.UTC(1900, 0, 0, 0, 0, 0)).getTime();
 
-  static of(freq: TFreq, timeZone: string, capacity: number): TStamps {
-    return new TStampsOnOccurred(freq, timeZone, capacity);
+  static of(tframe: TFrame, tzone: string, capacity: number): TStamps {
+    return new TStampsOnOccurred(tframe, tzone, capacity);
   }
 
-  freq: TFreq;
-  timeZone: string;
+  timeframe: TFrame;
+  timezone: string;
 
-  constructor(freq: TFreq, timeZone: string, capacity: number) {
+  constructor(tframe: TFrame, tzone: string, capacity: number) {
     super(capacity);
-    this.freq = freq;
-    this.timeZone = timeZone;
+    this.timeframe = tframe;
+    this.timezone = tzone;
   }
 
   // private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -35,7 +35,6 @@ export abstract class TStamps extends ValueList<number> {
    * lastOccurredTime
    *
    * @param time
-   * @param freq
    * @return
    */
   abstract rowOfTime(time: number): number;
@@ -100,8 +99,8 @@ export interface TStampsIterator {
 
 export class TStampsOnOccurred extends TStamps {
 
-  constructor(freq: TFreq, timeZone: string, capacity: number) {
-    super(freq, timeZone, capacity);
+  constructor(tframe: TFrame, tzone: string, capacity: number) {
+    super(tframe, tzone, capacity);
   }
 
   #onCalendarShadow = new TStampsOnCalendar(this);
@@ -127,14 +126,14 @@ export class TStampsOnOccurred extends TStamps {
     const firstOccurredTime = this.get(0);
     const lastOccurredTime = this.get(lastOccurredIdx);
     if (time <= firstOccurredTime) {
-      return this.freq.nFreqsBetween(firstOccurredTime, time, this.timeZone);
+      return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
     } else if (time >= lastOccurredTime) {
       /**
        * @NOTICE The number of bars of onOccurred between first-last is different than onCalendar,
        * so we should count from lastOccurredIdx in case of onOccurred. so, NEVER try: <code>
-       * return freq.nFreqsBetween(firstOccurredTime, time);</code> in case of onOccurred
+       * return timeframe.nTimeframsBetween(firstOccurredTime, time);</code> in case of onOccurred
        */
-      return lastOccurredIdx + this.freq.nFreqsBetween(lastOccurredTime, time, this.timeZone);
+      return lastOccurredIdx + this.timeframe.nTimeframesBetween(lastOccurredTime, time, this.timezone);
     } else {
       return this.nearestIndexOfOccurredTime(time);
     }
@@ -151,9 +150,9 @@ export class TStampsOnOccurred extends TStamps {
     const firstOccurredTime = this.get(0);
     const lastOccurredTime = this.get(lastOccurredIdx);
     if (row < 0) {
-      return this.freq.timeAfterNFreqs(firstOccurredTime, row, this.timeZone);
+      return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
     } else if (row > lastOccurredIdx) {
-      return this.freq.timeAfterNFreqs(lastOccurredTime, row - lastOccurredIdx, this.timeZone);
+      return this.timeframe.timeAfterNTimeframes(lastOccurredTime, row - lastOccurredIdx, this.timezone);
     } else {
       return this.get(row);
     }
@@ -369,7 +368,7 @@ export class TStampsOnOccurred extends TStamps {
 
   reversedOne(): TStampsOnOccurred {
     const n = this.size();
-    const reversed = new TStampsOnOccurred(this.freq, this.timeZone, n);
+    const reversed = new TStampsOnOccurred(this.timeframe, this.timezone, n);
     let i = 0;
     while (i < n) {
       reversed.add(this.get(n - 1 - i));
@@ -390,7 +389,7 @@ export class TStampsOnOccurred extends TStamps {
 class ItrOnOccurred implements TStampsIterator {
   #outer: TStampsOnOccurred;
 
-  #freq: TFreq;
+  #timeframe: TFrame;
   #cursorTime: number;
   #expectedModCount: number
 
@@ -411,10 +410,10 @@ class ItrOnOccurred implements TStampsIterator {
 
   constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
     this.#outer = outer;
-    this.#freq = outer.freq;
+    this.#timeframe = outer.timeframe;
     this.fromTime = fromTime === undefined
       ? outer.firstOccurredTime()
-      : outer.freq.trunc(fromTime, this.#outer.timeZone);
+      : outer.timeframe.trunc(fromTime, this.#outer.timezone);
     this.toTime = toTime === undefined
       ? outer.lastOccurredTime()
       : toTime;
@@ -431,7 +430,7 @@ class ItrOnOccurred implements TStampsIterator {
     try {
       this.#cursorRow++;
       const next = (this.#cursorRow >= this.#outer.size())
-        ? this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone)
+        ? this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone)
         : this.#outer.get(this.#cursorRow);
       this.#cursorTime = next;
       this.#lastReturnTime = this.#cursorTime;
@@ -458,7 +457,7 @@ class ItrOnOccurred implements TStampsIterator {
     try {
       this.#cursorRow--;
       const prev1 = this.#cursorRow < 0
-        ? this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone)
+        ? this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone)
         : this.#outer.get(this.#cursorRow);
       this.#cursorTime = prev1;
       this.#lastReturnTime = this.#cursorTime;
@@ -497,7 +496,7 @@ export class TStampsOnCalendar extends TStamps {
   #delegateTimestamps: TStamps;
 
   constructor(delegateTimestamps: TStamps) {
-    super(delegateTimestamps.freq, delegateTimestamps.timeZone, 1024);
+    super(delegateTimestamps.timeframe, delegateTimestamps.timezone, 1024);
     this.#delegateTimestamps = delegateTimestamps;
   }
 
@@ -525,7 +524,7 @@ export class TStampsOnCalendar extends TStamps {
       return -1;
     } else {
       const firstOccurredTime = this.get(0);
-      return this.freq.nFreqsBetween(firstOccurredTime, time, this.timeZone);
+      return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
     }
   }
 
@@ -537,7 +536,7 @@ export class TStampsOnCalendar extends TStamps {
       return 0;
     } else {
       const firstOccurredTime = this.get(0);
-      return this.freq.timeAfterNFreqs(firstOccurredTime, row, this.timeZone);
+      return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
     }
   }
 
@@ -548,7 +547,7 @@ export class TStampsOnCalendar extends TStamps {
     } else {
       const firstOccurredTime = this.get(0);
       const lastOccurredTime = this.get(lastOccurredIdx);
-      return this.freq.nFreqsBetween(firstOccurredTime, lastOccurredTime, this.timeZone);
+      return this.timeframe.nTimeframesBetween(firstOccurredTime, lastOccurredTime, this.timezone);
     }
   }
 
@@ -692,7 +691,7 @@ export class TStampsOnCalendar extends TStamps {
 
 class ItrOnCalendar implements TStampsIterator {
   #outer: TStampsOnCalendar;
-  #freq: TFreq;
+  #timeframe: TFrame;
   #cursorTime: number;
   fromTime: number;
   toTime: number;
@@ -717,10 +716,10 @@ class ItrOnCalendar implements TStampsIterator {
 
   constructor(outer: TStampsOnCalendar, fromTime?: number, toTime?: number) {
     this.#outer = outer;
-    this.#freq = outer.freq;
+    this.#timeframe = outer.timeframe;
     this.fromTime = fromTime === undefined
       ? outer.firstOccurredTime()
-      : outer.freq.trunc(fromTime, outer.timeZone);
+      : outer.timeframe.trunc(fromTime, outer.timezone);
     this.toTime = toTime === undefined
       ? outer.lastOccurredTime()
       : toTime;
@@ -736,7 +735,7 @@ class ItrOnCalendar implements TStampsIterator {
     this.#checkForComodification();
     try {
       this.#cursorRow++;
-      const next = this.#freq.nextTime(this.#cursorTime, this.#outer.timeZone);
+      const next = this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone);
       this.#cursorTime = next;
       this.#lastReturnTime = this.#cursorTime;
       return next;
@@ -760,7 +759,7 @@ class ItrOnCalendar implements TStampsIterator {
     this.#checkForComodification();
     try {
       this.#cursorRow--;
-      const prev1 = this.#freq.prevTime(this.#cursorTime, this.#outer.timeZone);
+      const prev1 = this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone);
       this.#cursorTime = prev1;
       this.#lastReturnTime = this.#cursorTime;
       return prev1;

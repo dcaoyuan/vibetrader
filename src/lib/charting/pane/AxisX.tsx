@@ -73,20 +73,20 @@ class AxisX extends Component<Props, State> {
       path.lineto(this.width, 0)
     }
 
-    const timeZone = this.xc.baseSer.timeZone;
+    const tzone = this.xc.baseSer.timezone;
     let prevDt: Temporal.ZonedDateTime;
     let currDt: Temporal.ZonedDateTime;
     let prevXTick: number;
     let currXTick: number;
 
     const dfYM = new Intl.DateTimeFormat("en-US", {
-      timeZone: timeZone,
+      timeZone: tzone,
       year: "numeric",
       month: "short",
     });
 
     const dfY = new Intl.DateTimeFormat("en-US", {
-      timeZone: timeZone,
+      timeZone: tzone,
       year: "numeric",
     });
 
@@ -95,7 +95,7 @@ class AxisX extends Component<Props, State> {
     let i = 1;
     while (i <= nBars) {
       const time = this.xc.tb(i)
-      currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+      currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
       if (prevDt !== undefined && (currDt.month !== prevDt.month || currDt.year !== prevDt.year)) {
         // new month begins
         const xTick = this.xc.xb(i);
@@ -199,9 +199,9 @@ class AxisX extends Component<Props, State> {
 
     const x0 = x - 24;
 
-    const timeZone = this.xc.baseSer.timeZone;
-    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
-    const dtStr = this.xc.baseSer.freq.unit.formatNormalDate(dt, timeZone)
+    const tzone = this.xc.baseSer.timezone;
+    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
+    const dtStr = this.xc.baseSer.timeframe.unit.formatNormalDate(dt, tzone)
 
 
     const axisxText = new Texts('#000000')

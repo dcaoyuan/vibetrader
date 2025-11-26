@@ -1,4 +1,4 @@
-import { TFreq } from "./TFreq";
+import { TFrame } from "./TFrame";
 import { TVal } from "./TVal";
 import { TVar } from "./TVar";
 import { ValueList } from "../collection/ValueList";
@@ -23,8 +23,8 @@ import type { BaseTSer } from "./BaseTSer";
  *
  */
 export class DefaultTSer implements TSer {
-  freq: TFreq;
-  timeZone: string;
+  timeframe: TFrame;
+  timezone: string;
   valuesCapacity: number;
 
   /**
@@ -43,9 +43,9 @@ export class DefaultTSer implements TSer {
 
   protected _holders: ValueList<boolean>; // a place holder plus flag
 
-  constructor(freq: TFreq, timeZone: string, timestamps: TStamps, valuesCapacity: number) {
-    this.freq = freq;
-    this.timeZone = timeZone;
+  constructor(tframe: TFrame, tzone: string, timestamps: TStamps, valuesCapacity: number) {
+    this.timeframe = tframe;
+    this.timezone = tzone;
     this.valuesCapacity = valuesCapacity;
     //assert valuesCapacity >= 2 : "valuesCapacity must >= 2, so as to record and get prev one";
 
@@ -296,9 +296,9 @@ export class DefaultTSer implements TSer {
 
   // toString(): string {
   //   let sb = "";
-  //   "${this.shortName}(${this.freq}): size={$this.size()},";
+  //   "${this.shortName}(${this.timeframe}): size={$this.size()},";
 
-  //   sb = sb + this.shortName + "(" + this.freq + "): size=" + this.size() + ", ";
+  //   sb = sb + this.shortName + "(" + this.timeframe + "): size=" + this.size() + ", ";
   //   if (this.timestamps !== undefined && !this.timestamps().isEmpty()) {
   //     const length = this.timestamps().size();
 

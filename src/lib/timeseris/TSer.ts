@@ -1,12 +1,12 @@
-import { TFreq } from "./TFreq";
+import { TFrame } from "./TFrame";
 import { TStamps } from "./TStamps";
 import { TVal } from "./TVal";
 import { TVar } from "./TVar";
 
 // timeZone string specs: https://www.iana.org/time-zones
 export interface TSer {
-  freq: TFreq;
-  timeZone: string;
+  timeframe: TFrame;
+  timezone: string;
   timestamps(): TStamps;
   vars(): Map<string, TVar<TVal>>;
 

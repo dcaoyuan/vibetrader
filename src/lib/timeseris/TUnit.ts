@@ -122,20 +122,20 @@ export class TUnit {
     return dt.round("day").epochMilliseconds;
   }
 
-  nUnitsBetween(fromTime: number, toTime: number, timeZone: string): number {
+  nUnitsBetween(fromTime: number, toTime: number, tzone: string): number {
     switch (this) {
       case TUnit.Week:
-        return this.#nWeeksBetween(fromTime, toTime, timeZone);
+        return this.#nWeeksBetween(fromTime, toTime, tzone);
 
       case TUnit.Month:
-        return this.#nMonthsBetween(fromTime, toTime, timeZone);
+        return this.#nMonthsBetween(fromTime, toTime, tzone);
 
       default:
         return Math.floor((toTime - fromTime) / this.interval);
     }
   }
 
-  #nWeeksBetween(fromTime: number, toTime: number, timeZone: string): number {
+  #nWeeksBetween(fromTime: number, toTime: number, tzone: string): number {
     const between = Math.floor((toTime - fromTime) / TUnit.ONE_WEEK);
 
     /**
@@ -144,9 +144,9 @@ export class TUnit {
      * we should consider it as following:
      */
     if (Math.abs(between) < 1) {
-      const dtA = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, timeZone);
+      const dtA = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
       const weekOfYearA = dtA.weekOfYear;
-      const dtB = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, timeZone);
+      const dtB = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
       const weekOfYearB = dtB.weekOfYear;
 
       /** if is in same week, between = 0, else between = 1 */
@@ -157,9 +157,9 @@ export class TUnit {
     }
   }
 
-  #nMonthsBetween(fromTime: number, toTime: number, timeZone: string): number {
-    const dtA = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, timeZone);
-    const dtB = new Temporal.ZonedDateTime(BigInt(toTime) * TUnit.NANO_PER_MILLI, timeZone);
+  #nMonthsBetween(fromTime: number, toTime: number, tzone: string): number {
+    const dtA = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
+    const dtB = new Temporal.ZonedDateTime(BigInt(toTime) * TUnit.NANO_PER_MILLI, tzone);
 
     const monthOfYearA = dtA.month;
     const monthOfYearB = dtB.month;
@@ -170,13 +170,13 @@ export class TUnit {
     return (yearB * 12 + monthOfYearB) - (yearA * 12 + monthOfYearA);
   }
 
-  timeAfterNUnits(fromTime: number, nUnits: number, timeZone: string): number {
+  timeAfterNUnits(fromTime: number, nUnits: number, tzone: string): number {
     switch (this) {
       case TUnit.Week:
-        return this.#timeAfterNWeeks(fromTime, nUnits, timeZone);
+        return this.#timeAfterNWeeks(fromTime, nUnits, tzone);
 
       case TUnit.Month:
-        return this.#timeAfterNMonths(fromTime, nUnits, timeZone);
+        return this.#timeAfterNMonths(fromTime, nUnits, tzone);
 
       default:
         return fromTime + nUnits * this.interval;
@@ -184,23 +184,23 @@ export class TUnit {
   }
 
   /** snapped to first day of the week */
-  #timeAfterNWeeks(fromTime: number, nWeeks: number, timeZone: string): number {
-    const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, timeZone);
+  #timeAfterNWeeks(fromTime: number, nWeeks: number, tzone: string): number {
+    const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
 
     /** set the time to first day of this week first */
     return dt.subtract({ days: dt.dayOfWeek - 1 }).add({ weeks: nWeeks }).epochMilliseconds;
   }
 
   /** snapped to 1st day of the month */
-  #timeAfterNMonths(fromTime: number, nMonths: number, timeZone: string): number {
-    const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, timeZone);
+  #timeAfterNMonths(fromTime: number, nMonths: number, tzone: string): number {
+    const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
 
     /** set the time to this month's 1st day */
     return dt.subtract({ days: dt.day - 1 }).add({ months: nMonths }).epochMilliseconds;
   }
 
-  beginTimeOfUnitThatIncludes(time: number, timeZone: string): number {
-    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, timeZone);
+  beginTimeOfUnitThatIncludes(time: number, tzone: string): number {
+    const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
     return this.truncDateTime(dt);
   }
 
@@ -208,16 +208,16 @@ export class TUnit {
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
    * 
    * @param dt 
-   * @param timeZone 
+   * @param tzone 
    * @returns 
    */
-  formatNormalDate(dt: Temporal.ZonedDateTime, timeZone: string): string {
+  formatNormalDate(dt: Temporal.ZonedDateTime, tzone: string): string {
     let df;
     switch (this) {
       case TUnit.Second:
         // "13:31:26"
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -228,7 +228,7 @@ export class TUnit {
       case TUnit.Minute:
         // "13:31"
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -237,7 +237,7 @@ export class TUnit {
 
       case TUnit.Hour:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -246,7 +246,7 @@ export class TUnit {
 
       case TUnit.Day:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -255,7 +255,7 @@ export class TUnit {
 
       case TUnit.Week:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -264,7 +264,7 @@ export class TUnit {
 
       default:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -274,13 +274,13 @@ export class TUnit {
     return df.format(new Date(dt.epochMilliseconds));
   }
 
-  formatStrideDate(dt: Temporal.ZonedDateTime, timeZone: string): string {
+  formatStrideDate(dt: Temporal.ZonedDateTime, tzone: string): string {
     let df;
     switch (this) {
       case TUnit.Second:
         // "13:31:26"
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -291,7 +291,7 @@ export class TUnit {
       case TUnit.Minute:
         // "13:31"
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -300,7 +300,7 @@ export class TUnit {
 
       case TUnit.Hour:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           hourCycle: "h24",
           hour: "2-digit",
           minute: "2-digit",
@@ -309,7 +309,7 @@ export class TUnit {
 
       case TUnit.Day:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -318,7 +318,7 @@ export class TUnit {
 
       case TUnit.Week:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -327,7 +327,7 @@ export class TUnit {
 
       default:
         df = new Intl.DateTimeFormat("en-US", {
-          timeZone: timeZone,
+          timeZone: tzone,
           year: "2-digit",
           month: "2-digit",
           day: "2-digit",
@@ -347,7 +347,7 @@ export class TUnit {
 
   //   override 
   //   hashCode: Int = {
-  //     /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
+  //     /** should let the equaled timeframes have the same hashCode, just like a Primitive type */
   //     (interval ^ (interval >>> 32)).toInt
   //   }
 }

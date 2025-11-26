@@ -1,17 +1,17 @@
 import { DefaultBaseTSer } from "../timeseris/DefaultBaseTSer";
-import { TFreq } from "../timeseris/TFreq";
+import { TFrame } from "../timeseris/TFrame";
 import { Quote } from "./Quote";
 import quotesJson from "../quotes.json"
 import type { TVar } from "../timeseris/TVar";
 
-//const timeZone = "America/Los_Angeles";
-const timeZone = "America/Vancouver";
+//const tzone = "America/Los_Angeles";
+const tzone = "America/Vancouver";
 const varName = "ETH";
 
 export function loadSer(varName: string) {
   const qs = quotesJson //.reverse();
 
-  const quoteSer = new DefaultBaseTSer(TFreq.DAILY, timeZone, 1000);
+  const quoteSer = new DefaultBaseTSer(TFrame.DAILY, tzone, 1000);
 
   //console.log(qs)
 

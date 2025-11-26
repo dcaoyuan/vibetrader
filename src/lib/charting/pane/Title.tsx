@@ -29,7 +29,7 @@ class Title extends Component<Props, State> {
   xc: ChartXControl;
   width: number;
   height: number;
-  freqName: string;
+  tframeName: string;
 
   constructor(props: Props) {
     super(props);
@@ -40,12 +40,12 @@ class Title extends Component<Props, State> {
     const chart = this.plot();
     this.state = { chart, mouseQuote: undefined, referQuote: undefined, delta: undefined };
 
-    let freqName = this.xc.baseSer.freq.compactName.toLowerCase();
-    const matchLeadingNumbers = freqName.match(/^\d+/);
+    let tframeName = this.xc.baseSer.timeframe.compactName.toLowerCase();
+    const matchLeadingNumbers = tframeName.match(/^\d+/);
     const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
-    freqName = leadingNumbers === '1' ? freqName.slice(1) : '(' + freqName + ')'
+    tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
-    this.freqName = freqName;
+    this.tframeName = tframeName;
 
     console.log("Title render");
   }
@@ -175,7 +175,7 @@ class Title extends Component<Props, State> {
               <Text style={{ color: lColor }}>C </Text>
               <Text style={{ color: mColor }}>
                 {delta
-                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.freqName : this.freqName + 's'})`
+                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
                   : mQuote.close
                 }
               </Text>
