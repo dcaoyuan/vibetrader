@@ -20,13 +20,14 @@ export const { result } = await pineTS.run((context: Context) => {
   };
 });
 
-
 console.log(result)
-// const part_bull_bias = result.bull_bias.reverse().slice(0, 10);
-// const part_bear_bias = result.bear_bias.reverse().slice(0, 10);
+const typedResult = result as { bull_bias: boolean[], bear_bias: boolean[] };
+
+const part_bull_bias = typedResult.bull_bias.reverse().slice(0, 10);
+const part_bear_bias = typedResult.bear_bias.reverse().slice(0, 10);
 
 // const expected_bull_bias = [false, false, true, true, true, true, true, true, true, true];
 // const expected_bear_bias = [true, true, false, false, false, false, false, false, false, false];
 
-// console.log(part_bull_bias);
-// console.log(part_bear_bias);
+console.log(part_bull_bias);
+console.log(part_bear_bias);

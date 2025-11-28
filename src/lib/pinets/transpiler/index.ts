@@ -2072,6 +2072,8 @@ export function transpile(fn: string | Function): Function {
     //transform equality checks to math.__eq calls
     transformEqualityChecks(ast);
 
+    console.log(ast)
+
     const transformedCode = astring.generate(ast);
 
     const _wraperFunction = new Function('', `return ${transformedCode}`);

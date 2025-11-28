@@ -2,7 +2,7 @@
 // Copyright (C) 2025 Ala-eddine KADDOURI
 import { transpile } from './transpiler/index';
 import { Context } from './index';
-import { type Quote } from './marketData/Binance/BinanceProvider.class';
+import { type Bar } from './marketData/Binance/BinanceProvider.class';
 
 import { type IProvider } from './marketData/IProvider';
 
@@ -11,7 +11,7 @@ import { type IProvider } from './marketData/IProvider';
  */
 const MAX_PERIODS = 5000;
 export class PineTS {
-    public data: Quote[] = [];
+    public data: Bar[] = [];
 
     //#region [Pine Script built-in variables]
     public open: unknown = [];
@@ -115,7 +115,8 @@ export class PineTS {
         const transformer = transpile.bind(this);
         const transpiledFn = transformer(pineTSCode);
 
-        //console.log('>>> transformedFn: ', transformedFn.toString());
+        console.log('>>> transformedFn: ', transpiledFn.toString());
+
         context.data.close = [];
         context.data.open = [];
         context.data.high = [];
