@@ -182,8 +182,8 @@ export class TechnicalAnalysis {
         const sqrtPeriod = Math.floor(Math.sqrt(period));
 
         // Pass derived call IDs to internal WMA calls to avoid state collision
-        const wma1 = this.wma(source, halfPeriod, _callId ? `${_callId}_wma1` : undefined);
-        const wma2 = this.wma(source, period, _callId ? `${_callId}_wma2` : undefined);
+        const wma1 = this.wma(source, halfPeriod, _callId ? `${_callId}_wma1` : undefined) as number;
+        const wma2 = this.wma(source, period, _callId ? `${_callId}_wma2` : undefined) as number;
 
         if (isNaN(wma1) || isNaN(wma2)) {
             return NaN;
@@ -720,7 +720,7 @@ export class TechnicalAnalysis {
         const close = this.context.data.close[0];
 
         // Get ATR value (already optimized) - use derived call ID
-        const atrValue = this.atr(atrPeriod, _callId ? `${_callId}_atr` : undefined);
+        const atrValue = this.atr(atrPeriod, _callId ? `${_callId}_atr` : undefined) as number;
 
         if (isNaN(atrValue)) {
             return [[NaN, 0]];

@@ -2,7 +2,7 @@
 // Copyright (C) 2025 Ala-eddine KADDOURI
 import { transpile } from './transpiler/index';
 import { Context } from './index';
-import { type OHLC } from './marketData/Binance/BinanceProvider.class';
+import { type Kline } from './marketData/Binance/BinanceProvider.class';
 
 import { type IProvider } from './marketData/IProvider';
 
@@ -11,7 +11,7 @@ import { type IProvider } from './marketData/IProvider';
  */
 const MAX_PERIODS = 5000;
 export class PineTS {
-    public data: OHLC[] = [];
+    public data: Kline[] = [];
 
     //#region [Pine Script built-in variables]
     public open: unknown = [];

@@ -8,7 +8,7 @@ import { PineRequest } from './namespaces/PineRequest';
 import TechnicalAnalysis from './namespaces/TechnicalAnalysis';
 import { PineArray } from './namespaces/PineArray';
 import type { IProvider } from './marketData/IProvider';
-import { type OHLC } from './marketData/Binance/BinanceProvider.class';
+import { type Kline } from './marketData/Binance/BinanceProvider.class';
 
 type ContextData = {
     open: number[],
@@ -62,7 +62,7 @@ export class Context {
     public result: unknown = undefined;
     public plots: unknown = {};
 
-    public marketData: OHLC[];
+    public marketData: Kline[];
     public source: IProvider | unknown[];
     public tickerId: string;
     public timeframe: string = '';
@@ -81,7 +81,7 @@ export class Context {
         sDate,
         eDate,
     }: {
-        marketData: OHLC[];
+        marketData: Kline[];
         source: IProvider | unknown[];
         tickerId?: string;
         timeframe?: string;
@@ -124,18 +124,18 @@ export class Context {
      * @param idx - the index of the source array, used to get a sub-series of the source data
      * @returns the target array
      */
-    init(trg, src: unknown, idx: number = 0) {
+    init(trg: unknown[], src: unknown[] | unknown, idx: number = 0) {
         if (!trg) {
             if (Array.isArray(src)) {
                 trg = [this.precision(src[src.length - this.idx - 1 + idx])];
             } else {
-                trg = [this.precision(src as number)];
+                trg = [this.precision(src)];
             }
         } else {
             if (!Array.isArray(src) || Array.isArray(src[0])) {
                 //here we check that this is not a 2D array, in which case we consider it an array of values
                 //this is important for handling TA functions that return tupples or series of tuples
-                trg[0] = Array.isArray(src?.[0]) ? src[0] : this.precision(src as number);
+                trg[0] = Array.isArray(src?.[0]) ? src[0] : this.precision(src);
             } else {
                 trg[0] = this.precision(src[src.length - this.idx - 1 + idx]);
             }
@@ -152,7 +152,7 @@ export class Context {
 
      * @returns the precision number
      */
-    precision(n: number, decimals: number = 10) {
+    precision(n: unknown, decimals: number = 10) {
         if (typeof n !== 'number' || isNaN(n)) return n;
         return Number(n.toFixed(decimals));
     }

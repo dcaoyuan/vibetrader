@@ -54,6 +54,7 @@ import {
     type ArrayPattern,
     type ArrowFunctionExpression,
     type AssignmentExpression,
+    type AssignmentProperty,
     type BinaryExpression,
     type BlockStatement,
     type CallExpression,
@@ -69,14 +70,17 @@ import {
     type MemberExpression,
     type Node,
     type ObjectExpression,
+    type ObjectPattern,
     type Pattern,
     type PrivateIdentifier,
     type Program,
     type Property,
+    type RestElement,
     type ReturnStatement,
     type SpreadElement,
     type UnaryExpression,
     type VariableDeclaration,
+    type VariableDeclarator,
     type WhileStatement
 } from 'acorn';
 import * as walk from 'acorn-walk';
@@ -103,6 +107,7 @@ function isObject(value: unknown): value is object {
 }
 
 function isVariableDeclaration(node: Node): node is VariableDeclaration { return node && node.type === 'VariableDeclaration' }
+function isVariableDeclarator(node: Node): node is VariableDeclarator { return node && node.type === 'VariableDeclarator' }
 function isIdentifier(node: Node): node is Identifier { return node.type === 'Identifier' }
 function isMemberExpression(node: Node): node is MemberExpression { return node && node.type === 'MemberExpression' }
 function isCallExpression(node: Node): node is CallExpression { return node && node.type === 'CallExpression' }
@@ -116,6 +121,12 @@ function isObjectExpression(node: Node): node is ObjectExpression { return node 
 function isLogicalExpression(node: Node): node is LogicalExpression { return node && node.type === 'LogicalExpression' }
 function isBlockStatement(node: Node): node is BlockStatement { return node && node.type === 'BlockStatement' }
 function isArrayPattern(node: Node): node is ArrayPattern { return node && node.type === 'ArrayPattern' }
+function isObjectPattern(node: Node): node is ObjectPattern { return node && node.type === 'ObjectPattern' }
+function isExpression(node: Node): node is Expression { return node && node.type === 'Expression' }
+
+// NOTE: AssignmentProperty's type field is 'Property' instead of 'AssignmentProperty', same as Property
+function isAssignmentProperty(node: Node): node is AssignmentProperty { return node && node.type === 'Property' }
+function isProperty(node: Node): node is Property { return node && node.type === 'Property' }
 
 function transformArrayIndex(node: MemberExpression, scopeManager: ScopeManager): void {
     //const isIfStatement = scopeManager.getCurrentScopeType() == 'if';
@@ -237,7 +248,7 @@ function transformMemberExpression(memberNode: MemberExpression, originalParamNa
 function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager: ScopeManager): void {
     varNode.declarations.forEach((decl) => {
         //special case for na
-        if ('name' in decl.init && decl.init.name == 'na') {
+        if (isIdentifier(decl.init) && decl.init.name == 'na') {
             decl.init.name = 'NaN';
         }
 
@@ -246,33 +257,33 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
         // prettier-ignore
         const isContextProperty =
             isMemberExpression(decl.init) &&
-            decl.init.object &&
-            ('name' in decl.init.object && (
+            decl.init.object && isIdentifier(decl.init.object) && (
                 decl.init.object.name === 'context' ||
                 decl.init.object.name === CONTEXT_NAME ||
-                decl.init.object.name === 'context2'))
+                decl.init.object.name === 'context2'
+            )
 
         // prettier-ignore
         const isSubContextProperty =
             isMemberExpression(decl.init) &&
-            decl.init.object &&
-            'object' in decl.init.object && decl.init.object.object &&
-            ('name' in decl.init.object.object && (
+            isMemberExpression(decl.init.object) &&
+            isIdentifier(decl.init.object.object) && (
                 decl.init.object.object.name === 'context' ||
                 decl.init.object.object.name === CONTEXT_NAME ||
-                decl.init.object.object.name === 'context2'));
+                decl.init.object.object.name === 'context2'
+            );
 
         // Check if this is an arrow function declaration
         const isArrowFunction = isArrowFunctionExpression(decl.init);
 
         if (isContextProperty) {
             // For context properties, register as context-bound and update the object name
-            if ('name' in decl.id && decl.id.name) {
+            if (isIdentifier(decl.id) && decl.id.name) {
                 scopeManager.addContextBoundVar(decl.id.name);
             }
-            if ('properties' in decl.id && decl.id.properties) {
+            if (isObjectPattern(decl.id) && decl.id.properties) {
                 decl.id.properties.forEach((property) => {
-                    if ('key' in property && 'name' in property.key && property.key.name) {
+                    if (isAssignmentProperty(property) && isIdentifier(property.key) && property.key.name) {
                         scopeManager.addContextBoundVar(property.key.name);
                     }
                 });
@@ -283,12 +294,12 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
 
         if (isSubContextProperty) {
             // For context properties, register as context-bound and update the object name
-            if ('name' in decl.id && decl.id.name) {
+            if (isIdentifier(decl.id) && decl.id.name) {
                 scopeManager.addContextBoundVar(decl.id.name);
             }
-            if ('properties' in decl.id && decl.id.properties) {
+            if (isObjectPattern(decl.id) && decl.id.properties) {
                 decl.id.properties.forEach((property) => {
-                    if ('key' in property && 'name' in property.key && property.key.name) {
+                    if (isAssignmentProperty(property) && isIdentifier(property.key) && property.key.name) {
                         scopeManager.addContextBoundVar(property.key.name);
                     }
                 });
@@ -425,7 +436,7 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
             decl.init.computed &&
             (isLiteral(decl.init.property) || isMemberExpression(decl.init.property));
 
-        if (decl.init && 'property' in decl.init && decl.init.property && isMemberExpression(decl.init.property)) {
+        if (decl.init && 'property' in decl.init && isMemberExpression(decl.init.property)) {
             if (!(decl.init.property as More)._indexTransformed) {
                 transformArrayIndex(decl.init.property, scopeManager);
                 (decl.init.property as More)._indexTransformed = true;
@@ -720,7 +731,7 @@ function transformAssignmentExpression(node: AssignmentExpression, scopeManager:
                 if (isContextBound || isConditional || isBinaryOperation) {
                     if (isMemberExpression(node)) {
                         transformArrayIndex(node, scopeManager);
-                    } else if (node.type === 'Identifier' && !isAMemberExpression && !hasArrayAccess && !isParamCall && !isReserved) {
+                    } else if (isIdentifier(node) && !isAMemberExpression && !hasArrayAccess && !isParamCall && !isReserved) {
                         addArrayAccess(node, scopeManager);
                     }
                 }
@@ -903,7 +914,7 @@ function transformReturnStatement(node: ReturnStatement, scopeManager: ScopeMana
             // Handle object expressions (existing code)
             node.argument.properties = node.argument.properties.map((prop) => {
                 // Check for shorthand properties
-                if ('shorthand' in prop && prop.shorthand && 'name' in prop.value && 'name' in prop.key) {
+                if (isProperty(prop) && prop.shorthand && isIdentifier(prop.value) && isIdentifier(prop.key)) {
                     // Get the variable name and kind
                     const [scopedName, kind] = scopeManager.getVariable(prop.value.name);
 
@@ -1320,7 +1331,7 @@ function getParamFromConditionalExpression(node: Expression, scopeManager: Scope
                 if (isConditional || isBinaryOperation) {
                     if (isMemberExpression(node)) {
                         transformArrayIndex(node, scopeManager);
-                    } else if (node.type === 'Identifier') {
+                    } else if (isIdentifier(node)) {
                         addArrayAccess(node, scopeManager);
                     }
                 }
@@ -1391,17 +1402,19 @@ function transformFunctionArgument(arg: Expression | SpreadElement, namespace: s
 
     if (isArrayAccess) {
         // Transform array access
-        const transformedObject = 'object' in arg && (
-            isIdentifier(arg.object) && scopeManager.isContextBound(arg.object.name) && !scopeManager.isRootParam(arg.object.name)
+        const transformedObject = isMemberExpression(arg) && isIdentifier(arg.object) && (
+            scopeManager.isContextBound(arg.object.name) && !scopeManager.isRootParam(arg.object.name)
                 ? arg.object
-                : transformIdentifierForParam(arg.object as Identifier, scopeManager));
+                : transformIdentifierForParam(arg.object, scopeManager)
+        );
 
         // Transform the index if it's an identifier
         const transformedProperty =
             'property' in arg && (
                 isIdentifier(arg.property) && !scopeManager.isContextBound(arg.property.name) && !scopeManager.isLoopVariable(arg.property.name)
                     ? transformIdentifierForParam(arg.property, scopeManager)
-                    : arg.property);
+                    : arg.property
+            );
 
         // const memberExpr = {
         //     type: 'MemberExpression',
@@ -1433,7 +1446,7 @@ function transformFunctionArgument(arg: Expression | SpreadElement, namespace: s
     if (isObjectExpression(arg)) {
         arg.properties = arg.properties.map((prop) => {
             // Get the variable name and kind
-            if ('value' in prop && 'name' in prop.value && prop.value.name && 'key' in prop && 'name' in prop.key) {
+            if (isProperty(prop) && isIdentifier(prop.value) && isIdentifier(prop.key)) {
                 const [scopedName, kind] = scopeManager.getVariable(prop.value.name);
 
                 // Convert shorthand to full property definition
@@ -1537,8 +1550,11 @@ function transformCallExpression(node: CallExpression, scopeManager: ScopeManage
     // Check if this is a namespace method call (e.g., ta.ema, math.abs)
     const isNamespaceCall =
         isMemberExpression(node.callee) &&
-        isIdentifier(node.callee.object) &&
-        (scopeManager.isContextBound(node.callee.object.name) || node.callee.object.name === 'math' || node.callee.object.name === 'ta');
+        isIdentifier(node.callee.object) && (
+            scopeManager.isContextBound(node.callee.object.name) ||
+            node.callee.object.name === 'math' ||
+            node.callee.object.name === 'ta'
+        );
 
     if (isNamespaceCall) {
         const namespace = ((node.callee as MemberExpression).object as Identifier).name;
@@ -1885,24 +1901,28 @@ function preProcessContextBoundVars(ast: Program, scopeManager: ScopeManager): v
                 // Check for context property assignments
                 const isContextProperty =
                     isMemberExpression(decl.init) &&
-                    decl.init.object && 'name' in decl.init.object &&
-                    (decl.init.object.name === 'context' || decl.init.object.name === CONTEXT_NAME || decl.init.object.name === 'context2');
+                    isIdentifier(decl.init.object) && (
+                        decl.init.object.name === 'context' ||
+                        decl.init.object.name === CONTEXT_NAME ||
+                        decl.init.object.name === 'context2'
+                    );
 
                 const isSubContextProperty =
                     isMemberExpression(decl.init) &&
-                    decl.init.object && 'object' in decl.init.object &&
-                    decl.init.object.object && 'name' in decl.init.object.object && (
+                    isMemberExpression(decl.init.object) &&
+                    isIdentifier(decl.init.object.object) && (
                         decl.init.object.object.name === 'context' ||
                         decl.init.object.object.name === CONTEXT_NAME ||
-                        decl.init.object.object.name === 'context2');
+                        decl.init.object.object.name === 'context2'
+                    );
 
                 if (isContextProperty || isSubContextProperty) {
-                    if ('name' in decl.id && decl.id.name) {
+                    if (isIdentifier(decl.id)) {
                         scopeManager.addContextBoundVar(decl.id.name);
                     }
-                    if ('properties' in decl.id && decl.id.properties) {
+                    if (isObjectPattern(decl.id)) {
                         decl.id.properties.forEach((property) => {
-                            if ('key' in property && 'name' in property.key && property.key.name) {
+                            if (isAssignmentProperty(property) && isIdentifier(property.key)) {
                                 scopeManager.addContextBoundVar(property.key.name);
                             }
                         });
