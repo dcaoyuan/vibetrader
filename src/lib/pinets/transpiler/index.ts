@@ -1733,8 +1733,6 @@ function transformForStatement(node: ForStatement, scopeManager: ScopeManager, c
             kind: node.init.kind,
             declarations: [
                 {
-                    start: NaN,
-                    end: NaN,
                     type: 'VariableDeclarator',
                     id: {
                         type: 'Identifier',
