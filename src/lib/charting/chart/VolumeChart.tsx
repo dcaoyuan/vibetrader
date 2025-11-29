@@ -1,4 +1,4 @@
-import type { Quote } from "../../domain/Quote";
+import type { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import type { TVar } from "../../timeseris/TVar";
 import { Theme } from "../theme/Theme"
@@ -8,12 +8,12 @@ import type { ChartYControl } from "../view/ChartYControl";
 type Props = {
   xc: ChartXControl,
   yc: ChartYControl,
-  quoteVar: TVar<Quote>,
+  klineVar: TVar<Kline>,
   depth: number;
 }
 
 const VolmueChart = (props: Props) => {
-  const { xc, yc, quoteVar } = props;
+  const { xc, yc, klineVar } = props;
 
   function plotChart() {
 
@@ -42,14 +42,14 @@ const VolmueChart = (props: Props) => {
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
         if (xc.occurred(time)) {
-          const quote = quoteVar.getByTime(time);
-          if (quote.close !== 0) {
+          const kline = klineVar.getByTime(time);
+          if (kline.close !== 0) {
             if (open === undefined) {
               /** only get the first open as compressing period's open */
-              open = quote.open;
+              open = kline.open;
             }
-            close = quote.close
-            volume = Math.max(volume, quote.volume)
+            close = kline.close
+            volume = Math.max(volume, kline.volume)
           }
         }
 

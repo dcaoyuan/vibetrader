@@ -1,28 +1,28 @@
 import { TVar } from "../../timeseris/TVar";
 import { Theme } from "../theme/Theme";
-import { Quote } from "../../domain/Quote";
+import { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
-import { QuoteChartKind } from "./Kinds";
+import { KlineChartKind } from "./Kinds";
 
 type Props = {
   xc: ChartXControl,
   yc: ChartYControl,
-  quoteVar: TVar<Quote>,
-  kind: QuoteChartKind,
+  klineVar: TVar<Kline>,
+  kind: KlineChartKind,
   depth: number;
 }
 
-const QuoteChart = (props: Props) => {
-  const { xc, yc, quoteVar, kind, depth } = props;
+const KlineChart = (props: Props) => {
+  const { xc, yc, klineVar, kind, depth } = props;
 
-  /** depth !== 0 is for comparing quotes charts */
+  /** depth !== 0 is for comparing klines charts */
   const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
   const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
 
   function plotChart() {
-    const isFill = kind === QuoteChartKind.Candle && Theme.now().isFillBar;
+    const isFill = kind === KlineChartKind.Candle && Theme.now().isFillBar;
 
     const posPath = new Path(posColor, isFill ? posColor : "none");
     const negPath = posColor === negColor
@@ -30,23 +30,23 @@ const QuoteChart = (props: Props) => {
       : new Path(negColor, isFill ? negColor : "none");
 
     switch (kind) {
-      case QuoteChartKind.Candle:
-      case QuoteChartKind.Ohlc:
-        plotCandleOrOhlcChart(kind, posPath, negPath);
+      case KlineChartKind.Candle:
+      case KlineChartKind.Bar:
+        plotCandleOrBarChart(kind, posPath, negPath);
         break
 
-      case QuoteChartKind.Line:
+      case KlineChartKind.Line:
         plotLineChart(posPath, negPath);
         break;
 
       default:
-        plotCandleOrOhlcChart(kind, posPath, negPath);
+        plotCandleOrBarChart(kind, posPath, negPath);
     }
 
     return { posPath, negPath }
   }
 
-  function plotCandleOrOhlcChart(kind: QuoteChartKind, posPath: Path, negPath: Path) {
+  function plotCandleOrBarChart(kind: KlineChartKind, posPath: Path, negPath: Path) {
     let bar = 1
     while (bar <= xc.nBars) {
       /**
@@ -60,15 +60,15 @@ const QuoteChart = (props: Props) => {
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
         if (xc.occurred(time)) {
-          const quote = quoteVar.getByTime(time);
-          if (quote && quote.open != 0) {
+          const kline = klineVar.getByTime(time);
+          if (kline && kline.open != 0) {
             if (open === undefined) {
               /** only get the first open as compressing period's open */
-              open = quote.open;
+              open = kline.open;
             }
-            high = Math.max(high, quote.high)
-            low = Math.min(low, quote.low)
-            close = quote.close;
+            high = Math.max(high, kline.high)
+            low = Math.min(low, kline.low)
+            close = kline.close;
           }
         }
 
@@ -86,12 +86,12 @@ const QuoteChart = (props: Props) => {
         const yClose = yc.yv(close)
 
         switch (kind) {
-          case QuoteChartKind.Candle:
-            plotCandleBar(yOpen, yHigh, yLow, yClose, xCenter, path);
+          case KlineChartKind.Candle:
+            plotCandle(yOpen, yHigh, yLow, yClose, xCenter, path);
             break;
 
-          case QuoteChartKind.Ohlc:
-            plotOHLCBar(yOpen, yHigh, yLow, yClose, xCenter, path);
+          case KlineChartKind.Bar:
+            plotBar(yOpen, yHigh, yLow, yClose, xCenter, path);
             break
 
           default:
@@ -116,7 +116,7 @@ const QuoteChart = (props: Props) => {
    *          ^   ^
    *          |___|___ barCenter
    */
-  function plotCandleBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+  function plotCandle(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
     /** why - 2 ? 1 for centre, 1 for space */
     const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
     /** upper and lower of candle's rectangle */
@@ -153,7 +153,7 @@ const QuoteChart = (props: Props) => {
    *          ^   ^
    *          |___|___ barCenter
    */
-  function plotOHLCBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+  function plotBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
     const width = xc.wBar;
 
     /** why - 2 ? 1 for centre, 1 for space */
@@ -189,14 +189,14 @@ const QuoteChart = (props: Props) => {
       let i = 0;
       while (i < xc.nBarsCompressed) {
         const time = xc.tb(bar + i)
-        if (quoteVar.occurred(time)) {
-          const quote = quoteVar.getByTime(time);
-          if (quote && quote.close !== 0) {
+        if (klineVar.occurred(time)) {
+          const kline = klineVar.getByTime(time);
+          if (kline && kline.close !== 0) {
             if (open === undefined) {
               /** only get the first open as compressing period's open */
-              open = quote.open;
+              open = kline.open;
             }
-            close = quote.close;
+            close = kline.close;
             max = Math.max(max, close);
             min = Math.min(min, close);
           }
@@ -237,10 +237,10 @@ const QuoteChart = (props: Props) => {
 
   return (
     <>
-      {posPath && posPath.render('quote-pos')}
-      {negPath && negPath.render('quote-neg')}
+      {posPath && posPath.render('kline-pos')}
+      {negPath && negPath.render('kline-neg')}
     </>
   )
 }
 
-export default QuoteChart;
+export default KlineChart;

@@ -259,10 +259,10 @@ export class DefaultBaseTSer extends DefaultTSer implements BaseTSer {
         toTime = Math.max(toTime, time);
       }
 
-      // shoudReverse: the recent quote's index is more in quotes, thus the order in
-      // timePositions[] is opposed to quotes
-      // otherwise:    the recent quote's index is less in quotes, thus the order in
-      // timePositions[] is the same as quotes
+      // shoudReverse: the recent klines's index is more in klines, thus the order in
+      // timePositions[] is opposed to klines
+      // otherwise:    the recent kline's index is less in klines, thus the order in
+      // timePositions[] is the same as klines
       if (shouldReverse) {
         i--;
 

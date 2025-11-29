@@ -8,7 +8,7 @@ import { PineRequest } from './namespaces/PineRequest';
 import TechnicalAnalysis from './namespaces/TechnicalAnalysis';
 import { PineArray } from './namespaces/PineArray';
 import type { IProvider } from './marketData/IProvider';
-import { type Bar } from './marketData/Binance/BinanceProvider.class';
+import { type OHLC } from './marketData/Binance/BinanceProvider.class';
 
 type ContextData = {
     open: number[],
@@ -62,7 +62,7 @@ export class Context {
     public result: unknown = undefined;
     public plots: unknown = {};
 
-    public marketData: Bar[];
+    public marketData: OHLC[];
     public source: IProvider | unknown[];
     public tickerId: string;
     public timeframe: string = '';
@@ -81,7 +81,7 @@ export class Context {
         sDate,
         eDate,
     }: {
-        marketData: Bar[];
+        marketData: OHLC[];
         source: IProvider | unknown[];
         tickerId?: string;
         timeframe?: string;

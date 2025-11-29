@@ -1,12 +1,12 @@
 import { Component, memo, useRef, useState, type JSX, type ReactNode } from "react";
-import { QuoteChartView } from "../charting/view/QuoteChartView";
+import { KlineChartView } from "../charting/view/KlineChartView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
 import { ChartView, RefreshEvent, type RefreshCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
 import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
-import type { Quote } from "./Quote";
+import type { Kline } from "./Kline";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
 import Spacing from "../charting/pane/Spacing";
@@ -26,11 +26,11 @@ type State = {
   referCursor: JSX.Element
 }
 
-class QuoteSerView extends Component<Props, State> {
+class KlineSerView extends Component<Props, State> {
 
   xc: ChartXControl
-  quoteSer: BaseTSer;
-  qvar: TVar<Quote>;
+  klineSer: BaseTSer;
+  kvar: TVar<Kline>;
   varName: string;
   width: number;
   isInteractive: boolean;
@@ -60,8 +60,8 @@ class QuoteSerView extends Component<Props, State> {
     this.varName = props.varName;
     this.width = props.width;
 
-    this.quoteSer = this.xc.baseSer as BaseTSer;
-    this.qvar = this.quoteSer.varOf(this.varName) as TVar<Quote>;
+    this.klineSer = this.xc.baseSer as BaseTSer;
+    this.kvar = this.klineSer.varOf(this.varName) as TVar<Kline>;
 
     this.isInteractive = true;
 
@@ -78,7 +78,7 @@ class QuoteSerView extends Component<Props, State> {
 
     this.yCursorRange = [this.yStarts[0], this.yStarts[5]];
 
-    console.log("QuoteSerView render");
+    console.log("KlineSerView render");
 
     this.state = {
       refreshChart: 0,
@@ -328,9 +328,9 @@ class QuoteSerView extends Component<Props, State> {
     )
   }
 
-  quoteChartView = (i: number) => {
+  klineChartView = (i: number) => {
     return (
-      <QuoteChartView
+      <KlineChartView
         id={i}
         y={this.yStarts[i]}
         height={this.hViews[i]}
@@ -338,9 +338,9 @@ class QuoteSerView extends Component<Props, State> {
         width={this.width}
         name="ETH"
         xc={this.xc}
-        baseSer={this.quoteSer}
-        tvar={this.qvar}
-        isQuote={true}
+        baseSer={this.klineSer}
+        tvar={this.kvar}
+        isKline={true}
         isMasterView={true}
         refreshChart={this.state.refreshChart}
         refreshCursors={this.state.refreshCursors}
@@ -358,8 +358,8 @@ class QuoteSerView extends Component<Props, State> {
         width={this.width}
         name="Vol"
         xc={this.xc}
-        baseSer={this.quoteSer}
-        tvar={this.qvar}
+        baseSer={this.klineSer}
+        tvar={this.kvar}
         refreshChart={this.state.refreshChart}
         refreshCursors={this.state.refreshCursors}
       />
@@ -394,7 +394,7 @@ class QuoteSerView extends Component<Props, State> {
             width={this.width}
             height={this.hTitle}
             xc={this.xc}
-            tvar={this.qvar}
+            tvar={this.kvar}
             refreshChart={this.state.refreshChart}
             refreshCursors={this.state.refreshCursors}
           />
@@ -408,7 +408,7 @@ class QuoteSerView extends Component<Props, State> {
             onWheel={this.handleWheel}
           >
             {this.spacing(0)}
-            {this.quoteChartView(1)}
+            {this.klineChartView(1)}
             {this.spacing(2)}
             {this.volumeView(3)}
             {this.spacing(4)}
@@ -430,4 +430,4 @@ class QuoteSerView extends Component<Props, State> {
   }
 }
 
-export default QuoteSerView 
+export default KlineSerView 

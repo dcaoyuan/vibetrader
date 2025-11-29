@@ -1,5 +1,5 @@
-export enum QuoteChartKind {
+export enum KlineChartKind {
   Candle,
-  Ohlc,
+  Bar,
   Line,
 }

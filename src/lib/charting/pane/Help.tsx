@@ -14,7 +14,7 @@ export const Help = (props: Props) => {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-      <ListBox layout="grid" aria-label="Mouse quote" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+      <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
         <ListBoxItem textValue="O">
           <Text style={{ color: mColor }}>Click on chart: </Text>
           <Text style={{ color: rColor }}>Put a reference cursor</Text>
@@ -33,7 +33,7 @@ export const Help = (props: Props) => {
         </ListBoxItem>
       </ListBox>
 
-      <ListBox layout="grid" aria-label="Refer quote" style={{ textAlign: 'left' }}>
+      <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
         <ListBoxItem textValue="L">
           <Text style={{ color: mColor }}>ESC: </Text>
           <Text style={{ color: rColor }}>Remove reference cursor</Text>

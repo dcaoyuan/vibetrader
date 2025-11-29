@@ -4,7 +4,7 @@ import type { ChartYControl } from "../view/ChartYControl";
 
 export abstract class Pane {
   static readonly DEPTH_FRONT = 1000
-  /** usually for quote chart, so charts of other indicatos can begin from 0: */
+  /** usually for kline chart, so charts of other indicatos can begin from 0: */
   static readonly DEPTH_DEFAULT = -1
   static readonly DEPTH_CHART_BEGIN = 0
   /** usually for drawing chart, it will be in front: */

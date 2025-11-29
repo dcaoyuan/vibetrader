@@ -1,51 +1,51 @@
-import QuoteChart from "../chart/QuoteChart"
+import KlineChart from "../chart/KlineChart"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
-import { Quote } from "../../domain/Quote";
+import { Kline } from "../../domain/Kline";
 import AxisX from "../pane/AxisX";
 import AxisY from "../pane/AxisY";
 import './chartview.css';
-import { QuoteChartKind } from "../chart/Kinds";
+import { KlineChartKind } from "../chart/Kinds";
 
-export class QuoteChartView extends ChartView<ViewProps, ViewState> {
+export class KlineChartView extends ChartView<ViewProps, ViewState> {
 
-  static switchAllQuoteChartType(originalKind: QuoteChartKind, targetKind: QuoteChartKind): QuoteChartKind {
-    let newKind: QuoteChartKind
+  static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
+    let newKind: KlineChartKind
     if (targetKind !== undefined) {
       newKind = targetKind;
 
     } else {
       switch (originalKind) {
-        case QuoteChartKind.Candle:
-          newKind = QuoteChartKind.Ohlc
+        case KlineChartKind.Candle:
+          newKind = KlineChartKind.Bar
           break;
 
-        case QuoteChartKind.Ohlc:
-          newKind = QuoteChartKind.Line
+        case KlineChartKind.Bar:
+          newKind = KlineChartKind.Line
           break;
 
-        case QuoteChartKind.Line:
-          newKind = QuoteChartKind.Candle
+        case KlineChartKind.Line:
+          newKind = KlineChartKind.Candle
           break;
 
         default:
-          newKind = QuoteChartKind.Candle
+          newKind = KlineChartKind.Candle
       }
     }
 
     return newKind;
   }
 
-  quoteVar: TVar<Quote>;
+  klineVar: TVar<Kline>;
   maxVolume = 0.0;
   minVolume = 0.0
 
   constructor(props: ViewProps) {
     super(props);
 
-    this.quoteVar = props.tvar as TVar<Quote>;
+    this.klineVar = props.tvar as TVar<Kline>;
 
     const { chart, axisy } = this.plot();
 
@@ -53,7 +53,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
       width: props.width,
       height: props.height,
 
-      isQuote: false,
+      isKline: false,
       hasInnerVolume: false,
       maxVolume: undefined,
       minVolume: undefined,
@@ -76,11 +76,11 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   override plot() {
     this.computeGeometry();
 
-    const chart = QuoteChart({
-      quoteVar: this.quoteVar,
+    const chart = KlineChart({
+      klineVar: this.klineVar,
       xc: this.xc,
       yc: this.yc,
-      kind: QuoteChartKind.Candle,
+      kind: KlineChartKind.Candle,
       depth: 0
     });
 
@@ -108,11 +108,11 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
     while (i <= this.xc.nBars) {
       const time = this.xc.tb(i)
       if (this.xc.occurred(time)) {
-        const quote = this.quoteVar.getByTime(time);
-        if (quote.close > 0) {
-          max = Math.max(max, quote.high)
-          min = Math.min(min, quote.low)
-          this.maxVolume = Math.max(this.maxVolume, quote.volume)
+        const kline = this.klineVar.getByTime(time);
+        if (kline.close > 0) {
+          max = Math.max(max, kline.high)
+          min = Math.min(min, kline.low)
+          this.maxVolume = Math.max(this.maxVolume, kline.volume)
         }
       }
 
@@ -147,7 +147,7 @@ export class QuoteChartView extends ChartView<ViewProps, ViewState> {
   }
 
   override valueAtTime(time: number) {
-    return this.quoteVar.getByTime(time).close;
+    return this.klineVar.getByTime(time).close;
   }
 
   render() {

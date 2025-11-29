@@ -566,7 +566,7 @@ export class ValueList<T> extends AbstractCollection<T> {
 
   reverse(): ValueList<T> {
     const reversed = new ValueList<T>(this.maxCapacity, this.initialSize);
-    var i = 0;
+    let i = 0;
     while (i < this.size0) {
       reversed.add(this.get(this.size0 - 1 - i));
       i++;
@@ -683,7 +683,7 @@ export class ValueList<T> extends AbstractCollection<T> {
 
     next(): T {
       this.checkForComodification();
-      let i = this.cursor;
+      const i = this.cursor;
       if (i >= this.outer.size()) {
         throw new Error("NoSuchElementException: " + i + " >= " + this.outer.size());
       }
@@ -727,7 +727,7 @@ export namespace ValueList {
 
   function println(xs: ValueList<unknown>) {
     let str = "["
-    for (let x of xs) { // 2,4,5
+    for (const x of xs) { // 2,4,5
       str += x + ",";
     }
     str += "]"
@@ -752,7 +752,7 @@ export namespace ValueList {
       console.log(xs.array); // [4,5,2, empty x 7]
       console.log(xs.get(0)); // 2
 
-      for (let x of xs) { // 2,4,5
+      for (const x of xs) { // 2,4,5
         console.log(x);
       }
     }

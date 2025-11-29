@@ -1,4 +1,4 @@
-import { QuoteChartKind } from "../chart/Kinds";
+import { KlineChartKind } from "../chart/Kinds";
 
 export class Theme {
   private static current: Theme
@@ -27,10 +27,10 @@ export class Theme {
   }
 
   isPositiveNegativeColorReversed = false;
-  quoteChartType: QuoteChartKind = QuoteChartKind.Ohlc;
+  klineChartType: KlineChartKind = KlineChartKind.Bar;
   isThinVolumeBar = false;
   isAutoHideScroll = false;
-  isAllowMultipleIndicatorOnQuoteChartView = false;
+  isAllowMultipleIndicatorOnKlineChartView = false;
   isFillBar = true;
 
   protected readonly monthColors: string[]

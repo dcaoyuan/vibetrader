@@ -1,7 +1,7 @@
 
 import { TVal } from "../timeseris/TVal";
 
-export class Quote extends TVal {
+export class Kline extends TVal {
   open: number;
   high: number;
   low: number;

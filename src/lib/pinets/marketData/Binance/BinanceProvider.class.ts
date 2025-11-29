@@ -24,7 +24,7 @@ const timeframe_to_binance = {
 };
 
 
-export type Bar = {
+export type OHLC = {
     openTime: number,
     open: number,
     high: number,
@@ -99,13 +99,13 @@ class CacheManager<T> {
 }
 
 export class BinanceProvider implements IProvider {
-    private cacheManager: CacheManager<Bar[]>;
+    private cacheManager: CacheManager<OHLC[]>;
 
     constructor() {
         this.cacheManager = new CacheManager(5 * 60 * 1000); // 5 minutes cache duration
     }
 
-    async getMarketDataInterval(tickerId: string, timeframe: string, sDate: number, eDate: number): Promise<Bar[]> {
+    async getMarketDataInterval(tickerId: string, timeframe: string, sDate: number, eDate: number): Promise<OHLC[]> {
         try {
             const interval = timeframe_to_binance[timeframe.toUpperCase()];
             if (!interval) {
@@ -165,7 +165,7 @@ export class BinanceProvider implements IProvider {
             return [];
         }
     }
-    async getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<Bar[]> {
+    async getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<OHLC[]> {
         try {
             // Check cache first
             const cacheParams = { tickerId, timeframe, limit, sDate, eDate };

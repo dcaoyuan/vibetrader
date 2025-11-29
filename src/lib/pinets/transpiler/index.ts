@@ -1700,6 +1700,7 @@ function transformFunctionDeclaration(node: FunctionDeclaration, scopeManager: S
         scopeManager.popScope();
     }
 }
+
 function addArrayAccess(node: Identifier, scopeManager: ScopeManager): void {
     Object.assign(node, {
         type: 'MemberExpression',

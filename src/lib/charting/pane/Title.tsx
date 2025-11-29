@@ -2,7 +2,7 @@ import { ChartXControl } from "../view/ChartXControl";
 import { Component, type JSX, } from "react";
 import type { RefreshCursor } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
-import type { Quote } from "../../domain/Quote";
+import type { Kline } from "../../domain/Kline";
 import '../view/chartview.css';
 import { Theme } from "../theme/Theme";
 import { ListBox, ListBoxItem } from 'react-aria-components';
@@ -14,14 +14,14 @@ type Props = {
   height: number,
   refreshChart: number,
   refreshCursors: RefreshCursor,
-  tvar: TVar<Quote>;
+  tvar: TVar<Kline>;
 }
 
 type State = {
   chart: JSX.Element,
 
-  referQuote: Quote,
-  mouseQuote: Quote,
+  referKline: Kline,
+  mouseKline: Kline,
   delta: { period: number, percent: number, volumeSum: number }
 }
 
@@ -38,7 +38,7 @@ class Title extends Component<Props, State> {
     this.height = props.height;
 
     const chart = this.plot();
-    this.state = { chart, mouseQuote: undefined, referQuote: undefined, delta: undefined };
+    this.state = { chart, mouseKline: undefined, referKline: undefined, delta: undefined };
 
     let tframeName = this.xc.baseSer.timeframe.compactName.toLowerCase();
     const matchLeadingNumbers = tframeName.match(/^\d+/);
@@ -70,26 +70,26 @@ class Title extends Component<Props, State> {
   }
 
   protected updateState(state: object) {
-    let referQuote: Quote = undefined
-    let mouseQuote: Quote = undefined
+    let referKline: Kline = undefined
+    let mouseKline: Kline = undefined
 
     if (this.xc.isReferCuroseVisible) {
       const time = this.xc.tr(this.xc.referCursorRow)
       if (this.xc.occurred(time)) {
-        referQuote = this.props.tvar.getByTime(time);
+        referKline = this.props.tvar.getByTime(time);
       }
     }
 
     if (this.xc.isMouseCuroseVisible) {
       const time = this.xc.tr(this.xc.mouseCursorRow)
       if (this.xc.occurred(time)) {
-        mouseQuote = this.props.tvar.getByTime(time);
+        mouseKline = this.props.tvar.getByTime(time);
       }
     }
 
     const delta = this.calcDelta()
 
-    this.setState({ ...state, referQuote, mouseQuote, delta })
+    this.setState({ ...state, referKline: referKline, mouseKline: mouseKline, delta })
   }
 
   calcDelta() {
@@ -101,12 +101,12 @@ class Title extends Component<Props, State> {
 
     const rRow = this.xc.referCursorRow;
     const mRow = this.xc.mouseCursorRow;
-    if (isAutoReferCursorValue) { // normal QuoteChartView
+    if (isAutoReferCursorValue) { // normal KlineChartView
       const rTime = this.xc.tr(rRow)
       const mTime = this.xc.tr(mRow)
       if (this.xc.occurred(rTime) && this.xc.occurred(mTime)) {
-        const rQuote = this.props.tvar.getByTime(rTime);
-        const rValue = rQuote.close;
+        const rKline = this.props.tvar.getByTime(rTime);
+        const rValue = rKline.close;
 
         const period = Math.abs(this.xc.br(mRow) - this.xc.br(rRow))
         const mValue = this.props.tvar.getByTime(mTime).close
@@ -121,8 +121,8 @@ class Title extends Component<Props, State> {
         while (i <= rowEnd) {
           const time = this.xc.tr(i)
           if (this.xc.occurred(time)) {
-            const mQuote = this.props.tvar.getByTime(time);
-            volumeSum += mQuote.volume;
+            const mKline = this.props.tvar.getByTime(time);
+            volumeSum += mKline.volume;
           }
           i += 1
         }
@@ -130,7 +130,7 @@ class Title extends Component<Props, State> {
         return { period, percent, volumeSum }
       }
 
-    } else { // else, usually RealtimeQuoteChartView
+    } else { // else, usually RealtimeKlineChartView
       // const vRefer = GlassPane.this.referCursorValue
       // const vYMouse = datumPlane.vy(y)
       // const percent = vRefer === 0 ? 0.0 : 100 * (vYMouse - vRefer) / vRefer
@@ -145,79 +145,79 @@ class Title extends Component<Props, State> {
     const lColor = '#F00000'; // Theme.now().axisColor
     const rColor = '#00F0F0'; // 'orange'
     const mColor = '#00F000'; // Theme.now().axisColor 
-    const rQuote = this.state.referQuote
-    const mQuote = this.state.mouseQuote
+    const rKline = this.state.referKline
+    const mKline = this.state.mouseKline
     const delta = this.state.delta;
 
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-        <ListBox layout="grid" aria-label="Mouse quote" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+        <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
           <ListBoxItem textValue="O">
-            {mQuote && <>
+            {mKline && <>
               <Text style={{ color: lColor }}>O </Text>
-              <Text style={{ color: mColor }}>{mQuote.open}</Text>
+              <Text style={{ color: mColor }}>{mKline.open}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="H">
-            {mQuote && <>
+            {mKline && <>
               <Text style={{ color: lColor }}>H </Text>
-              <Text style={{ color: mColor }}>{mQuote.high}</Text>
+              <Text style={{ color: mColor }}>{mKline.high}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="L">
-            {mQuote && <>
+            {mKline && <>
               <Text style={{ color: lColor }}>L </Text>
-              <Text style={{ color: mColor }}>{mQuote.low}</Text>
+              <Text style={{ color: mColor }}>{mKline.low}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="C">
-            {mQuote && <>
+            {mKline && <>
               <Text style={{ color: lColor }}>C </Text>
               <Text style={{ color: mColor }}>
                 {delta
-                  ? mQuote.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
-                  : mQuote.close
+                  ? mKline.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
+                  : mKline.close
                 }
               </Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="V">
-            {mQuote && <>
+            {mKline && <>
               <Text style={{ color: lColor }}>V </Text>
-              <Text style={{ color: mColor }}>{mQuote.volume}</Text>
+              <Text style={{ color: mColor }}>{mKline.volume}</Text>
             </>}
           </ListBoxItem>
         </ListBox>
 
-        <ListBox layout="grid" aria-label="Refer quote" style={{ textAlign: 'left' }}>
+        <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
           <ListBoxItem textValue="O">
-            {rQuote && <>
+            {rKline && <>
               <Text style={{ color: lColor }}>O </Text>
-              <Text style={{ color: rColor }}>{rQuote.open}</Text>
+              <Text style={{ color: rColor }}>{rKline.open}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="H">
-            {rQuote && <>
+            {rKline && <>
               <Text style={{ color: lColor }}>H </Text>
-              <Text style={{ color: rColor }}>{rQuote.high}</Text>
+              <Text style={{ color: rColor }}>{rKline.high}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="L">
-            {rQuote && <>
+            {rKline && <>
               <Text style={{ color: lColor }}>L </Text>
-              <Text style={{ color: rColor }}>{rQuote.low}</Text>
+              <Text style={{ color: rColor }}>{rKline.low}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="C">
-            {rQuote && <>
+            {rKline && <>
               <Text style={{ color: lColor }}>C </Text>
-              <Text style={{ color: rColor }}>{rQuote.close}</Text>
+              <Text style={{ color: rColor }}>{rKline.close}</Text>
             </>}
           </ListBoxItem>
           <ListBoxItem textValue="V">
-            {rQuote && <>
+            {rKline && <>
               <Text style={{ color: lColor }}>V </Text>
-              <Text style={{ color: rColor }}>{rQuote.volume}</Text>
+              <Text style={{ color: rColor }}>{rKline.volume}</Text>
             </>}
           </ListBoxItem>
         </ListBox>

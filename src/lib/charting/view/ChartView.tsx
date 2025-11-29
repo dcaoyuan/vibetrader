@@ -36,7 +36,7 @@ export interface ViewProps {
   xc: ChartXControl;
   baseSer: BaseTSer;
   tvar: TVar<TVal>;
-  isQuote?: boolean;
+  isKline?: boolean;
   isMasterView?: boolean;
   refreshChart: number;
   refreshCursors: RefreshCursor;
@@ -47,7 +47,7 @@ export interface ViewState {
   width: number;
   height: number;
 
-  isQuote: false;
+  isKline: false;
   hasInnerVolume: false;
   maxVolume?: number;
   minVolume?: number;
@@ -117,7 +117,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     this.width = props.width;
     this.height = props.height;
-    this.isQuote = props.isQuote;
+    this.isKline = props.isKline;
     this.isMasterView = props.isMasterView;
 
     this.name = props.name;
@@ -130,7 +130,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
   readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-  isQuote = false;
+  isKline = false;
   hasInnerVolume = false;
   maxVolume?: number;
   minVolume?: number;
@@ -229,8 +229,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
   //   let depthGradient = Pane.DEPTH_GRADIENT_BEGIN
 
   //   for (let [k, v] of ser.vars if v.plot != Plot.None) {
-  //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf QuoteSer) {
-  //       const qser = baseSer.asInstanceOf[QuoteSer]
+  //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf KlineSer) {
+  //       const qser = baseSer.asInstanceOf[KlineSer]
   //       ChartFactory.createVarChart(v, qser.high, qser.low)
 
   //     } else if (v.plot === Plot.Info) {
