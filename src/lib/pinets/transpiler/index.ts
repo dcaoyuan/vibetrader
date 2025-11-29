@@ -102,20 +102,20 @@ function isObject(value: unknown): value is object {
     return typeof value === 'object' && value !== undefined && value !== null;
 }
 
-function isVariableDeclaration(node: Node): node is VariableDeclaration { return node.type === 'VariableDeclaration' }
+function isVariableDeclaration(node: Node): node is VariableDeclaration { return node && node.type === 'VariableDeclaration' }
 function isIdentifier(node: Node): node is Identifier { return node.type === 'Identifier' }
-function isMemberExpression(node: Node): node is MemberExpression { return node.type === 'MemberExpression' }
-function isCallExpression(node: Node): node is CallExpression { return node.type === 'CallExpression' }
-function isArrowFunctionExpression(node: Node): node is ArrowFunctionExpression { return node.type === 'ArrowFunctionExpression' }
-function isBinaryExpression(node: Node): node is BinaryExpression { return node.type === 'BinaryExpression' }
-function isConditionalExpression(node: Node): node is ConditionalExpression { return node.type === 'ConditionalExpression' }
-function isLiteral(node: Node): node is Literal { return node.type === 'Literal' }
-function isArrayExpression(node: Node): node is ArrayExpression { return node.type === 'ArrayExpression' }
-function isAssignmentExpression(node: Node): node is AssignmentExpression { return node.type === 'AssignmentExpression' }
-function isObjectExpression(node: Node): node is ObjectExpression { return node.type === 'ObjectExpression' }
-function isLogicalExpression(node: Node): node is LogicalExpression { return node.type === 'LogicalExpression' }
-function isBlockStatement(node: Node): node is BlockStatement { return node.type === 'BlockStatement' }
-function isArrayPattern(node: Node): node is ArrayPattern { return node.type === 'ArrayPattern' }
+function isMemberExpression(node: Node): node is MemberExpression { return node && node.type === 'MemberExpression' }
+function isCallExpression(node: Node): node is CallExpression { return node && node.type === 'CallExpression' }
+function isArrowFunctionExpression(node: Node): node is ArrowFunctionExpression { return node && node.type === 'ArrowFunctionExpression' }
+function isBinaryExpression(node: Node): node is BinaryExpression { return node && node.type === 'BinaryExpression' }
+function isConditionalExpression(node: Node): node is ConditionalExpression { return node && node.type === 'ConditionalExpression' }
+function isLiteral(node: Node): node is Literal { return node && node.type === 'Literal' }
+function isArrayExpression(node: Node): node is ArrayExpression { return node && node.type === 'ArrayExpression' }
+function isAssignmentExpression(node: Node): node is AssignmentExpression { return node && node.type === 'AssignmentExpression' }
+function isObjectExpression(node: Node): node is ObjectExpression { return node && node.type === 'ObjectExpression' }
+function isLogicalExpression(node: Node): node is LogicalExpression { return node && node.type === 'LogicalExpression' }
+function isBlockStatement(node: Node): node is BlockStatement { return node && node.type === 'BlockStatement' }
+function isArrayPattern(node: Node): node is ArrayPattern { return node && node.type === 'ArrayPattern' }
 
 function transformArrayIndex(node: MemberExpression, scopeManager: ScopeManager): void {
     //const isIfStatement = scopeManager.getCurrentScopeType() == 'if';
@@ -207,7 +207,7 @@ function transformArrayIndex(node: MemberExpression, scopeManager: ScopeManager)
 
 function transformMemberExpression(memberNode: MemberExpression, originalParamName: string, scopeManager: ScopeManager): void {
     // Skip transformation for Math object properties
-    if (memberNode.object && isIdentifier(memberNode.object) && memberNode.object.name === 'Math') {
+    if (isIdentifier(memberNode.object) && memberNode.object.name === 'Math') {
         return;
     }
 
@@ -220,7 +220,6 @@ function transformMemberExpression(memberNode: MemberExpression, originalParamNa
         !isIfStatement &&
         !isElseStatement &&
         !isForStatement &&
-        memberNode.object &&
         isIdentifier(memberNode.object) &&
         scopeManager.isContextBound(memberNode.object.name) &&
         !scopeManager.isRootParam(memberNode.object.name)
@@ -246,7 +245,6 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
 
         // prettier-ignore
         const isContextProperty =
-            decl.init &&
             isMemberExpression(decl.init) &&
             decl.init.object &&
             ('name' in decl.init.object && (
@@ -256,7 +254,6 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
 
         // prettier-ignore
         const isSubContextProperty =
-            decl.init &&
             isMemberExpression(decl.init) &&
             decl.init.object &&
             'object' in decl.init.object && decl.init.object.object &&
@@ -266,7 +263,7 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
                 decl.init.object.object.name === 'context2'));
 
         // Check if this is an arrow function declaration
-        const isArrowFunction = decl.init && isArrowFunctionExpression(decl.init);
+        const isArrowFunction = isArrowFunctionExpression(decl.init);
 
         if (isContextProperty) {
             // For context properties, register as context-bound and update the object name
@@ -319,7 +316,6 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
             if (
                 isCallExpression(decl.init) &&
                 isMemberExpression(decl.init.callee) &&
-                decl.init.callee.object &&
                 isIdentifier(decl.init.callee.object) &&
                 scopeManager.isContextBound(decl.init.callee.object.name)
             ) {
@@ -335,8 +331,8 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
                             (node as More).parent = state.parent;
                             transformIdentifier(node, scopeManager);
 
-                            const isBinaryOperation = (node as More).parent && isBinaryExpression((node as More).parent);
-                            const isConditional = (node as More).parent && isConditionalExpression((node as More).parent);
+                            const isBinaryOperation = isBinaryExpression((node as More).parent);
+                            const isConditional = isConditionalExpression((node as More).parent);
                             if (isIdentifier(node) && (isBinaryOperation || isConditional)) {
                                 Object.assign(node, {
                                     type: 'MemberExpression',
@@ -425,10 +421,8 @@ function transformVariableDeclaration(varNode: VariableDeclaration, scopeManager
         // Check if initialization is from array access
         const isArrayInit =
             !isArrayPatternVar &&
-            decl.init &&
             isMemberExpression(decl.init) &&
             decl.init.computed &&
-            decl.init.property &&
             (isLiteral(decl.init.property) || isMemberExpression(decl.init.property));
 
         if (decl.init && 'property' in decl.init && decl.init.property && isMemberExpression(decl.init.property)) {
@@ -562,42 +556,35 @@ function transformIdentifier(node: Identifier, scopeManager: ScopeManager): void
 
         // Check if this identifier is part of a namespace member access (e.g., ta.ema)
         const isNamespaceMember =
-            nodeParent && isMemberExpression(nodeParent) && nodeParent.object === node && scopeManager.isContextBound(node.name);
+            isMemberExpression(nodeParent) && nodeParent.object === node && scopeManager.isContextBound(node.name);
 
         // Check if this identifier is part of a param() call
         const isParamCall =
-            nodeParent &&
             isCallExpression(nodeParent) &&
-            nodeParent.callee &&
             isMemberExpression(nodeParent.callee) &&
             (nodeParent.callee.property as { name: string }).name === 'param';
 
-        const isInit = nodeParent && isAssignmentExpression(nodeParent) && nodeParent.left === node;
+        const isInit = isAssignmentExpression(nodeParent) && nodeParent.left === node;
         // Check if this identifier is an argument to a namespace function
         const isNamespaceFunctionArg =
-            nodeParent &&
             isCallExpression(nodeParent) &&
-            nodeParent.callee &&
             isMemberExpression(nodeParent.callee) &&
             scopeManager.isContextBound((nodeParent.callee.object as { name: string }).name);
 
         // Check if this identifier is part of an array access
-        const isArrayAccess = nodeParent && isMemberExpression(nodeParent) && nodeParent.computed;
+        const isArrayAccess = isMemberExpression(nodeParent) && nodeParent.computed;
 
         // Check if this identifier is part of an array access that's an argument to a namespace function
         const isArrayIndexInNamespaceCall =
-            nodeParent &&
             isMemberExpression(nodeParent) &&
             nodeParent.computed &&
             nodeParent.property === node &&
-            (nodeParent as More).parent &&
             isCallExpression((nodeParent as More).parent) &&
-            ((nodeParent as More).parent as { callee?: Expression }).callee &&
             isMemberExpression(((nodeParent as More).parent as { callee?: Expression }).callee) &&
             scopeManager.isContextBound(((nodeParent as More).parent as { callee?: { object: { name: string } } }).callee.object.name);
 
         // Check if this identifier is a function being called
-        const isFunctionCall = nodeParent && isCallExpression(nodeParent) && nodeParent.callee === node;
+        const isFunctionCall = isCallExpression(nodeParent) && nodeParent.callee === node;
 
         if (isNamespaceMember || isParamCall || isNamespaceFunctionArg || isArrayIndexInNamespaceCall || isFunctionCall) {
             // For function calls, we should just use the original name without scoping
@@ -652,7 +639,7 @@ function transformIdentifier(node: Identifier, scopeManager: ScopeManager): void
         };
 
         // Check if parent node is already a member expression with computed property (array access)
-        const hasArrayAccess = nodeParent && isMemberExpression(nodeParent) && nodeParent.computed && nodeParent.object === node;
+        const hasArrayAccess = isMemberExpression(nodeParent) && nodeParent.computed && nodeParent.object === node;
 
         if (!hasArrayAccess && !isArrayAccess) {
             // Add [0] array access if not already present and not part of array access
@@ -722,12 +709,12 @@ function transformAssignmentExpression(node: AssignmentExpression, scopeManager:
                 (node as More).parent = state.parent;
                 transformIdentifier(node, scopeManager);
                 const nodeParent = (node as More).parent;
-                const isBinaryOperation = nodeParent && isBinaryExpression(nodeParent);
-                const isConditional = nodeParent && isConditionalExpression(nodeParent);
+                const isBinaryOperation = isBinaryExpression(nodeParent);
+                const isConditional = isConditionalExpression(nodeParent);
                 const isContextBound = scopeManager.isContextBound(node.name) && !scopeManager.isRootParam(node.name);
-                const hasArrayAccess = nodeParent && isMemberExpression(nodeParent) && nodeParent.computed && nodeParent.object === node;
+                const hasArrayAccess = isMemberExpression(nodeParent) && nodeParent.computed && nodeParent.object === node;
                 const isParamCall = nodeParent && (nodeParent as More)._isParamCall;
-                const isAMemberExpression = nodeParent && isMemberExpression(nodeParent);
+                const isAMemberExpression = isMemberExpression(nodeParent);
                 const isReserved = node.name === 'NaN';
 
                 if (isContextBound || isConditional || isBinaryOperation) {
@@ -748,9 +735,7 @@ function transformAssignmentExpression(node: AssignmentExpression, scopeManager:
             },
             CallExpression(node, state, c) {
                 const isNamespaceCall =
-                    node.callee &&
                     isMemberExpression(node.callee) &&
-                    node.callee.object &&
                     isIdentifier(node.callee.object) &&
                     scopeManager.isContextBound(node.callee.object.name);
 
@@ -1198,7 +1183,7 @@ function transformOperand(node: Expression | PrivateIdentifier, scopeManager: Sc
 
             const nodeParent = (node as More).parent;
             // Check if this identifier is part of a member expression (array access)
-            const isMemberExprProperty = nodeParent && isMemberExpression(nodeParent) && nodeParent.property === node;
+            const isMemberExprProperty = isMemberExpression(nodeParent) && nodeParent.property === node;
             if (isMemberExprProperty) {
                 return node;
             }
@@ -1329,8 +1314,8 @@ function getParamFromConditionalExpression(node: Expression, scopeManager: Scope
                 (node as More).parent = state.parent;
                 const nodeParent = (node as More).parent;
                 transformIdentifier(node, scopeManager);
-                const isBinaryOperation = nodeParent && isBinaryExpression(nodeParent);
-                const isConditional = nodeParent && isConditionalExpression(nodeParent);
+                const isBinaryOperation = isBinaryExpression(nodeParent);
+                const isConditional = isConditionalExpression(nodeParent);
 
                 if (isConditional || isBinaryOperation) {
                     if (isMemberExpression(node)) {
@@ -1350,9 +1335,7 @@ function getParamFromConditionalExpression(node: Expression, scopeManager: Scope
             },
             CallExpression(node, state, c) {
                 const isNamespaceCall =
-                    node.callee &&
                     isMemberExpression(node.callee) &&
-                    node.callee.object &&
                     isIdentifier(node.callee.object) &&
                     scopeManager.isContextBound(node.callee.object.name);
 
@@ -1553,9 +1536,7 @@ function transformCallExpression(node: CallExpression, scopeManager: ScopeManage
 
     // Check if this is a namespace method call (e.g., ta.ema, math.abs)
     const isNamespaceCall =
-        node.callee &&
         isMemberExpression(node.callee) &&
-        node.callee.object &&
         isIdentifier(node.callee.object) &&
         (scopeManager.isContextBound(node.callee.object.name) || node.callee.object.name === 'math' || node.callee.object.name === 'ta');
 
@@ -1578,7 +1559,7 @@ function transformCallExpression(node: CallExpression, scopeManager: ScopeManage
         (node as More)._transformed = true;
     }
     // Check if this is a regular function call (not a namespace method)
-    else if (node.callee && isIdentifier(node.callee)) {
+    else if (isIdentifier(node.callee)) {
         // Transform arguments using $.param
         node.arguments = node.arguments.map((arg) => {
             // If argument is already a param call, don't wrap it again
@@ -1599,8 +1580,8 @@ function transformCallExpression(node: CallExpression, scopeManager: ScopeManage
                     (node as More).parent = (state as unknown as { parent: Expression }).parent;
                     const nodeParent = (node as More).parent;
                     transformIdentifier(node, scopeManager);
-                    const isBinaryOperation = nodeParent && isBinaryExpression(nodeParent);
-                    const isConditional = nodeParent && isConditionalExpression(nodeParent);
+                    const isBinaryOperation = isBinaryExpression(nodeParent);
+                    const isConditional = isConditionalExpression(nodeParent);
 
                     if (isConditional || isBinaryOperation) {
                         if (isMemberExpression(node)) {
@@ -1721,7 +1702,7 @@ function addArrayAccess(node: Identifier, scopeManager: ScopeManager): void {
 
 function transformForStatement(node: ForStatement, scopeManager: ScopeManager, c: walk.WalkerCallback<ScopeManager>): void {
     // Handle initialization
-    if (node.init && isVariableDeclaration(node.init)) {
+    if (isVariableDeclaration(node.init)) {
         // Keep the original loop variable name
         const decl = node.init.declarations[0];
         const originalName = (decl.id as Identifier).name;
@@ -1856,7 +1837,7 @@ function transformNestedArrowFunctions(ast: Program): void {
                 // Check each declaration
                 declarations.forEach((decl) => {
                     // Check if it's an arrow function
-                    if (decl.init && isArrowFunctionExpression(decl.init)) {
+                    if (isArrowFunctionExpression(decl.init)) {
                         const isRootFunction = decl.init.start === 0;
 
                         if (!isRootFunction) {
@@ -1903,13 +1884,11 @@ function preProcessContextBoundVars(ast: Program, scopeManager: ScopeManager): v
             node.declarations.forEach((decl) => {
                 // Check for context property assignments
                 const isContextProperty =
-                    decl.init &&
                     isMemberExpression(decl.init) &&
                     decl.init.object && 'name' in decl.init.object &&
                     (decl.init.object.name === 'context' || decl.init.object.name === CONTEXT_NAME || decl.init.object.name === 'context2');
 
                 const isSubContextProperty =
-                    decl.init &&
                     isMemberExpression(decl.init) &&
                     decl.init.object && 'object' in decl.init.object &&
                     decl.init.object.object && 'name' in decl.init.object.object && (
