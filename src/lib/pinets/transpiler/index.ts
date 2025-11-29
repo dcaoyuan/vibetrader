@@ -49,7 +49,10 @@
  */
 
 import {
+    parse,
     Parser,
+    Token,
+    tokTypes,
     type ArrayExpression,
     type ArrayPattern,
     type ArrowFunctionExpression,
@@ -84,7 +87,6 @@ import {
     type WhileStatement
 } from 'acorn';
 import * as walk from 'acorn-walk';
-import { tsPlugin } from '@sveltejs/acorn-typescript';
 import * as astring from 'astring';
 import ScopeManager from './ScopeManager.class';
 const CONTEXT_NAME = '$';
@@ -1936,13 +1938,13 @@ function preProcessContextBoundVars(ast: Program, scopeManager: ScopeManager): v
 export function transpile(fn: string | Function): Function {
     const code = typeof fn === 'function' ? fn.toString() : fn;
 
-    const parser = Parser.extend(tsPlugin());
     // Parse the code into an AST
-    const ast = parser.parse(code.trim(), { sourceType: 'module', ecmaVersion: 'latest' });
-    // const ast = acorn.parse(code.trim(), {
-    //     ecmaVersion: 'latest',
-    //     sourceType: 'module',
-    // });
+    const ast = parse(code.trim(), {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+    });
+
+    // console.log(JSON.stringify(ast, null, 2));
 
     // Pre-process: Transform all nested arrow functions
     transformNestedArrowFunctions(ast);
@@ -2069,8 +2071,6 @@ export function transpile(fn: string | Function): Function {
 
     //transform equality checks to math.__eq calls
     transformEqualityChecks(ast);
-
-    console.log(ast)
 
     const transformedCode = astring.generate(ast);
 

@@ -115,8 +115,6 @@ export class PineTS {
         const transformer = transpile.bind(this);
         const transpiledFn = transformer(pineTSCode);
 
-        console.log('>>> transformedFn: ', transpiledFn.toString());
-
         context.data.close = [];
         context.data.open = [];
         context.data.high = [];
