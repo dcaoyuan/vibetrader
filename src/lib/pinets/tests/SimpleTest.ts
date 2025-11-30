@@ -1,6 +1,6 @@
-import type Context from "../Context.class";
-import { Provider } from "../marketData/Provider.class";
-import PineTS from "../PineTS.class";
+import type Context from "../src/Context.class";
+import PineTS from "../src/PineTS.class";
+import { Provider } from "../src/marketData/Provider.class";
 
 const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', '1d', 100, 0, new Date('Dec 25 2024').getTime() - 1);
 
