@@ -39,7 +39,7 @@ export class DefaultTSer implements TSer {
 
 
   /** Each var element of array is a Var that contains a sequence of values for one field of Ser. */
-  protected _vars: Map<string, TVar<TVal>>
+  protected _vars: Map<string, TVar<unknown>>
 
   protected _holders: ValueList<boolean>; // a place holder plus flag
 
@@ -49,7 +49,7 @@ export class DefaultTSer implements TSer {
     this.valuesCapacity = valuesCapacity;
     //assert valuesCapacity >= 2 : "valuesCapacity must >= 2, so as to record and get prev one";
 
-    this._vars = new Map<string, TVar<TVal>>();
+    this._vars = new Map<string, TVar<unknown>>();
     this._timestamps = timestamps;
     this._holders = new ValueList(valuesCapacity);
   }
@@ -67,7 +67,7 @@ export class DefaultTSer implements TSer {
    * @param name 
    * @returns var of name, will create one if non exist yet.
    */
-  varOf(name: string): TVar<TVal> {
+  varOf(name: string): TVar<unknown> {
     let tvar = this._vars.get(name);
     if (tvar === undefined) {
       tvar = this.TVar(name, TVar.Kind.Accumlate);
@@ -89,7 +89,7 @@ export class DefaultTSer implements TSer {
    *
    * @param v
    */
-  addVar(name: string, v: TVar<TVal>) {
+  addVar(name: string, v: TVar<unknown>) {
     // v could be added afterwards, should catch up and keep same size as this TSer
     for (let i = 0; i < this.size(); i++) {
       v.addNull();
@@ -161,10 +161,6 @@ export class DefaultTSer implements TSer {
      */
     const idx = this._timestamps.indexOfOccurredTime(time);
     return idx >= 0 && idx < this._holders.size();
-  }
-
-  protected _assignValue(tval: TVal): void {
-    // todo
   }
 
   longName = this._lname
@@ -346,7 +342,7 @@ export class DefaultTSer implements TSer {
   //   return _hashCode;
   // }
 
-  TVar<V extends TVal>(name: string, kind: TVar.Kind): TVar<V> {
+  TVar<V>(name: string, kind: TVar.Kind): TVar<V> {
     return new TVar<V>(this as unknown as BaseTSer, name, kind);
   }
 

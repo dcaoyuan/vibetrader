@@ -1,19 +1,15 @@
 import type { CIterator } from "../collection/CIterator";
 import { ValueList } from "../collection/ValueList";
 import type { BaseTSer } from "./BaseTSer";
-import type { TSer } from "./TSer";
 import { TStamps } from "./TStamps";
-import { TVal } from "./TVal";
 
 /**
  * A horizontal view of Ser.It's a reference of one of the field vars. V is the type of value
  * 
  */
-export class TVar<V extends TVal> {
+export class TVar<V> {
   belongsTo: BaseTSer;
   #values: ValueList<V>;
-
-  protected readonly _NULL_VAL: V = undefined
 
   readonly name: string;
   readonly kind?: TVar.Kind;
@@ -124,14 +120,14 @@ export class TVar<V extends TVal> {
     if (idx >= 0 && idx < this.values().size()) {
       const value = this.values().get(idx);
       if (value === undefined) {
-        return this._NULL_VAL;
+        return undefined;
 
       } else {
         return value;
       }
 
     } else {
-      return this._NULL_VAL;
+      return undefined;
     }
   }
 
@@ -158,15 +154,15 @@ export class TVar<V extends TVal> {
   }
 
   addNull(): boolean {
-    return this.add(this._NULL_VAL);
+    return this.add(undefined);
   }
 
   putNullByTime(time: number): boolean {
-    return this.putByTime(time, this._NULL_VAL);
+    return this.putByTime(time, undefined);
   }
 
   putNullByIndex(idx: number): boolean {
-    return this.putByIndex(idx, this._NULL_VAL);
+    return this.putByIndex(idx, undefined);
   }
 
   /**
@@ -175,7 +171,7 @@ export class TVar<V extends TVal> {
    * @param time
    */
   resetByTime(time: number) {
-    this.setByTime(time, this._NULL_VAL);
+    this.setByTime(time, undefined);
   }
 
   /**
@@ -184,11 +180,23 @@ export class TVar<V extends TVal> {
    * @param idx
    */
   resetByIndex(idx: number) {
-    this.setByIndex(idx, this._NULL_VAL);
+    this.setByIndex(idx, undefined);
   }
 
-  toArray(fromTime: number, toTime: number): V[] {
+  toArray(): V[] {
+    const values1 = this.values().toArray();
 
+    return values1;
+  }
+
+  toArrayWithTime(): TVar.ValuesWithTime<V> {
+    const values1 = this.values().toArray();
+    const times1 = this.timestamps().toArray();
+
+    return { times: times1, values: values1 };
+  }
+
+  slice(fromTime: number, toTime: number): V[] {
     const frIdx = this.timestamps().indexOrNextIndexOfOccurredTime(fromTime);
     const toIdx = this.timestamps().indexOrPrevIndexOfOccurredTime(toTime);
 
@@ -197,8 +205,7 @@ export class TVar<V extends TVal> {
     return values1;
   }
 
-  toArrayWithTime(fromTime: number, toTime: number): TVar.ValuesWithTime<V> {
-
+  sliceWithTime(fromTime: number, toTime: number): TVar.ValuesWithTime<V> {
     const frIdx = this.timestamps().indexOrNextIndexOfOccurredTime(fromTime);
     const toIdx = this.timestamps().indexOrPrevIndexOfOccurredTime(toTime);
 
@@ -207,7 +214,6 @@ export class TVar<V extends TVal> {
 
     return { times: times1, values: values1 };
   }
-
 
   /**
    * Clear values that >= fromIdx

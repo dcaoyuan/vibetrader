@@ -8,13 +8,13 @@ export interface TSer {
   timeframe: TFrame;
   timezone: string;
   timestamps(): TStamps;
-  vars(): Map<string, TVar<TVal>>;
+  vars(): Map<string, TVar<unknown>>;
 
   /**
    * @param name 
    * @returns var of name, will create one if non exist yet.
    */
-  varOf(name: string): TVar<TVal>;
+  varOf(name: string): TVar<unknown>;
 
   valuesCapacity: number;
 
@@ -23,7 +23,7 @@ export interface TSer {
 
   isAscending<V extends TVal>(values: V[]): boolean
 
-  addVar(name: string, v: TVar<TVal>): void
+  addVar(name: string, v: TVar<unknown>): void
 
   // --- for charting
 
