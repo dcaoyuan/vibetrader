@@ -35,7 +35,20 @@ export class Theme {
 
     protected readonly monthColors: string[]
     protected readonly planetColors: string[];
-    protected readonly chartColors: string[];
+    protected readonly chartColors: string[] = [
+        '#FFFFFF', //darker // white Venus
+        "#FFFF00", // yellow Sun
+        "#FF00FF", // Magenta Pluto
+        "#00FF00", // Green Earth
+        "#0000FF", // Blue Mercury
+        "#FF0000", // Red Mars
+        "#00FFFF", // Cyan, Jupiter
+        "#FFC0CB", // Pink, Uranus
+        "#FFFF00",// .darker, // yellow Saturn
+        "#D2D3D3", // lightgray Neptune
+        "#A9A9A9" // darkgray MOON
+    ]
+
 
     protected readonly positiveColor = "#FF0000" // "#FF0000B3";
     protected readonly negativeColor = "#00AA00" // "#00AA00B3"//"#00FF00B3";

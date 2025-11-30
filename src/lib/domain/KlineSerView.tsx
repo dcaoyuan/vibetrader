@@ -2,7 +2,7 @@ import { Component, memo, useRef, useState, type JSX, type ReactNode } from "rea
 import { KlineChartView } from "../charting/view/KlineChartView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
-import { ChartView, RefreshEvent, type RefreshCursor } from "../charting/view/ChartView";
+import { ChartView, RefreshEvent, type ChartOf, type RefreshCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
 import type { BaseTSer } from "../timeseris/BaseTSer";
 import type { TVar } from "../timeseris/TVar";
@@ -11,7 +11,8 @@ import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
 import Spacing from "../charting/pane/Spacing";
 import { Help } from "../charting/pane/Help";
-// import { Context, PineTS, Provider } from "pinets/src/index";
+import { Context, PineTS, } from "pinets/src/index";
+import { TSerProvider } from "./TSerProvider";
 
 type Props = {
     xc: ChartXControl,
@@ -23,8 +24,10 @@ type State = {
     refreshChart: number;
     refreshCursors: RefreshCursor;
 
-    mouseCursor: JSX.Element
-    referCursor: JSX.Element
+    mouseCursor: JSX.Element;
+    referCursor: JSX.Element;
+
+    overlappingCharts: ChartOf[];
 }
 
 class KlineSerView extends Component<Props, State> {
@@ -56,32 +59,6 @@ class KlineSerView extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
-
-        // const pineTS = new PineTS(Provider.Binance, 'BTCUSDT', '1d', 100, 0, new Date('Dec 25 2024').getTime() - 1);
-
-        // pineTS.run((context: Context) => {
-        //     const ta = context.ta;
-        //     const { close } = context.data;
-
-        //     const ema9 = ta.ema(close, 9);
-        //     const ema18 = ta.ema(close, 18);
-
-        //     const bull_bias = ema9 > ema18;
-        //     const bear_bias = ema9 < ema18;
-
-        //     return {
-        //         bull_bias,
-        //         bear_bias,
-        //     };
-
-        // }).then(({ result }) => {
-        //     const part_bull_bias = result.bull_bias.reverse().slice(0, 10);
-        //     const part_bear_bias = result.bear_bias.reverse().slice(0, 10);
-        //     console.log(part_bull_bias);
-        //     console.log(part_bear_bias);
-        // });
-
-
         this.xc = props.xc;
         this.varName = props.varName;
         this.width = props.width;
@@ -111,6 +88,7 @@ class KlineSerView extends Component<Props, State> {
             refreshCursors: { changed: 0, yMouses: this.UNDEFINED_YMouses },
             referCursor: <></>,
             mouseCursor: <></>,
+            overlappingCharts: []
         }
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -121,6 +99,50 @@ class KlineSerView extends Component<Props, State> {
         this.handleWheel = this.handleWheel.bind(this);
     }
 
+    componentDidMount() {
+        const pineTS = new PineTS(new TSerProvider(this.kvar), 'BTCUSDT', '1d');
+
+        pineTS.run((context: Context) => {
+            const ta = context.ta;
+            const { close } = context.data;
+
+            const ema1 = ta.ema(close, 9);
+            const ema2 = ta.ema(close, 18);
+            //const bull_bias = ema1 > ema2;
+            //const bear_bias = ema1 < ema2;
+
+            return {
+                ema1,
+                ema2,
+            };
+
+        }).then(({ result }) => {
+            // const ema1 = result.ema1;
+            // const ema2 = result.ema2;
+            // console.log(ema1);
+            // console.log(ema2);
+
+            const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
+            const startTime = performance.now();
+            let i = 0;
+            while (i < ema.size()) {
+                ema.add([result.ema1[i], result.ema2[i]]);
+
+                i++;
+            }
+            const endTime = performance.now();
+            const duration = endTime - startTime; // Duration in milliseconds
+            console.log(`ema added in ${duration} ms`);
+            console.log(ema)
+
+            this.updateState({
+                overlappingCharts: [
+                    { tvar: ema, atIndex: 0, vname: "ema1", kind: "line" },
+                    { tvar: ema, atIndex: 1, vname: "ema2", kind: "line" }
+                ]
+            })
+        });
+    }
 
     notify(event: RefreshEvent, yMouses: number[] = this.UNDEFINED_YMouses) {
         switch (event) {
@@ -370,6 +392,7 @@ class KlineSerView extends Component<Props, State> {
                 isMasterView={true}
                 refreshChart={this.state.refreshChart}
                 refreshCursors={this.state.refreshCursors}
+                overlappingCharts={this.state.overlappingCharts}
             />
         )
     }

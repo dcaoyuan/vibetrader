@@ -27,6 +27,13 @@ export type RefreshCursor = {
     yMouses: number[], // per view
 }
 
+export type ChartOf = {
+    tvar: TVar<unknown[]>;
+    atIndex: number,
+    name: string,
+    kind: string,
+}
+
 export interface ViewProps {
     id: number
     x: number;
@@ -41,6 +48,7 @@ export interface ViewProps {
     refreshChart: number;
     refreshCursors: RefreshCursor;
     name: string;
+    overlappingCharts?: ChartOf[];
 }
 
 export interface ViewState {
@@ -63,6 +71,8 @@ export interface ViewState {
 
     mouseCursor: JSX.Element
     referCursor: JSX.Element
+
+    overlappingCharts?: JSX.Element[];
 }
 
 /**
@@ -428,6 +438,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
         if (this.props.refreshChart !== prevProps.refreshChart) {
+            this.updateChart();
+        }
+
+        if (this.props.overlappingCharts !== prevProps.overlappingCharts) {
             this.updateChart();
         }
 
