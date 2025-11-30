@@ -2,27 +2,27 @@ import type { CIterable } from "./CIterable";
 import type { CIterator } from "./CIterator";
 
 export interface Collection<E> extends CIterable<E>, Iterable<E> {
-  size(): number;
+    size(): number;
 
-  isEmpty(): boolean;
+    isEmpty(): boolean;
 
-  contains(o: unknown): boolean;
+    contains(o: unknown): boolean;
 
-  iterator(): CIterator<E>;
+    iterator(): CIterator<E>;
 
-  toArray(): E[];
+    toArray(): E[];
 
-  add(e: E): boolean;
+    add(e: E): boolean;
 
-  remove(o: unknown): boolean;
+    remove(o: unknown): boolean;
 
-  containsAll(c: Collection<unknown>): boolean;
+    containsAll(c: Collection<unknown>): boolean;
 
-  addAll<M extends E>(c: Collection<M>): boolean;
+    addAll<M extends E>(c: Collection<M>): boolean;
 
-  removeAll(c: Collection<unknown>): boolean;
+    removeAll(c: Collection<unknown>): boolean;
 
-  retainAll(c: Collection<unknown>): boolean;
+    retainAll(c: Collection<unknown>): boolean;
 
-  clear(): void;
+    clear(): void;
 }

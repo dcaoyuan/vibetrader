@@ -9,235 +9,235 @@ import { ListBox, ListBoxItem } from 'react-aria-components';
 import { Text } from 'react-aria-components';
 
 type Props = {
-  xc: ChartXControl,
-  width: number,
-  height: number,
-  refreshChart: number,
-  refreshCursors: RefreshCursor,
-  tvar: TVar<Kline>;
+    xc: ChartXControl,
+    width: number,
+    height: number,
+    refreshChart: number,
+    refreshCursors: RefreshCursor,
+    tvar: TVar<Kline>;
 }
 
 type State = {
-  chart: JSX.Element,
+    chart: JSX.Element,
 
-  referKline: Kline,
-  mouseKline: Kline,
-  delta: { period: number, percent: number, volumeSum: number }
+    referKline: Kline,
+    mouseKline: Kline,
+    delta: { period: number, percent: number, volumeSum: number }
 }
 
 class Title extends Component<Props, State> {
-  xc: ChartXControl;
-  width: number;
-  height: number;
-  tframeName: string;
+    xc: ChartXControl;
+    width: number;
+    height: number;
+    tframeName: string;
 
-  constructor(props: Props) {
-    super(props);
-    this.xc = props.xc;
-    this.width = props.width;
-    this.height = props.height;
+    constructor(props: Props) {
+        super(props);
+        this.xc = props.xc;
+        this.width = props.width;
+        this.height = props.height;
 
-    const chart = this.plot();
-    this.state = { chart, mouseKline: undefined, referKline: undefined, delta: undefined };
+        const chart = this.plot();
+        this.state = { chart, mouseKline: undefined, referKline: undefined, delta: undefined };
 
-    let tframeName = this.xc.baseSer.timeframe.compactName.toLowerCase();
-    const matchLeadingNumbers = tframeName.match(/^\d+/);
-    const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
-    tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
+        let tframeName = this.xc.baseSer.timeframe.compactName.toLowerCase();
+        const matchLeadingNumbers = tframeName.match(/^\d+/);
+        const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
+        tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
-    this.tframeName = tframeName;
+        this.tframeName = tframeName;
 
-    console.log("Title render");
-  }
-
-  plot() {
-    return (
-      <>
-      </>
-    );
-  }
-
-  protected updateChart() {
-    // clear mouse cursor and prev value
-    this.xc.isMouseCuroseVisible = false;
-
-    const chart = this.plot();
-    this.updateState({ chart });
-  }
-
-  protected updateCursors() {
-    this.updateState({});
-  }
-
-  protected updateState(state: object) {
-    let referKline: Kline = undefined
-    let mouseKline: Kline = undefined
-
-    if (this.xc.isReferCuroseVisible) {
-      const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.occurred(time)) {
-        referKline = this.props.tvar.getByTime(time);
-      }
+        console.log("Title render");
     }
 
-    if (this.xc.isMouseCuroseVisible) {
-      const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.occurred(time)) {
-        mouseKline = this.props.tvar.getByTime(time);
-      }
+    plot() {
+        return (
+            <>
+            </>
+        );
     }
 
-    const delta = this.calcDelta()
+    protected updateChart() {
+        // clear mouse cursor and prev value
+        this.xc.isMouseCuroseVisible = false;
 
-    this.setState({ ...state, referKline: referKline, mouseKline: mouseKline, delta })
-  }
-
-  calcDelta() {
-    if (!this.xc.isReferCuroseVisible || !this.xc.isMouseCuroseVisible) {
-      return undefined;
+        const chart = this.plot();
+        this.updateState({ chart });
     }
 
-    const isAutoReferCursorValue = true; // TODO
+    protected updateCursors() {
+        this.updateState({});
+    }
 
-    const rRow = this.xc.referCursorRow;
-    const mRow = this.xc.mouseCursorRow;
-    if (isAutoReferCursorValue) { // normal KlineChartView
-      const rTime = this.xc.tr(rRow)
-      const mTime = this.xc.tr(mRow)
-      if (this.xc.occurred(rTime) && this.xc.occurred(mTime)) {
-        const rKline = this.props.tvar.getByTime(rTime);
-        const rValue = rKline.close;
+    protected updateState(state: object) {
+        let referKline: Kline = undefined
+        let mouseKline: Kline = undefined
 
-        const period = Math.abs(this.xc.br(mRow) - this.xc.br(rRow))
-        const mValue = this.props.tvar.getByTime(mTime).close
-        const percent = mRow > rRow
-          ? 100 * (mValue - rValue) / rValue
-          : 100 * (rValue - mValue) / mValue
-
-        let volumeSum = 0.0
-        const rowBeg = Math.min(rRow, mRow)
-        const rowEnd = Math.max(rRow, mRow)
-        let i = rowBeg + 1
-        while (i <= rowEnd) {
-          const time = this.xc.tr(i)
-          if (this.xc.occurred(time)) {
-            const mKline = this.props.tvar.getByTime(time);
-            volumeSum += mKline.volume;
-          }
-          i += 1
+        if (this.xc.isReferCuroseVisible) {
+            const time = this.xc.tr(this.xc.referCursorRow)
+            if (this.xc.occurred(time)) {
+                referKline = this.props.tvar.getByTime(time);
+            }
         }
 
-        return { period, percent, volumeSum }
-      }
+        if (this.xc.isMouseCuroseVisible) {
+            const time = this.xc.tr(this.xc.mouseCursorRow)
+            if (this.xc.occurred(time)) {
+                mouseKline = this.props.tvar.getByTime(time);
+            }
+        }
 
-    } else { // else, usually RealtimeKlineChartView
-      // const vRefer = GlassPane.this.referCursorValue
-      // const vYMouse = datumPlane.vy(y)
-      // const percent = vRefer === 0 ? 0.0 : 100 * (vYMouse - vRefer) / vRefer
+        const delta = this.calcDelta()
 
-      //new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vYMouse)).append("  ").append("%+3.2f".format(percent)).append("%").toString
+        this.setState({ ...state, referKline: referKline, mouseKline: mouseKline, delta })
     }
 
-    return undefined;
-  }
+    calcDelta() {
+        if (!this.xc.isReferCuroseVisible || !this.xc.isMouseCuroseVisible) {
+            return undefined;
+        }
 
-  render() {
-    const lColor = '#F00000'; // Theme.now().axisColor
-    const rColor = '#00F0F0'; // 'orange'
-    const mColor = '#00F000'; // Theme.now().axisColor 
-    const rKline = this.state.referKline
-    const mKline = this.state.mouseKline
-    const delta = this.state.delta;
+        const isAutoReferCursorValue = true; // TODO
 
-    return (
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-        <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
-          <ListBoxItem textValue="O">
-            {mKline && <>
-              <Text style={{ color: lColor }}>O </Text>
-              <Text style={{ color: mColor }}>{mKline.open}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="H">
-            {mKline && <>
-              <Text style={{ color: lColor }}>H </Text>
-              <Text style={{ color: mColor }}>{mKline.high}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="L">
-            {mKline && <>
-              <Text style={{ color: lColor }}>L </Text>
-              <Text style={{ color: mColor }}>{mKline.low}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="C">
-            {mKline && <>
-              <Text style={{ color: lColor }}>C </Text>
-              <Text style={{ color: mColor }}>
-                {delta
-                  ? mKline.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
-                  : mKline.close
+        const rRow = this.xc.referCursorRow;
+        const mRow = this.xc.mouseCursorRow;
+        if (isAutoReferCursorValue) { // normal KlineChartView
+            const rTime = this.xc.tr(rRow)
+            const mTime = this.xc.tr(mRow)
+            if (this.xc.occurred(rTime) && this.xc.occurred(mTime)) {
+                const rKline = this.props.tvar.getByTime(rTime);
+                const rValue = rKline.close;
+
+                const period = Math.abs(this.xc.br(mRow) - this.xc.br(rRow))
+                const mValue = this.props.tvar.getByTime(mTime).close
+                const percent = mRow > rRow
+                    ? 100 * (mValue - rValue) / rValue
+                    : 100 * (rValue - mValue) / mValue
+
+                let volumeSum = 0.0
+                const rowBeg = Math.min(rRow, mRow)
+                const rowEnd = Math.max(rRow, mRow)
+                let i = rowBeg + 1
+                while (i <= rowEnd) {
+                    const time = this.xc.tr(i)
+                    if (this.xc.occurred(time)) {
+                        const mKline = this.props.tvar.getByTime(time);
+                        volumeSum += mKline.volume;
+                    }
+                    i += 1
                 }
-              </Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="V">
-            {mKline && <>
-              <Text style={{ color: lColor }}>V </Text>
-              <Text style={{ color: mColor }}>{mKline.volume}</Text>
-            </>}
-          </ListBoxItem>
-        </ListBox>
 
-        <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
-          <ListBoxItem textValue="O">
-            {rKline && <>
-              <Text style={{ color: lColor }}>O </Text>
-              <Text style={{ color: rColor }}>{rKline.open}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="H">
-            {rKline && <>
-              <Text style={{ color: lColor }}>H </Text>
-              <Text style={{ color: rColor }}>{rKline.high}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="L">
-            {rKline && <>
-              <Text style={{ color: lColor }}>L </Text>
-              <Text style={{ color: rColor }}>{rKline.low}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="C">
-            {rKline && <>
-              <Text style={{ color: lColor }}>C </Text>
-              <Text style={{ color: rColor }}>{rKline.close}</Text>
-            </>}
-          </ListBoxItem>
-          <ListBoxItem textValue="V">
-            {rKline && <>
-              <Text style={{ color: lColor }}>V </Text>
-              <Text style={{ color: rColor }}>{rKline.volume}</Text>
-            </>}
-          </ListBoxItem>
-        </ListBox>
-      </div>
-    )
-  }
+                return { period, percent, volumeSum }
+            }
 
-  // Important: Be careful when calling setState within componentDidUpdate
-  // Ensure you have a conditional check to prevent infinite re-renders.
-  // If setState is called unconditionally, it will trigger another update,
-  // potentially leading to a loop.
-  override componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.refreshChart !== prevProps.refreshChart) {
-      this.updateChart();
+        } else { // else, usually RealtimeKlineChartView
+            // const vRefer = GlassPane.this.referCursorValue
+            // const vYMouse = datumPlane.vy(y)
+            // const percent = vRefer === 0 ? 0.0 : 100 * (vYMouse - vRefer) / vRefer
+
+            //new StringBuilder(20).append(MONEY_DECIMAL_FORMAT.format(vYMouse)).append("  ").append("%+3.2f".format(percent)).append("%").toString
+        }
+
+        return undefined;
     }
 
-    if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
-      this.updateCursors();
+    render() {
+        const lColor = '#F00000'; // Theme.now().axisColor
+        const rColor = '#00F0F0'; // 'orange'
+        const mColor = '#00F000'; // Theme.now().axisColor 
+        const rKline = this.state.referKline
+        const mKline = this.state.mouseKline
+        const delta = this.state.delta;
+
+        return (
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                    <ListBoxItem textValue="O">
+                        {mKline && <>
+                            <Text style={{ color: lColor }}>O </Text>
+                            <Text style={{ color: mColor }}>{mKline.open}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="H">
+                        {mKline && <>
+                            <Text style={{ color: lColor }}>H </Text>
+                            <Text style={{ color: mColor }}>{mKline.high}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="L">
+                        {mKline && <>
+                            <Text style={{ color: lColor }}>L </Text>
+                            <Text style={{ color: mColor }}>{mKline.low}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="C">
+                        {mKline && <>
+                            <Text style={{ color: lColor }}>C </Text>
+                            <Text style={{ color: mColor }}>
+                                {delta
+                                    ? mKline.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
+                                    : mKline.close
+                                }
+                            </Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="V">
+                        {mKline && <>
+                            <Text style={{ color: lColor }}>V </Text>
+                            <Text style={{ color: mColor }}>{mKline.volume}</Text>
+                        </>}
+                    </ListBoxItem>
+                </ListBox>
+
+                <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
+                    <ListBoxItem textValue="O">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>O </Text>
+                            <Text style={{ color: rColor }}>{rKline.open}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="H">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>H </Text>
+                            <Text style={{ color: rColor }}>{rKline.high}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="L">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>L </Text>
+                            <Text style={{ color: rColor }}>{rKline.low}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="C">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>C </Text>
+                            <Text style={{ color: rColor }}>{rKline.close}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="V">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>V </Text>
+                            <Text style={{ color: rColor }}>{rKline.volume}</Text>
+                        </>}
+                    </ListBoxItem>
+                </ListBox>
+            </div>
+        )
     }
-  }
+
+    // Important: Be careful when calling setState within componentDidUpdate
+    // Ensure you have a conditional check to prevent infinite re-renders.
+    // If setState is called unconditionally, it will trigger another update,
+    // potentially leading to a loop.
+    override componentDidUpdate(prevProps: Props, prevState: State) {
+        if (this.props.refreshChart !== prevProps.refreshChart) {
+            this.updateChart();
+        }
+
+        if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
+            this.updateCursors();
+        }
+    }
 
 }
 

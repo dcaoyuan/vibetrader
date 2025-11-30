@@ -1,7 +1,7 @@
 export interface CIterator<E> {
-  hasNext(): boolean;
+    hasNext(): boolean;
 
-  next(): E;
+    next(): E;
 
-  remove(): void;
+    remove(): void;
 }

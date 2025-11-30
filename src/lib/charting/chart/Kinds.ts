@@ -1,5 +1,5 @@
 export enum KlineChartKind {
-  Candle,
-  Bar,
-  Line,
+    Candle,
+    Bar,
+    Line,
 }

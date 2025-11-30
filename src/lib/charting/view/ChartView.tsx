@@ -13,56 +13,56 @@ import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 
 export enum RefreshEvent {
-  Chart,
-  Cursors
+    Chart,
+    Cursors
 }
 
 export type ChartParts = {
-  chart: JSX.Element,
-  axisy: JSX.Element
+    chart: JSX.Element,
+    axisy: JSX.Element
 }
 
 export type RefreshCursor = {
-  changed: number,
-  yMouses: number[], // per view
+    changed: number,
+    yMouses: number[], // per view
 }
 
 export interface ViewProps {
-  id: number
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  xc: ChartXControl;
-  baseSer: BaseTSer;
-  tvar: TVar<TVal>;
-  isKline?: boolean;
-  isMasterView?: boolean;
-  refreshChart: number;
-  refreshCursors: RefreshCursor;
-  name: string;
+    id: number
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    xc: ChartXControl;
+    baseSer: BaseTSer;
+    tvar: TVar<TVal>;
+    isKline?: boolean;
+    isMasterView?: boolean;
+    refreshChart: number;
+    refreshCursors: RefreshCursor;
+    name: string;
 }
 
 export interface ViewState {
-  width: number;
-  height: number;
+    width: number;
+    height: number;
 
-  isKline: false;
-  hasInnerVolume: false;
-  maxVolume?: number;
-  minVolume?: number;
+    isKline: false;
+    hasInnerVolume: false;
+    maxVolume?: number;
+    minVolume?: number;
 
-  maxValue: 1.0
-  minValue: 0.0
+    maxValue: 1.0
+    minValue: 0.0
 
-  isInteractive: true
-  isPinned: false
+    isInteractive: true
+    isPinned: false
 
-  chart: JSX.Element;
-  axisy?: JSX.Element;
+    chart: JSX.Element;
+    axisy?: JSX.Element;
 
-  mouseCursor: JSX.Element
-  referCursor: JSX.Element
+    mouseCursor: JSX.Element
+    referCursor: JSX.Element
 }
 
 /**
@@ -88,353 +88,353 @@ export interface ViewState {
  */
 export abstract class ChartView<P extends ViewProps, S extends ViewState> extends Component<P, S> {
 
-  static readonly AXISY_WIDTH = 50
-  static readonly CONTROL_HEIGHT = 12
-  static readonly TITLE_HEIGHT_PER_LINE = 14
+    static readonly AXISY_WIDTH = 50
+    static readonly CONTROL_HEIGHT = 12
+    static readonly TITLE_HEIGHT_PER_LINE = 14
 
-  width: number;
-  height: number;
+    width: number;
+    height: number;
 
-  xc: ChartXControl;
-  yc: ChartYControl;
-  baseSer: TSer;
-  isMasterView: boolean;
+    xc: ChartXControl;
+    yc: ChartYControl;
+    baseSer: TSer;
+    isMasterView: boolean;
 
-  tvar: TVar<TVal>;
+    tvar: TVar<TVal>;
 
-  name: string
-  id: number;
+    name: string
+    id: number;
 
-  constructor(props: P) {
-    super(props)
+    constructor(props: P) {
+        super(props)
 
-    // share same xc through all views that are in the same viewcontainer.
-    this.xc = props.xc
-    this.yc = new ChartYControl(props.baseSer, props.height);
+        // share same xc through all views that are in the same viewcontainer.
+        this.xc = props.xc
+        this.yc = new ChartYControl(props.baseSer, props.height);
 
-    this.baseSer = props.baseSer;
-    this.tvar = props.tvar;
+        this.baseSer = props.baseSer;
+        this.tvar = props.tvar;
 
-    this.width = props.width;
-    this.height = props.height;
-    this.isKline = props.isKline;
-    this.isMasterView = props.isMasterView;
+        this.width = props.width;
+        this.height = props.height;
+        this.isKline = props.isKline;
+        this.isMasterView = props.isMasterView;
 
-    this.name = props.name;
-    this.id = props.id;
+        this.name = props.name;
+        this.id = props.id;
 
-    console.log(`${this.name} ChartView render`)
-  }
-
-  protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
-
-  readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
-
-  isKline = false;
-  hasInnerVolume = false;
-  maxVolume?: number;
-  minVolume?: number;
-
-  maxValue = 1.0
-  minValue = 0.0
-
-  isInteractive = true
-
-  #isPinned = false
-
-  /**
-   * what may affect the geometry:
-   * 1. the size of this component changed;
-   * 3. the ser's value changed or its items added, which need computeMaxMin();
-   *
-   * The control only define wBar (the width of each bar), this component
-   * will compute number of bars according to its size. So, if you want to more
-   * bars displayed, such as an appointed newNBars, you should compute the size of
-   * this's container, and call container.setBounds() to proper size, then, the
-   * layout manager will layout the size of its ChartView instances automatically,
-   * and if success, the newNBars computed here will equals the newNBars you want.
-   */
-  protected computeGeometry() {
-    this.computeMaxMin();
-
-    // compute y after compute maxmin
-    this.yc.computeGeometry(this.maxValue, this.minValue)
-  }
-
-  protected setMaxMinValue(max: number, min: number) {
-    this.maxValue = max;
-    this.minValue = min;
-  }
-
-  wChart(): number {
-    return this.width - ChartView.AXISY_WIDTH;
-  }
-
-  get isSelected() {
-    return false;
-    //return this.glassPane.isSelected;
-  }
-  set isSelected(b: boolean) {
-    //this.glassPane.isSelected = b;
-  }
-
-  get isPinned(): boolean {
-    return this.#isPinned;
-  }
-  pin() {
-    //this.glassPane.pin(true);
-
-    this.#isPinned = true;
-  }
-
-  unPin() {
-    //this.glassPane.pin(false);
-
-    this.#isPinned = false;
-  }
-
-  chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
-    //assert(ser != null, "Do not pass me a null ser!")
-    //let x = this.overlappingSerChartToVars.get(ser);
-    return ser === this.baseSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
-  }
-
-  overlappingSers() {
-    return this.overlappingSerChartToVars.keys();
-  }
-
-  allSers() {
-    const _allSers = new Set<TSer>()
-
-    _allSers.add(this.baseSer);
-    for (const s of this.overlappingSers()) {
-      _allSers.add(s);
+        console.log(`${this.name} ChartView render`)
     }
 
-    return _allSers
-  }
+    protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
 
-  popupToDesktop() {
-  }
+    readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-  // addOverlappingCharts(ser: TSer) {
-  //   this.listenTo(ser)
+    isKline = false;
+    hasInnerVolume = false;
+    maxVolume?: number;
+    minVolume?: number;
 
-  //   let chartToVars = this.overlappingSerChartToVars.get(ser)
-  //   if (chartToVars === undefined) {
-  //     chartToVars = new Map<Chart, Set<TVar<unknown>>>()
-  //     this.overlappingSerChartToVars.set(ser, chartToVars)
-  //   }
+    maxValue = 1.0
+    minValue = 0.0
 
-  //   let depthGradient = Pane.DEPTH_GRADIENT_BEGIN
+    isInteractive = true
 
-  //   for (let [k, v] of ser.vars if v.plot != Plot.None) {
-  //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf KlineSer) {
-  //       const qser = baseSer.asInstanceOf[KlineSer]
-  //       ChartFactory.createVarChart(v, qser.high, qser.low)
+    #isPinned = false
 
-  //     } else if (v.plot === Plot.Info) {
-  //       ChartFactory.createVarChart(v, ser.vars : _ *)
+    /**
+     * what may affect the geometry:
+     * 1. the size of this component changed;
+     * 3. the ser's value changed or its items added, which need computeMaxMin();
+     *
+     * The control only define wBar (the width of each bar), this component
+     * will compute number of bars according to its size. So, if you want to more
+     * bars displayed, such as an appointed newNBars, you should compute the size of
+     * this's container, and call container.setBounds() to proper size, then, the
+     * layout manager will layout the size of its ChartView instances automatically,
+     * and if success, the newNBars computed here will equals the newNBars you want.
+     */
+    protected computeGeometry() {
+        this.computeMaxMin();
 
-  //     } else {
-  //       ChartFactory.createVarChart(v)
-  //     }
+        // compute y after compute maxmin
+        this.yc.computeGeometry(this.maxValue, this.minValue)
+    }
 
-  //     if (chart != null) {
-  //       let vars = chartToVars.get(chart);
-  //       if (vars === undefined) {
-  //         vars = new Set<TVar<unknown>>()
-  //         chartToVars.set(chart, vars)
-  //       }
-  //       vars.add(v);
+    protected setMaxMinValue(max: number, min: number) {
+        this.maxValue = max;
+        this.minValue = min;
+    }
 
-  //       switch (chart.tag) {
-  //         case "GradientChart":
-  //           chart.depth = depthGradient; depthGradient--
-  //           break;
-  //         case "ProfileChart":
-  //           chart.depth = depthGradient; depthGradient--
-  //           break;
-  //         case "StickChart":
-  //           chart.depth = -8
-  //           break;
-  //         default:
-  //           chart.depth = this.#lastDepthOfOverlappingChart;
-  //           this.#lastDepthOfOverlappingChart++;
-  //       }
+    wChart(): number {
+        return this.width - ChartView.AXISY_WIDTH;
+    }
 
-  //       chart.set(this.mainChartPane, ser)
-  //       this.mainChartPane.putChart(chart)
-  //     }
-  //   }
+    get isSelected() {
+        return false;
+        //return this.glassPane.isSelected;
+    }
+    set isSelected(b: boolean) {
+        //this.glassPane.isSelected = b;
+    }
 
-  //   notifyChanged(classOf[ChartValidityObserver])
+    get isPinned(): boolean {
+        return this.#isPinned;
+    }
+    pin() {
+        //this.glassPane.pin(true);
 
-  //   repaint()
-  // }
+        this.#isPinned = true;
+    }
 
-  // removeOverlappingCharts(ser: TSer) {
-  //   deafTo(ser)
+    unPin() {
+        //this.glassPane.pin(false);
 
-  //   const chartToVars = this.overlappingSerChartToVars.get(ser) ?? new Map<Chart, Set<TVar<unknown>>>();
-  //   chartToVars.forEach(
-  //     chartToVars => {
-  //       for (let chart of chartToVars.keys()) {
-  //         mainChartPane.removeChart(chart)
-  //         switch (chart.tag) {
-  //           case "GradientChart": /** noop */
-  //           case "ProfileChart": /** noop */
-  //           case "StickChart": /** noop */
-  //             break;
-  //           default:
-  //             this.#lastDepthOfOverlappingChart--
-  //         }
-  //       }
-  //       /** release chartToVars */
-  //       chartToVars.clear
-  //       overlappingSerChartToVars.remove(ser)
-  //     }
-  //   )
+        this.#isPinned = false;
+    }
 
-  //   notifyChanged(classOf[ChartValidityObserver])
+    chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
+        //assert(ser != null, "Do not pass me a null ser!")
+        //let x = this.overlappingSerChartToVars.get(ser);
+        return ser === this.baseSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
+    }
 
-  //   repaint()
-  // }
+    overlappingSers() {
+        return this.overlappingSerChartToVars.keys();
+    }
 
-  computeMaxMin() {
-    // if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 
-    this.maxValue = 1;
-    this.minValue = 0;
-  }
+    allSers() {
+        const _allSers = new Set<TSer>()
 
-  valueAtTime(time: number) {
-    return this.tvar.getByTime(time).value;
-  }
-
-  abstract plot(): ChartParts;
-
-  protected updateChart() {
-    // clear mouse cursor and prev value
-    this.xc.isMouseCuroseVisible = false;
-    this.yc.setMouseCursorValue(undefined, undefined)
-
-    const chartParts = this.plot();
-    this.updateState(chartParts);
-  }
-
-  protected updateCursors(yMouse: number) {
-    this.updateState({}, yMouse);
-  }
-
-  protected updateState(state: object, yMouse?: number) {
-    let referCursor = <></>
-    let mouseCursor = <></>
-    const referColor = '#00F0F0'; // 'orange'
-    const mouseColor = '#00F000';
-
-    if (this.xc.isReferCuroseVisible) {
-      const time = this.xc.tr(this.xc.referCursorRow)
-      if (this.xc.occurred(time)) {
-        const cursorX = this.xc.xr(this.xc.referCursorRow)
-
-        let value = this.valueAtTime(time);
-        const cursorY = this.yc.yv(value)
-
-        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value /= ChartYControl.VALUE_SCALE_UNIT
+        _allSers.add(this.baseSer);
+        for (const s of this.overlappingSers()) {
+            _allSers.add(s);
         }
 
-        referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
-      }
+        return _allSers
     }
 
-    if (this.xc.isMouseCuroseVisible) {
-      const time = this.xc.tr(this.xc.mouseCursorRow)
-      if (this.xc.occurred(time)) {
-        const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+    popupToDesktop() {
+    }
 
-        let value: number;
-        let cursorY: number;
-        if (yMouse === undefined) {
-          value = this.valueAtTime(time);
-          cursorY = this.yc.yv(value);
+    // addOverlappingCharts(ser: TSer) {
+    //   this.listenTo(ser)
 
-        } else {
-          cursorY = yMouse;
-          value = this.yc.vy(cursorY);
+    //   let chartToVars = this.overlappingSerChartToVars.get(ser)
+    //   if (chartToVars === undefined) {
+    //     chartToVars = new Map<Chart, Set<TVar<unknown>>>()
+    //     this.overlappingSerChartToVars.set(ser, chartToVars)
+    //   }
+
+    //   let depthGradient = Pane.DEPTH_GRADIENT_BEGIN
+
+    //   for (let [k, v] of ser.vars if v.plot != Plot.None) {
+    //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf KlineSer) {
+    //       const qser = baseSer.asInstanceOf[KlineSer]
+    //       ChartFactory.createVarChart(v, qser.high, qser.low)
+
+    //     } else if (v.plot === Plot.Info) {
+    //       ChartFactory.createVarChart(v, ser.vars : _ *)
+
+    //     } else {
+    //       ChartFactory.createVarChart(v)
+    //     }
+
+    //     if (chart != null) {
+    //       let vars = chartToVars.get(chart);
+    //       if (vars === undefined) {
+    //         vars = new Set<TVar<unknown>>()
+    //         chartToVars.set(chart, vars)
+    //       }
+    //       vars.add(v);
+
+    //       switch (chart.tag) {
+    //         case "GradientChart":
+    //           chart.depth = depthGradient; depthGradient--
+    //           break;
+    //         case "ProfileChart":
+    //           chart.depth = depthGradient; depthGradient--
+    //           break;
+    //         case "StickChart":
+    //           chart.depth = -8
+    //           break;
+    //         default:
+    //           chart.depth = this.#lastDepthOfOverlappingChart;
+    //           this.#lastDepthOfOverlappingChart++;
+    //       }
+
+    //       chart.set(this.mainChartPane, ser)
+    //       this.mainChartPane.putChart(chart)
+    //     }
+    //   }
+
+    //   notifyChanged(classOf[ChartValidityObserver])
+
+    //   repaint()
+    // }
+
+    // removeOverlappingCharts(ser: TSer) {
+    //   deafTo(ser)
+
+    //   const chartToVars = this.overlappingSerChartToVars.get(ser) ?? new Map<Chart, Set<TVar<unknown>>>();
+    //   chartToVars.forEach(
+    //     chartToVars => {
+    //       for (let chart of chartToVars.keys()) {
+    //         mainChartPane.removeChart(chart)
+    //         switch (chart.tag) {
+    //           case "GradientChart": /** noop */
+    //           case "ProfileChart": /** noop */
+    //           case "StickChart": /** noop */
+    //             break;
+    //           default:
+    //             this.#lastDepthOfOverlappingChart--
+    //         }
+    //       }
+    //       /** release chartToVars */
+    //       chartToVars.clear
+    //       overlappingSerChartToVars.remove(ser)
+    //     }
+    //   )
+
+    //   notifyChanged(classOf[ChartValidityObserver])
+
+    //   repaint()
+    // }
+
+    computeMaxMin() {
+        // if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 
+        this.maxValue = 1;
+        this.minValue = 0;
+    }
+
+    valueAtTime(time: number) {
+        return this.tvar.getByTime(time).value;
+    }
+
+    abstract plot(): ChartParts;
+
+    protected updateChart() {
+        // clear mouse cursor and prev value
+        this.xc.isMouseCuroseVisible = false;
+        this.yc.setMouseCursorValue(undefined, undefined)
+
+        const chartParts = this.plot();
+        this.updateState(chartParts);
+    }
+
+    protected updateCursors(yMouse: number) {
+        this.updateState({}, yMouse);
+    }
+
+    protected updateState(state: object, yMouse?: number) {
+        let referCursor = <></>
+        let mouseCursor = <></>
+        const referColor = '#00F0F0'; // 'orange'
+        const mouseColor = '#00F000';
+
+        if (this.xc.isReferCuroseVisible) {
+            const time = this.xc.tr(this.xc.referCursorRow)
+            if (this.xc.occurred(time)) {
+                const cursorX = this.xc.xr(this.xc.referCursorRow)
+
+                let value = this.valueAtTime(time);
+                const cursorY = this.yc.yv(value)
+
+                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                    value /= ChartYControl.VALUE_SCALE_UNIT
+                }
+
+                referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
+            }
         }
 
-        if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-          value /= ChartYControl.VALUE_SCALE_UNIT
+        if (this.xc.isMouseCuroseVisible) {
+            const time = this.xc.tr(this.xc.mouseCursorRow)
+            if (this.xc.occurred(time)) {
+                const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+
+                let value: number;
+                let cursorY: number;
+                if (yMouse === undefined) {
+                    value = this.valueAtTime(time);
+                    cursorY = this.yc.yv(value);
+
+                } else {
+                    cursorY = yMouse;
+                    value = this.yc.vy(cursorY);
+                }
+
+                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                    value /= ChartYControl.VALUE_SCALE_UNIT
+                }
+
+                mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+            }
         }
 
-        mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
-      }
+        this.setState({ ...state, referCursor, mouseCursor })
     }
 
-    this.setState({ ...state, referCursor, mouseCursor })
-  }
+    #plotCursor(x: number, y: number, time: number, value: number, color: string) {
+        const wAnnot = 44; // annotation width
+        const hAnnot = 12; // annotation height
 
-  #plotCursor(x: number, y: number, time: number, value: number, color: string) {
-    const wAnnot = 44; // annotation width
-    const hAnnot = 12; // annotation height
+        const wAxisY = ChartView.AXISY_WIDTH
 
-    const wAxisY = ChartView.AXISY_WIDTH
+        const valueStr = value.toPrecision(5);
 
-    const valueStr = value.toPrecision(5);
+        const crossPath = new Path(color);
+        // crossPath.stroke_dasharray = '1, 1'
 
-    const crossPath = new Path(color);
-    // crossPath.stroke_dasharray = '1, 1'
+        // horizontal line
+        crossPath.moveto(0, y);
+        crossPath.lineto(this.width - wAxisY, y)
 
-    // horizontal line
-    crossPath.moveto(0, y);
-    crossPath.lineto(this.width - wAxisY, y)
+        const axisyText = new Texts('#000000')
+        const axisyPath = new Path(color, color)
+        const y0 = y + 6
+        const x0 = 6
+        // draw arrow
+        axisyPath.moveto(6, y - 3);
+        axisyPath.lineto(0, y);
+        axisyPath.lineto(6, y + 3);
 
-    const axisyText = new Texts('#000000')
-    const axisyPath = new Path(color, color)
-    const y0 = y + 6
-    const x0 = 6
-    // draw arrow
-    axisyPath.moveto(6, y - 3);
-    axisyPath.lineto(0, y);
-    axisyPath.lineto(6, y + 3);
+        axisyPath.moveto(x0, y0);
+        axisyPath.lineto(x0 + wAnnot, y0);
+        axisyPath.lineto(x0 + wAnnot, y0 - hAnnot);
+        axisyPath.lineto(x0, y0 - hAnnot);
+        axisyPath.closepath();
+        axisyText.text(8, y0 - 1, valueStr);
 
-    axisyPath.moveto(x0, y0);
-    axisyPath.lineto(x0 + wAnnot, y0);
-    axisyPath.lineto(x0 + wAnnot, y0 - hAnnot);
-    axisyPath.lineto(x0, y0 - hAnnot);
-    axisyPath.closepath();
-    axisyText.text(8, y0 - 1, valueStr);
+        const transformYAnnot = `translate(${this.width - wAxisY}, ${0})`
 
-    const transformYAnnot = `translate(${this.width - wAxisY}, ${0})`
-
-    return (
-      // pay attention to the order to avoid text being overlapped
-      <>
-        <g shapeRendering="crispEdges" >
-          {crossPath.render('axisy-cross')}
-        </g>
-        <g transform={transformYAnnot}>
-          {axisyPath.render('axisy-tick')}
-          {axisyText.render('axisy-annot')}
-        </g>
-      </>
-    )
-  }
-
-  // Important: Be careful when calling setState within componentDidUpdate
-  // Ensure you have a conditional check to prevent infinite re-renders.
-  // If setState is called unconditionally, it will trigger another update,
-  // potentially leading to a loop.
-  override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
-    if (this.props.refreshChart !== prevProps.refreshChart) {
-      this.updateChart();
+        return (
+            // pay attention to the order to avoid text being overlapped
+            <>
+                <g shapeRendering="crispEdges" >
+                    {crossPath.render('axisy-cross')}
+                </g>
+                <g transform={transformYAnnot}>
+                    {axisyPath.render('axisy-tick')}
+                    {axisyText.render('axisy-annot')}
+                </g>
+            </>
+        )
     }
 
-    if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
-      this.updateCursors(this.props.refreshCursors.yMouses[this.id]);
+    // Important: Be careful when calling setState within componentDidUpdate
+    // Ensure you have a conditional check to prevent infinite re-renders.
+    // If setState is called unconditionally, it will trigger another update,
+    // potentially leading to a loop.
+    override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
+        if (this.props.refreshChart !== prevProps.refreshChart) {
+            this.updateChart();
+        }
+
+        if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
+            this.updateCursors(this.props.refreshCursors.yMouses[this.id]);
+        }
     }
-  }
 
 }
 

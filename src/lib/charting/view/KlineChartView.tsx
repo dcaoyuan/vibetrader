@@ -11,155 +11,155 @@ import { KlineChartKind } from "../chart/Kinds";
 
 export class KlineChartView extends ChartView<ViewProps, ViewState> {
 
-  static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
-    let newKind: KlineChartKind
-    if (targetKind !== undefined) {
-      newKind = targetKind;
+    static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
+        let newKind: KlineChartKind
+        if (targetKind !== undefined) {
+            newKind = targetKind;
 
-    } else {
-      switch (originalKind) {
-        case KlineChartKind.Candle:
-          newKind = KlineChartKind.Bar
-          break;
+        } else {
+            switch (originalKind) {
+                case KlineChartKind.Candle:
+                    newKind = KlineChartKind.Bar
+                    break;
 
-        case KlineChartKind.Bar:
-          newKind = KlineChartKind.Line
-          break;
+                case KlineChartKind.Bar:
+                    newKind = KlineChartKind.Line
+                    break;
 
-        case KlineChartKind.Line:
-          newKind = KlineChartKind.Candle
-          break;
+                case KlineChartKind.Line:
+                    newKind = KlineChartKind.Candle
+                    break;
 
-        default:
-          newKind = KlineChartKind.Candle
-      }
-    }
-
-    return newKind;
-  }
-
-  klineVar: TVar<Kline>;
-  maxVolume = 0.0;
-  minVolume = 0.0
-
-  constructor(props: ViewProps) {
-    super(props);
-
-    this.klineVar = props.tvar as TVar<Kline>;
-
-    const { chart, axisy } = this.plot();
-
-    this.state = {
-      width: props.width,
-      height: props.height,
-
-      isKline: false,
-      hasInnerVolume: false,
-      maxVolume: undefined,
-      minVolume: undefined,
-
-      maxValue: 1.0,
-      minValue: 0.0,
-
-      isInteractive: true,
-      isPinned: false,
-
-      chart,
-      axisy,
-
-      mouseCursor: <></>,
-      referCursor: <></>,
-    };
-
-  }
-
-  override plot() {
-    this.computeGeometry();
-
-    const chart = KlineChart({
-      klineVar: this.klineVar,
-      xc: this.xc,
-      yc: this.yc,
-      kind: KlineChartKind.Candle,
-      depth: 0
-    });
-
-    const axisy = AxisY({
-      x: this.width - ChartView.AXISY_WIDTH,
-      y: 0,
-      width: ChartView.AXISY_WIDTH,
-      height: this.height,
-      xc: this.xc,
-      yc: this.yc,
-      isMasterView: true
-    })
-
-    return { chart, axisy }
-  }
-
-  override computeMaxMin() {
-    let max = Number.NEGATIVE_INFINITY;
-    let min = Number.POSITIVE_INFINITY;
-
-    /** minimum volume should be 0 */
-    this.maxVolume = Number.NEGATIVE_INFINITY;
-    this.minVolume = 0
-    let i = 1
-    while (i <= this.xc.nBars) {
-      const time = this.xc.tb(i)
-      if (this.xc.occurred(time)) {
-        const kline = this.klineVar.getByTime(time);
-        if (kline.close > 0) {
-          max = Math.max(max, kline.high)
-          min = Math.min(min, kline.low)
-          this.maxVolume = Math.max(this.maxVolume, kline.volume)
+                default:
+                    newKind = KlineChartKind.Candle
+            }
         }
-      }
 
-      i++
+        return newKind;
     }
 
-    if (this.maxVolume == 0) {
-      this.maxVolume = 1
+    klineVar: TVar<Kline>;
+    maxVolume = 0.0;
+    minVolume = 0.0
+
+    constructor(props: ViewProps) {
+        super(props);
+
+        this.klineVar = props.tvar as TVar<Kline>;
+
+        const { chart, axisy } = this.plot();
+
+        this.state = {
+            width: props.width,
+            height: props.height,
+
+            isKline: false,
+            hasInnerVolume: false,
+            maxVolume: undefined,
+            minVolume: undefined,
+
+            maxValue: 1.0,
+            minValue: 0.0,
+
+            isInteractive: true,
+            isPinned: false,
+
+            chart,
+            axisy,
+
+            mouseCursor: <></>,
+            referCursor: <></>,
+        };
+
     }
 
-    if (this.maxVolume == this.minVolume) {
-      this.maxVolume++;
+    override plot() {
+        this.computeGeometry();
+
+        const chart = KlineChart({
+            klineVar: this.klineVar,
+            xc: this.xc,
+            yc: this.yc,
+            kind: KlineChartKind.Candle,
+            depth: 0
+        });
+
+        const axisy = AxisY({
+            x: this.width - ChartView.AXISY_WIDTH,
+            y: 0,
+            width: ChartView.AXISY_WIDTH,
+            height: this.height,
+            xc: this.xc,
+            yc: this.yc,
+            isMasterView: true
+        })
+
+        return { chart, axisy }
     }
 
-    if (max == min) {
-      max *= 1.05
-      min *= 0.95
+    override computeMaxMin() {
+        let max = Number.NEGATIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
+
+        /** minimum volume should be 0 */
+        this.maxVolume = Number.NEGATIVE_INFINITY;
+        this.minVolume = 0
+        let i = 1
+        while (i <= this.xc.nBars) {
+            const time = this.xc.tb(i)
+            if (this.xc.occurred(time)) {
+                const kline = this.klineVar.getByTime(time);
+                if (kline.close > 0) {
+                    max = Math.max(max, kline.high)
+                    min = Math.min(min, kline.low)
+                    this.maxVolume = Math.max(this.maxVolume, kline.volume)
+                }
+            }
+
+            i++
+        }
+
+        if (this.maxVolume == 0) {
+            this.maxVolume = 1
+        }
+
+        if (this.maxVolume == this.minVolume) {
+            this.maxVolume++;
+        }
+
+        if (max == min) {
+            max *= 1.05
+            min *= 0.95
+        }
+
+        this.setMaxMinValue(max, min)
     }
 
-    this.setMaxMinValue(max, min)
-  }
+    swithScalarType() {
+        switch (this.yc.valueScalar.kind) {
+            case LINEAR_SCALAR.kind:
+                this.yc.valueScalar = LG_SCALAR;
+                break;
 
-  swithScalarType() {
-    switch (this.yc.valueScalar.kind) {
-      case LINEAR_SCALAR.kind:
-        this.yc.valueScalar = LG_SCALAR;
-        break;
-
-      default:
-        this.yc.valueScalar = LINEAR_SCALAR;
+            default:
+                this.yc.valueScalar = LINEAR_SCALAR;
+        }
     }
-  }
 
-  override valueAtTime(time: number) {
-    return this.klineVar.getByTime(time).close;
-  }
+    override valueAtTime(time: number) {
+        return this.klineVar.getByTime(time).close;
+    }
 
-  render() {
-    const transform = `translate(${this.props.x} ${this.props.y})`;
-    return (
-      <g transform={transform}>
-        {this.state.chart}
-        {this.state.axisy}
-        {this.state.referCursor}
-        {this.state.mouseCursor}
-      </g >
-    )
-  }
+    render() {
+        const transform = `translate(${this.props.x} ${this.props.y})`;
+        return (
+            <g transform={transform}>
+                {this.state.chart}
+                {this.state.axisy}
+                {this.state.referCursor}
+                {this.state.mouseCursor}
+            </g >
+        )
+    }
 }
 

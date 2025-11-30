@@ -1,82 +1,82 @@
 .container {
-  /* display: grid;
+    /* display: grid;
   grid-template-areas:
     "header header"
     "content axisy"
     "axisx axisx";
   grid-template-columns: 1fr 3fr; */
-  /* gap: 1px; */
-  /* background-color: dodgerblue; */
-  background-color: #333333;
-  /* background-color: #242424; */
-  /* background-color: white; */
-  padding: 0px;
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-size: 12px;
-  /* cursor: crosshair; */
-  cursor: default;
+    /* gap: 1px; */
+    /* background-color: dodgerblue; */
+    background-color: #333333;
+    /* background-color: #242424; */
+    /* background-color: white; */
+    padding: 0px;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-size: 12px;
+    /* cursor: crosshair; */
+    cursor: default;
 
-  &:focus {
-    outline: none;
-  }
+    &:focus {
+        outline: none;
+    }
 }
 
 .container div {
-  background-color: #333333;
-  /* background-color: white; */
-  padding: 0px;
+    background-color: #333333;
+    /* background-color: white; */
+    padding: 0px;
 }
 
 .container div.chartview {
-  border-style: solid;
-  /* top, right, bottom, left */
-  border-width: 0px 0px 1px 1px;
-  border-color: black
+    border-style: solid;
+    /* top, right, bottom, left */
+    border-width: 0px 0px 1px 1px;
+    border-color: black
 }
 
 .container div.header {
-  grid-area: header;
+    grid-area: header;
 }
 
 .container div.content {
-  grid-area: content;
+    grid-area: content;
 }
 
 .container div.axisy {
-  grid-area: axisy;
+    grid-area: axisy;
 }
 
 .container div.axisx {
-  grid-area: axisx;
+    grid-area: axisx;
 }
 
 .container div.footer {
-  grid-area: footer;
+    grid-area: footer;
 }
 
 .container div.title {
-  position: relative;
-  border-bottom: 1px solid white;
-  background: #333333;
+    position: relative;
+    border-bottom: 1px solid white;
+    background: #333333;
 }
 
 .container div.borderLeftUp {
-  border-left: 1px solid white;
-  position: absolute;
-  top: 80%;
-  bottom: 0;
+    border-left: 1px solid white;
+    position: absolute;
+    top: 80%;
+    bottom: 0;
 }
 
 .container div.help {
-  position: relative;
-  border-top: 1px solid white;
-  color: #00F000;
-  background: #333333;
+    position: relative;
+    border-top: 1px solid white;
+    color: #00F000;
+    background: #333333;
 }
 
 .container div.borderLeftDown {
-  border-left: 1px solid white;
-  position: absolute;
-  top: 0;
-  bottom: 80%;
+    border-left: 1px solid white;
+    position: absolute;
+    top: 0;
+    bottom: 80%;
 }
