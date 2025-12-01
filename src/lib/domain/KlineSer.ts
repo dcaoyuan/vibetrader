@@ -1,4 +1,4 @@
-import { DefaultBaseTSer } from "../timeseris/DefaultBaseTSer";
+import { DefaultTSer } from "../timeseris/DefaultTSer";
 import { TFrame } from "../timeseris/TFrame";
 import { Kline } from "./Kline";
 import klinesJson from "../klines.json"
@@ -11,7 +11,7 @@ const varName = "ETH";
 export function loadSer(varName: string) {
 	const ks = klinesJson //.reverse();
 
-	const klineSer = new DefaultBaseTSer(TFrame.DAILY, tzone, 1000);
+	const klineSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
 	//console.log(qs)
 

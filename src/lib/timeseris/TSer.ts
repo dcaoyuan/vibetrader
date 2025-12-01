@@ -5,47 +5,64 @@ import { TVar } from "./TVar";
 
 // timeZone string specs: https://www.iana.org/time-zones
 export interface TSer {
-  timeframe: TFrame;
-  timezone: string;
-  timestamps(): TStamps;
-  vars(): Map<string, TVar<unknown>>;
+    timeframe: TFrame;
+    timezone: string;
+    timestamps(): TStamps;
+    vars(): Map<string, TVar<unknown>>;
 
-  /**
-   * @param name 
-   * @returns var of name, will create one if non exist yet.
-   */
-  varOf(name: string): TVar<unknown>;
+    /**
+     * @param name 
+     * @returns var of name, will create one if non exist yet.
+     */
+    varOf(name: string): TVar<unknown>;
 
-  valuesCapacity: number;
+    valuesCapacity: number;
 
-  isLoaded: boolean;
-  isInLoading: boolean;
+    isLoaded: boolean;
+    isInLoading: boolean;
 
-  isAscending<V extends TVal>(values: V[]): boolean
+    isAscending<V extends TVal>(values: V[]): boolean
 
-  addVar(name: string, v: TVar<unknown>): void
+    addVar(name: string, v: TVar<unknown>): void
 
-  // --- for charting
+    // --- for charting
 
-  // horizonal grids of this indicator used to draw grid
-  grids: number[]
+    // horizonal grids of this indicator used to draw grid
+    grids: number[]
 
-  isOverlapping: boolean;
+    isOverlapping: boolean;
 
-  occurred(time: number): boolean;
+    occurred(time: number): boolean;
 
-  firstOccurredTime(): number;
-  lastOccurredTime(): number;
-  indexOfOccurredTime(time: number): number
+    firstOccurredTime(): number;
+    lastOccurredTime(): number;
+    indexOfOccurredTime(time: number): number
 
-  // Clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage
-  clear(fromTime: number): void;
+    // Clear(long fromTime) instead of clear(int fromIndex) to avoid bad usage
+    clear(fromTime: number): void;
 
-  size(): number;
+    size(): number;
 
-  shortName: string;
-  longName: string;
-  displayName: string;
+    shortName: string;
+    longName: string;
+    displayName: string;
 
-  //validate(): void;
+    //validate(): void;
+
+
+    createOrReset(time: number): void;
+    addToVar(name: string, value: TVal): TSer
+    addAllToVar(name: string, values: TVal[]): TSer
+
+    // Should only trust TSer to translate row <-> time properly.
+    indexOfTime(time: number): number
+    timeOfIndex(idx: number): number
+
+    timeOfRow(row: number): number
+    rowOfTime(time: number): number
+    lastOccurredRow(): number
+
+    isOnCalendarMode: boolean
+    toOnCalendarMode(): void
+    toOnOccurredMode(): void
 }

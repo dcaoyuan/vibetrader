@@ -4,485 +4,485 @@ import { ValueList } from "../collection/ValueList";
 import { TFrame } from "./TFrame";
 
 export abstract class TStamps extends ValueList<number> {
-  static readonly LONG_LONG_AGO = new Date(Date.UTC(1900, 0, 0, 0, 0, 0)).getTime();
+    static readonly LONG_LONG_AGO = new Date(Date.UTC(1900, 0, 0, 0, 0, 0)).getTime();
 
-  static of(tframe: TFrame, tzone: string, capacity: number): TStamps {
-    return new TStampsOnOccurred(tframe, tzone, capacity);
-  }
+    static of(tframe: TFrame, tzone: string, capacity: number): TStamps {
+        return new TStampsOnOccurred(tframe, tzone, capacity);
+    }
 
-  timeframe: TFrame;
-  timezone: string;
+    timeframe: TFrame;
+    timezone: string;
 
-  constructor(tframe: TFrame, tzone: string, capacity: number) {
-    super(capacity);
-    this.timeframe = tframe;
-    this.timezone = tzone;
-  }
+    constructor(tframe: TFrame, tzone: string, capacity: number) {
+        super(capacity);
+        this.timeframe = tframe;
+        this.timezone = tzone;
+    }
 
-  // private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    // private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-  // final ReadLock readLock = readWriteLock.readLock();
-  // final WriteLock writeLock = readWriteLock.writeLock();
+    // final ReadLock readLock = readWriteLock.readLock();
+    // final WriteLock writeLock = readWriteLock.writeLock();
 
-  // final TStampsLog log;
+    // final TStampsLog log;
 
-  abstract isOnCalendar(): boolean;
+    abstract isOnCalendar(): boolean;
 
-  abstract asOnCalendar(): TStamps;
+    abstract asOnCalendar(): TStamps;
 
-  /**
-   * Get nearest row that can also properly extends before firstOccurredTime or after
-   * lastOccurredTime
-   *
-   * @param time
-   * @return
-   */
-  abstract rowOfTime(time: number): number;
+    /**
+     * Get nearest row that can also properly extends before firstOccurredTime or after
+     * lastOccurredTime
+     *
+     * @param time
+     * @return
+     */
+    abstract rowOfTime(time: number): number;
 
-  abstract timeOfRow(row: number): number;
+    abstract timeOfRow(row: number): number;
 
-  abstract lastRow(): number;
+    abstract lastRow(): number;
 
-  abstract indexOfOccurredTime(time: number): number;
+    abstract indexOfOccurredTime(time: number): number;
 
-  /**
-   * Search the nearest index between '1' to 'lastIndex - 1' We only need to use this computing in
-   * case of onOccurred.
-   *
-   * @param time
-   * @return
-   */
-  abstract nearestIndexOfOccurredTime(time: number): number;
+    /**
+     * Search the nearest index between '1' to 'lastIndex - 1' We only need to use this computing in
+     * case of onOccurred.
+     *
+     * @param time
+     * @return
+     */
+    abstract nearestIndexOfOccurredTime(time: number): number;
 
-  /**
-   * @param time the time, inclusive
-   * @return index of nearest behind time (include this time (if exist)),
-   */
-  abstract indexOrNextIndexOfOccurredTime(time: number): number;
+    /**
+     * @param time the time, inclusive
+     * @return index of nearest behind time (include this time (if exist)),
+     */
+    abstract indexOrNextIndexOfOccurredTime(time: number): number;
 
-  /**
-   * @param time the time, inclusive
-   * @return index of nearest before or equal(if exist) time
-   */
-  abstract indexOrPrevIndexOfOccurredTime(time: number): number;
+    /**
+     * @param time the time, inclusive
+     * @return index of nearest before or equal(if exist) time
+     */
+    abstract indexOrPrevIndexOfOccurredTime(time: number): number;
 
-  abstract firstOccurredTime(): number;
+    abstract firstOccurredTime(): number;
 
-  abstract lastOccurredTime(): number;
+    abstract lastOccurredTime(): number;
 
-  abstract timeIterator(): TStampsIterator;
+    abstract timeIterator(): TStampsIterator;
 
-  abstract timeIterator(fromTime: number, toTime: number): TStampsIterator;
+    abstract timeIterator(fromTime: number, toTime: number): TStampsIterator;
 
-  abstract reversedOne(): TStamps;
+    abstract reversedOne(): TStamps;
 }
 
 
 export interface TStampsIterator {
 
-  hasNext(): boolean;
+    hasNext(): boolean;
 
-  next(): number;
+    next(): number;
 
-  hasPrev(): boolean;
+    hasPrev(): boolean;
 
-  prev(): number;
+    prev(): number;
 
-  nextOccurredIndex(): number;
+    nextOccurredIndex(): number;
 
-  prevOccurredIndex(): number;
+    prevOccurredIndex(): number;
 
-  nextRow(): number;
+    nextRow(): number;
 
-  prevRow(): number;
+    prevRow(): number;
 }
 
 export class TStampsOnOccurred extends TStamps {
 
-  constructor(tframe: TFrame, tzone: string, capacity: number) {
-    super(tframe, tzone, capacity);
-  }
-
-  #onCalendarShadow = new TStampsOnCalendar(this);
-
-  isOnCalendar(): boolean {
-    return false;
-  }
-
-  asOnCalendar(): TStamps {
-    return this.#onCalendarShadow;
-  }
-
-  /**
-   * Get nearest row that can also properly extends before firstOccurredTime or after
-   * lastOccurredTime
-   */
-  rowOfTime(time: number): number {
-    const lastOccurredIdx = this.size() - 1;
-    if (lastOccurredIdx === -1) {
-      return -1;
+    constructor(tframe: TFrame, tzone: string, capacity: number) {
+        super(tframe, tzone, capacity);
     }
 
-    const firstOccurredTime = this.get(0);
-    const lastOccurredTime = this.get(lastOccurredIdx);
-    if (time <= firstOccurredTime) {
-      return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
-    } else if (time >= lastOccurredTime) {
-      /**
-       * @NOTICE The number of bars of onOccurred between first-last is different than onCalendar,
-       * so we should count from lastOccurredIdx in case of onOccurred. so, NEVER try: <code>
-       * return timeframe.nTimeframsBetween(firstOccurredTime, time);</code> in case of onOccurred
-       */
-      return lastOccurredIdx + this.timeframe.nTimeframesBetween(lastOccurredTime, time, this.timezone);
-    } else {
-      return this.nearestIndexOfOccurredTime(time);
-    }
-  }
+    #onCalendarShadow = new TStampsOnCalendar(this);
 
-  /** This is an efficient method */
-
-  timeOfRow(row: number): number {
-    const lastOccurredIdx = this.size() - 1;
-    if (lastOccurredIdx < 0) {
-      return 0;
+    isOnCalendar(): boolean {
+        return false;
     }
 
-    const firstOccurredTime = this.get(0);
-    const lastOccurredTime = this.get(lastOccurredIdx);
-    if (row < 0) {
-      return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
-    } else if (row > lastOccurredIdx) {
-      return this.timeframe.timeAfterNTimeframes(lastOccurredTime, row - lastOccurredIdx, this.timezone);
-    } else {
-      return this.get(row);
-    }
-  }
-
-
-  lastRow(): number {
-    const lastOccurredIdx = this.size() - 1;
-    return lastOccurredIdx;
-  }
-
-  indexOfOccurredTime(time: number): number {
-    const size1 = this.size();
-    if (size1 === 0) {
-      return -1;
-    } else if (size1 === 1) {
-      if (this.get(0) === time) {
-        return 0;
-      } else {
-        return -1;
-      }
-    }
-
-    let from = 0;
-    let to = size1 - 1;
-    let length = to - from;
-    while (length > 1) {
-      length = Math.floor(length / 2);
-      const midTime = this.get(from + length);
-      if (time > midTime) {
-        from += length;
-      } else if (time < midTime) {
-        to -= length;
-      } else {
-        /** time == midTime */
-        return from + length;
-      }
-      length = to - from;
+    asOnCalendar(): TStamps {
+        return this.#onCalendarShadow;
     }
 
     /**
-     * if we reach here, that means the time should between (start) and (start + 1), and the
-     * length should be 1 (end - start). So, just do following checking, if can't get exact index,
-     * just return -1.
+     * Get nearest row that can also properly extends before firstOccurredTime or after
+     * lastOccurredTime
      */
-    if (time === this.get(from)) {
-      return from;
-    } else if (time === this.get(from + 1)) {
-      return from + 1;
-    } else {
-      return -1;
+    rowOfTime(time: number): number {
+        const lastOccurredIdx = this.size() - 1;
+        if (lastOccurredIdx === -1) {
+            return -1;
+        }
+
+        const firstOccurredTime = this.get(0);
+        const lastOccurredTime = this.get(lastOccurredIdx);
+        if (time <= firstOccurredTime) {
+            return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
+        } else if (time >= lastOccurredTime) {
+            /**
+             * @NOTICE The number of bars of onOccurred between first-last is different than onCalendar,
+             * so we should count from lastOccurredIdx in case of onOccurred. so, NEVER try: <code>
+             * return timeframe.nTimeframsBetween(firstOccurredTime, time);</code> in case of onOccurred
+             */
+            return lastOccurredIdx + this.timeframe.nTimeframesBetween(lastOccurredTime, time, this.timezone);
+        } else {
+            return this.nearestIndexOfOccurredTime(time);
+        }
     }
-  }
 
-  /**
-   * Search the nearest index between '1' to 'lastIndex - 1' We only need to use this computing in
-   * case of onOccurred.
-   */
+    /** This is an efficient method */
 
-  nearestIndexOfOccurredTime(time: number): number {
-    let from = 0;
-    let to = this.size() - 1;
-    let length = to - from;
-    while (length > 1) {
-      length = Math.floor(length / 2);
-      const midTime = this.get(from + length);
-      if (time > midTime) {
-        from += length;
-      } else if (time < midTime) {
-        to -= length;
-      } else {
-        /** time == midTime */
-        return from + length;
-      }
-      length = to - from;
+    timeOfRow(row: number): number {
+        const lastOccurredIdx = this.size() - 1;
+        if (lastOccurredIdx < 0) {
+            return 0;
+        }
+
+        const firstOccurredTime = this.get(0);
+        const lastOccurredTime = this.get(lastOccurredIdx);
+        if (row < 0) {
+            return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
+        } else if (row > lastOccurredIdx) {
+            return this.timeframe.timeAfterNTimeframes(lastOccurredTime, row - lastOccurredIdx, this.timezone);
+        } else {
+            return this.get(row);
+        }
+    }
+
+
+    lastRow(): number {
+        const lastOccurredIdx = this.size() - 1;
+        return lastOccurredIdx;
+    }
+
+    indexOfOccurredTime(time: number): number {
+        const size1 = this.size();
+        if (size1 === 0) {
+            return -1;
+        } else if (size1 === 1) {
+            if (this.get(0) === time) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+
+        let from = 0;
+        let to = size1 - 1;
+        let length = to - from;
+        while (length > 1) {
+            length = Math.floor(length / 2);
+            const midTime = this.get(from + length);
+            if (time > midTime) {
+                from += length;
+            } else if (time < midTime) {
+                to -= length;
+            } else {
+                /** time == midTime */
+                return from + length;
+            }
+            length = to - from;
+        }
+
+        /**
+         * if we reach here, that means the time should between (start) and (start + 1), and the
+         * length should be 1 (end - start). So, just do following checking, if can't get exact index,
+         * just return -1.
+         */
+        if (time === this.get(from)) {
+            return from;
+        } else if (time === this.get(from + 1)) {
+            return from + 1;
+        } else {
+            return -1;
+        }
     }
 
     /**
-     * if we reach here, that means the time should between (start) and (start + 1), and the
-     * length should be 1 (end - start). So, just do following checking, if can't get exact index,
-     * just return nearest one: 'start'
+     * Search the nearest index between '1' to 'lastIndex - 1' We only need to use this computing in
+     * case of onOccurred.
      */
-    if (time === this.get(from)) {
-      return from;
-    } else if (time === this.get(from + 1)) {
-      return from + 1;
-    } else {
-      return from;
-    }
-  }
 
-  /**
-   * return index of nearest behind time (include this time (if exist)),
-   *
-   * @param time the time, inclusive
-   */
+    nearestIndexOfOccurredTime(time: number): number {
+        let from = 0;
+        let to = this.size() - 1;
+        let length = to - from;
+        while (length > 1) {
+            length = Math.floor(length / 2);
+            const midTime = this.get(from + length);
+            if (time > midTime) {
+                from += length;
+            } else if (time < midTime) {
+                to -= length;
+            } else {
+                /** time == midTime */
+                return from + length;
+            }
+            length = to - from;
+        }
 
-  indexOrNextIndexOfOccurredTime(time: number): number {
-    const size1 = this.size();
-    if (size1 === 0) {
-      return -1;
-    } else if (size1 === 1) {
-      if (this.get(0) >= time) {
-        return 0;
-      } else {
-        return -1;
-      }
-    }
-
-    let from = 0;
-    let to = size1 - 1;
-    let length = to - from;
-    while (length > 1) {
-      length = Math.floor(length / 2);
-      const midTime = this.get(from + length);
-      if (time > midTime) {
-        from += length;
-      } else if (time < midTime) {
-        to -= length;
-      } else {
-        /** time == midTime */
-        return from + length;
-      }
-      length = to - from;
+        /**
+         * if we reach here, that means the time should between (start) and (start + 1), and the
+         * length should be 1 (end - start). So, just do following checking, if can't get exact index,
+         * just return nearest one: 'start'
+         */
+        if (time === this.get(from)) {
+            return from;
+        } else if (time === this.get(from + 1)) {
+            return from + 1;
+        } else {
+            return from;
+        }
     }
 
     /**
-     * if we reach here, that means the time should between (from) and (from + 1), and the
-     * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
-     * index, just return invalid value -1
+     * return index of nearest behind time (include this time (if exist)),
+     *
+     * @param time the time, inclusive
      */
-    if (this.get(from) >= time) {
-      return from;
-    } else if (this.get(from + 1) >= time) {
-      return from + 1;
-    } else {
-      return -1;
-    }
-  }
 
-  /** return index of nearest before or equal(if exist) time */
+    indexOrNextIndexOfOccurredTime(time: number): number {
+        const size1 = this.size();
+        if (size1 === 0) {
+            return -1;
+        } else if (size1 === 1) {
+            if (this.get(0) >= time) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
 
-  indexOrPrevIndexOfOccurredTime(time: number): number {
-    const size1 = this.size();
-    if (size1 === 0) {
-      return -1;
-    } else if (size1 === 1) {
-      if (this.get(0) <= time) {
-        return 0;
-      } else {
-        return -1;
-      }
-    }
+        let from = 0;
+        let to = size1 - 1;
+        let length = to - from;
+        while (length > 1) {
+            length = Math.floor(length / 2);
+            const midTime = this.get(from + length);
+            if (time > midTime) {
+                from += length;
+            } else if (time < midTime) {
+                to -= length;
+            } else {
+                /** time == midTime */
+                return from + length;
+            }
+            length = to - from;
+        }
 
-    let from = 0;
-    let to = size1 - 1;
-    let length = to - from;
-    while (length > 1) {
-      length = Math.floor(length / 2);
-      const midTime = this.get(from + length);
-      if (time > midTime) {
-        from += length;
-      } else if (time < midTime) {
-        to -= length;
-      } else {
-        /** time == midTime */
-        return from + length;
-      }
-      length = to - from;
-    }
-
-    /**
-     * if we reach here, that means the time should between (from) and (from + 1), and the
-     * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
-     * index, just return invalid -1.
-     */
-    if (this.get(from + 1) <= time) {
-      return from + 1;
-    } else if (this.get(from) <= time) {
-      return from;
-    } else {
-      return -1;
-    }
-  }
-
-
-  firstOccurredTime(): number {
-    const size1 = this.size();
-    return size1 > 0 ? this.get(0) : 0;
-  }
-
-
-  lastOccurredTime(): number {
-    const size1 = this.size();
-    return size1 > 0 ? this.get(size1 - 1) : 0;
-  }
-
-
-  timeIterator(): TStampsIterator {
-    return new ItrOnOccurred(this);
-  }
-
-
-  timeIterator2(fromTime: number, toTime: number): TStampsIterator {
-    return new ItrOnOccurred(this, fromTime, toTime);
-  }
-
-  // --- methods inherited from traits
-  result(): TStampsOnOccurred {
-    return this;
-  }
-
-
-  reversedOne(): TStampsOnOccurred {
-    const n = this.size();
-    const reversed = new TStampsOnOccurred(this.timeframe, this.timezone, n);
-    let i = 0;
-    while (i < n) {
-      reversed.add(this.get(n - 1 - i));
-      i++;
+        /**
+         * if we reach here, that means the time should between (from) and (from + 1), and the
+         * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
+         * index, just return invalid value -1
+         */
+        if (this.get(from) >= time) {
+            return from;
+        } else if (this.get(from + 1) >= time) {
+            return from + 1;
+        } else {
+            return -1;
+        }
     }
 
-    return reversed;
-  }
+    /** return index of nearest before or equal(if exist) time */
 
-  // TStamps clone() {
-  //   const newOne = new TStampsOnOccurred(size());
-  //   newOne.addAll(this);
-  //   return newOne;
-  // }
+    indexOrPrevIndexOfOccurredTime(time: number): number {
+        const size1 = this.size();
+        if (size1 === 0) {
+            return -1;
+        } else if (size1 === 1) {
+            if (this.get(0) <= time) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+
+        let from = 0;
+        let to = size1 - 1;
+        let length = to - from;
+        while (length > 1) {
+            length = Math.floor(length / 2);
+            const midTime = this.get(from + length);
+            if (time > midTime) {
+                from += length;
+            } else if (time < midTime) {
+                to -= length;
+            } else {
+                /** time == midTime */
+                return from + length;
+            }
+            length = to - from;
+        }
+
+        /**
+         * if we reach here, that means the time should between (from) and (from + 1), and the
+         * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
+         * index, just return invalid -1.
+         */
+        if (this.get(from + 1) <= time) {
+            return from + 1;
+        } else if (this.get(from) <= time) {
+            return from;
+        } else {
+            return -1;
+        }
+    }
+
+
+    firstOccurredTime(): number {
+        const size1 = this.size();
+        return size1 > 0 ? this.get(0) : 0;
+    }
+
+
+    lastOccurredTime(): number {
+        const size1 = this.size();
+        return size1 > 0 ? this.get(size1 - 1) : 0;
+    }
+
+
+    timeIterator(): TStampsIterator {
+        return new ItrOnOccurred(this);
+    }
+
+
+    timeIterator2(fromTime: number, toTime: number): TStampsIterator {
+        return new ItrOnOccurred(this, fromTime, toTime);
+    }
+
+    // --- methods inherited from traits
+    result(): TStampsOnOccurred {
+        return this;
+    }
+
+
+    reversedOne(): TStampsOnOccurred {
+        const n = this.size();
+        const reversed = new TStampsOnOccurred(this.timeframe, this.timezone, n);
+        let i = 0;
+        while (i < n) {
+            reversed.add(this.get(n - 1 - i));
+            i++;
+        }
+
+        return reversed;
+    }
+
+    // TStamps clone() {
+    //   const newOne = new TStampsOnOccurred(size());
+    //   newOne.addAll(this);
+    //   return newOne;
+    // }
 
 }
 
 class ItrOnOccurred implements TStampsIterator {
-  #outer: TStampsOnOccurred;
+    #outer: TStampsOnOccurred;
 
-  #timeframe: TFrame;
-  #cursorTime: number;
-  #expectedModCount: number
+    #timeframe: TFrame;
+    #cursorTime: number;
+    #expectedModCount: number
 
-  fromTime: number;
-  toTime: number;
+    fromTime: number;
+    toTime: number;
 
-  /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
-  #lastReturnTime: number = TStamps.LONG_LONG_AGO;
+    /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
+    #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
-  /** Row of element to be returned by subsequent call to next. */
-  #cursorRow = 0;
+    /** Row of element to be returned by subsequent call to next. */
+    #cursorRow = 0;
 
-  /**
-   * Index of element returned by most recent call to next or previous. Reset to -1 if this
-   * element is deleted by a call to remove.
-   */
-  #lastRet = -1;
+    /**
+     * Index of element returned by most recent call to next or previous. Reset to -1 if this
+     * element is deleted by a call to remove.
+     */
+    #lastRet = -1;
 
-  constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
-    this.#outer = outer;
-    this.#timeframe = outer.timeframe;
-    this.fromTime = fromTime === undefined
-      ? outer.firstOccurredTime()
-      : outer.timeframe.trunc(fromTime, this.#outer.timezone);
-    this.toTime = toTime === undefined
-      ? outer.lastOccurredTime()
-      : toTime;
-    this.#cursorTime = this.fromTime;
-    this.#expectedModCount = this.#outer.modCount;
-  }
-
-  hasNext(): boolean {
-    return this.#cursorTime <= this.toTime;
-  }
-
-  next(): number {
-    this.#checkForComodification();
-    try {
-      this.#cursorRow++;
-      const next = (this.#cursorRow >= this.#outer.size())
-        ? this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone)
-        : this.#outer.get(this.#cursorRow);
-      this.#cursorTime = next;
-      this.#lastReturnTime = this.#cursorTime;
-      return next;
-
-    } catch (e) {
-      this.#checkForComodification();
-      throw new Error("NoSuchElementException");
+    constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
+        this.#outer = outer;
+        this.#timeframe = outer.timeframe;
+        this.fromTime = fromTime === undefined
+            ? outer.firstOccurredTime()
+            : outer.timeframe.trunc(fromTime, this.#outer.timezone);
+        this.toTime = toTime === undefined
+            ? outer.lastOccurredTime()
+            : toTime;
+        this.#cursorTime = this.fromTime;
+        this.#expectedModCount = this.#outer.modCount;
     }
-  }
 
-  #checkForComodification() {
-    if (this.#outer.modCount !== this.#expectedModCount) {
-      throw new Error("ConcurrentModificationException");
+    hasNext(): boolean {
+        return this.#cursorTime <= this.toTime;
     }
-  }
 
-  hasPrev(): boolean {
-    return this.#cursorTime >= this.fromTime;
-  }
+    next(): number {
+        this.#checkForComodification();
+        try {
+            this.#cursorRow++;
+            const next = (this.#cursorRow >= this.#outer.size())
+                ? this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone)
+                : this.#outer.get(this.#cursorRow);
+            this.#cursorTime = next;
+            this.#lastReturnTime = this.#cursorTime;
+            return next;
 
-  prev(): number {
-    this.#checkForComodification();
-    try {
-      this.#cursorRow--;
-      const prev1 = this.#cursorRow < 0
-        ? this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone)
-        : this.#outer.get(this.#cursorRow);
-      this.#cursorTime = prev1;
-      this.#lastReturnTime = this.#cursorTime;
-      return prev1;
-    } catch (e) {
-      this.#checkForComodification();
-      throw new Error("NoSuchElementException");
+        } catch (e) {
+            this.#checkForComodification();
+            throw new Error("NoSuchElementException");
+        }
     }
-  }
 
-  nextOccurredIndex(): number {
-    return this.#outer.indexOrNextIndexOfOccurredTime(this.#cursorTime);
-  }
+    #checkForComodification() {
+        if (this.#outer.modCount !== this.#expectedModCount) {
+            throw new Error("ConcurrentModificationException");
+        }
+    }
 
-  prevOccurredIndex(): number {
-    return this.#outer.indexOrPrevIndexOfOccurredTime(this.#cursorTime);
-  }
+    hasPrev(): boolean {
+        return this.#cursorTime >= this.fromTime;
+    }
 
-  nextRow(): number {
-    return this.#cursorRow;
-  }
+    prev(): number {
+        this.#checkForComodification();
+        try {
+            this.#cursorRow--;
+            const prev1 = this.#cursorRow < 0
+                ? this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone)
+                : this.#outer.get(this.#cursorRow);
+            this.#cursorTime = prev1;
+            this.#lastReturnTime = this.#cursorTime;
+            return prev1;
+        } catch (e) {
+            this.#checkForComodification();
+            throw new Error("NoSuchElementException");
+        }
+    }
 
-  prevRow(): number {
-    return this.#cursorRow - 1;
-  }
+    nextOccurredIndex(): number {
+        return this.#outer.indexOrNextIndexOfOccurredTime(this.#cursorTime);
+    }
+
+    prevOccurredIndex(): number {
+        return this.#outer.indexOrPrevIndexOfOccurredTime(this.#cursorTime);
+    }
+
+    nextRow(): number {
+        return this.#cursorRow;
+    }
+
+    prevRow(): number {
+        return this.#cursorRow - 1;
+    }
 }
 
 
@@ -493,295 +493,295 @@ class ItrOnOccurred implements TStampsIterator {
  */
 export class TStampsOnCalendar extends TStamps {
 
-  #delegateTimestamps: TStamps;
+    #delegateTimestamps: TStamps;
 
-  constructor(delegateTimestamps: TStamps) {
-    super(delegateTimestamps.timeframe, delegateTimestamps.timezone, 1024);
-    this.#delegateTimestamps = delegateTimestamps;
-  }
-
-  /**
-   * the timestamps to be wrapped, it not necessary to be a TimestampsOnOccurred, any class
-   * implemented Timestamps is ok.
-   */
-
-  isOnCalendar(): boolean {
-    return true;
-  }
-
-  asOnCalendar(): TStamps {
-    return this.#delegateTimestamps.asOnCalendar();
-  }
-
-  /**
-   * Get nearest row that can also properly extends before firstOccurredTime or after
-   * lastOccurredTime
-   */
-
-  rowOfTime(time: number): number {
-    const lastOccurredIdx = this.size() - 1;
-    if (lastOccurredIdx === -1) {
-      return -1;
-    } else {
-      const firstOccurredTime = this.get(0);
-      return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
+    constructor(delegateTimestamps: TStamps) {
+        super(delegateTimestamps.timeframe, delegateTimestamps.timezone, 1024);
+        this.#delegateTimestamps = delegateTimestamps;
     }
-  }
 
-  /** This is an efficient method */
+    /**
+     * the timestamps to be wrapped, it not necessary to be a TimestampsOnOccurred, any class
+     * implemented Timestamps is ok.
+     */
 
-  timeOfRow(row: number): number {
-    const lastOccurredIdx = this.size() - 1;
-    if (lastOccurredIdx < 0) {
-      return 0;
-    } else {
-      const firstOccurredTime = this.get(0);
-      return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
+    isOnCalendar(): boolean {
+        return true;
     }
-  }
 
-  lastRow(): number {
-    const lastOccurredIdx = this.size() - 1;
-    if (lastOccurredIdx < 0) {
-      return 0;
-    } else {
-      const firstOccurredTime = this.get(0);
-      const lastOccurredTime = this.get(lastOccurredIdx);
-      return this.timeframe.nTimeframesBetween(firstOccurredTime, lastOccurredTime, this.timezone);
+    asOnCalendar(): TStamps {
+        return this.#delegateTimestamps.asOnCalendar();
     }
-  }
 
-  /** -------------------------------------------- */
+    /**
+     * Get nearest row that can also properly extends before firstOccurredTime or after
+     * lastOccurredTime
+     */
 
-  indexOfOccurredTime(time: number): number {
-    return this.#delegateTimestamps.indexOfOccurredTime(time);
-  }
+    rowOfTime(time: number): number {
+        const lastOccurredIdx = this.size() - 1;
+        if (lastOccurredIdx === -1) {
+            return -1;
+        } else {
+            const firstOccurredTime = this.get(0);
+            return this.timeframe.nTimeframesBetween(firstOccurredTime, time, this.timezone);
+        }
+    }
 
-  nearestIndexOfOccurredTime(time: number): number {
-    return this.#delegateTimestamps.nearestIndexOfOccurredTime(time);
-  }
+    /** This is an efficient method */
 
-  indexOrNextIndexOfOccurredTime(time: number): number {
-    return this.#delegateTimestamps.indexOrNextIndexOfOccurredTime(time);
-  }
+    timeOfRow(row: number): number {
+        const lastOccurredIdx = this.size() - 1;
+        if (lastOccurredIdx < 0) {
+            return 0;
+        } else {
+            const firstOccurredTime = this.get(0);
+            return this.timeframe.timeAfterNTimeframes(firstOccurredTime, row, this.timezone);
+        }
+    }
 
-  /** return index of nearest before or equal (if exist) time */
-  indexOrPrevIndexOfOccurredTime(time: number): number {
-    return this.#delegateTimestamps.indexOrPrevIndexOfOccurredTime(time);
-  }
+    lastRow(): number {
+        const lastOccurredIdx = this.size() - 1;
+        if (lastOccurredIdx < 0) {
+            return 0;
+        } else {
+            const firstOccurredTime = this.get(0);
+            const lastOccurredTime = this.get(lastOccurredIdx);
+            return this.timeframe.nTimeframesBetween(firstOccurredTime, lastOccurredTime, this.timezone);
+        }
+    }
 
-  firstOccurredTime(): number {
-    return this.#delegateTimestamps.firstOccurredTime();
-  }
+    /** -------------------------------------------- */
 
-  lastOccurredTime(): number {
-    return this.#delegateTimestamps.lastOccurredTime();
-  }
+    indexOfOccurredTime(time: number): number {
+        return this.#delegateTimestamps.indexOfOccurredTime(time);
+    }
 
-  size(): number {
-    return this.#delegateTimestamps.size();
-  }
+    nearestIndexOfOccurredTime(time: number): number {
+        return this.#delegateTimestamps.nearestIndexOfOccurredTime(time);
+    }
 
-  timeIterator(): TStampsIterator {
-    return new ItrOnCalendar(this);
-  }
+    indexOrNextIndexOfOccurredTime(time: number): number {
+        return this.#delegateTimestamps.indexOrNextIndexOfOccurredTime(time);
+    }
 
-  timeIterator2(fromTime: number, toTime: number): TStampsIterator {
-    return new ItrOnCalendar(this, fromTime, toTime);
-  }
+    /** return index of nearest before or equal (if exist) time */
+    indexOrPrevIndexOfOccurredTime(time: number): number {
+        return this.#delegateTimestamps.indexOrPrevIndexOfOccurredTime(time);
+    }
 
-  isEmpty(): boolean {
-    return this.#delegateTimestamps.isEmpty();
-  }
+    firstOccurredTime(): number {
+        return this.#delegateTimestamps.firstOccurredTime();
+    }
 
-  iterator(): CIterator<number> {
-    return this.#delegateTimestamps.iterator();
-  }
+    lastOccurredTime(): number {
+        return this.#delegateTimestamps.lastOccurredTime();
+    }
 
-  toArray(): number[] {
-    return this.#delegateTimestamps.toArray();
-  }
+    size(): number {
+        return this.#delegateTimestamps.size();
+    }
 
-  toSlice(offset: number, len: number): number[] {
-    return this.#delegateTimestamps.toSlice(offset, len);
-  }
+    timeIterator(): TStampsIterator {
+        return new ItrOnCalendar(this);
+    }
 
-  containsAll(collection: Collection<number>): boolean {
-    return this.#delegateTimestamps.containsAll(collection);
-  }
+    timeIterator2(fromTime: number, toTime: number): TStampsIterator {
+        return new ItrOnCalendar(this, fromTime, toTime);
+    }
 
-  add(value: number): boolean {
-    return this.#delegateTimestamps.add(value);
-  }
+    isEmpty(): boolean {
+        return this.#delegateTimestamps.isEmpty();
+    }
 
-  addAll(collection: Collection<number>): boolean {
-    return this.#delegateTimestamps.addAll(collection);
-  }
+    iterator(): CIterator<number> {
+        return this.#delegateTimestamps.iterator();
+    }
 
-  addAllArray(array: number[]): boolean {
-    return this.#delegateTimestamps.addAllArray(array);
-  }
+    toArray(): number[] {
+        return this.#delegateTimestamps.toArray();
+    }
 
-  insert(offset: number, value: number) {
-    this.#delegateTimestamps.insert(offset, value);
-  }
+    toSlice(offset: number, len: number): number[] {
+        return this.#delegateTimestamps.toSlice(offset, len);
+    }
 
-  insertAll(offset: number, values: Collection<number>): boolean {
-    return this.#delegateTimestamps.insertAll(offset, values);
-  }
+    containsAll(collection: Collection<number>): boolean {
+        return this.#delegateTimestamps.containsAll(collection);
+    }
 
-  insertAllArray(offset: number, array: number[]): boolean {
-    return this.#delegateTimestamps.insertAllArray(offset, array);
-  }
+    add(value: number): boolean {
+        return this.#delegateTimestamps.add(value);
+    }
 
-  remove(value: number): boolean {
-    return this.#delegateTimestamps.remove(value);
-  }
+    addAll(collection: Collection<number>): boolean {
+        return this.#delegateTimestamps.addAll(collection);
+    }
 
-  removeMultiple(offset: number, length: number) {
-    this.#delegateTimestamps.removeMultiple(offset, length);
-  }
+    addAllArray(array: number[]): boolean {
+        return this.#delegateTimestamps.addAllArray(array);
+    }
 
-  contains(value: number): boolean {
-    return this.#delegateTimestamps.contains(value);
-  }
+    insert(offset: number, value: number) {
+        this.#delegateTimestamps.insert(offset, value);
+    }
 
-  clear() {
-    this.#delegateTimestamps.clear();
-  }
+    insertAll(offset: number, values: Collection<number>): boolean {
+        return this.#delegateTimestamps.insertAll(offset, values);
+    }
 
-  // boolean equals(Object o) {
-  //   return delegateTimestamps.equals(o);
-  // }
+    insertAllArray(offset: number, array: number[]): boolean {
+        return this.#delegateTimestamps.insertAllArray(offset, array);
+    }
+
+    remove(value: number): boolean {
+        return this.#delegateTimestamps.remove(value);
+    }
+
+    removeMultiple(offset: number, length: number) {
+        this.#delegateTimestamps.removeMultiple(offset, length);
+    }
+
+    contains(value: number): boolean {
+        return this.#delegateTimestamps.contains(value);
+    }
+
+    clear() {
+        this.#delegateTimestamps.clear();
+    }
+
+    // boolean equals(Object o) {
+    //   return delegateTimestamps.equals(o);
+    // }
 
 
-  // int hashCode() {
-  //   return delegateTimestamps.hashCode();
-  // }
+    // int hashCode() {
+    //   return delegateTimestamps.hashCode();
+    // }
 
-  get(offset: number): number {
-    return this.#delegateTimestamps.get(offset);
-  }
+    get(offset: number): number {
+        return this.#delegateTimestamps.get(offset);
+    }
 
-  set(offset: number, value: number): number {
-    return this.#delegateTimestamps.set(offset, value);
-  }
+    set(offset: number, value: number): number {
+        return this.#delegateTimestamps.set(offset, value);
+    }
 
-  subList(fromIndex: number, toIndex: number): ValueList<number> {
-    return this.#delegateTimestamps.subList(fromIndex, toIndex);
-  }
+    subList(fromIndex: number, toIndex: number): ValueList<number> {
+        return this.#delegateTimestamps.subList(fromIndex, toIndex);
+    }
 
-  indexOf(value: number): number {
-    return this.#delegateTimestamps.indexOf(value);
-  }
+    indexOf(value: number): number {
+        return this.#delegateTimestamps.indexOf(value);
+    }
 
-  lastIndexOf(value: number): number {
-    return this.#delegateTimestamps.lastIndexOf(value);
-  }
+    lastIndexOf(value: number): number {
+        return this.#delegateTimestamps.lastIndexOf(value);
+    }
 
-  // TStampsOnCalendar clone() {
-  //   return new TStampsOnCalendar(delegateTimestamps.clone());
-  // }
+    // TStampsOnCalendar clone() {
+    //   return new TStampsOnCalendar(delegateTimestamps.clone());
+    // }
 
-  reversedOne(): TStamps {
-    return new TStampsOnCalendar(this.#delegateTimestamps.reversedOne());
-  }
+    reversedOne(): TStamps {
+        return new TStampsOnCalendar(this.#delegateTimestamps.reversedOne());
+    }
 
 }
 
 class ItrOnCalendar implements TStampsIterator {
-  #outer: TStampsOnCalendar;
-  #timeframe: TFrame;
-  #cursorTime: number;
-  fromTime: number;
-  toTime: number;
+    #outer: TStampsOnCalendar;
+    #timeframe: TFrame;
+    #cursorTime: number;
+    fromTime: number;
+    toTime: number;
 
-  /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
-  #lastReturnTime: number = TStamps.LONG_LONG_AGO;
+    /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
+    #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
-  /** Row of element to be returned by subsequent call to next. */
-  #cursorRow = 0;
+    /** Row of element to be returned by subsequent call to next. */
+    #cursorRow = 0;
 
-  /**
-   * Index of element returned by most recent call to next or previous. Reset to -1 if this
-   * element is deleted by a call to remove.
-   */
-  #lastRet = -1;
+    /**
+     * Index of element returned by most recent call to next or previous. Reset to -1 if this
+     * element is deleted by a call to remove.
+     */
+    #lastRet = -1;
 
-  /**
-   * The modCount value that the iterator believes that the backing List should have. If this
-   * expectation is violated, the iterator has detected concurrent modification.
-   */
-  #expectedModCount: number;
+    /**
+     * The modCount value that the iterator believes that the backing List should have. If this
+     * expectation is violated, the iterator has detected concurrent modification.
+     */
+    #expectedModCount: number;
 
-  constructor(outer: TStampsOnCalendar, fromTime?: number, toTime?: number) {
-    this.#outer = outer;
-    this.#timeframe = outer.timeframe;
-    this.fromTime = fromTime === undefined
-      ? outer.firstOccurredTime()
-      : outer.timeframe.trunc(fromTime, outer.timezone);
-    this.toTime = toTime === undefined
-      ? outer.lastOccurredTime()
-      : toTime;
-    this.#cursorTime = this.fromTime;
-    this.#expectedModCount = this.#outer.modCount;
-  }
-
-  hasNext(): boolean {
-    return this.#cursorTime <= this.toTime;
-  }
-
-  next(): number {
-    this.#checkForComodification();
-    try {
-      this.#cursorRow++;
-      const next = this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone);
-      this.#cursorTime = next;
-      this.#lastReturnTime = this.#cursorTime;
-      return next;
-    } catch (e) {
-      this.#checkForComodification();
-      throw new Error("NoSuchElementException");
+    constructor(outer: TStampsOnCalendar, fromTime?: number, toTime?: number) {
+        this.#outer = outer;
+        this.#timeframe = outer.timeframe;
+        this.fromTime = fromTime === undefined
+            ? outer.firstOccurredTime()
+            : outer.timeframe.trunc(fromTime, outer.timezone);
+        this.toTime = toTime === undefined
+            ? outer.lastOccurredTime()
+            : toTime;
+        this.#cursorTime = this.fromTime;
+        this.#expectedModCount = this.#outer.modCount;
     }
-  }
 
-  #checkForComodification() {
-    if (this.#outer.modCount != this.#expectedModCount) {
-      throw new Error("ConcurrentModificationException");
+    hasNext(): boolean {
+        return this.#cursorTime <= this.toTime;
     }
-  }
 
-  hasPrev(): boolean {
-    return this.#cursorTime >= this.fromTime;
-  }
-
-  prev(): number {
-    this.#checkForComodification();
-    try {
-      this.#cursorRow--;
-      const prev1 = this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone);
-      this.#cursorTime = prev1;
-      this.#lastReturnTime = this.#cursorTime;
-      return prev1;
-    } catch (e) {
-      this.#checkForComodification();
-      throw new Error("NoSuchElementException");
+    next(): number {
+        this.#checkForComodification();
+        try {
+            this.#cursorRow++;
+            const next = this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone);
+            this.#cursorTime = next;
+            this.#lastReturnTime = this.#cursorTime;
+            return next;
+        } catch (e) {
+            this.#checkForComodification();
+            throw new Error("NoSuchElementException");
+        }
     }
-  }
 
-  nextOccurredIndex(): number {
-    return this.#outer.indexOrNextIndexOfOccurredTime(this.#cursorTime);
-  }
+    #checkForComodification() {
+        if (this.#outer.modCount != this.#expectedModCount) {
+            throw new Error("ConcurrentModificationException");
+        }
+    }
 
-  prevOccurredIndex(): number {
-    return this.#outer.indexOrPrevIndexOfOccurredTime(this.#cursorTime);
-  }
+    hasPrev(): boolean {
+        return this.#cursorTime >= this.fromTime;
+    }
 
-  nextRow(): number {
-    return this.#cursorRow;
-  }
+    prev(): number {
+        this.#checkForComodification();
+        try {
+            this.#cursorRow--;
+            const prev1 = this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone);
+            this.#cursorTime = prev1;
+            this.#lastReturnTime = this.#cursorTime;
+            return prev1;
+        } catch (e) {
+            this.#checkForComodification();
+            throw new Error("NoSuchElementException");
+        }
+    }
 
-  prevRow(): number {
-    return this.#cursorRow - 1;
-  }
+    nextOccurredIndex(): number {
+        return this.#outer.indexOrNextIndexOfOccurredTime(this.#cursorTime);
+    }
+
+    prevOccurredIndex(): number {
+        return this.#outer.indexOrPrevIndexOfOccurredTime(this.#cursorTime);
+    }
+
+    nextRow(): number {
+        return this.#cursorRow;
+    }
+
+    prevRow(): number {
+        return this.#cursorRow - 1;
+    }
 }

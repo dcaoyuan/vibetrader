@@ -1,5 +1,4 @@
 import { TVal } from "../../timeseris/TVal";
-import { type BaseTSer } from "../../timeseris/BaseTSer";
 import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { Chart } from "../chart/Chart";
@@ -41,7 +40,7 @@ export interface ViewProps {
     width: number;
     height: number;
     xc: ChartXControl;
-    baseSer: BaseTSer;
+    baseSer: TSer;
     tvar: TVar<TVal>;
     isKline?: boolean;
     isMasterView?: boolean;
@@ -82,7 +81,7 @@ export interface ViewState {
  *
  * Example: you can add a ChartView directly to a JFrame.
  *
- * baseSer: the ser instaceof BaseTSer, with the calendar time feature,
+ * baseSer: the ser instaceof TSer, with the calendar time feature,
  *            it's put in the masterView to control the cursor;
  * mainSer: vs overlappingSer, this view's main ser.
  *

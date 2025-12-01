@@ -4,7 +4,7 @@ import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
 import { ChartView, RefreshEvent, type ChartOf, type RefreshCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
-import type { BaseTSer } from "../timeseris/BaseTSer";
+import type { TSer } from "../timeseris/TSer";
 import type { TVar } from "../timeseris/TVar";
 import type { Kline } from "./Kline";
 import { Path } from "../svg/Path";
@@ -33,7 +33,7 @@ type State = {
 class KlineSerView extends Component<Props, State> {
 
     xc: ChartXControl
-    klineSer: BaseTSer;
+    klineSer: TSer;
     kvar: TVar<Kline>;
     varName: string;
     width: number;
@@ -63,7 +63,7 @@ class KlineSerView extends Component<Props, State> {
         this.varName = props.varName;
         this.width = props.width;
 
-        this.klineSer = this.xc.baseSer as BaseTSer;
+        this.klineSer = this.xc.baseSer;
         this.kvar = this.klineSer.varOf(this.varName) as TVar<Kline>;
 
         this.isInteractive = true;

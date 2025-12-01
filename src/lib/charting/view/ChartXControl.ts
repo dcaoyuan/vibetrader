@@ -1,13 +1,13 @@
-import type { BaseTSer } from "../../timeseris/BaseTSer"
+import type { TSer } from "../../timeseris/TSer"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView"
 
 /**
- * Each BaseTSer can have more than one ChartXControl instances.
+ * Each TSer can have more than one ChartXControl instances.
  *
  * A ChartControl instance keeps the 1-1 relation with:
- *   the BaseTSer,
+ *   the TSer,
  *   the ChartViewContainer
- * Thus, ChartControl couples BaseTSer-Descriptor-ChartViewContainer
+ * Thus, ChartControl couples TSer-Descriptor-ChartViewContainer
  * together from outside.
  *
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -31,7 +31,7 @@ export class ChartXControl {
 
     static isCursorAccelerated = false
 
-    readonly baseSer: BaseTSer;
+    readonly baseSer: TSer;
 
     #wBarIdx = 10;
     /** pixels per bar (bar width in pixels) */
@@ -42,7 +42,7 @@ export class ChartXControl {
 
     wChart: number;
 
-    constructor(baseSer: BaseTSer, wChart: number) {
+    constructor(baseSer: TSer, wChart: number) {
         this.baseSer = baseSer;
         this.wChart = wChart;
 

@@ -1,4 +1,4 @@
-import type { BaseTSer } from "../../timeseris/BaseTSer";
+import type { TSer } from "../../timeseris/TSer";
 import { Geometry } from "../chart/Geometry";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import { LG_SCALAR } from "../view/scalar/LgScalar";
@@ -7,10 +7,10 @@ import type { Scalar } from "../view/scalar/Scalar";
 export class ChartYControl {
     static readonly VALUE_SCALE_UNIT = 10000;
 
-    baseSer: BaseTSer;
+    baseSer: TSer;
     height: number;
 
-    constructor(baseSer: BaseTSer, height: number) {
+    constructor(baseSer: TSer, height: number) {
         this.baseSer = baseSer;
         this.height = height;
     }
