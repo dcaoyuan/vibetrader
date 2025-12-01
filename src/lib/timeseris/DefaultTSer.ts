@@ -129,16 +129,13 @@ export class DefaultTSer implements TSer {
             return true;
 
         } else {
-            let i = 0;
-            while (i < size - 1) {
+            for (let i = 0; i < size - 1; i++) {
                 if (values[i].time < values[i + 1].time) {
                     return true;
 
                 } else if (values[i].time > values[i + 1].time) {
                     return false;
                 }
-
-                i++;
             }
 
             return false;

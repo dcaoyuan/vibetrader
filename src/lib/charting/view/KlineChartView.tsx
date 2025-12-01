@@ -131,8 +131,7 @@ export class KlineChartView extends ChartView<ViewProps, ViewState> {
         /** minimum volume should be 0 */
         this.maxVolume = Number.NEGATIVE_INFINITY;
         this.minVolume = 0
-        let i = 1
-        while (i <= this.xc.nBars) {
+        for (let i = 1; i <= this.xc.nBars; i++) {
             const time = this.xc.tb(i)
             if (this.xc.occurred(time)) {
                 const kline = this.klineVar.getByTime(time);
@@ -142,8 +141,6 @@ export class KlineChartView extends ChartView<ViewProps, ViewState> {
                     this.maxVolume = Math.max(this.maxVolume, kline.volume)
                 }
             }
-
-            i++
         }
 
         if (this.maxVolume == 0) {

@@ -100,17 +100,16 @@ class KlineSerView extends Component<Props, State> {
     }
 
     componentDidMount() {
-        const pineTS = new PineTS(new TSerProvider(this.kvar), 'BTCUSDT', '1d');
+        const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
+        let startTime = performance.now();
 
-        pineTS.run((context: Context) => {
+        pinets.run((context: Context) => {
             const ta = context.ta;
             const { close } = context.data;
 
             const ema1 = ta.ema(close, 9);
             const ema2 = ta.ema(close, 18);
             const ema3 = ta.ema(close, 36);
-            //const bull_bias = ema1 > ema2;
-            //const bear_bias = ema1 < ema2;
 
             return {
                 ema1,
@@ -119,8 +118,8 @@ class KlineSerView extends Component<Props, State> {
             };
 
         }).then(({ result }) => {
-            console.log("result:", result);
-            const startTime = performance.now();
+            console.log(`Indicator calclated in ${performance.now() - startTime} ms`, result);
+            startTime = performance.now();
 
             const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
             const size = this.klineSer.size();
@@ -131,9 +130,7 @@ class KlineSerView extends Component<Props, State> {
                 ema.setByIndex(i, vs);
             }
 
-            const endTime = performance.now();
-            const duration = endTime - startTime;
-            console.log(`ema added in ${duration} ms`);
+            console.log(`ema added in ${performance.now() - startTime} ms`);
 
             this.updateState({
                 overlappingCharts: [

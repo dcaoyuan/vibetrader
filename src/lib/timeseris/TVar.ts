@@ -226,10 +226,8 @@ export class TVar<V> {
         }
 
         const data = this.values();
-        let i = data.size() - 1;
-        while (i >= fromIdx) {
+        for (let i = data.size() - 1; i >= fromIdx; i--) {
             data.remove(i);
-            i++;
         }
     }
 

@@ -92,8 +92,7 @@ class AxisX extends Component<Props, State> {
 
 
 		const hTick = 4;
-		let i = 1;
-		while (i <= nBars) {
+		for (let i = 1; i <= nBars; i++) {
 			const time = this.xc.tb(i)
 			currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
 			if (prevDt !== undefined && (currDt.month !== prevDt.month || currDt.year !== prevDt.year)) {
@@ -128,8 +127,6 @@ class AxisX extends Component<Props, State> {
 			}
 
 			prevDt = currDt;
-
-			i++;
 		}
 
 		// draw end line

@@ -369,10 +369,8 @@ export class TStampsOnOccurred extends TStamps {
     reversedOne(): TStampsOnOccurred {
         const n = this.size();
         const reversed = new TStampsOnOccurred(this.timeframe, this.timezone, n);
-        let i = 0;
-        while (i < n) {
+        for (let i = 0; i < n; i++) {
             reversed.add(this.get(n - 1 - i));
-            i++;
         }
 
         return reversed;

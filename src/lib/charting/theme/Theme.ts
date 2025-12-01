@@ -116,10 +116,8 @@ export class Theme {
         const multiple = Math.floor(depth / this.chartColors.length)
         const remainder = depth % this.chartColors.length
         const color = this.chartColors[remainder]
-        let i = 1
-        while (i <= multiple) {
+        for (let i = 1; i <= multiple; i++) {
             //color = color.darker();
-            i++;
         }
         return color;
     }

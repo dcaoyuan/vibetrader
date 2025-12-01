@@ -69,8 +69,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         let max = Number.NEGATIVE_INFINITY;
         const min = 0// Number.POSITIVE_INFINITY;
 
-        let i = 1
-        while (i <= this.xc.nBars) {
+        for (let i = 1; i <= this.xc.nBars; i++) {
             const time = this.xc.tb(i)
             if (this.xc.occurred(time)) {
                 const kline = this.klineVar.getByTime(time);
@@ -78,8 +77,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
                     max = Math.max(max, kline.volume)
                 }
             }
-
-            i++
         }
 
         if (max === 0) {

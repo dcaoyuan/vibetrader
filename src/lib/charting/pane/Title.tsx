@@ -117,14 +117,12 @@ class Title extends Component<Props, State> {
                 let volumeSum = 0.0
                 const rowBeg = Math.min(rRow, mRow)
                 const rowEnd = Math.max(rRow, mRow)
-                let i = rowBeg + 1
-                while (i <= rowEnd) {
+                for (let i = rowBeg + 1; i <= rowEnd; i++) {
                     const time = this.xc.tr(i)
                     if (this.xc.occurred(time)) {
                         const mKline = this.props.tvar.getByTime(time);
                         volumeSum += mKline.volume;
                     }
-                    i += 1
                 }
 
                 return { period, percent, volumeSum }

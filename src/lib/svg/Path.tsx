@@ -100,10 +100,8 @@ export class Path implements Seg {
         let path = '';
         for (const { type, values } of this.pathDatas) {
             path = path + type;
-            let i = 0;
-            while (i < values.length) {
+            for (let i = 0; i < values.length; i++) {
                 path = path + values[i] + " "
-                i++;
             }
         }
 
