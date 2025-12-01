@@ -108,37 +108,38 @@ class KlineSerView extends Component<Props, State> {
 
             const ema1 = ta.ema(close, 9);
             const ema2 = ta.ema(close, 18);
+            const ema3 = ta.ema(close, 36);
             //const bull_bias = ema1 > ema2;
             //const bear_bias = ema1 < ema2;
 
             return {
                 ema1,
                 ema2,
+                ema3,
             };
 
         }).then(({ result }) => {
-            // const ema1 = result.ema1;
-            // const ema2 = result.ema2;
-            // console.log(ema1);
-            // console.log(ema2);
+            console.log("result:", result);
+            const startTime = performance.now();
 
             const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
-            const startTime = performance.now();
-            let i = 0;
-            while (i < ema.size()) {
-                ema.add([result.ema1[i], result.ema2[i]]);
-
-                i++;
+            const size = this.klineSer.size();
+            const values = Object.values(result);
+            console.log(values)
+            for (let i = 0; i < size; i++) {
+                const vs = values.map(v => v[i]);
+                ema.setByIndex(i, vs);
             }
+
             const endTime = performance.now();
-            const duration = endTime - startTime; // Duration in milliseconds
+            const duration = endTime - startTime;
             console.log(`ema added in ${duration} ms`);
-            console.log(ema)
 
             this.updateState({
                 overlappingCharts: [
-                    { tvar: ema, atIndex: 0, vname: "ema1", kind: "line" },
-                    { tvar: ema, atIndex: 1, vname: "ema2", kind: "line" }
+                    { tvar: ema, atIndex: 0, vname: "ema-9", kind: "line" },
+                    { tvar: ema, atIndex: 1, vname: "ema-18", kind: "line" },
+                    { tvar: ema, atIndex: 2, vname: "ema-36", kind: "line" },
                 ]
             })
         });

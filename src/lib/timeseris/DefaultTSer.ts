@@ -42,6 +42,14 @@ export class DefaultTSer implements TSer {
 
     protected _holders: ValueList<boolean>; // a place holder plus flag
 
+    protected _lname = ""; // Long description 
+    protected _sname = ""; // Short description
+
+    isOverlapping = false;
+
+    #isInLoading = false;
+    #isLoaded = false;
+
     constructor(tframe: TFrame, tzone: string, valuesCapacity: number) {
         this.timeframe = tframe;
         this.timezone = tzone;
@@ -74,14 +82,6 @@ export class DefaultTSer implements TSer {
 
         return tvar;
     }
-
-    protected _lname = ""; // Long description 
-    protected _sname = ""; // Short description
-
-    isOverlapping = false;
-
-    #isInLoading = false;
-    #isLoaded = false;
 
     /**
      * Used only by InnerVar's constructor and AbstractIndicator's functions

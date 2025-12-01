@@ -98,7 +98,6 @@ export class ValueList<T> extends AbstractCollection<T> {
         return true;
     }
 
-
     addAll(xs: Collection<T>): boolean {
         const elems = xs.toArray();
         return this.addAllArray(elems);

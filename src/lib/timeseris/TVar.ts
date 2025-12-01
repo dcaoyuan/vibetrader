@@ -45,7 +45,7 @@ export class TVar<V> {
         return this.kind === TVar.Kind.Accumlate;
     }
 
-    putByTime(time: number, value: V): boolean {
+    insertAtTime(time: number, value: V): boolean {
         const idx = this.timestamps().indexOfOccurredTime(time);
         if (idx >= 0) {
             // TODO. for limited capacity values, no change idx == values().size()
@@ -70,7 +70,7 @@ export class TVar<V> {
         }
     }
 
-    putByIndex(idx: number, value: V): boolean {
+    InsertAtIndex(idx: number, value: V): boolean {
         this.values().insert(idx, value);
         return true;
     }
@@ -158,11 +158,11 @@ export class TVar<V> {
     }
 
     putNullByTime(time: number): boolean {
-        return this.putByTime(time, undefined);
+        return this.insertAtTime(time, undefined);
     }
 
     putNullByIndex(idx: number): boolean {
-        return this.putByIndex(idx, undefined);
+        return this.InsertAtIndex(idx, undefined);
     }
 
     /**
@@ -234,7 +234,7 @@ export class TVar<V> {
     }
 
     size(): number {
-        return this.values().size();
+        return this.timestamps().size();
     }
 
     timesIterator(): CIterator<number> {
