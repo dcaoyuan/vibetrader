@@ -23,7 +23,7 @@ export type ChartParts = {
 
 export type RefreshCursor = {
     changed: number,
-    yMouses: number[], // per view
+    yMouse: { who?: string, y?: number }
 }
 
 export type ChartOf = {
@@ -34,14 +34,14 @@ export type ChartOf = {
 }
 
 export interface ViewProps {
-    id: number
+    id: string;
     x: number;
     y: number;
     width: number;
     height: number;
     xc: ChartXControl;
     baseSer: TSer;
-    tvar: TVar<TVal>;
+    tvar: TVar<unknown>;
     isKline?: boolean;
     isMasterView?: boolean;
     refreshChart: number;
@@ -101,33 +101,20 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     static readonly CONTROL_HEIGHT = 12
     static readonly TITLE_HEIGHT_PER_LINE = 14
 
-    width: number;
-    height: number;
-
-    xc: ChartXControl;
     yc: ChartYControl;
     baseSer: TSer;
     isMasterView: boolean;
 
-    tvar: TVar<TVal>;
+    tvar: TVar<unknown>;
 
     name: string
-    id: number;
+    id: string;
 
+    // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
 
-        // share same xc through all views that are in the same viewcontainer.
-        this.xc = props.xc
         this.yc = new ChartYControl(props.baseSer, props.height);
-
-        this.baseSer = props.baseSer;
-        this.tvar = props.tvar;
-
-        this.width = props.width;
-        this.height = props.height;
-        this.isKline = props.isKline;
-        this.isMasterView = props.isMasterView;
 
         this.name = props.name;
         this.id = props.id;
@@ -176,7 +163,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     wChart(): number {
-        return this.width - ChartView.AXISY_WIDTH;
+        return this.props.width - ChartView.AXISY_WIDTH;
     }
 
     get isSelected() {
@@ -316,15 +303,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.minValue = 0;
     }
 
-    valueAtTime(time: number) {
-        return this.tvar.getByTime(time).value;
-    }
+    abstract valueAtTime(time: number): number
 
     abstract plot(): ChartParts;
 
     protected updateChart() {
         // clear mouse cursor and prev value
-        this.xc.isMouseCuroseVisible = false;
+        this.props.xc.isMouseCuroseVisible = false;
         this.yc.setMouseCursorValue(undefined, undefined)
 
         const chartParts = this.plot();
@@ -341,10 +326,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const referColor = '#00F0F0'; // 'orange'
         const mouseColor = '#00F000';
 
-        if (this.xc.isReferCuroseVisible) {
-            const time = this.xc.tr(this.xc.referCursorRow)
-            if (this.xc.occurred(time)) {
-                const cursorX = this.xc.xr(this.xc.referCursorRow)
+        const xc = this.props.xc;
+
+        if (xc.isReferCuroseVisible) {
+            const time = xc.tr(xc.referCursorRow)
+            if (xc.occurred(time)) {
+                const cursorX = xc.xr(xc.referCursorRow)
 
                 let value = this.valueAtTime(time);
                 const cursorY = this.yc.yv(value)
@@ -357,10 +344,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (this.xc.isMouseCuroseVisible) {
-            const time = this.xc.tr(this.xc.mouseCursorRow)
-            if (this.xc.occurred(time)) {
-                const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+        if (xc.isMouseCuroseVisible) {
+            const time = xc.tr(xc.mouseCursorRow)
+            if (xc.occurred(time)) {
+                const cursorX = xc.xr(xc.mouseCursorRow)
 
                 let value: number;
                 let cursorY: number;
@@ -397,7 +384,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         // horizontal line
         crossPath.moveto(0, y);
-        crossPath.lineto(this.width - wAxisY, y)
+        crossPath.lineto(this.props.width - wAxisY, y)
 
         const axisyText = new Texts('#000000')
         const axisyPath = new Path(color, color)
@@ -415,7 +402,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         axisyPath.closepath();
         axisyText.text(8, y0 - 1, valueStr);
 
-        const transformYAnnot = `translate(${this.width - wAxisY}, ${0})`
+        const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
 
         return (
             // pay attention to the order to avoid text being overlapped
@@ -445,7 +432,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
-            this.updateCursors(this.props.refreshCursors.yMouses[this.id]);
+            const yMouse = this.props.refreshCursors.yMouse;
+            if (yMouse.who && yMouse.who === this.id) {
+                this.updateCursors(yMouse.y);
+            } else {
+                this.updateCursors(undefined);
+            }
         }
     }
 

@@ -2,20 +2,18 @@ import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "./scalar/LinearScala";
 import { LG_SCALAR } from "./scalar/LgScalar";
-import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
 import './chartview.css';
-import VolmueChart from "../chart/VolumeChart";
+import LineChart from "../chart/LineChart";
 
-export class VolumeView extends ChartView<ViewProps, ViewState> {
-    klineVar: TVar<Kline>;
+export class IndicatorView extends ChartView<ViewProps, ViewState> {
     maxVolume = 0.0;
     minVolume = 0.0
 
     constructor(props: ViewProps) {
         super(props);
 
-        this.klineVar = props.tvar as TVar<Kline>;
+        this.tvar = props.tvar
 
         const { chart, axisy } = this.plot();
 
@@ -46,11 +44,13 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chart = VolmueChart({
-            klineVar: this.klineVar,
+        const chart = LineChart({
+            tvar: this.tvar as TVar<unknown[]>,
             xc: this.props.xc,
             yc: this.yc,
-            depth: 0
+            depth: 0,
+            name: "",
+            atIndex: 0
         });
 
         const axisy = AxisY({
@@ -74,10 +74,8 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         for (let i = 1; i <= xc.nBars; i++) {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
-                const kline = this.klineVar.getByTime(time);
-                if (kline.close > 0) {
-                    max = Math.max(max, kline.volume)
-                }
+                const values = this.tvar.getByTime(time);
+                max = Math.max(max, values[0])
             }
         }
 
@@ -109,7 +107,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     }
 
     override valueAtTime(time: number) {
-        return this.klineVar.getByTime(time).volume
+        return this.tvar.getByTime(time)[0];
     }
 
     render() {

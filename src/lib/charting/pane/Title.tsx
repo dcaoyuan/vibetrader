@@ -26,21 +26,15 @@ type State = {
 }
 
 class Title extends Component<Props, State> {
-    xc: ChartXControl;
-    width: number;
-    height: number;
     tframeName: string;
 
     constructor(props: Props) {
         super(props);
-        this.xc = props.xc;
-        this.width = props.width;
-        this.height = props.height;
 
         const chart = this.plot();
         this.state = { chart, mouseKline: undefined, referKline: undefined, delta: undefined };
 
-        let tframeName = this.xc.baseSer.timeframe.compactName.toLowerCase();
+        let tframeName = this.props.xc.baseSer.timeframe.compactName.toLowerCase();
         const matchLeadingNumbers = tframeName.match(/^\d+/);
         const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
         tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
@@ -59,7 +53,7 @@ class Title extends Component<Props, State> {
 
     protected updateChart() {
         // clear mouse cursor and prev value
-        this.xc.isMouseCuroseVisible = false;
+        this.props.xc.isMouseCuroseVisible = false;
 
         const chart = this.plot();
         this.updateState({ chart });
@@ -73,16 +67,18 @@ class Title extends Component<Props, State> {
         let referKline: Kline = undefined
         let mouseKline: Kline = undefined
 
-        if (this.xc.isReferCuroseVisible) {
-            const time = this.xc.tr(this.xc.referCursorRow)
-            if (this.xc.occurred(time)) {
+        const xc = this.props.xc;
+
+        if (xc.isReferCuroseVisible) {
+            const time = xc.tr(xc.referCursorRow)
+            if (xc.occurred(time)) {
                 referKline = this.props.tvar.getByTime(time);
             }
         }
 
-        if (this.xc.isMouseCuroseVisible) {
-            const time = this.xc.tr(this.xc.mouseCursorRow)
-            if (this.xc.occurred(time)) {
+        if (xc.isMouseCuroseVisible) {
+            const time = xc.tr(xc.mouseCursorRow)
+            if (xc.occurred(time)) {
                 mouseKline = this.props.tvar.getByTime(time);
             }
         }
@@ -93,22 +89,23 @@ class Title extends Component<Props, State> {
     }
 
     calcDelta() {
-        if (!this.xc.isReferCuroseVisible || !this.xc.isMouseCuroseVisible) {
+        const xc = this.props.xc;
+        if (!xc.isReferCuroseVisible || !xc.isMouseCuroseVisible) {
             return undefined;
         }
 
         const isAutoReferCursorValue = true; // TODO
 
-        const rRow = this.xc.referCursorRow;
-        const mRow = this.xc.mouseCursorRow;
+        const rRow = xc.referCursorRow;
+        const mRow = xc.mouseCursorRow;
         if (isAutoReferCursorValue) { // normal KlineChartView
-            const rTime = this.xc.tr(rRow)
-            const mTime = this.xc.tr(mRow)
-            if (this.xc.occurred(rTime) && this.xc.occurred(mTime)) {
+            const rTime = xc.tr(rRow)
+            const mTime = xc.tr(mRow)
+            if (xc.occurred(rTime) && xc.occurred(mTime)) {
                 const rKline = this.props.tvar.getByTime(rTime);
                 const rValue = rKline.close;
 
-                const period = Math.abs(this.xc.br(mRow) - this.xc.br(rRow))
+                const period = Math.abs(xc.br(mRow) - xc.br(rRow))
                 const mValue = this.props.tvar.getByTime(mTime).close
                 const percent = mRow > rRow
                     ? 100 * (mValue - rValue) / rValue
@@ -118,8 +115,8 @@ class Title extends Component<Props, State> {
                 const rowBeg = Math.min(rRow, mRow)
                 const rowEnd = Math.max(rRow, mRow)
                 for (let i = rowBeg + 1; i <= rowEnd; i++) {
-                    const time = this.xc.tr(i)
-                    if (this.xc.occurred(time)) {
+                    const time = xc.tr(i)
+                    if (xc.occurred(time)) {
                         const mKline = this.props.tvar.getByTime(time);
                         volumeSum += mKline.volume;
                     }

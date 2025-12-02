@@ -10,7 +10,7 @@ import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import type { JSX } from "react";
 
-export class KlineChartView extends ChartView<ViewProps, ViewState> {
+export class KlineView extends ChartView<ViewProps, ViewState> {
 
     static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
         let newKind: KlineChartKind
@@ -80,18 +80,18 @@ export class KlineChartView extends ChartView<ViewProps, ViewState> {
 
         const chart = KlineChart({
             klineVar: this.klineVar,
-            xc: this.xc,
+            xc: this.props.xc,
             yc: this.yc,
             kind: KlineChartKind.Candle,
             depth: 0
         });
 
         const axisy = AxisY({
-            x: this.width - ChartView.AXISY_WIDTH,
+            x: this.props.width - ChartView.AXISY_WIDTH,
             y: 0,
             width: ChartView.AXISY_WIDTH,
-            height: this.height,
-            xc: this.xc,
+            height: this.props.height,
+            xc: this.props.xc,
             yc: this.yc,
             isMasterView: true
         })
@@ -107,7 +107,7 @@ export class KlineChartView extends ChartView<ViewProps, ViewState> {
                             tvar,
                             name,
                             atIndex,
-                            xc: this.xc,
+                            xc: this.props.xc,
                             yc: this.yc,
                             depth: depth++
                         });
@@ -131,9 +131,11 @@ export class KlineChartView extends ChartView<ViewProps, ViewState> {
         /** minimum volume should be 0 */
         this.maxVolume = Number.NEGATIVE_INFINITY;
         this.minVolume = 0
-        for (let i = 1; i <= this.xc.nBars; i++) {
-            const time = this.xc.tb(i)
-            if (this.xc.occurred(time)) {
+
+        const xc = this.props.xc;
+        for (let i = 1; i <= xc.nBars; i++) {
+            const time = xc.tb(i)
+            if (xc.occurred(time)) {
                 const kline = this.klineVar.getByTime(time);
                 if (kline.close > 0) {
                     max = Math.max(max, kline.high)

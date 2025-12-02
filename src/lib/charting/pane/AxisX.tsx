@@ -4,7 +4,7 @@ import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Text";
 import { Temporal } from "temporal-polyfill";
-import { Component, createRef, useEffect, type JSX, type Ref, type RefObject, } from "react";
+import { Component, type JSX, type RefObject, } from "react";
 import type { RefreshCursor } from "../view/ChartView";
 import { textMetrics } from "../view/Format";
 import React from "react";
@@ -12,7 +12,7 @@ import React from "react";
 const MIN_TICK_SPACING = 60 // in pixels
 
 type Props = {
-	id: number,
+	id: string,
 	x: number,
 	y: number,
 	xc: ChartXControl,
@@ -31,21 +31,11 @@ type State = {
 }
 
 class AxisX extends Component<Props, State> {
-	xc: ChartXControl;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
 	ref: RefObject<SVGAElement>;
 	font: string;
 
 	constructor(props: Props) {
 		super(props);
-		this.xc = props.xc;
-		this.x = props.x || 0;
-		this.y = props.y;
-		this.width = props.width;
-		this.height = props.height;
 
 		this.ref = React.createRef();
 
@@ -57,7 +47,7 @@ class AxisX extends Component<Props, State> {
 
 	plot() {
 		const hFont = 16;
-		const nBars = this.xc.nBars
+		const nBars = this.props.xc.nBars
 
 		const color = Theme.now().axisColor;
 		const path = new Path(color);
@@ -65,15 +55,15 @@ class AxisX extends Component<Props, State> {
 
 		// draw axis-x line 
 		if (this.props.up) {
-			path.moveto(0, this.height)
-			path.lineto(this.width, this.height)
+			path.moveto(0, this.props.height)
+			path.lineto(this.props.width, this.props.height)
 
 		} else {
 			path.moveto(0, 0)
-			path.lineto(this.width, 0)
+			path.lineto(this.props.width, 0)
 		}
 
-		const tzone = this.xc.baseSer.timezone;
+		const tzone = this.props.xc.baseSer.timezone;
 		let prevDt: Temporal.ZonedDateTime;
 		let currDt: Temporal.ZonedDateTime;
 		let prevXTick: number;
@@ -93,11 +83,11 @@ class AxisX extends Component<Props, State> {
 
 		const hTick = 4;
 		for (let i = 1; i <= nBars; i++) {
-			const time = this.xc.tb(i)
+			const time = this.props.xc.tb(i)
 			currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
 			if (prevDt !== undefined && (currDt.month !== prevDt.month || currDt.year !== prevDt.year)) {
 				// new month begins
-				const xTick = this.xc.xb(i);
+				const xTick = this.props.xc.xb(i);
 				currXTick = xTick;
 
 				if (prevXTick === undefined || currXTick - prevXTick > MIN_TICK_SPACING) {
@@ -131,8 +121,8 @@ class AxisX extends Component<Props, State> {
 
 		// draw end line
 		if (this.props.up) {
-			path.moveto(0, this.height);
-			path.lineto(0, this.height - 8);
+			path.moveto(0, this.props.height);
+			path.lineto(0, this.props.height - 8);
 
 		} else {
 			path.moveto(0, 0);
@@ -153,7 +143,7 @@ class AxisX extends Component<Props, State> {
 
 	protected updateChart() {
 		// clear mouse cursor and prev value
-		this.xc.isMouseCuroseVisible = false;
+		this.props.xc.isMouseCuroseVisible = false;
 
 		const chart = this.plot();
 		this.updateState({ chart });
@@ -168,20 +158,21 @@ class AxisX extends Component<Props, State> {
 		let mouseCursor = <></>
 		const referColor = '#00F0F0'; // 'orange'
 		const mouseColor = '#00F000';
+		const xc = this.props.xc;
 
-		if (this.xc.isReferCuroseVisible) {
-			const time = this.xc.tr(this.xc.referCursorRow)
-			if (this.xc.occurred(time)) {
-				const cursorX = this.xc.xr(this.xc.referCursorRow)
+		if (this.props.xc.isReferCuroseVisible) {
+			const time = xc.tr(xc.referCursorRow)
+			if (xc.occurred(time)) {
+				const cursorX = xc.xr(xc.referCursorRow)
 
 				referCursor = this.#plotCursor(cursorX, time, referColor)
 			}
 		}
 
-		if (this.xc.isMouseCuroseVisible) {
-			const time = this.xc.tr(this.xc.mouseCursorRow)
-			if (this.xc.occurred(time)) {
-				const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+		if (xc.isMouseCuroseVisible) {
+			const time = xc.tr(xc.mouseCursorRow)
+			if (xc.occurred(time)) {
+				const cursorX = xc.xr(xc.mouseCursorRow)
 
 				mouseCursor = this.#plotCursor(cursorX, time, mouseColor)
 			}
@@ -196,9 +187,9 @@ class AxisX extends Component<Props, State> {
 
 		const x0 = x - 24;
 
-		const tzone = this.xc.baseSer.timezone;
+		const tzone = this.props.xc.baseSer.timezone;
 		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
-		const dtStr = this.xc.baseSer.timeframe.unit.formatNormalDate(dt, tzone)
+		const dtStr = this.props.xc.baseSer.timeframe.unit.formatNormalDate(dt, tzone)
 
 
 		const axisxText = new Texts('#000000')
@@ -225,7 +216,7 @@ class AxisX extends Component<Props, State> {
 	}
 
 	render() {
-		const transform = `translate(${this.x} ${this.y})`;
+		const transform = `translate(${this.props.x} ${this.props.y})`;
 
 		return (
 			<g transform={transform} ref={this.ref}>
@@ -259,6 +250,10 @@ class AxisX extends Component<Props, State> {
 
 		if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
 			this.updateCursors();
+		}
+
+		if (this.props.y !== prevProps.y) {
+			this.updateChart();
 		}
 	}
 }

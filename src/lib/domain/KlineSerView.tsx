@@ -1,5 +1,5 @@
 import { Component, memo, useRef, useState, type JSX, type ReactNode } from "react";
-import { KlineChartView } from "../charting/view/KlineChartView";
+import { KlineView } from "../charting/view/KlineView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
 import { ChartView, RefreshEvent, type ChartOf, type RefreshCursor } from "../charting/view/ChartView";
@@ -9,10 +9,10 @@ import type { TVar } from "../timeseris/TVar";
 import type { Kline } from "./Kline";
 import { Path } from "../svg/Path";
 import Title from "../charting/pane/Title";
-import Spacing from "../charting/pane/Spacing";
 import { Help } from "../charting/pane/Help";
 import { Context, PineTS, } from "pinets/src/index";
 import { TSerProvider } from "./TSerProvider";
+import { IndicatorView } from "../charting/view/IndicatorView";
 
 type Props = {
     xc: ChartXControl,
@@ -21,13 +21,23 @@ type Props = {
 }
 
 type State = {
-    refreshChart: number;
-    refreshCursors: RefreshCursor;
+    refreshChart?: number;
+    refreshCursors?: RefreshCursor;
 
-    mouseCursor: JSX.Element;
-    referCursor: JSX.Element;
+    mouseCursor?: JSX.Element;
+    referCursor?: JSX.Element;
 
-    overlappingCharts: ChartOf[];
+    overlappingCharts?: ChartOf[];
+    indicatorCharts?: ChartOf[];
+
+
+    yKlineView?: number;
+    yVolumeView?: number;
+    yIndicatorViews?: number;
+    yAxisx?: number;
+    svgHeight?: number;
+    containerHeight?: number;
+    yCursorRange?: number[];
 }
 
 class KlineSerView extends Component<Props, State> {
@@ -42,20 +52,15 @@ class KlineSerView extends Component<Props, State> {
     hTitle = 98;
     hHelp = 80;
 
-    hMasterView = 400;
-    hSlaveView = 100;
+    hKlineView = 400;
+    hVolumeView = 100;
+    hIndicatorView = 100;
     hAxisx = 40;
-    hSpacing = 10;
+    hSpacing = 15;
 
-    hViews = [this.hSpacing, this.hMasterView, this.hSpacing, this.hSlaveView, this.hSpacing, this.hAxisx];
+    hViews = [this.hSpacing, this.hKlineView, this.hSpacing, this.hVolumeView, this.hSpacing, this.hAxisx];
     UNDEFINED_YMouses = this.hViews.map(_ => undefined);
 
-    yStarts: number[];
-
-    svgHeight: number;
-    containerHeight: number;
-
-    yCursorRange: number[];
 
     constructor(props: Props) {
         super(props);
@@ -68,27 +73,17 @@ class KlineSerView extends Component<Props, State> {
 
         this.isInteractive = true;
 
-        this.svgHeight = 0;
-        this.yStarts = [];
-        let yStart = 0
-        for (const hView of this.hViews) {
-            this.yStarts.push(yStart);
-            yStart += hView;
-            this.svgHeight += hView;
-        }
-
-        this.containerHeight = this.svgHeight + this.hTitle;
-
-        this.yCursorRange = [this.yStarts[0], this.yStarts[5]];
-
         console.log("KlineSerView render");
 
+        const geometry = this.#calcGeometry([]);
         this.state = {
             refreshChart: 0,
-            refreshCursors: { changed: 0, yMouses: this.UNDEFINED_YMouses },
+            refreshCursors: { changed: 0, yMouse: {} },
             referCursor: <></>,
             mouseCursor: <></>,
-            overlappingCharts: []
+            overlappingCharts: [],
+            indicatorCharts: [],
+            ...geometry,
         }
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -118,13 +113,12 @@ class KlineSerView extends Component<Props, State> {
             };
 
         }).then(({ result }) => {
-            console.log(`Indicator calclated in ${performance.now() - startTime} ms`, result);
+            console.log(`ema calclated in ${performance.now() - startTime} ms`, result);
             startTime = performance.now();
 
             const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
             const size = this.klineSer.size();
             const values = Object.values(result);
-            console.log(values)
             for (let i = 0; i < size; i++) {
                 const vs = values.map(v => v[i]);
                 ema.setByIndex(i, vs);
@@ -134,29 +128,59 @@ class KlineSerView extends Component<Props, State> {
 
             this.updateState({
                 overlappingCharts: [
-                    { tvar: ema, atIndex: 0, vname: "ema-9", kind: "line" },
-                    { tvar: ema, atIndex: 1, vname: "ema-18", kind: "line" },
-                    { tvar: ema, atIndex: 2, vname: "ema-36", kind: "line" },
+                    { tvar: ema, atIndex: 0, name: "ema-9", kind: "line" },
+                    { tvar: ema, atIndex: 1, name: "ema-18", kind: "line" },
+                    { tvar: ema, atIndex: 2, name: "ema-36", kind: "line" },
                 ]
             })
         });
+
+        pinets.run((context: Context) => {
+            const ta = context.ta;
+            const { close } = context.data;
+
+            const rsi = ta.rsi(close, 14);
+
+            return {
+                rsi,
+            };
+
+        }).then(({ result }) => {
+            console.log(`rsi calclated in ${performance.now() - startTime} ms`, result);
+
+            const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
+            const size = this.klineSer.size();
+            const values = Object.values(result);
+            for (let i = 0; i < size; i++) {
+                const vs = values.map(v => v[i]);
+                rsi.setByIndex(i, vs);
+            }
+
+            console.log(`rsi added in ${performance.now() - startTime} ms`, rsi);
+
+            this.updateState({
+                indicatorCharts: [
+                    { tvar: rsi, atIndex: 0, name: "rsi-14", kind: "line" },
+                ]
+            })
+        })
     }
 
-    notify(event: RefreshEvent, yMouses: number[] = this.UNDEFINED_YMouses) {
+    notify(event: RefreshEvent, yMouse: { who?: string, y?: number } = {}) {
         switch (event) {
             case RefreshEvent.Chart:
                 this.updateState({ refreshChart: this.state.refreshChart + 1 });
                 break;
 
             case RefreshEvent.Cursors:
-                this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, yMouses } })
+                this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, yMouse } })
                 break;
 
             default:
         }
     }
 
-    updateState(state: object) {
+    updateState(state: State) {
         let referCursor = <></>
         let mouseCursor = <></>
         const referColor = '#00F0F0'; // 'orange'
@@ -176,7 +200,46 @@ class KlineSerView extends Component<Props, State> {
             }
         }
 
-        this.setState({ ...state, referCursor, mouseCursor })
+        const geometry = state.indicatorCharts ? this.#calcGeometry(state.indicatorCharts) : {};
+        console.log(this.state.yAxisx)
+
+        this.setState({ ...state, ...geometry, referCursor, mouseCursor })
+    }
+
+    #calcGeometry(indicatorCharts: ChartOf[]) {
+        const yKlineView = this.hSpacing;
+        const yVolumeView = yKlineView + this.hKlineView + this.hSpacing;
+        const yIndicatorViews = yVolumeView + this.hVolumeView + this.hSpacing;
+        const yAxisx = yIndicatorViews + indicatorCharts.length * (this.hIndicatorView + this.hSpacing);
+
+        const svgHeight = yAxisx + this.hAxisx;
+        const containerHeight = svgHeight + this.hTitle;
+        const yCursorRange = [0, yAxisx];
+
+        return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
+    }
+
+    #calcYMouses(y: number) {
+        if (y >= this.state.yKlineView && y < this.state.yKlineView + this.hKlineView) {
+            return { who: 'kline', y: y - this.state.yKlineView };
+
+        } else if (y >= this.state.yVolumeView && y < this.state.yVolumeView + this.hVolumeView) {
+            return { who: 'volume', y: y - this.state.yVolumeView };
+
+        } else {
+            if (this.state.indicatorCharts) {
+                for (let n = 0; n < this.state.indicatorCharts.length; n++) {
+                    if (y >= this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) &&
+                        y < this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) + this.hIndicatorView
+                    ) {
+                        return { who: 'indicator-' + n, y: y - this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) };
+                    }
+                }
+            }
+        }
+
+        return {};
+
     }
 
     #plotCursor(x: number, color: string) {
@@ -184,31 +247,14 @@ class KlineSerView extends Component<Props, State> {
         // crossPath.stroke_dasharray = '1, 1'
 
         // vertical line
-        crossPath.moveto(x, this.yCursorRange[0]);
-        crossPath.lineto(x, this.yCursorRange[1])
+        crossPath.moveto(x, this.state.yCursorRange[0]);
+        crossPath.lineto(x, this.state.yCursorRange[1])
 
         return (
             <g shapeRendering="crispEdges" >
                 {crossPath.render('container-cross')}
             </g>
         )
-    }
-
-    calcYMouses(y: number) {
-        const yMouses: number[] = [];
-
-        for (let i = 0; i < this.hViews.length; i++) {
-            const yStart = this.yStarts[i];
-            const yEnd = yStart + this.hViews[i];
-            if (y >= yStart && y <= yEnd) {
-                yMouses.push(y - yStart);
-
-            } else {
-                yMouses.push(undefined);
-            }
-        }
-
-        return yMouses;
     }
 
     isInAxisYArea(x: number) {
@@ -239,7 +285,7 @@ class KlineSerView extends Component<Props, State> {
             this.xc.isMouseCuroseVisible = false;
         }
 
-        this.notify(RefreshEvent.Cursors, this.calcYMouses(y));
+        this.notify(RefreshEvent.Cursors, this.#calcYMouses(y));
     }
 
     handleMouseDown(e: React.MouseEvent) {
@@ -263,7 +309,7 @@ class KlineSerView extends Component<Props, State> {
             if (this.isInAxisYArea(x)) {
                 // draw refer cursor only when not in the axis-y area
                 if (
-                    y >= this.yCursorRange[0] && y <= this.svgHeight &&
+                    y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
                     b >= 1 && b <= this.xc.nBars
                 ) {
                     const row = this.xc.rb(b)
@@ -361,77 +407,10 @@ class KlineSerView extends Component<Props, State> {
         }
     }
 
-    spacing = (i: number, toward?: string) => {
-        return (
-            <Spacing
-                id={i}
-                y={this.yStarts[i]}
-                height={this.hViews[i]}
-                x={0}
-                width={this.width}
-                toward={toward}
-            />
-        )
-    }
-
-    klineChartView = (i: number) => {
-        return (
-            <KlineChartView
-                id={i}
-                y={this.yStarts[i]}
-                height={this.hViews[i]}
-                x={0}
-                width={this.width}
-                name="ETH"
-                xc={this.xc}
-                baseSer={this.klineSer}
-                tvar={this.kvar}
-                isKline={true}
-                isMasterView={true}
-                refreshChart={this.state.refreshChart}
-                refreshCursors={this.state.refreshCursors}
-                overlappingCharts={this.state.overlappingCharts}
-            />
-        )
-    }
-
-    volumeView = (i: number) => {
-        return (
-            <VolumeView
-                id={i}
-                y={this.yStarts[i]}
-                height={this.hViews[i]}
-                x={0}
-                width={this.width}
-                name="Vol"
-                xc={this.xc}
-                baseSer={this.klineSer}
-                tvar={this.kvar}
-                refreshChart={this.state.refreshChart}
-                refreshCursors={this.state.refreshCursors}
-            />
-        )
-    }
-
-    axisX = (i: number) => {
-        return (
-            <AxisX
-                id={i}
-                y={this.yStarts[i]}
-                height={this.hViews[i]}
-                x={0}
-                width={this.width}
-                xc={this.xc}
-                refreshChart={this.state.refreshChart}
-                refreshCursors={this.state.refreshCursors}
-            />
-        )
-    }
-
     render() {
         return (
             // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-            <div className="container" style={{ width: this.width + 'px', height: this.containerHeight + 'px' }}
+            <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
                 onKeyDown={this.handleKeyDown}
                 onKeyUp={this.handleKeyUp}
                 tabIndex={0}
@@ -447,19 +426,70 @@ class KlineSerView extends Component<Props, State> {
                     />
                     <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                 </div>
-                <div style={{ width: this.width + 'px', height: this.svgHeight + 'px' }}>
-                    <svg viewBox={`0, 0, ${this.width} ${this.svgHeight}`} width={this.width} height={this.svgHeight} vectorEffect="non-scaling-stroke"
+                <div style={{ width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
+                    <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
                         onMouseMove={this.handleMouseMove}
                         onMouseLeave={this.handleMouseLeave}
                         onMouseDown={this.handleMouseDown}
                         onWheel={this.handleWheel}
                     >
-                        {this.spacing(0)}
-                        {this.klineChartView(1)}
-                        {this.spacing(2)}
-                        {this.volumeView(3)}
-                        {this.spacing(4)}
-                        {this.axisX(5)}
+                        <KlineView
+                            id={"kline"}
+                            y={this.state.yKlineView}
+                            height={this.hKlineView}
+                            x={0}
+                            width={this.width}
+                            name="ETH"
+                            xc={this.xc}
+                            baseSer={this.klineSer}
+                            tvar={this.kvar}
+                            isKline={true}
+                            isMasterView={true}
+                            refreshChart={this.state.refreshChart}
+                            refreshCursors={this.state.refreshCursors}
+                            overlappingCharts={this.state.overlappingCharts}
+                        />
+                        <VolumeView
+                            id={"volume"}
+                            y={this.state.yVolumeView}
+                            height={this.hVolumeView}
+                            x={0}
+                            width={this.width}
+                            name="Vol"
+                            xc={this.xc}
+                            baseSer={this.klineSer}
+                            tvar={this.kvar}
+                            refreshChart={this.state.refreshChart}
+                            refreshCursors={this.state.refreshCursors}
+                        />
+                        <AxisX
+                            id={"axisx"}
+                            y={this.state.yAxisx}
+                            height={this.hAxisx}
+                            x={0}
+                            width={this.width}
+                            xc={this.xc}
+                            refreshChart={this.state.refreshChart}
+                            refreshCursors={this.state.refreshCursors}
+                        />
+                        {
+                            this.state.indicatorCharts.map(({ tvar, atIndex, name, kind }, n) =>
+                                <IndicatorView
+                                    key={"indicator-view-" + n}
+                                    id={"indicator-" + n}
+                                    y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
+                                    height={this.hVolumeView}
+                                    x={0}
+                                    width={this.width}
+                                    name={name}
+                                    xc={this.xc}
+                                    baseSer={this.klineSer}
+                                    tvar={tvar}
+                                    refreshChart={this.state.refreshChart}
+                                    refreshCursors={this.state.refreshCursors}
+                                />
+                            )
+                        }
                         {this.state.referCursor}
                         {this.state.mouseCursor}
                     </svg>
