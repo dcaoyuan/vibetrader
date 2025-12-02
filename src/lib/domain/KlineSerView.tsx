@@ -158,12 +158,12 @@ class KlineSerView extends Component<Props, State> {
             this.updateState({
                 isLoaded: true,
                 overlappingCharts: [
-                    { tvar: ema, atIndex: 0, name: "EMA-9", kind: "line" },
-                    { tvar: ema, atIndex: 1, name: "EMA-18", kind: "line" },
-                    { tvar: ema, atIndex: 2, name: "EMA-36", kind: "line" },
+                    { tvar: ema, atIndex: 0, name: "EMA-9", kind: "line", color: "#1f77b4" },
+                    { tvar: ema, atIndex: 1, name: "EMA-18", kind: "line", color: "#aec7e8" },
+                    { tvar: ema, atIndex: 2, name: "EMA-36", kind: "line", color: "#ff7f0e" },
                 ],
                 indicatorCharts: [
-                    { tvar: rsi, atIndex: 0, name: "RSI-14", kind: "line" },
+                    { tvar: rsi, atIndex: 0, name: "RSI-14", kind: "line", color: "white" },
                 ],
             })
 
@@ -530,10 +530,10 @@ class KlineSerView extends Component<Props, State> {
                             <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
                                 {
                                     // display board for overlapping indicator 
-                                    this.state.overlappingCharts.map(({ name, mouseValue }, n) =>
+                                    this.state.overlappingCharts.map(({ name, mouseValue, color }, n) =>
                                         <span key={"overindi-" + n} >
                                             <Text style={{ color: 'white' }}>{name}  </Text>
-                                            <Text style={{ color: '#00FF00' }}>{mouseValue} </Text>
+                                            <Text style={{ color }}>{mouseValue} </Text>
                                         </span>
                                     )
                                 }
@@ -542,7 +542,7 @@ class KlineSerView extends Component<Props, State> {
                     </div>
                     {
                         // display board for each indicators
-                        this.state.indicatorCharts.map(({ name, mouseValue }, n) =>
+                        this.state.indicatorCharts.map(({ name, mouseValue, color }, n) =>
                             <div key={"indicator-title-" + n} style={{
                                 position: 'absolute',
                                 top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing,
@@ -552,7 +552,7 @@ class KlineSerView extends Component<Props, State> {
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="indis" style={{ backgroundColor: 'inherit' }}>
                                         <Text style={{ color: 'white' }}>{name}  </Text>
-                                        <Text style={{ color: '#00FF00' }}>{mouseValue}</Text>
+                                        <Text style={{ color }}>{mouseValue}</Text>
                                         <Button aria-label="b" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }} >
                                             C
                                         </Button>

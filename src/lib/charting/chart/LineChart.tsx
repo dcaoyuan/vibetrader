@@ -10,13 +10,12 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
+    color: string;
     depth?: number;
 }
 
 const LineChart = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth } = props;
-
-    const color = Theme.now().getChartColor(depth);
+    const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plotChart() {
         const path = new Path(color);

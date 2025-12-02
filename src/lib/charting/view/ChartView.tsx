@@ -28,6 +28,7 @@ export type ChartOf = {
     atIndex: number,
     name: string,
     kind: string,
+    color: string,
     mouseValue?: string,
 }
 
@@ -395,6 +396,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
         } else {
+            // mouse cursor invisible
+            if (this.props.overlappingCharts && this.props.updateOverlappingValues) {
+                this.props.updateOverlappingValues(new Array(this.props.overlappingCharts.length));
+            }
+
             if (this.props.updateIndicatorValue) {
                 this.props.updateIndicatorValue(undefined);
             }

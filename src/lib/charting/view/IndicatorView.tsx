@@ -49,8 +49,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             xc: this.props.xc,
             yc: this.yc,
             depth: 0,
+            color: "white",
             name: "",
-            atIndex: 0
+            atIndex: 0,
         });
 
         const axisy = AxisY({

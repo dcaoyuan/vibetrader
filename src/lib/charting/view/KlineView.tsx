@@ -99,13 +99,14 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const overlappingCharts = []
         if (this.props.overlappingCharts) {
             let depth = 1;
-            for (const { tvar, name, atIndex, kind } of this.props.overlappingCharts) {
+            for (const { tvar, name, atIndex, kind, color } of this.props.overlappingCharts) {
                 let ovchart: JSX.Element;
                 switch (kind) {
                     case "line":
                         ovchart = LineChart({
                             tvar,
                             name,
+                            color,
                             atIndex,
                             xc: this.props.xc,
                             yc: this.yc,
