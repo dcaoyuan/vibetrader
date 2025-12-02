@@ -2,7 +2,7 @@ import { Component, memo, useRef, useState, type JSX, type ReactNode } from "rea
 import { KlineView } from "../charting/view/KlineView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
-import { ChartView, RefreshEvent, type ChartOf, type RefreshCursor } from "../charting/view/ChartView";
+import { ChartView, UpdateEvent, type ChartOf, type UpdateCursor as UpdateCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
 import type { TSer } from "../timeseris/TSer";
 import type { TVar } from "../timeseris/TVar";
@@ -21,8 +21,8 @@ type Props = {
 }
 
 type State = {
-    refreshChart?: number;
-    refreshCursors?: RefreshCursor;
+    shouldUpdateChart?: number;
+    shouldUpdateCursors?: UpdateCursor;
 
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
@@ -60,10 +60,6 @@ class KlineSerView extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 15;
 
-    hViews = [this.hSpacing, this.hKlineView, this.hSpacing, this.hVolumeView, this.hSpacing, this.hAxisx];
-    UNDEFINED_YMouses = this.hViews.map(_ => undefined);
-
-
     constructor(props: Props) {
         super(props);
         this.xc = props.xc;
@@ -79,8 +75,8 @@ class KlineSerView extends Component<Props, State> {
 
         const geometry = this.#calcGeometry([]);
         this.state = {
-            refreshChart: 0,
-            refreshCursors: { changed: 0 },
+            shouldUpdateChart: 0,
+            shouldUpdateCursors: { changed: 0 },
             referCursor: <></>,
             mouseCursor: <></>,
             overlappingCharts: [],
@@ -172,14 +168,14 @@ class KlineSerView extends Component<Props, State> {
 
     }
 
-    notify(event: RefreshEvent, xyMouse?: { who: string, x: number, y: number }) {
+    notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }) {
         switch (event) {
-            case RefreshEvent.Chart:
-                this.updateState({ refreshChart: this.state.refreshChart + 1 });
+            case UpdateEvent.Chart:
+                this.updateState({ shouldUpdateChart: this.state.shouldUpdateChart + 1 });
                 break;
 
-            case RefreshEvent.Cursors:
-                this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, xyMouse } })
+            case UpdateEvent.Cursors:
+                this.updateState({ shouldUpdateCursors: { changed: this.state.shouldUpdateCursors.changed + 1, xyMouse } })
                 break;
 
             default:
@@ -268,7 +264,7 @@ class KlineSerView extends Component<Props, State> {
         // clear mouse cursor
         this.xc.isMouseCuroseVisible = false;
 
-        this.notify(RefreshEvent.Cursors);
+        this.notify(UpdateEvent.Cursors);
     }
 
     handleMouseMove(e: React.MouseEvent) {
@@ -288,7 +284,7 @@ class KlineSerView extends Component<Props, State> {
             this.xc.isMouseCuroseVisible = false;
         }
 
-        this.notify(RefreshEvent.Cursors, this.#calcXYMouses(x, y));
+        this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
     }
 
     handleMouseDown(e: React.MouseEvent) {
@@ -319,7 +315,7 @@ class KlineSerView extends Component<Props, State> {
                     this.xc.setReferCursorByRow(row, true)
                     this.xc.isReferCuroseVisible = true;
 
-                    this.notify(RefreshEvent.Cursors);
+                    this.notify(UpdateEvent.Cursors);
                 }
             }
         }
@@ -353,7 +349,7 @@ class KlineSerView extends Component<Props, State> {
             this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
         }
 
-        this.notify(RefreshEvent.Chart);
+        this.notify(UpdateEvent.Chart);
     }
 
     handleKeyDown(e: React.KeyboardEvent) {
@@ -392,7 +388,7 @@ class KlineSerView extends Component<Props, State> {
             default:
         }
 
-        this.notify(RefreshEvent.Chart)
+        this.notify(UpdateEvent.Chart)
     }
 
     handleKeyUp(e: React.KeyboardEvent) {
@@ -403,7 +399,7 @@ class KlineSerView extends Component<Props, State> {
 
             case "Escape":
                 this.xc.isReferCuroseVisible = false;
-                this.notify(RefreshEvent.Cursors)
+                this.notify(UpdateEvent.Cursors)
                 break;
 
             default:
@@ -424,8 +420,8 @@ class KlineSerView extends Component<Props, State> {
                         height={this.hTitle}
                         xc={this.xc}
                         tvar={this.kvar}
-                        refreshChart={this.state.refreshChart}
-                        refreshCursors={this.state.refreshCursors}
+                        shouldUpdateChart={this.state.shouldUpdateChart}
+                        shouldUpadteCursors={this.state.shouldUpdateCursors}
                     />
                     <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                 </div>
@@ -448,8 +444,8 @@ class KlineSerView extends Component<Props, State> {
                             tvar={this.kvar}
                             isKline={true}
                             isMasterView={true}
-                            refreshChart={this.state.refreshChart}
-                            refreshCursors={this.state.refreshCursors}
+                            shouldUpdateChart={this.state.shouldUpdateChart}
+                            shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlappingCharts={this.state.overlappingCharts}
                         />
                         <VolumeView
@@ -462,8 +458,8 @@ class KlineSerView extends Component<Props, State> {
                             xc={this.xc}
                             baseSer={this.klineSer}
                             tvar={this.kvar}
-                            refreshChart={this.state.refreshChart}
-                            refreshCursors={this.state.refreshCursors}
+                            shouldUpdateChart={this.state.shouldUpdateChart}
+                            shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
                         <AxisX
                             id={"axisx"}
@@ -472,8 +468,8 @@ class KlineSerView extends Component<Props, State> {
                             x={0}
                             width={this.width}
                             xc={this.xc}
-                            refreshChart={this.state.refreshChart}
-                            refreshCursors={this.state.refreshCursors}
+                            shouldUpdateChart={this.state.shouldUpdateChart}
+                            shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
                         {
                             this.state.indicatorCharts.map(({ tvar, atIndex, name, kind }, n) =>
@@ -488,8 +484,8 @@ class KlineSerView extends Component<Props, State> {
                                     xc={this.xc}
                                     baseSer={this.klineSer}
                                     tvar={tvar}
-                                    refreshChart={this.state.refreshChart}
-                                    refreshCursors={this.state.refreshCursors}
+                                    shouldUpdateChart={this.state.shouldUpdateChart}
+                                    shouldUpdateCursors={this.state.shouldUpdateCursors}
                                 />
                             )
                         }

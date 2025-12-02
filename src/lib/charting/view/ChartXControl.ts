@@ -492,7 +492,7 @@ export class ChartXControl {
 
         const oldReferRow = this.referCursorRow;
         if (oldReferRow === this.#lastOccurredRowOfBaseSer || this.#lastOccurredRowOfBaseSer <= 0) {
-            /** refresh only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
+            /** update only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
             const lastTime = Math.max(toTime, this.baseSer.lastOccurredTime());
             const referRow = this.baseSer.rowOfTime(lastTime);
             const rightRow = this.isFixedLeftSideTime() ? this.rightSideRow : referRow;

@@ -11,7 +11,7 @@ import { Temporal } from "temporal-polyfill";
 import { TUnit } from "../../timeseris/TUnit";
 import { COMMON_DECIMAL_FORMAT } from "./Format";
 
-export enum RefreshEvent {
+export enum UpdateEvent {
     Chart,
     Cursors
 }
@@ -21,7 +21,7 @@ export type ChartParts = {
     axisy: JSX.Element
 }
 
-export type RefreshCursor = {
+export type UpdateCursor = {
     changed: number,
     xyMouse?: { who: string, x: number, y: number }
 }
@@ -44,8 +44,8 @@ export interface ViewProps {
     tvar: TVar<unknown>;
     isKline?: boolean;
     isMasterView?: boolean;
-    refreshChart: number;
-    refreshCursors: RefreshCursor;
+    shouldUpdateChart: number;
+    shouldUpdateCursors: UpdateCursor;
     name: string;
     overlappingCharts?: ChartOf[];
 }
@@ -429,7 +429,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // If setState is called unconditionally, it will trigger another update,
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
-        if (this.props.refreshChart !== prevProps.refreshChart) {
+        if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
             this.updateChart();
         }
 
@@ -437,8 +437,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.updateChart();
         }
 
-        if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
-            const xyMouse = this.props.refreshCursors.xyMouse;
+        if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
+            const xyMouse = this.props.shouldUpdateCursors.xyMouse;
             if (xyMouse) {
                 if (xyMouse.who === this.id) {
                     this.updateCursors(xyMouse.x, xyMouse.y);
@@ -446,6 +446,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 } else {
                     this.updateCursors(xyMouse.x, undefined);
                 }
+
+            } else {
+                this.updateCursors(undefined, undefined);
             }
         }
     }

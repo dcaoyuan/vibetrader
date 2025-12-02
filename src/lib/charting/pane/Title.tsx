@@ -1,6 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Component, type JSX, } from "react";
-import type { RefreshCursor } from "../view/ChartView";
+import type { UpdateCursor } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
 import '../view/chartview.css';
@@ -12,8 +12,8 @@ type Props = {
     xc: ChartXControl,
     width: number,
     height: number,
-    refreshChart: number,
-    refreshCursors: RefreshCursor,
+    shouldUpdateChart: number,
+    shouldUpadteCursors: UpdateCursor,
     tvar: TVar<Kline>;
 }
 
@@ -225,11 +225,11 @@ class Title extends Component<Props, State> {
     // If setState is called unconditionally, it will trigger another update,
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.props.refreshChart !== prevProps.refreshChart) {
+        if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
             this.updateChart();
         }
 
-        if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
+        if (this.props.shouldUpadteCursors.changed !== prevProps.shouldUpadteCursors.changed) {
             this.updateCursors();
         }
     }
