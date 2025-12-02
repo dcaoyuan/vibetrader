@@ -484,6 +484,7 @@ class KlineSerView extends Component<Props, State> {
                                     xc={this.xc}
                                     baseSer={this.klineSer}
                                     tvar={tvar}
+                                    atIndex={atIndex}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
                                     shouldUpdateCursors={this.state.shouldUpdateCursors}
                                 />

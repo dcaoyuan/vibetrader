@@ -48,6 +48,9 @@ export interface ViewProps {
     shouldUpdateCursors: UpdateCursor;
     name: string;
     overlappingCharts?: ChartOf[];
+
+    // which indicator value will be used for this view (usually for indicator view) 
+    atIndex?: number;
 }
 
 export interface ViewState {
