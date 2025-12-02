@@ -80,7 +80,7 @@ class KlineSerView extends Component<Props, State> {
         const geometry = this.#calcGeometry([]);
         this.state = {
             refreshChart: 0,
-            refreshCursors: { changed: 0, yMouse: {} },
+            refreshCursors: { changed: 0 },
             referCursor: <></>,
             mouseCursor: <></>,
             overlappingCharts: [],
@@ -172,14 +172,14 @@ class KlineSerView extends Component<Props, State> {
 
     }
 
-    notify(event: RefreshEvent, yMouse: { who?: string, y?: number } = {}) {
+    notify(event: RefreshEvent, xyMouse?: { who: string, x: number, y: number }) {
         switch (event) {
             case RefreshEvent.Chart:
                 this.updateState({ refreshChart: this.state.refreshChart + 1 });
                 break;
 
             case RefreshEvent.Cursors:
-                this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, yMouse } })
+                this.updateState({ refreshCursors: { changed: this.state.refreshCursors.changed + 1, xyMouse } })
                 break;
 
             default:
@@ -221,27 +221,28 @@ class KlineSerView extends Component<Props, State> {
         return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
     }
 
-    #calcYMouses(y: number) {
+    #calcXYMouses(x: number, y: number) {
         if (y >= this.state.yKlineView && y < this.state.yKlineView + this.hKlineView) {
-            return { who: 'kline', y: y - this.state.yKlineView };
+            return { who: 'kline', x, y: y - this.state.yKlineView };
 
         } else if (y >= this.state.yVolumeView && y < this.state.yVolumeView + this.hVolumeView) {
-            return { who: 'volume', y: y - this.state.yVolumeView };
+            return { who: 'volume', x, y: y - this.state.yVolumeView };
+
+        } else if (y > this.state.yAxisx && y < this.state.yAxisx + this.hAxisx) {
+            return { who: 'axisx', x, y: y - this.state.yVolumeView };
 
         } else {
             if (this.state.indicatorCharts) {
                 for (let n = 0; n < this.state.indicatorCharts.length; n++) {
-                    if (y >= this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) &&
-                        y < this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) + this.hIndicatorView
-                    ) {
-                        return { who: 'indicator-' + n, y: y - this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) };
+                    const yIndicatorView = this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing);
+                    if (y >= yIndicatorView && y < yIndicatorView + this.hIndicatorView) {
+                        return { who: 'indicator-' + n, x, y: y - yIndicatorView };
                     }
                 }
             }
         }
 
-        return {};
-
+        return undefined;
     }
 
     #plotCursor(x: number, color: string) {
@@ -287,7 +288,7 @@ class KlineSerView extends Component<Props, State> {
             this.xc.isMouseCuroseVisible = false;
         }
 
-        this.notify(RefreshEvent.Cursors, this.#calcYMouses(y));
+        this.notify(RefreshEvent.Cursors, this.#calcXYMouses(x, y));
     }
 
     handleMouseDown(e: React.MouseEvent) {

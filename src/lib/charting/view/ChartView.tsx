@@ -23,7 +23,7 @@ export type ChartParts = {
 
 export type RefreshCursor = {
     changed: number,
-    yMouse: { who?: string, y?: number }
+    xyMouse?: { who: string, x: number, y: number }
 }
 
 export type ChartOf = {
@@ -316,11 +316,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.updateState(chartParts);
     }
 
-    protected updateCursors(yMouse: number) {
-        this.updateState({}, yMouse);
+    protected updateCursors(xMouse: number, yMouse: number) {
+        this.updateState({}, xMouse, yMouse);
     }
 
-    protected updateState(state: object, yMouse?: number) {
+    protected updateState(state: object, xMouse?: number, yMouse?: number) {
         let referCursor = <></>
         let mouseCursor = <></>
         const referColor = '#00F0F0'; // 'orange'
@@ -348,30 +348,29 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         if (xc.isMouseCuroseVisible) {
             const time = xc.tr(xc.mouseCursorRow)
-            if (xc.occurred(time)) {
+            const isOccurredTime = xc.occurred(time);
+            // try to align x to bar center
+            const cursorX = isOccurredTime ? xc.xr(xc.mouseCursorRow) : xMouse;
 
-                const cursorX = xc.xr(xc.mouseCursorRow)
-
-                let value: number;
-                let cursorY: number;
-                if (yMouse === undefined) {
-                    value = this.valueAtTime(time);
-                    if (!isNaN(value)) {
-                        cursorY = this.yc.yv(value);
-                    }
-
-                } else {
-                    cursorY = yMouse;
-                    value = this.yc.vy(cursorY);
+            let value: number;
+            let cursorY: number;
+            if (yMouse === undefined && isOccurredTime) {
+                value = this.valueAtTime(time);
+                if (!isNaN(value)) {
+                    cursorY = this.yc.yv(value);
                 }
 
-                if (cursorY && !isNaN(value)) {
-                    if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                        value /= ChartYControl.VALUE_SCALE_UNIT
-                    }
+            } else {
+                cursorY = yMouse;
+                value = this.yc.vy(cursorY);
+            }
 
-                    mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+            if (cursorY && !isNaN(value)) {
+                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                    value /= ChartYControl.VALUE_SCALE_UNIT
                 }
+
+                mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
             }
         }
 
@@ -439,11 +438,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (this.props.refreshCursors.changed !== prevProps.refreshCursors.changed) {
-            const yMouse = this.props.refreshCursors.yMouse;
-            if (yMouse.who && yMouse.who === this.id) {
-                this.updateCursors(yMouse.y);
-            } else {
-                this.updateCursors(undefined);
+            const xyMouse = this.props.refreshCursors.xyMouse;
+            if (xyMouse) {
+                if (xyMouse.who === this.id) {
+                    this.updateCursors(xyMouse.x, xyMouse.y);
+
+                } else {
+                    this.updateCursors(xyMouse.x, undefined);
+                }
             }
         }
     }
