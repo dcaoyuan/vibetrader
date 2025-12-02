@@ -331,40 +331,47 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (xc.isReferCuroseVisible) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
-                const cursorX = xc.xr(xc.referCursorRow)
-
                 let value = this.valueAtTime(time);
-                const cursorY = this.yc.yv(value)
+                if (!isNaN(value)) {
+                    const cursorX = xc.xr(xc.referCursorRow)
+                    const cursorY = this.yc.yv(value)
 
-                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                    value /= ChartYControl.VALUE_SCALE_UNIT
+                    if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                        value /= ChartYControl.VALUE_SCALE_UNIT
+                    }
+
+                    referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
+
                 }
-
-                referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
             }
         }
 
         if (xc.isMouseCuroseVisible) {
             const time = xc.tr(xc.mouseCursorRow)
             if (xc.occurred(time)) {
+
                 const cursorX = xc.xr(xc.mouseCursorRow)
 
                 let value: number;
                 let cursorY: number;
                 if (yMouse === undefined) {
                     value = this.valueAtTime(time);
-                    cursorY = this.yc.yv(value);
+                    if (!isNaN(value)) {
+                        cursorY = this.yc.yv(value);
+                    }
 
                 } else {
                     cursorY = yMouse;
                     value = this.yc.vy(cursorY);
                 }
 
-                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                    value /= ChartYControl.VALUE_SCALE_UNIT
-                }
+                if (cursorY && !isNaN(value)) {
+                    if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                        value /= ChartYControl.VALUE_SCALE_UNIT
+                    }
 
-                mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+                    mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+                }
             }
         }
 

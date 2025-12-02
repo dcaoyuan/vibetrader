@@ -38,6 +38,8 @@ type State = {
     svgHeight?: number;
     containerHeight?: number;
     yCursorRange?: number[];
+
+    isLoaded?: boolean;
 }
 
 class KlineSerView extends Component<Props, State> {
@@ -98,7 +100,7 @@ class KlineSerView extends Component<Props, State> {
         const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
         let startTime = performance.now();
 
-        pinets.run((context: Context) => {
+        const calc1 = pinets.run((context: Context) => {
             const ta = context.ta;
             const { close } = context.data;
 
@@ -111,31 +113,9 @@ class KlineSerView extends Component<Props, State> {
                 ema2,
                 ema3,
             };
+        })
 
-        }).then(({ result }) => {
-            console.log(`ema calclated in ${performance.now() - startTime} ms`, result);
-            startTime = performance.now();
-
-            const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
-            const size = this.klineSer.size();
-            const values = Object.values(result);
-            for (let i = 0; i < size; i++) {
-                const vs = values.map(v => v[i]);
-                ema.setByIndex(i, vs);
-            }
-
-            console.log(`ema added in ${performance.now() - startTime} ms`);
-
-            this.updateState({
-                overlappingCharts: [
-                    { tvar: ema, atIndex: 0, name: "ema-9", kind: "line" },
-                    { tvar: ema, atIndex: 1, name: "ema-18", kind: "line" },
-                    { tvar: ema, atIndex: 2, name: "ema-36", kind: "line" },
-                ]
-            })
-        });
-
-        pinets.run((context: Context) => {
+        const calc2 = pinets.run((context: Context) => {
             const ta = context.ta;
             const { close } = context.data;
 
@@ -144,26 +124,52 @@ class KlineSerView extends Component<Props, State> {
             return {
                 rsi,
             };
+        })
 
-        }).then(({ result }) => {
-            console.log(`rsi calclated in ${performance.now() - startTime} ms`, result);
+        Promise.all([calc1, calc2]).then((results) => {
+            const result1 = results[0].result;
+            const result2 = results[1].result;
 
-            const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
+            console.log(result1, result2);
+            console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
+
+            startTime = performance.now();
+
+            const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
             const size = this.klineSer.size();
-            const values = Object.values(result);
+            const values1 = Object.values(result1);
             for (let i = 0; i < size; i++) {
-                const vs = values.map(v => v[i]);
+                const vs = values1.map(v => v[i]);
+                ema.setByIndex(i, vs);
+            }
+
+            console.log(`ema added in ${performance.now() - startTime} ms`);
+
+            startTime = performance.now();
+            const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
+            const values2 = Object.values(result2);
+            for (let i = 0; i < size; i++) {
+                const vs = values2.map(v => v[i]);
                 rsi.setByIndex(i, vs);
             }
 
             console.log(`rsi added in ${performance.now() - startTime} ms`, rsi);
 
             this.updateState({
+                isLoaded: true,
+                overlappingCharts: [
+                    { tvar: ema, atIndex: 0, name: "ema-9", kind: "line" },
+                    { tvar: ema, atIndex: 1, name: "ema-18", kind: "line" },
+                    { tvar: ema, atIndex: 2, name: "ema-36", kind: "line" },
+                ],
                 indicatorCharts: [
                     { tvar: rsi, atIndex: 0, name: "rsi-14", kind: "line" },
                 ]
             })
+
         })
+
+
     }
 
     notify(event: RefreshEvent, yMouse: { who?: string, y?: number } = {}) {
@@ -193,15 +199,11 @@ class KlineSerView extends Component<Props, State> {
         }
 
         if (this.xc.isMouseCuroseVisible) {
-            const time = this.xc.tr(this.xc.mouseCursorRow)
-            if (this.xc.occurred(time)) {
-                const cursorX = this.xc.xr(this.xc.mouseCursorRow)
-                mouseCursor = this.#plotCursor(cursorX, '#00F000')
-            }
+            const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+            mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
 
         const geometry = state.indicatorCharts ? this.#calcGeometry(state.indicatorCharts) : {};
-        console.log(this.state.yAxisx)
 
         this.setState({ ...state, ...geometry, referCursor, mouseCursor })
     }
@@ -257,7 +259,7 @@ class KlineSerView extends Component<Props, State> {
         )
     }
 
-    isInAxisYArea(x: number) {
+    isNotInAxisYArea(x: number) {
         return x < this.width - ChartView.AXISY_WIDTH
     }
 
@@ -275,7 +277,7 @@ class KlineSerView extends Component<Props, State> {
 
         const b = this.xc.bx(x);
 
-        if (this.isInAxisYArea(x)) {
+        if (this.isNotInAxisYArea(x)) {
             // draw mouse cursor only when not in the axis-y area
             const row = this.xc.rb(b)
             this.xc.setMouseCursorByRow(row)
@@ -306,7 +308,7 @@ class KlineSerView extends Component<Props, State> {
             // align x to bar center
             const b = this.xc.bx(x);
 
-            if (this.isInAxisYArea(x)) {
+            if (this.isNotInAxisYArea(x)) {
                 // draw refer cursor only when not in the axis-y area
                 if (
                     y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
@@ -408,7 +410,7 @@ class KlineSerView extends Component<Props, State> {
     }
 
     render() {
-        return (
+        return this.state.isLoaded && (
             // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
             <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
                 onKeyDown={this.handleKeyDown}

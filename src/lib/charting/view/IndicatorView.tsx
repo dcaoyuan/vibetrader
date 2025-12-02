@@ -75,7 +75,10 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
                 const values = this.tvar.getByTime(time);
-                max = Math.max(max, values[0])
+                const v = values[0]; // TODO assign atIndex
+                if (!isNaN(v)) {
+                    max = Math.max(max, v)
+                }
             }
         }
 
