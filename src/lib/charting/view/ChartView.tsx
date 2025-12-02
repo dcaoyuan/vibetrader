@@ -7,9 +7,6 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Text";
-import { Temporal } from "temporal-polyfill";
-import { TUnit } from "../../timeseris/TUnit";
-import { COMMON_DECIMAL_FORMAT } from "./Format";
 
 export enum UpdateEvent {
     Chart,
@@ -31,6 +28,7 @@ export type ChartOf = {
     atIndex: number,
     name: string,
     kind: string,
+    mouseValue?: string,
 }
 
 export interface ViewProps {
@@ -51,6 +49,9 @@ export interface ViewProps {
 
     // which indicator value will be used for this view (usually for indicator view) 
     atIndex?: number;
+
+    updateOverlappingValues?: (vs: string[]) => void;
+    updateIndicatorValue?: (v: string) => void;
 }
 
 export interface ViewState {
@@ -363,6 +364,23 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     cursorY = this.yc.yv(value);
                 }
 
+                if (this.props.updateIndicatorValue) {
+                    this.props.updateIndicatorValue(value.toFixed(2));
+                }
+
+                if (this.props.overlappingCharts && this.props.updateOverlappingValues) {
+                    const vs = this.props.overlappingCharts.map(({ tvar, atIndex }, n) => {
+                        const indValues = tvar.getByTime(time);
+                        const v = indValues && indValues[atIndex];
+
+                        return typeof v === 'number'
+                            ? isNaN(v) ? "" : v.toFixed(2)
+                            : '' + v
+                    })
+
+                    this.props.updateOverlappingValues(vs);
+                }
+
             } else {
                 cursorY = yMouse;
                 value = this.yc.vy(cursorY);
@@ -374,6 +392,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 }
 
                 mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+            }
+
+        } else {
+            if (this.props.updateIndicatorValue) {
+                this.props.updateIndicatorValue(undefined);
             }
         }
 

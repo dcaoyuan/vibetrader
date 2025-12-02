@@ -13,6 +13,7 @@ import { Help } from "../charting/pane/Help";
 import { Context, PineTS, } from "pinets/src/index";
 import { TSerProvider } from "./TSerProvider";
 import { IndicatorView } from "../charting/view/IndicatorView";
+import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
 
 type Props = {
     xc: ChartXControl,
@@ -40,6 +41,7 @@ type State = {
     yCursorRange?: number[];
 
     isLoaded?: boolean;
+
 }
 
 class KlineSerView extends Component<Props, State> {
@@ -58,7 +60,7 @@ class KlineSerView extends Component<Props, State> {
     hVolumeView = 100;
     hIndicatorView = 100;
     hAxisx = 40;
-    hSpacing = 15;
+    hSpacing = 25;
 
     constructor(props: Props) {
         super(props);
@@ -90,6 +92,8 @@ class KlineSerView extends Component<Props, State> {
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.setOverlappingMouseValue = this.setOverlappingMouseValue.bind(this);
+        this.setIndicatorMouseValue = this.setIndicatorMouseValue.bind(this);
     }
 
     componentDidMount() {
@@ -154,13 +158,13 @@ class KlineSerView extends Component<Props, State> {
             this.updateState({
                 isLoaded: true,
                 overlappingCharts: [
-                    { tvar: ema, atIndex: 0, name: "ema-9", kind: "line" },
-                    { tvar: ema, atIndex: 1, name: "ema-18", kind: "line" },
-                    { tvar: ema, atIndex: 2, name: "ema-36", kind: "line" },
+                    { tvar: ema, atIndex: 0, name: "EMA-9", kind: "line" },
+                    { tvar: ema, atIndex: 1, name: "EMA-18", kind: "line" },
+                    { tvar: ema, atIndex: 2, name: "EMA-36", kind: "line" },
                 ],
                 indicatorCharts: [
-                    { tvar: rsi, atIndex: 0, name: "rsi-14", kind: "line" },
-                ]
+                    { tvar: rsi, atIndex: 0, name: "RSI-14", kind: "line" },
+                ],
             })
 
         })
@@ -406,6 +410,26 @@ class KlineSerView extends Component<Props, State> {
         }
     }
 
+    setOverlappingMouseValue(vs: string[]) {
+        const overlappingCharts = this.state.overlappingCharts;
+        if (overlappingCharts) {
+            for (let i = 0; i < overlappingCharts.length; i++) {
+                overlappingCharts[i].mouseValue = vs[i];
+            }
+        }
+        this.setState({ overlappingCharts })
+    }
+
+    setIndicatorMouseValue(i: number) {
+        return (v: string) => {
+            const indicatorCharts = this.state.indicatorCharts;
+            if (indicatorCharts) {
+                indicatorCharts[i].mouseValue = v;
+            }
+            this.setState({ indicatorCharts })
+        }
+    }
+
     render() {
         return this.state.isLoaded && (
             // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
@@ -425,12 +449,13 @@ class KlineSerView extends Component<Props, State> {
                     />
                     <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                 </div>
-                <div style={{ width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
+                <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
                     <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
                         onMouseMove={this.handleMouseMove}
                         onMouseLeave={this.handleMouseLeave}
                         onMouseDown={this.handleMouseDown}
                         onWheel={this.handleWheel}
+                        style={{ zIndex: 1 }}
                     >
                         <KlineView
                             id={"kline"}
@@ -447,6 +472,7 @@ class KlineSerView extends Component<Props, State> {
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlappingCharts={this.state.overlappingCharts}
+                            updateOverlappingValues={this.setOverlappingMouseValue}
                         />
                         <VolumeView
                             id={"volume"}
@@ -487,21 +513,62 @@ class KlineSerView extends Component<Props, State> {
                                     atIndex={atIndex}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
                                     shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                    updateIndicatorValue={this.setIndicatorMouseValue(n)}
                                 />
                             )
                         }
                         {this.state.referCursor}
                         {this.state.mouseCursor}
                     </svg>
+                    <div style={{
+                        position: 'absolute',
+                        top: this.state.yKlineView - this.hSpacing + 2,
+                        zIndex: 2, // ensure it's above the SVG
+                        backgroundColor: 'transparent'
+                    }}>
+                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} orientation="horizontal" >
+                            <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
+                                {
+                                    // display board for overlapping indicator 
+                                    this.state.overlappingCharts.map(({ name, mouseValue }, n) =>
+                                        <span key={"overindi-" + n} >
+                                            <Text style={{ color: 'white' }}>{name}  </Text>
+                                            <Text style={{ color: '#00FF00' }}>{mouseValue} </Text>
+                                        </span>
+                                    )
+                                }
+                            </Group>
+                        </Toolbar>
+                    </div>
+                    {
+                        // display board for each indicators
+                        this.state.indicatorCharts.map(({ name, mouseValue }, n) =>
+                            <div key={"indicator-title-" + n} style={{
+                                position: 'absolute',
+                                top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing,
+                                zIndex: 2, // ensure it's above the SVG
+                                backgroundColor: 'transparent'
+                            }}>
+                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                    <Group aria-label="indis" style={{ backgroundColor: 'inherit' }}>
+                                        <Text style={{ color: 'white' }}>{name}  </Text>
+                                        <Text style={{ color: '#00FF00' }}>{mouseValue}</Text>
+                                        <Button aria-label="b" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }} >
+                                            C
+                                        </Button>
+                                        <Button aria-label="u" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }}>
+                                            U
+                                        </Button>
+                                    </Group>
+                                </Toolbar>
+                            </div>
+                        )
+                    }
                 </div>
                 <div className="title" style={{ width: this.width, height: this.hHelp }}>
-                    <Help
-                        width={this.width}
-                        height={this.hHelp}
-                    />
+                    <Help width={this.width} height={this.hHelp} />
                     <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />
                 </div>
-
             </div >
         )
     }
