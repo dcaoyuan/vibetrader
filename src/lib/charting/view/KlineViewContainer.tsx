@@ -237,6 +237,10 @@ class KlineViewContainer extends Component<Props, State> {
         return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
     }
 
+    #indicatorViewId(n: number) {
+        return 'indicator-' + n;
+    }
+
     #calcXYMouses(x: number, y: number) {
         if (y >= this.state.yKlineView && y < this.state.yKlineView + this.hKlineView) {
             return { who: 'kline', x, y: y - this.state.yKlineView };
@@ -252,7 +256,7 @@ class KlineViewContainer extends Component<Props, State> {
                 for (let n = 0; n < this.state.stackedIndicators.length; n++) {
                     const yIndicatorView = this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing);
                     if (y >= yIndicatorView && y < yIndicatorView + this.hIndicatorView) {
-                        return { who: 'indicator-' + n, x, y: y - yIndicatorView };
+                        return { who: this.#indicatorViewId(n), x, y: y - yIndicatorView };
                     }
                 }
             }
@@ -481,8 +485,6 @@ class KlineViewContainer extends Component<Props, State> {
                             xc={this.xc}
                             baseSer={this.klineSer}
                             tvar={this.kvar}
-                            isKline={true}
-                            isMasterView={true}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicator={this.state.overlayIndicator}
@@ -517,7 +519,7 @@ class KlineViewContainer extends Component<Props, State> {
                             this.state.stackedIndicators.map(({ tvar, outputs }, n) =>
                                 <IndicatorView
                                     key={"stacked-indicator-view-" + n}
-                                    id={"stacked-indicator-" + n}
+                                    id={this.#indicatorViewId(n)}
                                     y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                     height={this.hVolumeView}
                                     x={0}

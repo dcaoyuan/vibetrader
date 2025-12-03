@@ -44,8 +44,6 @@ export interface ViewProps {
     xc: ChartXControl;
     baseSer: TSer;
     tvar: TVar<unknown>;
-    isKline?: boolean;
-    isMasterView?: boolean;
     shouldUpdateChart: number;
     shouldUpdateCursors: UpdateCursor;
     name: string;
@@ -63,7 +61,6 @@ export interface ViewState {
     width: number;
     height: number;
 
-    isKline: false;
     hasInnerVolume: false;
     maxVolume?: number;
     minVolume?: number;
@@ -135,7 +132,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-    isKline = false;
     hasInnerVolume = false;
     maxVolume?: number;
     minVolume?: number;
@@ -222,96 +218,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     popupToDesktop() {
     }
 
-    // addOverlappingCharts(ser: TSer) {
-    //   this.listenTo(ser)
-
-    //   let chartToVars = this.overlappingSerChartToVars.get(ser)
-    //   if (chartToVars === undefined) {
-    //     chartToVars = new Map<Chart, Set<TVar<unknown>>>()
-    //     this.overlappingSerChartToVars.set(ser, chartToVars)
-    //   }
-
-    //   let depthGradient = Pane.DEPTH_GRADIENT_BEGIN
-
-    //   for (let [k, v] of ser.vars if v.plot != Plot.None) {
-    //     const chart = if (v.plot == Plot.Signal && baseSer instanceOf KlineSer) {
-    //       const qser = baseSer.asInstanceOf[KlineSer]
-    //       ChartFactory.createVarChart(v, qser.high, qser.low)
-
-    //     } else if (v.plot === Plot.Info) {
-    //       ChartFactory.createVarChart(v, ser.vars : _ *)
-
-    //     } else {
-    //       ChartFactory.createVarChart(v)
-    //     }
-
-    //     if (chart != null) {
-    //       let vars = chartToVars.get(chart);
-    //       if (vars === undefined) {
-    //         vars = new Set<TVar<unknown>>()
-    //         chartToVars.set(chart, vars)
-    //       }
-    //       vars.add(v);
-
-    //       switch (chart.tag) {
-    //         case "GradientChart":
-    //           chart.depth = depthGradient; depthGradient--
-    //           break;
-    //         case "ProfileChart":
-    //           chart.depth = depthGradient; depthGradient--
-    //           break;
-    //         case "StickChart":
-    //           chart.depth = -8
-    //           break;
-    //         default:
-    //           chart.depth = this.#lastDepthOfOverlappingChart;
-    //           this.#lastDepthOfOverlappingChart++;
-    //       }
-
-    //       chart.set(this.mainChartPane, ser)
-    //       this.mainChartPane.putChart(chart)
-    //     }
-    //   }
-
-    //   notifyChanged(classOf[ChartValidityObserver])
-
-    //   repaint()
-    // }
-
-    // removeOverlappingCharts(ser: TSer) {
-    //   deafTo(ser)
-
-    //   const chartToVars = this.overlappingSerChartToVars.get(ser) ?? new Map<Chart, Set<TVar<unknown>>>();
-    //   chartToVars.forEach(
-    //     chartToVars => {
-    //       for (let chart of chartToVars.keys()) {
-    //         mainChartPane.removeChart(chart)
-    //         switch (chart.tag) {
-    //           case "GradientChart": /** noop */
-    //           case "ProfileChart": /** noop */
-    //           case "StickChart": /** noop */
-    //             break;
-    //           default:
-    //             this.#lastDepthOfOverlappingChart--
-    //         }
-    //       }
-    //       /** release chartToVars */
-    //       chartToVars.clear
-    //       overlappingSerChartToVars.remove(ser)
-    //     }
-    //   )
-
-    //   notifyChanged(classOf[ChartValidityObserver])
-
-    //   repaint()
-    // }
-
     computeMaxMin() {
-        // if don't need maxValue/minValue, don't let them all equal 0, just set them to 1 and 0 
+        // if no need maxValue/minValue, don't let them all equal 0, just set to 1 and 0 
         this.maxValue = 1;
         this.minValue = 0;
     }
 
+    // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
     abstract plot(): ChartParts;
@@ -340,18 +253,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let referTime = undefined;
         if (xc.isReferCuroseVisible) {
             referTime = xc.tr(xc.referCursorRow)
-            if (xc.occurred(referTime)) {
+            const isOccurredTime = xc.occurred(referTime);
+
+            if (isOccurredTime) {
+                const cursorX = xc.xr(xc.referCursorRow)
+
+                let cursorY: number
                 let value = this.valueAtTime(referTime);
-                if (!isNaN(value)) {
-                    const cursorX = xc.xr(xc.referCursorRow)
-                    const cursorY = this.yc.yv(value)
+                if (value && !isNaN(value)) {
+                    cursorY = this.yc.yv(value)
 
                     if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
                         value /= ChartYControl.VALUE_SCALE_UNIT
                     }
 
                     referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, referColor)
-
                 }
             }
         }
@@ -367,7 +283,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             let cursorY: number;
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
-                if (!isNaN(value)) {
+                if (value && !isNaN(value)) {
                     cursorY = this.yc.yv(value);
                 }
 
@@ -523,6 +439,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
             const xyMouse = this.props.shouldUpdateCursors.xyMouse;
             if (xyMouse) {
+                console.log(xyMouse, this.id)
                 if (xyMouse.who === this.id) {
                     this.updateCursors(xyMouse.x, xyMouse.y);
 

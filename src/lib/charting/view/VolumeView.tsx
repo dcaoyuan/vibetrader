@@ -23,7 +23,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             width: props.width,
             height: props.height,
 
-            isKline: false,
             hasInnerVolume: false,
             maxVolume: undefined,
             minVolume: undefined,

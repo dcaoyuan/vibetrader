@@ -21,7 +21,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             width: props.width,
             height: props.height,
 
-            isKline: false,
             hasInnerVolume: false,
             maxVolume: undefined,
             minVolume: undefined,
@@ -121,8 +120,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         }
     }
 
+    // won't show cursor value of time.
     override valueAtTime(time: number) {
-        return this.tvar.getByTime(time)[0];
+        return undefined;
     }
 
     render() {

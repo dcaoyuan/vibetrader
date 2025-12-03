@@ -54,7 +54,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             width: props.width,
             height: props.height,
 
-            isKline: false,
             hasInnerVolume: false,
             maxVolume: undefined,
             minVolume: undefined,
