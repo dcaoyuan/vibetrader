@@ -185,6 +185,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
+                {this.state.latestValueLabel}
                 {this.state.stackCharts.map((c, n) => <g key={n}>{c}</g>)}
             </g >
         )

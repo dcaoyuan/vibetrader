@@ -77,6 +77,8 @@ export interface ViewState {
     mouseCursor: JSX.Element
     referCursor: JSX.Element
 
+    latestValueLabel?: JSX.Element
+
     stackCharts?: JSX.Element[];
 }
 
@@ -245,10 +247,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     protected updateState(state: object, xMouse?: number, yMouse?: number) {
         let referCursor = <></>
         let mouseCursor = <></>
-        const referColor = '#00F0F0C0'; // 'orange'
+        let latestValueLabel = undefined
+        const referColor = '#00F0F0C0';
         const mouseColor = '#00F000';
+        const latestColor = '#ffa500'; // orange
 
         const xc = this.props.xc;
+
+        const latestTime = this.props.xc.lastOccurredTime();
 
         let referTime = undefined;
         if (xc.isReferCuroseVisible) {
@@ -283,7 +289,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             let cursorY: number;
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
-                if (value && !isNaN(value)) {
+                if (value) {
                     cursorY = this.yc.yv(value);
                 }
 
@@ -292,7 +298,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 value = this.yc.vy(cursorY);
             }
 
-            if (cursorY && !isNaN(value)) {
+            if (cursorY && value) {
                 if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
                     value /= ChartYControl.VALUE_SCALE_UNIT
                 }
@@ -302,14 +308,22 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         } else {
             // mouse cursor invisible
-            mouseTime = this.props.xc.lastOccurredTime();
+            mouseTime = latestTime;
         }
 
-        this.#tryToUpdateIndicatorLables(mouseTime, referTime);
-        this.setState({ ...state, referCursor, mouseCursor })
+        if (latestTime && latestTime > 0) {
+            const value = this.valueAtTime(latestTime);
+            if (value) {
+                const y = this.yc.yv(value);
+                latestValueLabel = this.plotYValueLabel(y, value.toFixed(3), latestColor)
+            }
+        }
+
+        this.tryToUpdateIndicatorLables(mouseTime, referTime);
+        this.setState({ ...state, referCursor, mouseCursor, latestValueLabel })
     }
 
-    #tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
+    tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
         if (this.props.overlayIndicator && this.props.updateOverlayIndicatorLabels) {
             const tvar = this.props.overlayIndicator.tvar;
 
@@ -372,9 +386,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     #plotCursor(x: number, y: number, time: number, value: number, color: string) {
-        const wAnnot = 44; // annotation width
-        const hAnnot = 12; // annotation height
-
         const wAxisY = ChartView.AXISY_WIDTH
 
         const valueStr = value.toPrecision(5);
@@ -386,6 +397,24 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         crossPath.moveto(0, y);
         crossPath.lineto(this.props.width - wAxisY, y)
 
+        const valueLabel = this.plotYValueLabel(y, valueStr, color);
+
+        return (
+            <>
+                <g shapeRendering="crispEdges" >
+                    {crossPath.render('axisy-cross')}
+                </g>
+                {valueLabel}
+            </>
+        )
+    }
+
+    plotYValueLabel(y: number, valueStr: string, color: string) {
+        const wLabel = 44; // label width
+        const hLabel = 12; // label height
+
+        const wAxisY = ChartView.AXISY_WIDTH
+
         const axisyText = new Texts('#000000')
         const axisyPath = new Path(color, color)
         const y0 = y + 6
@@ -396,9 +425,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         axisyPath.lineto(6, y + 3);
 
         axisyPath.moveto(x0, y0);
-        axisyPath.lineto(x0 + wAnnot, y0);
-        axisyPath.lineto(x0 + wAnnot, y0 - hAnnot);
-        axisyPath.lineto(x0, y0 - hAnnot);
+        axisyPath.lineto(x0 + wLabel, y0);
+        axisyPath.lineto(x0 + wLabel, y0 - hLabel);
+        axisyPath.lineto(x0, y0 - hLabel);
         axisyPath.closepath();
         axisyText.text(8, y0 - 1, valueStr);
 
@@ -407,9 +436,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         return (
             // pay attention to the order to avoid text being overlapped
             <>
-                <g shapeRendering="crispEdges" >
-                    {crossPath.render('axisy-cross')}
-                </g>
                 <g transform={transformYAnnot}>
                     {axisyPath.render('axisy-tick')}
                     {axisyText.render('axisy-annot')}
@@ -439,7 +465,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
             const xyMouse = this.props.shouldUpdateCursors.xyMouse;
             if (xyMouse) {
-                console.log(xyMouse, this.id)
                 if (xyMouse.who === this.id) {
                     this.updateCursors(xyMouse.x, xyMouse.y);
 
