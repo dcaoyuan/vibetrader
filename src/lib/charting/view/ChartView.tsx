@@ -74,8 +74,8 @@ export interface ViewState {
     charts: JSX.Element[];
     axisy?: JSX.Element;
 
-    mouseCursor: JSX.Element
-    referCursor: JSX.Element
+    mouseCursor?: JSX.Element
+    referCursor?: JSX.Element
 
     latestValueLabel?: JSX.Element
 
@@ -245,8 +245,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateState(state: object, xMouse?: number, yMouse?: number) {
-        let referCursor = <></>
-        let mouseCursor = <></>
+        let referCursor = undefined
+        let mouseCursor = undefined
         let latestValueLabel = undefined
         const referColor = '#00F0F0C0';
         const mouseColor = '#00F000';

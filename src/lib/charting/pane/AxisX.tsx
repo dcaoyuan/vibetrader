@@ -154,8 +154,8 @@ class AxisX extends Component<Props, State> {
 	}
 
 	protected updateState(state: object) {
-		let referCursor = <></>
-		let mouseCursor = <></>
+		let referCursor = undefined
+		let mouseCursor = undefined
 		const referColor = '#00F0F0'; // 'orange'
 		const mouseColor = '#00F000';
 		const xc = this.props.xc;

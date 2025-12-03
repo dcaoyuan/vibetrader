@@ -24,8 +24,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             height: props.height,
 
             hasInnerVolume: false,
-            maxVolume: undefined,
-            minVolume: undefined,
 
             maxValue: 1.0,
             minValue: 0.0,
@@ -35,9 +33,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
 
             charts,
             axisy,
-
-            mouseCursor: <></>,
-            referCursor: <></>,
         };
 
     }

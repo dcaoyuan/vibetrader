@@ -84,9 +84,6 @@ class KlineViewContainer extends Component<Props, State> {
         this.state = {
             shouldUpdateChart: 0,
             shouldUpdateCursors: { changed: 0 },
-            referCursor: <></>,
-            mouseCursor: <></>,
-            overlayIndicator: undefined,
             stackedIndicators: [],
             ...geometry,
         }
@@ -198,8 +195,8 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     updateState(state: State) {
-        let referCursor = <></>
-        let mouseCursor = <></>
+        let referCursor = undefined
+        let mouseCursor = undefined
         const referColor = '#00F0F0C0'; // 'orange'
         if (this.xc.isReferCuroseVisible) {
             const time = this.xc.tr(this.xc.referCursorRow)
