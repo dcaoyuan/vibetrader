@@ -17,7 +17,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
 
         this.klineVar = props.tvar as TVar<Kline>;
 
-        const { chart, axisy } = this.plot();
+        const { charts, axisy } = this.plot();
 
         this.state = {
             width: props.width,
@@ -34,7 +34,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             isInteractive: true,
             isPinned: false,
 
-            chart,
+            charts,
             axisy,
 
             mouseCursor: <></>,
@@ -46,12 +46,12 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chart = VolmueChart({
+        const charts = [VolmueChart({
             klineVar: this.klineVar,
             xc: this.props.xc,
             yc: this.yc,
             depth: 0
-        });
+        })];
 
         const axisy = AxisY({
             x: this.props.width - ChartView.AXISY_WIDTH,
@@ -62,7 +62,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             yc: this.yc,
         })
 
-        return { chart, axisy }
+        return { charts, axisy }
     }
 
     override computeMaxMin() {
@@ -116,7 +116,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.chart}
+                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}

@@ -2,7 +2,7 @@ import { Component, memo, useRef, useState, type JSX, type ReactNode } from "rea
 import { KlineView } from "../charting/view/KlineView";
 import { VolumeView } from "../charting/view/VolumeView";
 import { ChartXControl } from "../charting/view/ChartXControl";
-import { ChartView, UpdateEvent, type ChartOf, type UpdateCursor as UpdateCursor } from "../charting/view/ChartView";
+import { ChartView, UpdateEvent, type Indicator, type UpdateCursor as UpdateCursor } from "../charting/view/ChartView";
 import AxisX from "../charting/pane/AxisX";
 import type { TSer } from "../timeseris/TSer";
 import type { TVar } from "../timeseris/TVar";
@@ -28,9 +28,11 @@ type State = {
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
 
-    overlappingCharts?: ChartOf[];
-    indicatorCharts?: ChartOf[];
+    stackIndicator?: Indicator;
+    inlineIndicators?: Indicator[];
 
+    stackIndicatorLabels?: string[];
+    inlineIndicatorLabels?: string[][];
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -81,8 +83,8 @@ class KlineSerView extends Component<Props, State> {
             shouldUpdateCursors: { changed: 0 },
             referCursor: <></>,
             mouseCursor: <></>,
-            overlappingCharts: [],
-            indicatorCharts: [],
+            stackIndicator: undefined,
+            inlineIndicators: [],
             ...geometry,
         }
 
@@ -92,8 +94,8 @@ class KlineSerView extends Component<Props, State> {
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.setOverlappingMouseValue = this.setOverlappingMouseValue.bind(this);
-        this.setIndicatorMouseValue = this.setIndicatorMouseValue.bind(this);
+        this.setStackIndicatorLabels = this.setStackIndicatorLabels.bind(this);
+        this.setInlineIndicatorLabels = this.setInlineIndicatorLabels.bind(this);
     }
 
     componentDidMount() {
@@ -130,7 +132,6 @@ class KlineSerView extends Component<Props, State> {
             const result1 = results[0].result;
             const result2 = results[1].result;
 
-            console.log(result1, result2);
             console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
 
             startTime = performance.now();
@@ -153,22 +154,29 @@ class KlineSerView extends Component<Props, State> {
                 rsi.setByIndex(i, vs);
             }
 
-            console.log(`rsi added in ${performance.now() - startTime} ms`, rsi);
+            console.log(`rsi added in ${performance.now() - startTime} ms`);
 
             this.updateState({
                 isLoaded: true,
-                overlappingCharts: [
-                    { tvar: ema, atIndex: 0, name: "EMA-9", kind: "line", color: "#1f77b4" },
-                    { tvar: ema, atIndex: 1, name: "EMA-18", kind: "line", color: "#aec7e8" },
-                    { tvar: ema, atIndex: 2, name: "EMA-36", kind: "line", color: "#ff7f0e" },
-                ],
-                indicatorCharts: [
-                    { tvar: rsi, atIndex: 0, name: "RSI-14", kind: "line", color: "white" },
+                stackIndicator: {
+                    tvar: ema,
+                    outputs: [
+                        { atIndex: 0, name: "EMA-9", plot: "line", color: "#1f77b4" },
+                        { atIndex: 1, name: "EMA-18", plot: "line", color: "#aec7e8" },
+                        { atIndex: 2, name: "EMA-36", plot: "line", color: "#ff7f0e" },
+                    ]
+                },
+                inlineIndicators: [
+                    {
+                        tvar: rsi,
+                        outputs: [
+                            { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
+                        ]
+                    },
                 ],
             })
 
         })
-
 
     }
 
@@ -189,7 +197,7 @@ class KlineSerView extends Component<Props, State> {
     updateState(state: State) {
         let referCursor = <></>
         let mouseCursor = <></>
-        const referColor = '#00F0F0'; // 'orange'
+        const referColor = '#00F0F0C0'; // 'orange'
         if (this.xc.isReferCuroseVisible) {
             const time = this.xc.tr(this.xc.referCursorRow)
             if (this.xc.occurred(time)) {
@@ -203,12 +211,12 @@ class KlineSerView extends Component<Props, State> {
             mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
 
-        const geometry = state.indicatorCharts ? this.#calcGeometry(state.indicatorCharts) : {};
+        const geometry = state.inlineIndicators ? this.#calcGeometry(state.inlineIndicators) : {};
 
         this.setState({ ...state, ...geometry, referCursor, mouseCursor })
     }
 
-    #calcGeometry(indicatorCharts: ChartOf[]) {
+    #calcGeometry(indicatorCharts: Indicator[]) {
         const yKlineView = this.hSpacing;
         const yVolumeView = yKlineView + this.hKlineView + this.hSpacing;
         const yIndicatorViews = yVolumeView + this.hVolumeView + this.hSpacing;
@@ -232,8 +240,8 @@ class KlineSerView extends Component<Props, State> {
             return { who: 'axisx', x, y: y - this.state.yVolumeView };
 
         } else {
-            if (this.state.indicatorCharts) {
-                for (let n = 0; n < this.state.indicatorCharts.length; n++) {
+            if (this.state.inlineIndicators) {
+                for (let n = 0; n < this.state.inlineIndicators.length; n++) {
                     const yIndicatorView = this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing);
                     if (y >= yIndicatorView && y < yIndicatorView + this.hIndicatorView) {
                         return { who: 'indicator-' + n, x, y: y - yIndicatorView };
@@ -410,23 +418,17 @@ class KlineSerView extends Component<Props, State> {
         }
     }
 
-    setOverlappingMouseValue(vs: string[]) {
-        const overlappingCharts = this.state.overlappingCharts;
-        if (overlappingCharts) {
-            for (let i = 0; i < overlappingCharts.length; i++) {
-                overlappingCharts[i].mouseValue = vs[i];
-            }
-        }
-        this.setState({ overlappingCharts })
+    setStackIndicatorLabels(vs: string[]) {
+        this.setState({ stackIndicatorLabels: vs })
     }
 
-    setIndicatorMouseValue(i: number) {
-        return (v: string) => {
-            const indicatorCharts = this.state.indicatorCharts;
-            if (indicatorCharts) {
-                indicatorCharts[i].mouseValue = v;
-            }
-            this.setState({ indicatorCharts })
+    setInlineIndicatorLabels(n: number) {
+        return (vs: string[]) => {
+            let inlineIndicatorValues = this.state.inlineIndicatorLabels
+            inlineIndicatorValues = inlineIndicatorValues || new Array(this.state.inlineIndicators.length)
+            inlineIndicatorValues[n] = vs;
+
+            this.setState({ inlineIndicatorLabels: inlineIndicatorValues })
         }
     }
 
@@ -471,8 +473,8 @@ class KlineSerView extends Component<Props, State> {
                             isMasterView={true}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
-                            overlappingCharts={this.state.overlappingCharts}
-                            updateOverlappingValues={this.setOverlappingMouseValue}
+                            stackIndicator={this.state.stackIndicator}
+                            updateStackIndicatorLabels={this.setStackIndicatorLabels}
                         />
                         <VolumeView
                             id={"volume"}
@@ -498,22 +500,22 @@ class KlineSerView extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
                         {
-                            this.state.indicatorCharts.map(({ tvar, atIndex, name, kind }, n) =>
+                            this.state.inlineIndicators.map(({ tvar, outputs }, n) =>
                                 <IndicatorView
-                                    key={"indicator-view-" + n}
-                                    id={"indicator-" + n}
+                                    key={"inline-indicator-view-" + n}
+                                    id={"inline-indicator-" + n}
                                     y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                     height={this.hVolumeView}
                                     x={0}
+                                    name={""}
                                     width={this.width}
-                                    name={name}
                                     xc={this.xc}
                                     baseSer={this.klineSer}
                                     tvar={tvar}
-                                    atIndex={atIndex}
+                                    indicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
                                     shouldUpdateCursors={this.state.shouldUpdateCursors}
-                                    updateIndicatorValue={this.setIndicatorMouseValue(n)}
+                                    updateInlineIndicatorLabels={this.setInlineIndicatorLabels(n)}
                                 />
                             )
                         }
@@ -530,10 +532,14 @@ class KlineSerView extends Component<Props, State> {
                             <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
                                 {
                                     // display board for overlapping indicator 
-                                    this.state.overlappingCharts.map(({ name, mouseValue, color }, n) =>
+                                    this.state.stackIndicator.outputs.map(({ name, color }, n) =>
                                         <span key={"overindi-" + n} >
-                                            <Text style={{ color: 'white' }}>{name}  </Text>
-                                            <Text style={{ color }}>{mouseValue} </Text>
+                                            <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
+                                            <Text style={{ color }}>{
+                                                this.state.stackIndicatorLabels &&
+                                                this.state.stackIndicatorLabels[n]}
+                                                &nbsp;&nbsp;
+                                            </Text>
                                         </span>
                                     )
                                 }
@@ -542,7 +548,7 @@ class KlineSerView extends Component<Props, State> {
                     </div>
                     {
                         // display board for each indicators
-                        this.state.indicatorCharts.map(({ name, mouseValue, color }, n) =>
+                        this.state.inlineIndicators.map(({ outputs }, n) =>
                             <div key={"indicator-title-" + n} style={{
                                 position: 'absolute',
                                 top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing,
@@ -551,8 +557,19 @@ class KlineSerView extends Component<Props, State> {
                             }}>
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="indis" style={{ backgroundColor: 'inherit' }}>
-                                        <Text style={{ color: 'white' }}>{name}  </Text>
-                                        <Text style={{ color }}>{mouseValue}</Text>
+                                        {
+                                            outputs.map(({ name, color }, k) =>
+                                                <span key={"inline-indicator-" + n + '-' + k} >
+                                                    <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
+                                                    <Text style={{ color }}>{
+                                                        this.state.inlineIndicatorLabels &&
+                                                        this.state.inlineIndicatorLabels[n] &&
+                                                        this.state.inlineIndicatorLabels[n][k]}
+                                                        &nbsp;&nbsp;
+                                                    </Text>
+                                                </span>
+                                            )
+                                        }
                                         <Button aria-label="b" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }} >
                                             C
                                         </Button>

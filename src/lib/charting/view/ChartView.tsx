@@ -14,7 +14,7 @@ export enum UpdateEvent {
 }
 
 export type ChartParts = {
-    chart: JSX.Element,
+    charts: JSX.Element[],
     axisy: JSX.Element
 }
 
@@ -23,13 +23,16 @@ export type UpdateCursor = {
     xyMouse?: { who: string, x: number, y: number }
 }
 
-export type ChartOf = {
+export type Indicator = {
     tvar: TVar<unknown[]>;
+    outputs: Output[]
+}
+
+export type Output = {
     atIndex: number,
     name: string,
-    kind: string,
+    plot: string,
     color: string,
-    mouseValue?: string,
 }
 
 export interface ViewProps {
@@ -46,13 +49,14 @@ export interface ViewProps {
     shouldUpdateChart: number;
     shouldUpdateCursors: UpdateCursor;
     name: string;
-    overlappingCharts?: ChartOf[];
 
-    // which indicator value will be used for this view (usually for indicator view) 
-    atIndex?: number;
+    // for indicator chart view's main indicator outputs
+    indicatorOutputs?: Output[]
 
-    updateOverlappingValues?: (vs: string[]) => void;
-    updateIndicatorValue?: (v: string) => void;
+    stackIndicator?: Indicator;
+
+    updateStackIndicatorLabels?: (vs: string[]) => void;
+    updateInlineIndicatorLabels?: (vs: string[]) => void;
 }
 
 export interface ViewState {
@@ -70,13 +74,13 @@ export interface ViewState {
     isInteractive: true
     isPinned: false
 
-    chart: JSX.Element;
+    charts: JSX.Element[];
     axisy?: JSX.Element;
 
     mouseCursor: JSX.Element
     referCursor: JSX.Element
 
-    overlappingCharts?: JSX.Element[];
+    stackCharts?: JSX.Element[];
 }
 
 /**
@@ -328,7 +332,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     protected updateState(state: object, xMouse?: number, yMouse?: number) {
         let referCursor = <></>
         let mouseCursor = <></>
-        const referColor = '#00F0F0'; // 'orange'
+        const referColor = '#00F0F0C0'; // 'orange'
         const mouseColor = '#00F000';
 
         const xc = this.props.xc;
@@ -365,21 +369,27 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     cursorY = this.yc.yv(value);
                 }
 
-                if (this.props.updateIndicatorValue) {
-                    this.props.updateIndicatorValue(value.toFixed(2));
+                if (this.props.updateInlineIndicatorLabels) {
+                    const vs = (this.props.tvar.getByTime(time) as unknown[]).map((v) =>
+                        typeof v === 'number'
+                            ? isNaN(v) ? "" : v.toFixed(2)
+                            : '' + v
+                    );
+
+                    this.props.updateInlineIndicatorLabels(vs);
                 }
 
-                if (this.props.overlappingCharts && this.props.updateOverlappingValues) {
-                    const vs = this.props.overlappingCharts.map(({ tvar, atIndex }, n) => {
-                        const indValues = tvar.getByTime(time);
-                        const v = indValues && indValues[atIndex];
-
+                if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
+                    const tvar = this.props.stackIndicator.tvar;
+                    const vs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                        const values = tvar.getByTime(time);
+                        const v = values[atIndex];
                         return typeof v === 'number'
                             ? isNaN(v) ? "" : v.toFixed(2)
                             : '' + v
                     })
 
-                    this.props.updateOverlappingValues(vs);
+                    this.props.updateStackIndicatorLabels(vs);
                 }
 
             } else {
@@ -397,12 +407,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         } else {
             // mouse cursor invisible
-            if (this.props.overlappingCharts && this.props.updateOverlappingValues) {
-                this.props.updateOverlappingValues(new Array(this.props.overlappingCharts.length));
+            if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
+                this.props.updateStackIndicatorLabels(new Array(this.props.stackIndicator.outputs.length));
             }
 
-            if (this.props.updateIndicatorValue) {
-                this.props.updateIndicatorValue(undefined);
+            if (this.props.updateInlineIndicatorLabels) {
+                this.props.updateInlineIndicatorLabels(undefined);
             }
         }
 
@@ -465,7 +475,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.updateChart();
         }
 
-        if (this.props.overlappingCharts !== prevProps.overlappingCharts) {
+        if (this.props.stackIndicator !== prevProps.stackIndicator) {
             this.updateChart();
         }
 

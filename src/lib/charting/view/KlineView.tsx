@@ -48,7 +48,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         this.klineVar = props.tvar as TVar<Kline>;
 
-        const { chart, axisy, overlappingCharts } = this.plot();
+        const { charts, axisy, stackCharts } = this.plot();
 
         this.state = {
             width: props.width,
@@ -65,9 +65,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             isInteractive: true,
             isPinned: false,
 
-            chart,
+            charts,
             axisy,
-            overlappingCharts,
+            stackCharts,
 
             mouseCursor: <></>,
             referCursor: <></>,
@@ -78,13 +78,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chart = KlineChart({
+        const charts = [KlineChart({
             klineVar: this.klineVar,
             xc: this.props.xc,
             yc: this.yc,
             kind: KlineChartKind.Candle,
             depth: 0
-        });
+        })];
 
         const axisy = AxisY({
             x: this.props.width - ChartView.AXISY_WIDTH,
@@ -96,12 +96,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             isMasterView: true
         })
 
-        const overlappingCharts = []
-        if (this.props.overlappingCharts) {
+        const stackCharts = []
+        if (this.props.stackIndicator) {
             let depth = 1;
-            for (const { tvar, name, atIndex, kind, color } of this.props.overlappingCharts) {
+            const tvar = this.props.stackIndicator.tvar;
+            for (const { plot, name, color, atIndex } of this.props.stackIndicator.outputs) {
                 let ovchart: JSX.Element;
-                switch (kind) {
+                switch (plot) {
                     case "line":
                         ovchart = LineChart({
                             tvar,
@@ -117,12 +118,12 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     default:
                 }
                 if (ovchart) {
-                    overlappingCharts.push(ovchart)
+                    stackCharts.push(ovchart)
                 }
             }
         }
 
-        return { chart, axisy, overlappingCharts }
+        return { charts, axisy, stackCharts }
     }
 
     override computeMaxMin() {
@@ -181,11 +182,11 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.chart}
+                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
-                {this.state.overlappingCharts.map((c, i) => <g key={i}>{c}</g>)}
+                {this.state.stackCharts.map((c, n) => <g key={n}>{c}</g>)}
             </g >
         )
     }

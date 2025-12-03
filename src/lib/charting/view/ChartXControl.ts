@@ -109,6 +109,10 @@ export class ChartXControl {
         return this.baseSer.occurred(time);
     }
 
+    lastOccurredTime(): number {
+        return this.baseSer.lastOccurredTime()
+    }
+
     /**
      * barIndex -> x
      *

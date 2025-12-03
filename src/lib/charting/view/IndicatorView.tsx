@@ -15,7 +15,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
         this.tvar = props.tvar
 
-        const { chart, axisy } = this.plot();
+        const { charts, axisy } = this.plot();
 
         this.state = {
             width: props.width,
@@ -32,7 +32,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             isInteractive: true,
             isPinned: false,
 
-            chart,
+            charts,
             axisy,
 
             mouseCursor: <></>,
@@ -44,15 +44,24 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chart = LineChart({
-            tvar: this.tvar as TVar<unknown[]>,
-            xc: this.props.xc,
-            yc: this.yc,
-            depth: 0,
-            color: "white",
-            name: "",
-            atIndex: 0,
-        });
+        const charts = this.props.indicatorOutputs.map(({ atIndex, color, name, plot }) => {
+            switch (plot) {
+                case 'line':
+                    return LineChart({
+                        tvar: this.tvar as TVar<unknown[]>,
+                        xc: this.props.xc,
+                        yc: this.yc,
+                        depth: 0,
+                        color,
+                        name,
+                        atIndex,
+                    })
+
+                default:
+                    return <></>
+
+            }
+        })
 
         const axisy = AxisY({
             x: this.props.width - ChartView.AXISY_WIDTH,
@@ -63,7 +72,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             yc: this.yc,
         })
 
-        return { chart, axisy }
+        return { charts, axisy }
     }
 
     override computeMaxMin() {
@@ -76,9 +85,11 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
                 const values = this.tvar.getByTime(time);
-                const v = values[this.props.atIndex];
-                if (!isNaN(v)) {
-                    max = Math.max(max, v)
+                for (const { atIndex } of this.props.indicatorOutputs) {
+                    const v = values[atIndex];
+                    if (!isNaN(v)) {
+                        max = Math.max(max, v)
+                    }
                 }
             }
         }
@@ -118,7 +129,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.chart}
+                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
