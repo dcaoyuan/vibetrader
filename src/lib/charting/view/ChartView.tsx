@@ -55,8 +55,8 @@ export interface ViewProps {
 
     stackIndicator?: Indicator;
 
-    updateStackIndicatorLabels?: (vs: string[]) => void;
-    updateInlineIndicatorLabels?: (vs: string[]) => void;
+    updateStackIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+    updateInlineIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
 }
 
 export interface ViewState {
@@ -337,10 +337,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const xc = this.props.xc;
 
+        let referTime = undefined;
         if (xc.isReferCuroseVisible) {
-            const time = xc.tr(xc.referCursorRow)
-            if (xc.occurred(time)) {
-                let value = this.valueAtTime(time);
+            referTime = xc.tr(xc.referCursorRow)
+            if (xc.occurred(referTime)) {
+                let value = this.valueAtTime(referTime);
                 if (!isNaN(value)) {
                     const cursorX = xc.xr(xc.referCursorRow)
                     const cursorY = this.yc.yv(value)
@@ -349,27 +350,26 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         value /= ChartYControl.VALUE_SCALE_UNIT
                     }
 
-                    referCursor = this.#plotCursor(cursorX, cursorY, time, value, referColor)
+                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, referColor)
 
                 }
             }
         }
 
+        let mouseTime = undefined;
         if (xc.isMouseCuroseVisible) {
-            const time = xc.tr(xc.mouseCursorRow)
-            const isOccurredTime = xc.occurred(time);
+            mouseTime = xc.tr(xc.mouseCursorRow)
+            const isOccurredTime = xc.occurred(mouseTime);
             // try to align x to bar center
             const cursorX = isOccurredTime ? xc.xr(xc.mouseCursorRow) : xMouse;
 
             let value: number;
             let cursorY: number;
             if (yMouse === undefined && isOccurredTime) {
-                value = this.valueAtTime(time);
+                value = this.valueAtTime(mouseTime);
                 if (!isNaN(value)) {
                     cursorY = this.yc.yv(value);
                 }
-
-                this.#tryToUpdateIndicatorLables(time)
 
             } else {
                 cursorY = yMouse;
@@ -381,50 +381,75 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     value /= ChartYControl.VALUE_SCALE_UNIT
                 }
 
-                mouseCursor = this.#plotCursor(cursorX, cursorY, time, value, mouseColor)
+                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, mouseColor)
             }
 
         } else {
             // mouse cursor invisible
-            const lastOccurredTime = this.props.xc.lastOccurredTime();
-
-            this.#tryToUpdateIndicatorLables(lastOccurredTime)
+            mouseTime = this.props.xc.lastOccurredTime();
         }
 
+        this.#tryToUpdateIndicatorLables(mouseTime, referTime);
         this.setState({ ...state, referCursor, mouseCursor })
     }
 
-    #tryToUpdateIndicatorLables(time: number) {
+    #tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
         if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
-            if (time && time > 0) {
-                const tvar = this.props.stackIndicator.tvar;
-                const vs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
-                    const values = tvar.getByTime(time);
+            const tvar = this.props.stackIndicator.tvar;
+
+            let mvs = undefined;
+            if (mouseTime && mouseTime > 0) {
+                mvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                    const values = tvar.getByTime(mouseTime);
                     const v = values[atIndex];
                     return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
                 })
-                this.props.updateStackIndicatorLabels(vs);
 
             } else {
-                this.props.updateStackIndicatorLabels(new Array(this.props.stackIndicator.outputs.length));
+                mvs = new Array(this.props.stackIndicator.outputs.length);
             }
+
+            let rvs = undefined;
+            if (referTime && referTime > 0) {
+                rvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                    const values = tvar.getByTime(referTime);
+                    const v = values[atIndex];
+                    return typeof v === 'number'
+                        ? isNaN(v) ? "" : v.toFixed(2)
+                        : '' + v
+                })
+
+            } else {
+                rvs = new Array(this.props.stackIndicator.outputs.length);
+            }
+
+            this.props.updateStackIndicatorLabels(mvs, rvs);
         }
 
         if (this.props.updateInlineIndicatorLabels) {
-            if (time && time > 0) {
-                const vs = (this.props.tvar.getByTime(time) as unknown[]).map((v) =>
+            const tvar = this.props.tvar;
+            let vs = undefined;
+            if (mouseTime && mouseTime > 0) {
+                vs = (tvar.getByTime(mouseTime) as unknown[]).map((v) =>
                     typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
                 );
 
-                this.props.updateInlineIndicatorLabels(vs);
-
-            } else {
-                this.props.updateInlineIndicatorLabels(undefined);
             }
+
+            let refVs = undefined;
+            if (referTime && referTime > 0) {
+                refVs = (tvar.getByTime(referTime) as unknown[]).map((v) =>
+                    typeof v === 'number'
+                        ? isNaN(v) ? "" : v.toFixed(2)
+                        : '' + v
+                );
+            }
+
+            this.props.updateInlineIndicatorLabels(vs, refVs);
         }
     }
 

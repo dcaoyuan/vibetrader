@@ -34,6 +34,9 @@ type State = {
     stackIndicatorLabels?: string[];
     inlineIndicatorLabels?: string[][];
 
+    referStackIndicatorLabels?: string[];
+    referInlineIndicatorLabels?: string[][];
+
     yKlineView?: number;
     yVolumeView?: number;
     yIndicatorViews?: number;
@@ -418,17 +421,21 @@ class KlineSerView extends Component<Props, State> {
         }
     }
 
-    setStackIndicatorLabels(vs: string[]) {
-        this.setState({ stackIndicatorLabels: vs })
+    setStackIndicatorLabels(vs: string[], refVs?: string[]) {
+        this.setState({ stackIndicatorLabels: vs, referStackIndicatorLabels: refVs })
     }
 
     setInlineIndicatorLabels(n: number) {
-        return (vs: string[]) => {
-            let inlineIndicatorValues = this.state.inlineIndicatorLabels
-            inlineIndicatorValues = inlineIndicatorValues || new Array(this.state.inlineIndicators.length)
-            inlineIndicatorValues[n] = vs;
+        return (vs: string[], refVs?: string[]) => {
+            let inlineIndicatorLabels = this.state.inlineIndicatorLabels
+            inlineIndicatorLabels = inlineIndicatorLabels || new Array(this.state.inlineIndicators.length)
+            inlineIndicatorLabels[n] = vs;
 
-            this.setState({ inlineIndicatorLabels: inlineIndicatorValues })
+            let referInlineIndicatorLabels = this.state.referInlineIndicatorLabels
+            referInlineIndicatorLabels = referInlineIndicatorLabels || new Array(this.state.inlineIndicators.length)
+            referInlineIndicatorLabels[n] = refVs;
+
+            this.setState({ inlineIndicatorLabels, referInlineIndicatorLabels })
         }
     }
 
@@ -476,6 +483,7 @@ class KlineSerView extends Component<Props, State> {
                             stackIndicator={this.state.stackIndicator}
                             updateStackIndicatorLabels={this.setStackIndicatorLabels}
                         />
+
                         <VolumeView
                             id={"volume"}
                             y={this.state.yVolumeView}
@@ -489,6 +497,7 @@ class KlineSerView extends Component<Props, State> {
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
+
                         <AxisX
                             id={"axisx"}
                             y={this.state.yAxisx}
@@ -519,19 +528,25 @@ class KlineSerView extends Component<Props, State> {
                                 />
                             )
                         }
+
                         {this.state.referCursor}
                         {this.state.mouseCursor}
+
                     </svg>
+
+                    {/* labels for stack indicator  */}
                     <div style={{
                         position: 'absolute',
                         top: this.state.yKlineView - this.hSpacing + 2,
                         zIndex: 2, // ensure it's above the SVG
-                        backgroundColor: 'transparent'
+                        backgroundColor: 'transparent',
+                        width: this.width - ChartView.AXISY_WIDTH,
+                        display: 'flex', justifyContent: 'space-between',
+                        padding: '0px 0px'
                     }}>
-                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} orientation="horizontal" >
+                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                             <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    // display board for overlapping indicator 
                                     this.state.stackIndicator.outputs.map(({ name, color }, n) =>
                                         <span key={"overindi-" + n} >
                                             <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
@@ -545,18 +560,38 @@ class KlineSerView extends Component<Props, State> {
                                 }
                             </Group>
                         </Toolbar>
+                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                            <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
+                                {
+                                    this.xc.isReferCuroseVisible && this.state.stackIndicator.outputs.map(({ name, color }, n) =>
+                                        <span key={"overindi-" + n} >
+                                            <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
+                                            <Text style={{ color }}>{
+                                                this.state.referStackIndicatorLabels &&
+                                                this.state.referStackIndicatorLabels[n]}
+                                                &nbsp;&nbsp;
+                                            </Text>
+                                        </span>
+                                    )
+                                }
+                            </Group>
+                        </Toolbar>
                     </div>
+
+                    {/* labels for inline indicators */}
                     {
-                        // display board for each indicators
                         this.state.inlineIndicators.map(({ outputs }, n) =>
                             <div key={"indicator-title-" + n} style={{
                                 position: 'absolute',
-                                top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing,
+                                top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
                                 zIndex: 2, // ensure it's above the SVG
-                                backgroundColor: 'transparent'
+                                backgroundColor: 'transparent',
+                                width: this.width - ChartView.AXISY_WIDTH,
+                                display: 'flex', justifyContent: 'space-between',
+                                padding: '0px 0px'
                             }}>
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                    <Group aria-label="indis" style={{ backgroundColor: 'inherit' }}>
+                                    <Group aria-label="indicator-mouse" style={{ backgroundColor: 'inherit' }}>
                                         {
                                             outputs.map(({ name, color }, k) =>
                                                 <span key={"inline-indicator-" + n + '-' + k} >
@@ -570,18 +605,31 @@ class KlineSerView extends Component<Props, State> {
                                                 </span>
                                             )
                                         }
-                                        <Button aria-label="b" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }} >
-                                            C
-                                        </Button>
-                                        <Button aria-label="u" style={{ backgroundColor: 'inherit', color: 'inherit', fontSize: '10px' }}>
-                                            U
-                                        </Button>
+                                    </Group>
+                                </Toolbar>
+
+                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                    <Group aria-label="indicator-refer" style={{ backgroundColor: 'inherit' }}>
+                                        {
+                                            this.xc.isReferCuroseVisible && outputs.map(({ name, color }, k) =>
+                                                <span key={"inline-indicator-" + n + '-' + k} >
+                                                    <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
+                                                    <Text style={{ color }}>{
+                                                        this.state.referInlineIndicatorLabels &&
+                                                        this.state.referInlineIndicatorLabels[n] &&
+                                                        this.state.referInlineIndicatorLabels[n][k]}
+                                                        &nbsp;&nbsp;
+                                                    </Text>
+                                                </span>
+                                            )
+                                        }
                                     </Group>
                                 </Toolbar>
                             </div>
                         )
                     }
                 </div>
+
                 <div className="title" style={{ width: this.width, height: this.hHelp }}>
                     <Help width={this.width} height={this.hHelp} />
                     <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />

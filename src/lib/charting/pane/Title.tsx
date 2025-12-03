@@ -152,7 +152,7 @@ class Title extends Component<Props, State> {
 
         return (
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                     <ListBoxItem textValue="O">
                         {mKline && <>
                             <Text style={{ color: lColor }}>O </Text>
@@ -190,7 +190,7 @@ class Title extends Component<Props, State> {
                     </ListBoxItem>
                 </ListBox>
 
-                <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
+                <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
                     <ListBoxItem textValue="O">
                         {rKline && <>
                             <Text style={{ color: lColor }}>O </Text>
