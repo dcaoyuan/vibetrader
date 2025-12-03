@@ -369,28 +369,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     cursorY = this.yc.yv(value);
                 }
 
-                if (this.props.updateInlineIndicatorLabels) {
-                    const vs = (this.props.tvar.getByTime(time) as unknown[]).map((v) =>
-                        typeof v === 'number'
-                            ? isNaN(v) ? "" : v.toFixed(2)
-                            : '' + v
-                    );
-
-                    this.props.updateInlineIndicatorLabels(vs);
-                }
-
-                if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
-                    const tvar = this.props.stackIndicator.tvar;
-                    const vs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
-                        const values = tvar.getByTime(time);
-                        const v = values[atIndex];
-                        return typeof v === 'number'
-                            ? isNaN(v) ? "" : v.toFixed(2)
-                            : '' + v
-                    })
-
-                    this.props.updateStackIndicatorLabels(vs);
-                }
+                this.#tryToUpdateIndicatorLables(time)
 
             } else {
                 cursorY = yMouse;
@@ -407,16 +386,46 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         } else {
             // mouse cursor invisible
-            if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
-                this.props.updateStackIndicatorLabels(new Array(this.props.stackIndicator.outputs.length));
-            }
+            const lastOccurredTime = this.props.xc.lastOccurredTime();
 
-            if (this.props.updateInlineIndicatorLabels) {
-                this.props.updateInlineIndicatorLabels(undefined);
-            }
+            this.#tryToUpdateIndicatorLables(lastOccurredTime)
         }
 
         this.setState({ ...state, referCursor, mouseCursor })
+    }
+
+    #tryToUpdateIndicatorLables(time: number) {
+        if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
+            if (time && time > 0) {
+                const tvar = this.props.stackIndicator.tvar;
+                const vs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                    const values = tvar.getByTime(time);
+                    const v = values[atIndex];
+                    return typeof v === 'number'
+                        ? isNaN(v) ? "" : v.toFixed(2)
+                        : '' + v
+                })
+                this.props.updateStackIndicatorLabels(vs);
+
+            } else {
+                this.props.updateStackIndicatorLabels(new Array(this.props.stackIndicator.outputs.length));
+            }
+        }
+
+        if (this.props.updateInlineIndicatorLabels) {
+            if (time && time > 0) {
+                const vs = (this.props.tvar.getByTime(time) as unknown[]).map((v) =>
+                    typeof v === 'number'
+                        ? isNaN(v) ? "" : v.toFixed(2)
+                        : '' + v
+                );
+
+                this.props.updateInlineIndicatorLabels(vs);
+
+            } else {
+                this.props.updateInlineIndicatorLabels(undefined);
+            }
+        }
     }
 
     #plotCursor(x: number, y: number, time: number, value: number, color: string) {
@@ -464,6 +473,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 </g>
             </>
         )
+    }
+
+    override componentDidMount(): void {
+        // call to update labels;
+        this.updateCursors(undefined, undefined);
     }
 
     // Important: Be careful when calling setState within componentDidUpdate

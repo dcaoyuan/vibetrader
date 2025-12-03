@@ -81,6 +81,12 @@ class Title extends Component<Props, State> {
             if (xc.occurred(time)) {
                 mouseKline = this.props.tvar.getByTime(time);
             }
+
+        } else {
+            const time = xc.lastOccurredTime()
+            if (time && time > 0) {
+                mouseKline = this.props.tvar.getByTime(time);
+            }
         }
 
         const delta = this.calcDelta()
@@ -220,6 +226,11 @@ class Title extends Component<Props, State> {
         )
     }
 
+    override componentDidMount(): void {
+        // call to update labels;
+        this.updateCursors();
+    }
+
     // Important: Be careful when calling setState within componentDidUpdate
     // Ensure you have a conditional check to prevent infinite re-renders.
     // If setState is called unconditionally, it will trigger another update,
@@ -233,7 +244,6 @@ class Title extends Component<Props, State> {
             this.updateCursors();
         }
     }
-
 }
 
 export default Title;
