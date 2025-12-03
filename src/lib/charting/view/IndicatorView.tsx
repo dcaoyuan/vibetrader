@@ -44,7 +44,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = this.props.indicatorOutputs.map(({ atIndex, color, name, plot }) => {
+        const charts = this.props.mainIndicatorOutputs.map(({ atIndex, color, name, plot }) => {
             switch (plot) {
                 case 'line':
                     return LineChart({
@@ -85,7 +85,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
                 const values = this.tvar.getByTime(time);
-                for (const { atIndex } of this.props.indicatorOutputs) {
+                for (const { atIndex } of this.props.mainIndicatorOutputs) {
                     const v = values[atIndex];
                     if (!isNaN(v)) {
                         max = Math.max(max, v)

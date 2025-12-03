@@ -28,14 +28,14 @@ type State = {
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
 
-    stackIndicator?: Indicator;
-    inlineIndicators?: Indicator[];
+    overlayIndicator?: Indicator;
+    stackedIndicators?: Indicator[];
 
-    stackIndicatorLabels?: string[];
-    inlineIndicatorLabels?: string[][];
+    overlayIndicatorLabels?: string[];
+    stackedIndicatorLabels?: string[][];
 
-    referStackIndicatorLabels?: string[];
-    referInlineIndicatorLabels?: string[][];
+    referOverlayIndicatorLabels?: string[];
+    referStackedIndicatorLabels?: string[][];
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -86,8 +86,8 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateCursors: { changed: 0 },
             referCursor: <></>,
             mouseCursor: <></>,
-            stackIndicator: undefined,
-            inlineIndicators: [],
+            overlayIndicator: undefined,
+            stackedIndicators: [],
             ...geometry,
         }
 
@@ -97,8 +97,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.setStackIndicatorLabels = this.setStackIndicatorLabels.bind(this);
-        this.setInlineIndicatorLabels = this.setInlineIndicatorLabels.bind(this);
+        this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this);
+        this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this);
     }
 
     componentDidMount() {
@@ -161,7 +161,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             this.updateState({
                 isLoaded: true,
-                stackIndicator: {
+                overlayIndicator: {
                     tvar: ema,
                     outputs: [
                         { atIndex: 0, name: "EMA-9", plot: "line", color: "#1f77b4" },
@@ -169,7 +169,7 @@ class KlineViewContainer extends Component<Props, State> {
                         { atIndex: 2, name: "EMA-36", plot: "line", color: "#ff7f0e" },
                     ]
                 },
-                inlineIndicators: [
+                stackedIndicators: [
                     {
                         tvar: rsi,
                         outputs: [
@@ -215,20 +215,20 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         // need to re-calculate geometry?
-        const geometry = state.inlineIndicators
-            ? this.#calcGeometry(state.inlineIndicators)
+        const geometry = state.stackedIndicators
+            ? this.#calcGeometry(state.stackedIndicators)
             : undefined
 
         this.setState({ ...state, ...geometry, referCursor, mouseCursor })
     }
 
-    #calcGeometry(inlineIndicators: Indicator[]) {
-        inlineIndicators = inlineIndicators || [];
+    #calcGeometry(stackedIndicators: Indicator[]) {
+        stackedIndicators = stackedIndicators || [];
 
         const yKlineView = this.hSpacing;
         const yVolumeView = yKlineView + this.hKlineView + this.hSpacing;
         const yIndicatorViews = yVolumeView + this.hVolumeView + this.hSpacing;
-        const yAxisx = yIndicatorViews + inlineIndicators.length * (this.hIndicatorView + this.hSpacing);
+        const yAxisx = yIndicatorViews + stackedIndicators.length * (this.hIndicatorView + this.hSpacing);
 
         const svgHeight = yAxisx + this.hAxisx;
         const containerHeight = svgHeight + this.hTitle;
@@ -248,8 +248,8 @@ class KlineViewContainer extends Component<Props, State> {
             return { who: 'axisx', x, y: y - this.state.yVolumeView };
 
         } else {
-            if (this.state.inlineIndicators) {
-                for (let n = 0; n < this.state.inlineIndicators.length; n++) {
+            if (this.state.stackedIndicators) {
+                for (let n = 0; n < this.state.stackedIndicators.length; n++) {
                     const yIndicatorView = this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing);
                     if (y >= yIndicatorView && y < yIndicatorView + this.hIndicatorView) {
                         return { who: 'indicator-' + n, x, y: y - yIndicatorView };
@@ -426,21 +426,21 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    setStackIndicatorLabels(vs: string[], refVs?: string[]) {
-        this.setState({ stackIndicatorLabels: vs, referStackIndicatorLabels: refVs })
+    setOverlayIndicatorLabels(vs: string[], refVs?: string[]) {
+        this.setState({ overlayIndicatorLabels: vs, referOverlayIndicatorLabels: refVs })
     }
 
-    setInlineIndicatorLabels(n: number) {
+    setStackedIndicatorLabels(n: number) {
         return (vs: string[], refVs?: string[]) => {
-            let inlineIndicatorLabels = this.state.inlineIndicatorLabels
-            inlineIndicatorLabels = inlineIndicatorLabels || new Array(this.state.inlineIndicators.length)
-            inlineIndicatorLabels[n] = vs;
+            let stackedIndicatorLabels = this.state.stackedIndicatorLabels
+            stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+            stackedIndicatorLabels[n] = vs;
 
-            let referInlineIndicatorLabels = this.state.referInlineIndicatorLabels
-            referInlineIndicatorLabels = referInlineIndicatorLabels || new Array(this.state.inlineIndicators.length)
-            referInlineIndicatorLabels[n] = refVs;
+            let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
+            referStackedIndicatorLabels = referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+            referStackedIndicatorLabels[n] = refVs;
 
-            this.setState({ inlineIndicatorLabels, referInlineIndicatorLabels })
+            this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
         }
     }
 
@@ -485,8 +485,8 @@ class KlineViewContainer extends Component<Props, State> {
                             isMasterView={true}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
-                            stackIndicator={this.state.stackIndicator}
-                            updateStackIndicatorLabels={this.setStackIndicatorLabels}
+                            overlayIndicator={this.state.overlayIndicator}
+                            updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
                         />
 
                         <VolumeView
@@ -514,10 +514,10 @@ class KlineViewContainer extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
                         {
-                            this.state.inlineIndicators.map(({ tvar, outputs }, n) =>
+                            this.state.stackedIndicators.map(({ tvar, outputs }, n) =>
                                 <IndicatorView
-                                    key={"inline-indicator-view-" + n}
-                                    id={"inline-indicator-" + n}
+                                    key={"stacked-indicator-view-" + n}
+                                    id={"stacked-indicator-" + n}
                                     y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                     height={this.hVolumeView}
                                     x={0}
@@ -526,10 +526,10 @@ class KlineViewContainer extends Component<Props, State> {
                                     xc={this.xc}
                                     baseSer={this.klineSer}
                                     tvar={tvar}
-                                    indicatorOutputs={outputs}
+                                    mainIndicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
                                     shouldUpdateCursors={this.state.shouldUpdateCursors}
-                                    updateInlineIndicatorLabels={this.setInlineIndicatorLabels(n)}
+                                    updateStackedIndicatorLabels={this.setStackedIndicatorLabels(n)}
                                 />
                             )
                         }
@@ -539,7 +539,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                     </svg>
 
-                    {/* labels for stack indicator  */}
+                    {/* labels for overlay indicator  */}
                     <div style={{
                         position: 'absolute',
                         top: this.state.yKlineView - this.hSpacing + 2,
@@ -550,14 +550,14 @@ class KlineViewContainer extends Component<Props, State> {
                         padding: '0px 0px'
                     }}>
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                            <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
+                            <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.state.stackIndicator.outputs.map(({ name, color }, n) =>
-                                        <span key={"overindi-" + n} >
+                                    this.state.overlayIndicator.outputs.map(({ name, color }, n) =>
+                                        <span key={"overlay-indicator-lable-" + n} >
                                             <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
                                             <Text style={{ color }}>{
-                                                this.state.stackIndicatorLabels &&
-                                                this.state.stackIndicatorLabels[n]}
+                                                this.state.overlayIndicatorLabels &&
+                                                this.state.overlayIndicatorLabels[n]}
                                                 &nbsp;&nbsp;
                                             </Text>
                                         </span>
@@ -566,14 +566,14 @@ class KlineViewContainer extends Component<Props, State> {
                             </Group>
                         </Toolbar>
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                            <Group aria-label="Clipboard" style={{ backgroundColor: 'inherit' }}>
+                            <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.xc.isReferCuroseVisible && this.state.stackIndicator.outputs.map(({ name, color }, n) =>
-                                        <span key={"overindi-" + n} >
+                                    this.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ name, color }, n) =>
+                                        <span key={"ovarlay-indicator-lable-" + n} >
                                             <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
                                             <Text style={{ color }}>{
-                                                this.state.referStackIndicatorLabels &&
-                                                this.state.referStackIndicatorLabels[n]}
+                                                this.state.referOverlayIndicatorLabels &&
+                                                this.state.referOverlayIndicatorLabels[n]}
                                                 &nbsp;&nbsp;
                                             </Text>
                                         </span>
@@ -583,9 +583,9 @@ class KlineViewContainer extends Component<Props, State> {
                         </Toolbar>
                     </div>
 
-                    {/* labels for inline indicators */}
+                    {/* labels for stacked indicators */}
                     {
-                        this.state.inlineIndicators.map(({ outputs }, n) =>
+                        this.state.stackedIndicators.map(({ outputs }, n) =>
                             <div key={"indicator-title-" + n} style={{
                                 position: 'absolute',
                                 top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
@@ -596,15 +596,15 @@ class KlineViewContainer extends Component<Props, State> {
                                 padding: '0px 0px'
                             }}>
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                    <Group aria-label="indicator-mouse" style={{ backgroundColor: 'inherit' }}>
+                                    <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
                                         {
                                             outputs.map(({ name, color }, k) =>
-                                                <span key={"inline-indicator-" + n + '-' + k} >
+                                                <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                     <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
                                                     <Text style={{ color }}>{
-                                                        this.state.inlineIndicatorLabels &&
-                                                        this.state.inlineIndicatorLabels[n] &&
-                                                        this.state.inlineIndicatorLabels[n][k]}
+                                                        this.state.stackedIndicatorLabels &&
+                                                        this.state.stackedIndicatorLabels[n] &&
+                                                        this.state.stackedIndicatorLabels[n][k]}
                                                         &nbsp;&nbsp;
                                                     </Text>
                                                 </span>
@@ -614,15 +614,15 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Toolbar>
 
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                    <Group aria-label="indicator-refer" style={{ backgroundColor: 'inherit' }}>
+                                    <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
                                         {
                                             this.xc.isReferCuroseVisible && outputs.map(({ name, color }, k) =>
-                                                <span key={"inline-indicator-" + n + '-' + k} >
+                                                <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                     <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
                                                     <Text style={{ color }}>{
-                                                        this.state.referInlineIndicatorLabels &&
-                                                        this.state.referInlineIndicatorLabels[n] &&
-                                                        this.state.referInlineIndicatorLabels[n][k]}
+                                                        this.state.referStackedIndicatorLabels &&
+                                                        this.state.referStackedIndicatorLabels[n] &&
+                                                        this.state.referStackedIndicatorLabels[n][k]}
                                                         &nbsp;&nbsp;
                                                     </Text>
                                                 </span>

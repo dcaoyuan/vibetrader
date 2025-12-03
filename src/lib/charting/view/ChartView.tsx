@@ -51,12 +51,12 @@ export interface ViewProps {
     name: string;
 
     // for indicator chart view's main indicator outputs
-    indicatorOutputs?: Output[]
+    mainIndicatorOutputs?: Output[]
 
-    stackIndicator?: Indicator;
+    overlayIndicator?: Indicator;
 
-    updateStackIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
-    updateInlineIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+    updateOverlayIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+    updateStackedIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
 }
 
 export interface ViewState {
@@ -394,12 +394,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     #tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
-        if (this.props.stackIndicator && this.props.updateStackIndicatorLabels) {
-            const tvar = this.props.stackIndicator.tvar;
+        if (this.props.overlayIndicator && this.props.updateOverlayIndicatorLabels) {
+            const tvar = this.props.overlayIndicator.tvar;
 
             let mvs = undefined;
             if (mouseTime && mouseTime > 0) {
-                mvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                mvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(mouseTime);
                     const v = values ? values[atIndex] : '';
                     return typeof v === 'number'
@@ -408,12 +408,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 })
 
             } else {
-                mvs = new Array(this.props.stackIndicator.outputs.length);
+                mvs = new Array(this.props.overlayIndicator.outputs.length);
             }
 
             let rvs = undefined;
             if (referTime && referTime > 0) {
-                rvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
+                rvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(referTime);
                     const v = values ? values[atIndex] : '';
                     return typeof v === 'number'
@@ -422,13 +422,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 })
 
             } else {
-                rvs = new Array(this.props.stackIndicator.outputs.length);
+                rvs = new Array(this.props.overlayIndicator.outputs.length);
             }
 
-            this.props.updateStackIndicatorLabels(mvs, rvs);
+            this.props.updateOverlayIndicatorLabels(mvs, rvs);
         }
 
-        if (this.props.updateInlineIndicatorLabels) {
+        if (this.props.updateStackedIndicatorLabels) {
             const tvar = this.props.tvar;
             let mvs = undefined;
             if (mouseTime && mouseTime > 0) {
@@ -451,7 +451,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 );
             }
 
-            this.props.updateInlineIndicatorLabels(mvs, rvs);
+            this.props.updateStackedIndicatorLabels(mvs, rvs);
         }
     }
 
@@ -516,7 +516,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.updateChart();
         }
 
-        if (this.props.stackIndicator !== prevProps.stackIndicator) {
+        if (this.props.overlayIndicator !== prevProps.overlayIndicator) {
             this.updateChart();
         }
 
