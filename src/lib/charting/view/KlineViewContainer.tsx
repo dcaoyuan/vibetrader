@@ -1,18 +1,18 @@
 import { Component, memo, useRef, useState, type JSX, type ReactNode } from "react";
-import { KlineView } from "../charting/view/KlineView";
-import { VolumeView } from "../charting/view/VolumeView";
-import { ChartXControl } from "../charting/view/ChartXControl";
-import { ChartView, UpdateEvent, type Indicator, type UpdateCursor as UpdateCursor } from "../charting/view/ChartView";
-import AxisX from "../charting/pane/AxisX";
-import type { TSer } from "../timeseris/TSer";
-import type { TVar } from "../timeseris/TVar";
-import type { Kline } from "./Kline";
-import { Path } from "../svg/Path";
-import Title from "../charting/pane/Title";
-import { Help } from "../charting/pane/Help";
+import { KlineView } from "./KlineView";
+import { VolumeView } from "./VolumeView";
+import { ChartXControl } from "./ChartXControl";
+import { ChartView, UpdateEvent, type Indicator, type UpdateCursor as UpdateCursor } from "./ChartView";
+import AxisX from "../pane/AxisX";
+import type { TSer } from "../../timeseris/TSer";
+import type { TVar } from "../../timeseris/TVar";
+import type { Kline } from "../../domain/Kline";
+import { Path } from "../../svg/Path";
+import Title from "../pane/Title";
+import { Help } from "../pane/Help";
 import { Context, PineTS, } from "pinets/src/index";
-import { TSerProvider } from "./TSerProvider";
-import { IndicatorView } from "../charting/view/IndicatorView";
+import { TSerProvider } from "../../domain/TSerProvider";
+import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
 
 type Props = {
@@ -49,7 +49,7 @@ type State = {
 
 }
 
-class KlineSerView extends Component<Props, State> {
+class KlineViewContainer extends Component<Props, State> {
 
     xc: ChartXControl
     klineSer: TSer;
@@ -78,7 +78,7 @@ class KlineSerView extends Component<Props, State> {
 
         this.isInteractive = true;
 
-        console.log("KlineSerView render");
+        console.log("KlinerViewContainer render");
 
         const geometry = this.#calcGeometry([]);
         this.state = {
@@ -644,4 +644,4 @@ class KlineSerView extends Component<Props, State> {
     }
 }
 
-export default KlineSerView 
+export default KlineViewContainer 
