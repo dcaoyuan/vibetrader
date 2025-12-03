@@ -214,16 +214,21 @@ class KlineSerView extends Component<Props, State> {
             mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
 
-        const geometry = state.inlineIndicators ? this.#calcGeometry(state.inlineIndicators) : {};
+        // need to re-calculate geometry?
+        const geometry = state.inlineIndicators
+            ? this.#calcGeometry(state.inlineIndicators)
+            : undefined
 
         this.setState({ ...state, ...geometry, referCursor, mouseCursor })
     }
 
-    #calcGeometry(indicatorCharts: Indicator[]) {
+    #calcGeometry(inlineIndicators: Indicator[]) {
+        inlineIndicators = inlineIndicators || [];
+
         const yKlineView = this.hSpacing;
         const yVolumeView = yKlineView + this.hKlineView + this.hSpacing;
         const yIndicatorViews = yVolumeView + this.hVolumeView + this.hSpacing;
-        const yAxisx = yIndicatorViews + indicatorCharts.length * (this.hIndicatorView + this.hSpacing);
+        const yAxisx = yIndicatorViews + inlineIndicators.length * (this.hIndicatorView + this.hSpacing);
 
         const svgHeight = yAxisx + this.hAxisx;
         const containerHeight = svgHeight + this.hTitle;

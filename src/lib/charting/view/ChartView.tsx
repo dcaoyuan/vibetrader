@@ -401,7 +401,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             if (mouseTime && mouseTime > 0) {
                 mvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(mouseTime);
-                    const v = values[atIndex];
+                    const v = values ? values[atIndex] : '';
                     return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
@@ -415,7 +415,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             if (referTime && referTime > 0) {
                 rvs = this.props.stackIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(referTime);
-                    const v = values[atIndex];
+                    const v = values ? values[atIndex] : '';
                     return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
@@ -430,9 +430,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         if (this.props.updateInlineIndicatorLabels) {
             const tvar = this.props.tvar;
-            let vs = undefined;
+            let mvs = undefined;
             if (mouseTime && mouseTime > 0) {
-                vs = (tvar.getByTime(mouseTime) as unknown[]).map((v) =>
+                const values = tvar.getByTime(mouseTime);
+                mvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
@@ -440,16 +441,17 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             }
 
-            let refVs = undefined;
+            let rvs = undefined;
             if (referTime && referTime > 0) {
-                refVs = (tvar.getByTime(referTime) as unknown[]).map((v) =>
+                const values = tvar.getByTime(referTime);
+                rvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
                 );
             }
 
-            this.props.updateInlineIndicatorLabels(vs, refVs);
+            this.props.updateInlineIndicatorLabels(mvs, rvs);
         }
     }
 
