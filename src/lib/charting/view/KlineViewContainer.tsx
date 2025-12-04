@@ -102,8 +102,8 @@ class KlineViewContainer extends Component<Props, State> {
         const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
         let startTime = performance.now();
 
-        const calc1 = pinets.run((context: Context) => {
-            const ta = context.ta;
+        const indi1 = pinets.run((context: Context) => {
+            const { ta } = context.pine;
             const { close } = context.data;
 
             const ma1 = ta.sma(close, 9);
@@ -117,8 +117,8 @@ class KlineViewContainer extends Component<Props, State> {
             };
         })
 
-        const calc2 = pinets.run((context: Context) => {
-            const ta = context.ta;
+        const indi2 = pinets.run((context: Context) => {
+            const { ta } = context.pine;
             const { close } = context.data;
 
             const rsi = ta.rsi(close, 14);
@@ -128,9 +128,28 @@ class KlineViewContainer extends Component<Props, State> {
             };
         })
 
-        Promise.all([calc1, calc2]).then((results) => {
+        const indi3 = pinets.run((context: Context) => {
+            const { ta } = context.pine;
+            const { close } = context.data;
+
+            const [macd, signal, histo] = ta.macd(close, 12, 16, 9)
+            // const ma1 = ta.ema(close, 12);
+            // const ma2 = ta.ema(close, 26);
+            // const macd = ma1 - ma2;
+            // const signal = ta.ema(macd, 9);
+            // console.log(close, histo)
+
+            return {
+                macd,
+                signal,
+                histo
+            };
+        })
+
+        Promise.all([indi1, indi2, indi3]).then((results) => {
             const result1 = results[0].result;
             const result2 = results[1].result;
+            const result3 = results[2].result;
 
             console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
 
@@ -156,11 +175,20 @@ class KlineViewContainer extends Component<Props, State> {
 
             console.log(`rsi added in ${performance.now() - startTime} ms`);
 
+            startTime = performance.now();
+            const macd = this.klineSer.varOf("macd") as TVar<unknown[]>;
+            const values3 = Object.values(result3);
+            for (let i = 0; i < size; i++) {
+                const vs = values3.map(v => v[i]);
+                macd.setByIndex(i, vs);
+            }
+
+            console.log(`macd added in ${performance.now() - startTime} ms`);
+
             this.updateState({
                 isLoaded: true,
                 overlayIndicator: {
-                    tvar: ema,
-                    outputs: [
+                    tvar: ema, outputs: [
                         { atIndex: 0, name: "SMA-9", plot: "line", color: "#1f77b4" },
                         { atIndex: 1, name: "SMA-18", plot: "line", color: "#aec7e8" },
                         { atIndex: 2, name: "SMA-36", plot: "line", color: "#ff7f0e" },
@@ -168,14 +196,19 @@ class KlineViewContainer extends Component<Props, State> {
                 },
                 stackedIndicators: [
                     {
-                        tvar: rsi,
-                        outputs: [
-                            { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
+                        tvar: rsi, outputs: [
+                            { atIndex: 0, name: "RSI-14", plot: "line", color: "#1f77b4" }
                         ]
                     },
+                    {
+                        tvar: macd, outputs: [
+                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#1f77b4" },
+                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#aec7e8" },
+                            { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "#ff7f0e" },
+                        ]
+                    }
                 ],
             })
-
         })
 
     }

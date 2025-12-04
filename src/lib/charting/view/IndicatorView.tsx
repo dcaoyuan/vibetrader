@@ -5,6 +5,7 @@ import { LG_SCALAR } from "./scalar/LgScalar";
 import AxisY from "../pane/AxisY";
 import './chartview.css';
 import LineChart from "../chart/LineChart";
+import HistogramChart from "../chart/HistogramChart";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     maxVolume = 0.0;
@@ -50,6 +51,16 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         name={name}
                         atIndex={atIndex}
                     />
+                case 'histogram':
+                    return <HistogramChart
+                        tvar={this.tvar as TVar<unknown[]>}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
+                        color={color}
+                        name={name}
+                        atIndex={atIndex}
+                    />
 
                 default:
                     return <></>
@@ -71,7 +82,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
     override computeMaxMin() {
         let max = Number.NEGATIVE_INFINITY;
-        const min = 0// Number.POSITIVE_INFINITY;
+        let min = Number.POSITIVE_INFINITY;
 
         const xc = this.props.xc;
 
@@ -81,8 +92,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 const values = this.tvar.getByTime(time);
                 for (const { atIndex } of this.props.mainIndicatorOutputs) {
                     const v = values[atIndex];
-                    if (!isNaN(v)) {
+                    if (v) {
                         max = Math.max(max, v)
+                        min = Math.min(min, v)
                     }
                 }
             }

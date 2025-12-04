@@ -33,8 +33,7 @@ const VolmueChart = (props: Props) => {
             let open = undefined as number;
             let close = undefined as number;
             let volume = Number.NEGATIVE_INFINITY; // we are going to get max of volume during nBarsCompressed
-            let i = 0;
-            while (i < xc.nBarsCompressed) {
+            for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (xc.occurred(time)) {
                     const kline = klineVar.getByTime(time);
@@ -47,8 +46,6 @@ const VolmueChart = (props: Props) => {
                         volume = Math.max(volume, kline.volume)
                     }
                 }
-
-                i++;
             }
 
             if (volume >= 0 /* means we've got volume value */) {

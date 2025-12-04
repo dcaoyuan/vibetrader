@@ -35,8 +35,7 @@ const LineChart = (props: Props) => {
             let close = NaN
             let max = Number.NEGATIVE_INFINITY;
             let min = Number.POSITIVE_INFINITY;
-            let i = 0;
-            while (i < xc.nBarsCompressed) {
+            for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
                     const values = tvar.getByTime(time);
@@ -51,11 +50,9 @@ const LineChart = (props: Props) => {
                         min = Math.min(min, close);
                     }
                 }
-
-                i++;
             }
 
-            if (!isNaN(close)) {
+            if (close) {
                 y2 = yc.yv(close)
                 if (xc.nBarsCompressed > 1) {
                     // draw a vertical line to cover the min to max
@@ -65,7 +62,7 @@ const LineChart = (props: Props) => {
                     console.log(yc.yv(min), yc.yv(max))
 
                 } else {
-                    if (!isNaN(y1)) {
+                    if (y1) {
                         // x1 shoud be decided here, it may not equal prev x2:
                         // think about the case of on calendar day mode
                         const x1 = xc.xb(bar - xc.nBarsCompressed)
