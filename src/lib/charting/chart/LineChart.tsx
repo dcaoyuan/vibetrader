@@ -40,7 +40,7 @@ const LineChart = (props: Props) => {
                 if (tvar.occurred(time)) {
                     const values = tvar.getByTime(time);
                     const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && !isNaN(v)) {
+                    if (typeof v === "number" && isNaN(v) === false) {
                         if (open === undefined) {
                             /** only get the first open as compressing period's open */
                             open = v;
@@ -52,7 +52,7 @@ const LineChart = (props: Props) => {
                 }
             }
 
-            if (close) {
+            if (close !== undefined && isNaN(close) === false) {
                 y2 = yc.yv(close)
                 if (xc.nBarsCompressed > 1) {
                     // draw a vertical line to cover the min to max
@@ -62,7 +62,7 @@ const LineChart = (props: Props) => {
                     console.log(yc.yv(min), yc.yv(max))
 
                 } else {
-                    if (y1) {
+                    if (y1 !== undefined && isNaN(y1) === false) {
                         // x1 shoud be decided here, it may not equal prev x2:
                         // think about the case of on calendar day mode
                         const x1 = xc.xb(bar - xc.nBarsCompressed)

@@ -14,6 +14,7 @@ import { Context, PineTS, } from "pinets/src/index";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
+import { Colors } from "../../Colors";
 
 type Props = {
     xc: ChartXControl,
@@ -63,7 +64,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     hKlineView = 400;
     hVolumeView = 100;
-    hIndicatorView = 180;
+    hIndicatorView = 160;
     hAxisx = 40;
     hSpacing = 25;
 
@@ -197,20 +198,19 @@ class KlineViewContainer extends Component<Props, State> {
                 stackedIndicators: [
                     {
                         tvar: rsi, outputs: [
-                            { atIndex: 0, name: "RSI-14", plot: "line", color: "#1f77b4" }
+                            { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
                         ]
                     },
                     {
                         tvar: macd, outputs: [
-                            { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "#ff7f0e" },
-                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#aec7e8" },
-                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#1f77b4" },
+                            { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "white" },
+                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#ff7f0e" },
+                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#aec7e8" },
                         ]
                     }
                 ],
             })
         })
-
     }
 
     notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }) {

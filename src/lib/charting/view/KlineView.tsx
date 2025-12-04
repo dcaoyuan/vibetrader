@@ -112,7 +112,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
                     default:
                 }
-                if (ovchart) {
+                if (ovchart !== undefined) {
                     stackCharts.push(ovchart)
                 }
             }

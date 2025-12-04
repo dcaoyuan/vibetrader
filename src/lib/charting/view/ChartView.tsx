@@ -289,7 +289,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             let cursorY: number;
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
-                if (value) {
+                if (value !== undefined && !isNaN(value)) {
                     cursorY = this.yc.yv(value);
                 }
 
@@ -298,7 +298,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 value = this.yc.vy(cursorY);
             }
 
-            if (cursorY && value) {
+            if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && !isNaN(value)) {
                 if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
                     value /= ChartYControl.VALUE_SCALE_UNIT
                 }
@@ -311,9 +311,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             mouseTime = latestTime;
         }
 
-        if (latestTime && latestTime > 0) {
+        if (latestTime !== undefined && latestTime > 0) {
             const value = this.valueAtTime(latestTime);
-            if (value) {
+            if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
                 latestValueLabel = this.plotYValueLabel(y, value.toFixed(3), latestColor)
             }
@@ -328,7 +328,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             const tvar = this.props.overlayIndicator.tvar;
 
             let mvs = undefined;
-            if (mouseTime && mouseTime > 0) {
+            if (mouseTime !== undefined && mouseTime > 0) {
                 mvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(mouseTime);
                     const v = values ? values[atIndex] : '';
@@ -342,7 +342,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
             let rvs = undefined;
-            if (referTime && referTime > 0) {
+            if (referTime != undefined && referTime > 0) {
                 rvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
                     const values = tvar.getByTime(referTime);
                     const v = values ? values[atIndex] : '';
@@ -361,7 +361,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.props.updateStackedIndicatorLabels) {
             const tvar = this.props.tvar;
             let mvs = undefined;
-            if (mouseTime && mouseTime > 0) {
+            if (mouseTime != undefined && mouseTime > 0) {
                 const values = tvar.getByTime(mouseTime);
                 mvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
@@ -372,7 +372,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
             let rvs = undefined;
-            if (referTime && referTime > 0) {
+            if (referTime !== undefined && referTime > 0) {
                 const values = tvar.getByTime(referTime);
                 rvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
@@ -464,7 +464,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
             const xyMouse = this.props.shouldUpdateCursors.xyMouse;
-            if (xyMouse) {
+            if (xyMouse !== undefined) {
                 if (xyMouse.who === this.id) {
                     this.updateCursors(xyMouse.x, xyMouse.y);
 

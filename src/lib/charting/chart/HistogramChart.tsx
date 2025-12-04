@@ -21,7 +21,7 @@ const HistogramChart = (props: Props) => {
     const negColor = Theme.now().getNegativeColor();
 
     function plotChart() {
-        const thin = Theme.now().isThinVolumeBar; //|| m.thin
+        const thin = false// Theme.now().isThinVolumeBar; //|| m.thin
 
         const posPath = new Path;
         const negPath = posColor === negColor ? undefined : new Path;
@@ -38,7 +38,7 @@ const HistogramChart = (props: Props) => {
                 if (tvar.occurred(time)) {
                     const values = tvar.getByTime(time);
                     const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && !isNaN(v)) {
+                    if (typeof v === "number" && isNaN(v) === false) {
                         max = Math.max(max, v);
                         min = Math.min(min, v);
                     }
