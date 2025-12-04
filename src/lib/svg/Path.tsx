@@ -7,16 +7,7 @@ export type PathData = { type: string, values: number[] }
 
 export class Path implements Seg {
     pathDatas: PathData[] = [];
-    stroke: string;
-    stroke_width: number;
-    stroke_dasharray: string | number;
-    fill: string;
     opacity: number;
-
-    constructor(stroke: string, fill: string = "none") {
-        this.stroke = stroke;
-        this.fill = fill;
-    }
 
     moveto(x: number, y: number, relative = false) {
         const c = relative ?
@@ -96,7 +87,13 @@ export class Path implements Seg {
         this.pathDatas.push(c)
     }
 
-    render(key: string) {
+    render(key: string, style?: {
+        fill?: string,
+        stroke?: string,
+        strokeWidth?: number,
+        strokeDasharray?: string | number,
+        opacity?: number
+    }) {
         let path = '';
         for (const { type, values } of this.pathDatas) {
             path = path + type;
@@ -109,11 +106,11 @@ export class Path implements Seg {
             <path
                 key={key}
                 d={path}
-                fill={this.fill}
-                stroke={this.stroke}
-                strokeWidth={this.stroke_width}
-                strokeDasharray={this.stroke_dasharray}
-                opacity={this.opacity}
+                fill={style && style.fill}
+                stroke={style && style.stroke}
+                strokeWidth={style && style.strokeWidth}
+                strokeDasharray={style && style.strokeDasharray}
+                opacity={style && style.opacity}
             />
         )
     }

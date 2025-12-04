@@ -2,7 +2,7 @@ import { TUnit } from "../../timeseris/TUnit";
 import { ChartXControl } from "../view/ChartXControl";
 import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
-import { Texts } from "../../svg/Text";
+import { Texts } from "../../svg/Texts";
 import { Temporal } from "temporal-polyfill";
 import { Component, type JSX, type RefObject, } from "react";
 import type { UpdateCursor } from "../view/ChartView";
@@ -50,8 +50,8 @@ class AxisX extends Component<Props, State> {
 		const nBars = this.props.xc.nBars
 
 		const color = Theme.now().axisColor;
-		const path = new Path(color);
-		const texts = new Texts(color);
+		const path = new Path;
+		const texts = new Texts;
 
 		// draw axis-x line 
 		if (this.props.up) {
@@ -132,10 +132,10 @@ class AxisX extends Component<Props, State> {
 		return (
 			<>
 				<g shapeRendering="crispEdges" >
-					{path.render('axisx-tick')}
+					{path.render('axisx-tick', { stroke: color })}
 				</g>
 				<g key='texts'>
-					{texts.render('axisx-text')}
+					{texts.render('axisx-text', { fill: color })}
 				</g>
 			</>
 		);
@@ -189,8 +189,8 @@ class AxisX extends Component<Props, State> {
 		const dtStr = this.props.xc.baseSer.timeframe.unit.formatNormalDate(dt, tzone)
 
 
-		const axisxText = new Texts('#000000')
-		const axisxPath = new Path(color, color);
+		const axisxPath = new Path;
+		const axisxTexts = new Texts
 		const y0 = this.props.up ? 1 : 6;
 		// draw arrow
 		axisxPath.moveto(x - 3, y0);
@@ -202,12 +202,12 @@ class AxisX extends Component<Props, State> {
 		axisxPath.lineto(x0 + w, y0 + h);
 		axisxPath.lineto(x0, y0 + h);
 		axisxPath.closepath();
-		axisxText.text(x0 + 1, this.props.up ? h - 1 : h + 4, dtStr);
+		axisxTexts.text(x0 + 1, this.props.up ? h - 1 : h + 4, dtStr);
 
 		return (
 			<g>
-				{axisxPath.render('axisx-tick')}
-				{axisxText.render('axisx-annot')}
+				{axisxPath.render('axisx-tick', { stroke: color, fill: color })}
+				{axisxTexts.render('axisx-annot', { fill: '#000000' })}
 			</g>
 		)
 	}

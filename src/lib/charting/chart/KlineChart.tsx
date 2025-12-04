@@ -21,13 +21,12 @@ const KlineChart = (props: Props) => {
     const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
     const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
 
-    function plotChart() {
-        const isFill = kind === KlineChartKind.Candle && Theme.now().isFillBar;
+    const isFill = kind === KlineChartKind.Candle && Theme.now().isFillBar;
 
-        const posPath = new Path(posColor, isFill ? posColor : "none");
-        const negPath = posColor === negColor
-            ? undefined
-            : new Path(negColor, isFill ? negColor : "none");
+    function plotChart() {
+
+        const posPath = new Path;
+        const negPath = posColor === negColor ? undefined : new Path;
 
         switch (kind) {
             case KlineChartKind.Candle:
@@ -237,8 +236,8 @@ const KlineChart = (props: Props) => {
 
     return (
         <>
-            {posPath && posPath.render('kline-pos-' + depth)}
-            {negPath && negPath.render('kline-neg-' + depth)}
+            {posPath && posPath.render('kline-pos-' + depth, { stroke: posColor, fill: isFill && posColor })}
+            {negPath && negPath.render('kline-neg-' + depth, { stroke: negColor, fill: isFill && negColor })}
         </>
     )
 }

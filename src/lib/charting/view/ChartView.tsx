@@ -6,7 +6,7 @@ import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
-import { Texts } from "../../svg/Text";
+import { Texts } from "../../svg/Texts";
 
 export enum UpdateEvent {
     Chart,
@@ -390,7 +390,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const valueStr = value.toPrecision(5);
 
-        const crossPath = new Path(color);
+        const crossPath = new Path;
         // crossPath.stroke_dasharray = '1, 1'
 
         // horizontal line
@@ -402,7 +402,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         return (
             <>
                 <g shapeRendering="crispEdges" >
-                    {crossPath.render('axisy-cross')}
+                    {crossPath.render('axisy-cross', { stroke: color })}
                 </g>
                 {valueLabel}
             </>
@@ -415,8 +415,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const wAxisY = ChartView.AXISY_WIDTH
 
-        const axisyText = new Texts('#000000')
-        const axisyPath = new Path(color, color)
+        const axisyTexts = new Texts
+        const axisyPath = new Path
         const y0 = y + 6
         const x0 = 6
         // draw arrow
@@ -429,7 +429,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         axisyPath.lineto(x0 + wLabel, y0 - hLabel);
         axisyPath.lineto(x0, y0 - hLabel);
         axisyPath.closepath();
-        axisyText.text(8, y0 - 1, valueStr);
+        axisyTexts.text(8, y0 - 1, valueStr);
 
         const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
 
@@ -437,8 +437,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // pay attention to the order to avoid text being overlapped
             <>
                 <g transform={transformYAnnot}>
-                    {axisyPath.render('axisy-tick')}
-                    {axisyText.render('axisy-annot')}
+                    {axisyPath.render('axisy-tick', { stroke: color, fill: color })}
+                    {axisyTexts.render('axisy-annot', { fill: '#000000' })}
                 </g>
             </>
         )

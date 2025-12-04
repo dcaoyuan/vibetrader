@@ -1,6 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
-import { Texts } from "../../svg/Text";
+import { Texts } from "../../svg/Texts";
 import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
 import { COMMON_DECIMAL_FORMAT, CURRENCY_DECIMAL_FORMAT } from "../view/Format";
@@ -23,6 +23,8 @@ type State = {
 export const AxisY = (props: Props) => {
     const { x, y, width, height, yc } = props;
     const symmetricByMiddleValue = false;
+
+    const color = Theme.now().axisColor;
 
     const chart = plot();
 
@@ -95,9 +97,8 @@ export const AxisY = (props: Props) => {
         const shouldScale = Math.abs(vMaxTick) >= ChartYControl.VALUE_SCALE_UNIT;
         const multiple = "x10^" + Math.log10(ChartYControl.VALUE_SCALE_UNIT);
 
-        const color = Theme.now().axisColor;
-        const path = new Path(color);
-        const texts = new Texts(color);
+        const path = new Path;
+        const texts = new Texts;
 
         // draw axis-y line */
         path.moveto(0, 0)
@@ -138,10 +139,10 @@ export const AxisY = (props: Props) => {
     return (
         <g transform={transform} >
             <g shapeRendering="crispEdges" >
-                {chart.path.render('axisy-tick')}
+                {chart.path.render('axisy-tick', { stroke: color })}
             </g>
             <g>
-                {chart.texts.render('axisy-text')}
+                {chart.texts.render('axisy-text', { fill: color })}
             </g>
         </g>
     );

@@ -5,18 +5,14 @@ export type TextData = { x: number, y: number, text: string }
 export class Texts implements Seg {
     texts: TextData[] = [];
 
-    fill?: string;
-    opacity?: number;
-
-    constructor(fill: string) {
-        this.fill = fill;
-    }
-
     text(x: number, y: number, text: string) {
         this.texts.push({ x, y, text })
     }
 
-    render(key: string) {
+    render(key: string, style?: {
+        fill?: string,
+        opacity?: number
+    }) {
         return (
             <>
                 {this.texts.map((text, i) =>
@@ -24,8 +20,8 @@ export class Texts implements Seg {
                         key={key + i}
                         x={text.x}
                         y={text.y}
-                        fill={this.fill}
-                        opacity={this.opacity}
+                        fill={style && style.fill}
+                        opacity={style && style.opacity}
                     >
                         {text.text}
                     </text>

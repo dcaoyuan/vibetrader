@@ -106,14 +106,14 @@ class KlineViewContainer extends Component<Props, State> {
             const ta = context.ta;
             const { close } = context.data;
 
-            const ema1 = ta.ema(close, 9);
-            const ema2 = ta.ema(close, 18);
-            const ema3 = ta.ema(close, 36);
+            const ma1 = ta.sma(close, 9);
+            const ma2 = ta.sma(close, 18);
+            const ma3 = ta.sma(close, 36);
 
             return {
-                ema1,
-                ema2,
-                ema3,
+                ma1,
+                ma2,
+                ma3,
             };
         })
 
@@ -161,9 +161,9 @@ class KlineViewContainer extends Component<Props, State> {
                 overlayIndicator: {
                     tvar: ema,
                     outputs: [
-                        { atIndex: 0, name: "EMA-9", plot: "line", color: "#1f77b4" },
-                        { atIndex: 1, name: "EMA-18", plot: "line", color: "#aec7e8" },
-                        { atIndex: 2, name: "EMA-36", plot: "line", color: "#ff7f0e" },
+                        { atIndex: 0, name: "SMA-9", plot: "line", color: "#1f77b4" },
+                        { atIndex: 1, name: "SMA-18", plot: "line", color: "#aec7e8" },
+                        { atIndex: 2, name: "SMA-36", plot: "line", color: "#ff7f0e" },
                     ]
                 },
                 stackedIndicators: [
@@ -263,7 +263,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        const crossPath = new Path(color);
+        const crossPath = new Path;
         // crossPath.stroke_dasharray = '1, 1'
 
         // vertical line
@@ -272,7 +272,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         return (
             <g shapeRendering="crispEdges" >
-                {crossPath.render('container-cross')}
+                {crossPath.render('container-cross', { stroke: color })}
             </g>
         )
     }

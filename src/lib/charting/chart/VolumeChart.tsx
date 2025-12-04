@@ -15,20 +15,15 @@ type Props = {
 const VolmueChart = (props: Props) => {
     const { xc, yc, klineVar } = props;
 
+    const posColor = Theme.now().getPositiveColor();
+    const negColor = Theme.now().getNegativeColor();
+    const isFill = Theme.now().isFillBar;
+
     function plotChart() {
-
-        const posColor = Theme.now().getPositiveColor();
-        const negColor = Theme.now().getNegativeColor();
-
-        const isFill = Theme.now().isFillBar;
-
         const thin = Theme.now().isThinVolumeBar; //|| m.thin
 
-        const posPath = new Path(posColor, isFill ? posColor : "none");
-        const negPath = posColor === negColor
-            ? undefined
-            : new Path(negColor, isFill ? negColor : "none");
-
+        const posPath = new Path;
+        const negPath = posColor === negColor ? undefined : new Path;
 
         const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
 
@@ -84,8 +79,8 @@ const VolmueChart = (props: Props) => {
 
     return (
         <>
-            {posPath && posPath.render('volume-pos')}
-            {negPath && negPath.render('volume-neg')}
+            {posPath && posPath.render('volume-pos', { stroke: posColor, fill: isFill && posColor })}
+            {negPath && negPath.render('volume-neg', { stroke: negColor, fill: isFill && negColor })}
         </>
     )
 }

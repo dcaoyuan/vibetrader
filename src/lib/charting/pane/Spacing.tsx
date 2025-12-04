@@ -27,7 +27,7 @@ class Spacing extends Component<Props, State> {
 
     plot() {
         const { width, height, toward } = this.props;
-        const path = new Path(Theme.now().axisColor);
+        const path = new Path;
 
         switch (toward) {
             case "up":
@@ -61,7 +61,7 @@ class Spacing extends Component<Props, State> {
                 path.lineto(0, 8);
         }
 
-        return path.render('spacing-' + this.props.id)
+        return path.render('spacing-' + this.props.id, { stroke: Theme.now().axisColor })
     }
 
     render() {

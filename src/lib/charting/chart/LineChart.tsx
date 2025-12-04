@@ -18,7 +18,8 @@ const LineChart = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plotChart() {
-        const path = new Path(color);
+        const path = new Path;
+
         plotLineChart(path);
 
         return { path }
@@ -85,7 +86,7 @@ const LineChart = (props: Props) => {
 
     return (
         <>
-            {path && path.render('line-' + depth)}
+            {path && path.render('line-' + depth, { stroke: color })}
         </>
     )
 }

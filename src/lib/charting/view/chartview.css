@@ -22,7 +22,7 @@
 }
 
 .container div {
-    background-color: #333333;
+    /* background-color: #333333; */
     /* background-color: white; */
     padding: 0px;
 }
@@ -57,7 +57,7 @@
 .container div.title {
     position: relative;
     border-bottom: 1px solid white;
-    background: #333333;
+    /* background: #333333; */
 }
 
 .container div.borderLeftUp {
@@ -79,4 +79,8 @@
     position: absolute;
     top: 0;
     bottom: 80%;
+}
+
+.klinechart {
+    stroke: #FF0000;
 }
