@@ -78,10 +78,10 @@ const VolmueChart = (props: Props) => {
     const { posPath, negPath } = plotChart();
 
     return (
-        <>
-            {posPath && posPath.render('volume-pos', { stroke: posColor, fill: isFill && posColor })}
-            {negPath && negPath.render('volume-neg', { stroke: negColor, fill: isFill && negColor })}
-        </>
+        <g className="volumechart">
+            {posPath && posPath.render('volume-pos', {}, 'positive')}
+            {negPath && negPath.render('volume-neg', {}, 'negative')}
+        </g>
     )
 }
 

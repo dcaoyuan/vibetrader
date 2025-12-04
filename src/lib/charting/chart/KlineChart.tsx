@@ -235,10 +235,10 @@ const KlineChart = (props: Props) => {
     const { posPath, negPath } = plotChart();
 
     return (
-        <>
-            {posPath && posPath.render('kline-pos-' + depth, { stroke: posColor, fill: isFill && posColor })}
-            {negPath && negPath.render('kline-neg-' + depth, { stroke: negColor, fill: isFill && negColor })}
-        </>
+        <g className="klinechart" >
+            {posPath && posPath.render('kline-pos-' + depth, {}, 'positive')}
+            {negPath && negPath.render('kline-neg-' + depth, {}, 'negative')}
+        </g>
     )
 }
 

@@ -85,10 +85,26 @@
     stroke: #FF0000;
 }
 
-.klinechart positive {
+.klinechart path.positive {
+    stroke: #FF0000;
+    fill: #FF0000;
+}
+
+.klinechart path.negative {
+    stroke: #00AA00;
+    fill: #00AA00;
+}
+
+.volumechart {
     stroke: #FF0000;
 }
 
-.klinechart negtive {
-    stroke: #00FF00;
+.volumechart path.positive {
+    stroke: #FF0000;
+    fill: #FF0000;
+}
+
+.volumechart path.negative {
+    stroke: #00AA00;
+    fill: #00AA00;
 }
