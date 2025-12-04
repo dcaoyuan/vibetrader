@@ -12,7 +12,6 @@ type Props = {
     height: number,
     xc: ChartXControl,
     yc: ChartYControl
-    isMasterView?: boolean,
 }
 
 type State = {

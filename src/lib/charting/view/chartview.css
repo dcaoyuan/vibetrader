@@ -84,3 +84,11 @@
 .klinechart {
     stroke: #FF0000;
 }
+
+.klinechart positive {
+    stroke: #FF0000;
+}
+
+.klinechart negtive {
+    stroke: #00FF00;
+}

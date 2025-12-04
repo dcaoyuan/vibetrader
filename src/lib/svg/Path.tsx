@@ -93,7 +93,7 @@ export class Path implements Seg {
         strokeWidth?: number,
         strokeDasharray?: string | number,
         opacity?: number
-    }) {
+    }, className?: string) {
         let path = '';
         for (const { type, values } of this.pathDatas) {
             path = path + type;
@@ -104,6 +104,7 @@ export class Path implements Seg {
 
         return (
             <path
+                className={className}
                 key={key}
                 d={path}
                 fill={style && style.fill}

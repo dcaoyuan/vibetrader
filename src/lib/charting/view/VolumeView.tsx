@@ -40,21 +40,23 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = [VolmueChart({
-            klineVar: this.klineVar,
-            xc: this.props.xc,
-            yc: this.yc,
-            depth: 0
-        })];
+        const charts = [
+            <VolmueChart
+                klineVar={this.klineVar}
+                xc={this.props.xc}
+                yc={this.yc}
+                depth={0}
+            />
+        ]
 
-        const axisy = AxisY({
-            x: this.props.width - ChartView.AXISY_WIDTH,
-            y: 0,
-            width: ChartView.AXISY_WIDTH,
-            height: this.props.height,
-            xc: this.props.xc,
-            yc: this.yc,
-        })
+        const axisy = <AxisY
+            x={this.props.width - ChartView.AXISY_WIDTH}
+            y={0}
+            width={ChartView.AXISY_WIDTH}
+            height={this.props.height}
+            xc={this.props.xc}
+            yc={this.yc}
+        />
 
         return { charts, axisy }
     }

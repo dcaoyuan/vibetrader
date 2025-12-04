@@ -72,23 +72,24 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = [KlineChart({
-            klineVar: this.klineVar,
-            xc: this.props.xc,
-            yc: this.yc,
-            kind: KlineChartKind.Candle,
-            depth: 0
-        })];
+        const charts = [
+            <KlineChart
+                klineVar={this.klineVar}
+                xc={this.props.xc}
+                yc={this.yc}
+                kind={KlineChartKind.Candle}
+                depth={0}
+            />
+        ]
 
-        const axisy = AxisY({
-            x: this.props.width - ChartView.AXISY_WIDTH,
-            y: 0,
-            width: ChartView.AXISY_WIDTH,
-            height: this.props.height,
-            xc: this.props.xc,
-            yc: this.yc,
-            isMasterView: true
-        })
+        const axisy = <AxisY
+            x={this.props.width - ChartView.AXISY_WIDTH}
+            y={0}
+            width={ChartView.AXISY_WIDTH}
+            height={this.props.height}
+            xc={this.props.xc}
+            yc={this.yc}
+        />
 
         const stackCharts = []
         if (this.props.overlayIndicator) {
@@ -98,15 +99,15 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 let ovchart: JSX.Element;
                 switch (plot) {
                     case "line":
-                        ovchart = LineChart({
-                            tvar,
-                            name,
-                            color,
-                            atIndex,
-                            xc: this.props.xc,
-                            yc: this.yc,
-                            depth: depth++
-                        });
+                        ovchart = <LineChart
+                            tvar={tvar}
+                            name={name}
+                            color={color}
+                            atIndex={atIndex}
+                            xc={this.props.xc}
+                            yc={this.yc}
+                            depth={depth++}
+                        />
                         break;
 
                     default:

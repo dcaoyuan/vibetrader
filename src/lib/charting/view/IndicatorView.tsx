@@ -41,15 +41,15 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const charts = this.props.mainIndicatorOutputs.map(({ atIndex, color, name, plot }) => {
             switch (plot) {
                 case 'line':
-                    return LineChart({
-                        tvar: this.tvar as TVar<unknown[]>,
-                        xc: this.props.xc,
-                        yc: this.yc,
-                        depth: 0,
-                        color,
-                        name,
-                        atIndex,
-                    })
+                    return <LineChart
+                        tvar={this.tvar as TVar<unknown[]>}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
+                        color={color}
+                        name={name}
+                        atIndex={atIndex}
+                    />
 
                 default:
                     return <></>
@@ -57,14 +57,14 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             }
         })
 
-        const axisy = AxisY({
-            x: this.props.width - ChartView.AXISY_WIDTH,
-            y: 0,
-            width: ChartView.AXISY_WIDTH,
-            height: this.props.height,
-            xc: this.props.xc,
-            yc: this.yc,
-        })
+        const axisy = <AxisY
+            x={this.props.width - ChartView.AXISY_WIDTH}
+            y={0}
+            width={ChartView.AXISY_WIDTH}
+            height={this.props.height}
+            xc={this.props.xc}
+            yc={this.yc}
+        />
 
         return { charts, axisy }
     }
