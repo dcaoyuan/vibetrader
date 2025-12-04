@@ -63,7 +63,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     hKlineView = 400;
     hVolumeView = 100;
-    hIndicatorView = 100;
+    hIndicatorView = 180;
     hAxisx = 40;
     hSpacing = 25;
 
@@ -202,9 +202,9 @@ class KlineViewContainer extends Component<Props, State> {
                     },
                     {
                         tvar: macd, outputs: [
-                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#1f77b4" },
-                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#aec7e8" },
                             { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "#ff7f0e" },
+                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#aec7e8" },
+                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#1f77b4" },
                         ]
                     }
                 ],
@@ -551,9 +551,9 @@ class KlineViewContainer extends Component<Props, State> {
                                     key={"stacked-indicator-view-" + n}
                                     id={this.#indicatorViewId(n)}
                                     y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
-                                    height={this.hVolumeView}
+                                    height={this.hIndicatorView}
                                     x={0}
-                                    name={""}
+                                    name={"Indicator-" + n}
                                     width={this.width}
                                     xc={this.xc}
                                     baseSer={this.klineSer}

@@ -50,7 +50,7 @@ export const AxisY = (props: Props) => {
                 vTickUnit = Number(unitStr.trim);
 
             } catch (ex) {
-                // todo 
+                console.error(ex)
             }
 
         } else if (vTickUnit > 0.005 && vTickUnit < 1) {
@@ -58,8 +58,9 @@ export const AxisY = (props: Props) => {
             const unitStr = COMMON_DECIMAL_FORMAT.format(vTickUnit)
             try {
                 vTickUnit = Number(unitStr.trim);
+
             } catch (ex) {
-                // todo
+                console.error(ex)
             }
         }
 
@@ -81,12 +82,11 @@ export const AxisY = (props: Props) => {
               this.#yc.vy(this.#yc.yCanvasLower - this.#view.yControlPane.height) : */
             yc.vy(yc.yCanvasLower)
 
-
         const vMaxTick = maxValueOnCanvas
         let vMinTick = minValueOnCanvas // init value, will adjust later
 
         const vRange = vMaxTick - vMinTick
-        let vTickUnit = Math.floor(vRange / nTicks)
+        let vTickUnit = Math.round(vRange / nTicks)
 
         if (!symmetricByMiddleValue) {
             vTickUnit = roundTickUnit(vTickUnit)
