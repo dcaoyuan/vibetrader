@@ -7,5 +7,5 @@ export default defineConfig({
     base: '/vibetrader/',
     build: {
         sourcemap: true,
-    }
+    },
 })
