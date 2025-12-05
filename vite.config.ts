@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  base: '/vibetrader/',
-  build: {
-    sourcemap: true,
-  }
+    plugins: [react()],
+    base: '/vibetrader/',
+    build: {
+        sourcemap: true,
+    }
 })
