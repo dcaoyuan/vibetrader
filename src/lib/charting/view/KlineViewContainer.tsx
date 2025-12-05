@@ -103,7 +103,7 @@ class KlineViewContainer extends Component<Props, State> {
         let startTime = performance.now();
 
         const indi1 = pinets.run((context: Context) => {
-            const { ta } = context.pine;
+            const ta = context.ta;
             const { close } = context.data;
 
             const ma1 = ta.sma(close, 9);
@@ -118,7 +118,7 @@ class KlineViewContainer extends Component<Props, State> {
         })
 
         const indi2 = pinets.run((context: Context) => {
-            const { ta } = context.pine;
+            const ta = context.ta;
             const { close } = context.data;
 
             const rsi = ta.rsi(close, 14);
@@ -129,7 +129,7 @@ class KlineViewContainer extends Component<Props, State> {
         })
 
         const indi3 = pinets.run((context: Context) => {
-            const { ta } = context.pine;
+            const ta = context.ta;
             const { close } = context.data;
 
             const [macd, signal, histo] = ta.macd(close, 12, 16, 9)
