@@ -10,11 +10,10 @@ import type { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
-import { Context, PineTS, } from "pinets/src/index";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
-import { Colors } from "../../Colors";
+import { type Context, PineTS } from "@vibetrader/pinets";
 
 type Props = {
     xc: ChartXControl,

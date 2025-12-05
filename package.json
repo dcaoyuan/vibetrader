@@ -11,7 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "pinets": "file:../PineTS",
+    "@vibetrader/pinets": "^0.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

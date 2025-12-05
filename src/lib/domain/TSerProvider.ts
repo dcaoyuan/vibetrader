@@ -1,6 +1,6 @@
-import type { IProvider } from "pinets/src/marketData/IProvider";
 import type { Kline } from "./Kline";
 import type { TVar } from "../timeseris/TVar";
+import type { IProvider } from "@vibetrader/pinets/dist/types/marketData/IProvider";
 
 export class TSerProvider implements IProvider {
     data: Kline[];
