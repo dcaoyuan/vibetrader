@@ -13,6 +13,7 @@
         "types": [
             "vite/client"
         ],
+        "allowJs": true,
         "skipLibCheck": true,
         /* Bundler mode */
         "moduleResolution": "bundler",
