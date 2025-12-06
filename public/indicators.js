@@ -21,7 +21,7 @@
 
 // console.log(result);
 
-const indi1 = pinets.run((context) => {
+const indi1 = (context) => {
     const { ta } = context.pine;
     const { close } = context.data;
     const { plot, plotchar, nz, color } = context.core;
@@ -33,18 +33,18 @@ const indi1 = pinets.run((context) => {
     plot(ma1, "SMA-9", { style: "line", color: "#1f77b4", linewidth: 1, force_overlay: true })
     plot(ma2, "SMA-18", { style: "line", color: "#aec7e8", linewidth: 1, force_overlay: true })
     plot(ma3, "SMA-36", { style: "line", color: "#ff7f0e", linewidth: 1, force_overlay: true })
-})
+}
 
-const indi2 = pinets.run((context) => {
+const indi2 = (context) => {
     const { ta } = context.pine;
     const { close } = context.data;
 
     const rsi = ta.rsi(close, 14);
 
     plot(rsi, "RSI-14", { color: "white", style: "line", linewidth: 1 })
-})
+}
 
-const indi3 = pinets.run((context) => {
+const indi3 = (context) => {
     const { ta } = context.pine;
     const { close } = context.data;
 
@@ -57,7 +57,7 @@ const indi3 = pinets.run((context) => {
     plot(histo, 'Histogram', { style: 'histogram', color: "white" });
     plot(signal, 'Signal', { style: 'line', color: "#ff7f0e" })
     plot(macd, 'MACD', { style: 'line', color: "#aec7e8" })
-})
+}
 
 return [indi1, indi2, indi3]
 

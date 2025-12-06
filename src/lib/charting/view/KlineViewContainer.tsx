@@ -125,16 +125,18 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     componentDidMount() {
-        const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
 
         fetch("./indicators.js")
             .then((res) => res.text())
             .then(js => {
+                const indicatorsFunction = new Function(js);
+
                 let startTime = performance.now();
+                const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
 
-                const indicatorsFunction = new Function("pinets", js);
+                const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
 
-                Promise.all(indicatorsFunction(pinets)).then((results) => {
+                Promise.all(fnRuns).then((results) => {
                     console.log(`indicators calclated in ${performance.now() - startTime} ms`);
 
                     startTime = performance.now();
