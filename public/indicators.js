@@ -54,9 +54,9 @@ const indi3 = (context) => {
     // const macd = ma1 - ma2;
     // const signal = ta.ema(macd, 9);
     // console.log(close, histo)
-    plot(histo, 'Histogram', { style: 'histogram', color: "white" });
-    plot(signal, 'Signal', { style: 'line', color: "#ff7f0e" })
-    plot(macd, 'MACD', { style: 'line', color: "#aec7e8" })
+    plot(histo, 'Histogram', { style: 'histogram', color: "#1f77b4" });
+    plot(signal, 'Signal', { style: 'line', color: "#aec7e8" })
+    plot(macd, 'MACD', { style: 'line', color: "#ff7f0e" })
 }
 
 return [indi1, indi2, indi3]

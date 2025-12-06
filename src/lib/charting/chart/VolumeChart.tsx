@@ -13,7 +13,7 @@ type Props = {
 }
 
 const VolmueChart = (props: Props) => {
-    const { xc, yc, kvar: klineVar } = props;
+    const { xc, yc, kvar } = props;
 
     const posColor = Theme.now().getPositiveColor();
     const negColor = Theme.now().getNegativeColor();
@@ -36,7 +36,7 @@ const VolmueChart = (props: Props) => {
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (xc.occurred(time)) {
-                    const kline = klineVar.getByTime(time);
+                    const kline = kvar.getByTime(time);
                     if (kline.close !== 0) {
                         if (open === undefined) {
                             /** only get the first open as compressing period's open */

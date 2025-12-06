@@ -8,7 +8,7 @@ export class TSerProvider {
         this.data = kvar.toArray();
     }
 
-    async getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<any> {
+    async getMarketData(tickerId: string, timeframe: string, limit?: number, sDate?: number, eDate?: number): Promise<unknown> {
         return this.data;
     }
 }
