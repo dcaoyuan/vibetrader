@@ -50,7 +50,7 @@ type PlotOptions = {
 };
 
 type State = {
-    klineSer?: TSer;
+    baseSer?: TSer;
     kvar?: TVar<Kline>;
     xc?: ChartXControl;
 
@@ -129,22 +129,22 @@ class KlineViewContainer extends Component<Props, State> {
         const fetchData = fetch("./klines.json")
             .then(r => r.json())
             .then(json => {
-                const klineSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
+                const baseSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
                 for (const k of json) {
                     const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
-                    klineSer.addToVar(this.varName, kline);
+                    baseSer.addToVar(this.varName, kline);
                 }
 
-                const kvar = klineSer.varOf(this.varName) as TVar<Kline>;
+                const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
 
-                // xc instance will be shared by all views.
-                const xc = new ChartXControl(klineSer, this.width - ChartView.AXISY_WIDTH);
+                // xc instance will be shared across all views.
+                const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
 
-                return { klineSer, kvar, xc };
+                return { baseSer, kvar, xc };
             })
 
-        fetchData.then(({ klineSer, kvar, xc }) => {
+        fetchData.then(({ baseSer, kvar, xc }) => {
             fetch("./indicators.js")
                 .then((r) => r.text())
                 .then(js => {
@@ -161,8 +161,8 @@ class KlineViewContainer extends Component<Props, State> {
                         startTime = performance.now();
 
                         const inds = results.map(({ plots }, n) => {
-                            const tvar = klineSer.varOf("ind-" + n) as TVar<unknown[]>;
-                            const size = klineSer.size();
+                            const tvar = baseSer.varOf("ind-" + n) as TVar<unknown[]>;
+                            const size = baseSer.size();
                             const plotValues = Object.values(plots) as Plot[];
                             const dataValues = plotValues.map(({ data }) => data);
                             for (let i = 0; i < size; i++) {
@@ -179,7 +179,7 @@ class KlineViewContainer extends Component<Props, State> {
                         console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
                         this.updateState({
-                            klineSer,
+                            baseSer,
                             kvar,
                             xc,
                             isLoaded: true,
@@ -530,7 +530,7 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="ETH"
                             xc={this.state.xc}
-                            baseSer={this.state.klineSer}
+                            baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
@@ -546,7 +546,7 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="Vol"
                             xc={this.state.xc}
-                            baseSer={this.state.klineSer}
+                            baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
@@ -573,7 +573,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     name={"Indicator-" + n}
                                     width={this.width}
                                     xc={this.state.xc}
-                                    baseSer={this.state.klineSer}
+                                    baseSer={this.state.baseSer}
                                     tvar={tvar}
                                     mainIndicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}

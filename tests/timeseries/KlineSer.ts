@@ -11,20 +11,20 @@ const varName = "ETH";
 function loadSer(varName: string) {
 	const ks = klinesJson //.reverse();
 
-	const klineSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
+	const kser = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
 	for (const k of ks) {
 		const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
-		klineSer.addToVar(varName, kline);
+		kser.addToVar(varName, kline);
 	}
 
-	return klineSer;
+	return kser;
 }
 
 export function testSer() {
-	const klineSer = loadSer(varName);
+	const tser = loadSer(varName);
 
-	const kvar = klineSer.varOf(varName) as TVar<Kline>;
+	const kvar = tser.varOf(varName) as TVar<Kline>;
 	console.log(kvar.values());
 
 	const itrT = kvar.timesIterator()

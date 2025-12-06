@@ -39,14 +39,14 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         return newKind;
     }
 
-    klineVar: TVar<Kline>;
+    kvar: TVar<Kline>;
     maxVolume = 0.0;
     minVolume = 0.0
 
     constructor(props: ViewProps) {
         super(props);
 
-        this.klineVar = props.tvar as TVar<Kline>;
+        this.kvar = props.tvar as TVar<Kline>;
 
         const { charts, axisy, stackCharts } = this.plot();
 
@@ -74,7 +74,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         const charts = [
             <KlineChart
-                klineVar={this.klineVar}
+                kvar={this.kvar}
                 xc={this.props.xc}
                 yc={this.yc}
                 kind={KlineChartKind.Candle}
@@ -133,7 +133,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         for (let i = 1; i <= xc.nBars; i++) {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
-                const kline = this.klineVar.getByTime(time);
+                const kline = this.kvar.getByTime(time);
                 if (kline.close > 0) {
                     max = Math.max(max, kline.high)
                     min = Math.min(min, kline.low)
@@ -170,7 +170,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     override valueAtTime(time: number) {
-        return this.klineVar.getByTime(time).close;
+        return this.kvar.getByTime(time).close;
     }
 
     render() {

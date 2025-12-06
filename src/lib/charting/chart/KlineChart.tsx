@@ -9,13 +9,13 @@ import { KlineChartKind } from "./Kinds";
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    klineVar: TVar<Kline>,
+    kvar: TVar<Kline>,
     kind: KlineChartKind,
     depth: number;
 }
 
 const KlineChart = (props: Props) => {
-    const { xc, yc, klineVar, kind, depth } = props;
+    const { xc, yc, kvar, kind, depth } = props;
 
     /** depth !== 0 is for comparing klines charts */
     const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
@@ -59,7 +59,7 @@ const KlineChart = (props: Props) => {
             while (i < xc.nBarsCompressed) {
                 const time = xc.tb(bar + i)
                 if (xc.occurred(time)) {
-                    const kline = klineVar.getByTime(time);
+                    const kline = kvar.getByTime(time);
                     if (kline && kline.open != 0) {
                         if (open === undefined) {
                             /** only get the first open as compressing period's open */
@@ -188,8 +188,8 @@ const KlineChart = (props: Props) => {
             let i = 0;
             while (i < xc.nBarsCompressed) {
                 const time = xc.tb(bar + i)
-                if (klineVar.occurred(time)) {
-                    const kline = klineVar.getByTime(time);
+                if (kvar.occurred(time)) {
+                    const kline = kvar.getByTime(time);
                     if (kline && kline.close !== 0) {
                         if (open === undefined) {
                             /** only get the first open as compressing period's open */

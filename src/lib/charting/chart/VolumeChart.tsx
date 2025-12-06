@@ -8,12 +8,12 @@ import type { ChartYControl } from "../view/ChartYControl";
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    klineVar: TVar<Kline>,
+    kvar: TVar<Kline>,
     depth: number;
 }
 
 const VolmueChart = (props: Props) => {
-    const { xc, yc, klineVar } = props;
+    const { xc, yc, kvar: klineVar } = props;
 
     const posColor = Theme.now().getPositiveColor();
     const negColor = Theme.now().getNegativeColor();
