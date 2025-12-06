@@ -13,8 +13,7 @@ import { Help } from "../pane/Help";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
-import { type Context, PineTS } from "@vibetrader/pinets";
-import indicators from './indicators.js'
+import { PineTS } from "@vibetrader/pinets";
 
 type Props = {
     xc: ChartXControl,
@@ -48,6 +47,7 @@ type State = {
 
     isLoaded?: boolean;
 
+    injectIndicators?: (pinets: PineTS) => { result: unknown[] }[];
 }
 
 class KlineViewContainer extends Component<Props, State> {
@@ -101,74 +101,83 @@ class KlineViewContainer extends Component<Props, State> {
 
     componentDidMount() {
         const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
-        const indis = indicators(pinets)
 
-        let startTime = performance.now();
+        fetch("./indicators.js")
+            .then((res) => res.text())
+            .then(js => {
+                let startTime = performance.now();
 
-        Promise.all(indis).then((results) => {
-            const result1 = results[0].result;
-            const result2 = results[1].result;
-            const result3 = results[2].result;
+                const indicatorsFunction = new Function("pinets", js);
 
-            console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
+                Promise.all(indicatorsFunction(pinets)).then((results) => {
+                    const result1 = results[0].result;
+                    const result2 = results[1].result;
+                    const result3 = results[2].result;
 
-            startTime = performance.now();
+                    console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
 
-            const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
-            const size = this.klineSer.size();
-            const values1 = Object.values(result1);
-            for (let i = 0; i < size; i++) {
-                const vs = values1.map(v => v[i]);
-                ema.setByIndex(i, vs);
-            }
+                    startTime = performance.now();
 
-            console.log(`ema added in ${performance.now() - startTime} ms`);
-
-            startTime = performance.now();
-            const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
-            const values2 = Object.values(result2);
-            for (let i = 0; i < size; i++) {
-                const vs = values2.map(v => v[i]);
-                rsi.setByIndex(i, vs);
-            }
-
-            console.log(`rsi added in ${performance.now() - startTime} ms`);
-
-            startTime = performance.now();
-            const macd = this.klineSer.varOf("macd") as TVar<unknown[]>;
-            const values3 = Object.values(result3);
-            for (let i = 0; i < size; i++) {
-                const vs = values3.map(v => v[i]);
-                macd.setByIndex(i, vs);
-            }
-
-            console.log(`macd added in ${performance.now() - startTime} ms`);
-
-            this.updateState({
-                isLoaded: true,
-                overlayIndicator: {
-                    tvar: ema, outputs: [
-                        { atIndex: 0, name: "SMA-9", plot: "line", color: "#1f77b4" },
-                        { atIndex: 1, name: "SMA-18", plot: "line", color: "#aec7e8" },
-                        { atIndex: 2, name: "SMA-36", plot: "line", color: "#ff7f0e" },
-                    ]
-                },
-                stackedIndicators: [
-                    {
-                        tvar: rsi, outputs: [
-                            { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
-                        ]
-                    },
-                    {
-                        tvar: macd, outputs: [
-                            { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "white" },
-                            { atIndex: 1, name: 'Signal', plot: 'line', color: "#ff7f0e" },
-                            { atIndex: 0, name: 'MACD', plot: 'line', color: "#aec7e8" },
-                        ]
+                    const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
+                    const size = this.klineSer.size();
+                    const values1 = Object.values(result1);
+                    for (let i = 0; i < size; i++) {
+                        const vs = values1.map(v => v[i]);
+                        ema.setByIndex(i, vs);
                     }
-                ],
+
+                    console.log(`ema added in ${performance.now() - startTime} ms`);
+
+                    startTime = performance.now();
+                    const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
+                    const values2 = Object.values(result2);
+                    for (let i = 0; i < size; i++) {
+                        const vs = values2.map(v => v[i]);
+                        rsi.setByIndex(i, vs);
+                    }
+
+                    console.log(`rsi added in ${performance.now() - startTime} ms`);
+
+                    startTime = performance.now();
+                    const macd = this.klineSer.varOf("macd") as TVar<unknown[]>;
+                    const values3 = Object.values(result3);
+                    for (let i = 0; i < size; i++) {
+                        const vs = values3.map(v => v[i]);
+                        macd.setByIndex(i, vs);
+                    }
+
+                    console.log(`macd added in ${performance.now() - startTime} ms`);
+
+                    this.updateState({
+                        isLoaded: true,
+                        overlayIndicator: {
+                            tvar: ema, outputs: [
+                                { atIndex: 0, name: "SMA-9", plot: "line", color: "#1f77b4" },
+                                { atIndex: 1, name: "SMA-18", plot: "line", color: "#aec7e8" },
+                                { atIndex: 2, name: "SMA-36", plot: "line", color: "#ff7f0e" },
+                            ]
+                        },
+                        stackedIndicators: [
+                            {
+                                tvar: rsi, outputs: [
+                                    { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
+                                ]
+                            },
+                            {
+                                tvar: macd, outputs: [
+                                    { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "white" },
+                                    { atIndex: 1, name: 'Signal', plot: 'line', color: "#ff7f0e" },
+                                    { atIndex: 0, name: 'MACD', plot: 'line', color: "#aec7e8" },
+                                ]
+                            }
+                        ],
+                    })
+                })
+
             })
-        })
+
+        //const indis = this.state.injectIndicators(pinets); //externalIndis(pinets)
+
     }
 
     notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }) {

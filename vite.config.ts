@@ -7,6 +7,6 @@ export default defineConfig({
     base: '/vibetrader/',
     build: {
         sourcemap: true,
-        minify: false, // TODO, transpile 'minified' indicator code correctly.
+        minify: true, // TODO, transpile 'minified' indicator code correctly.
     },
 })
