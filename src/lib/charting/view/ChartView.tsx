@@ -24,14 +24,15 @@ export type UpdateCursor = {
 }
 
 export type Indicator = {
-    tvar: TVar<unknown[]>;
-    outputs: Output[]
+    tvar: TVar<unknown[]>,
+    outputs: Output[],
+    overlay?: boolean
 }
 
 export type Output = {
     atIndex: number,
-    name: string,
-    plot: string,
+    title: string,
+    style: string,
     color: string,
 }
 

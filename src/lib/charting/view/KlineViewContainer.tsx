@@ -21,6 +21,33 @@ type Props = {
     width: number,
 }
 
+type PlotData = {
+    time?: number,
+    value: unknown
+}
+
+type Plot = {
+    data: PlotData[],
+    options: PlotOptions,
+    title: string,
+}
+
+type PlotOptions = {
+    color?: string;
+    linewidth?: number;
+    style?: string;
+    trackprice?: boolean;
+    histbase?: boolean;
+    offset?: number;
+    join?: boolean;
+    editable?: boolean;
+    show_last?: boolean;
+    display?: boolean;
+    format?: string;
+    precision?: number;
+    force_overlay?: boolean;
+};
+
 type State = {
     shouldUpdateChart?: number;
     shouldUpdateCursors?: UpdateCursor;
@@ -46,8 +73,6 @@ type State = {
     yCursorRange?: number[];
 
     isLoaded?: boolean;
-
-    injectIndicators?: (pinets: PineTS) => { result: unknown[] }[];
 }
 
 class KlineViewContainer extends Component<Props, State> {
@@ -110,73 +135,36 @@ class KlineViewContainer extends Component<Props, State> {
                 const indicatorsFunction = new Function("pinets", js);
 
                 Promise.all(indicatorsFunction(pinets)).then((results) => {
-                    const result1 = results[0].result;
-                    const result2 = results[1].result;
-                    const result3 = results[2].result;
-
-                    console.log(`indicators calclated in ${performance.now() - startTime} ms`, result1, result2);
+                    console.log(`indicators calclated in ${performance.now() - startTime} ms`);
 
                     startTime = performance.now();
 
-                    const ema = this.klineSer.varOf("ema") as TVar<unknown[]>;
-                    const size = this.klineSer.size();
-                    const values1 = Object.values(result1);
-                    for (let i = 0; i < size; i++) {
-                        const vs = values1.map(v => v[i]);
-                        ema.setByIndex(i, vs);
-                    }
+                    const inds = results.map(({ plots }, n) => {
+                        const tvar = this.klineSer.varOf("ind-" + n) as TVar<unknown[]>;
+                        const size = this.klineSer.size();
+                        const plotValues = Object.values(plots) as Plot[];
+                        const dataValues = plotValues.map(({ data }) => data);
+                        for (let i = 0; i < size; i++) {
+                            const vs = dataValues.map(v => v[i].value);
+                            tvar.setByIndex(i, vs);
+                        }
+                        const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) =>
+                            ({ atIndex, title, style, color })
+                        )
 
-                    console.log(`ema added in ${performance.now() - startTime} ms`);
+                        return { tvar, outputs }
+                    })
 
-                    startTime = performance.now();
-                    const rsi = this.klineSer.varOf("rsi") as TVar<unknown[]>;
-                    const values2 = Object.values(result2);
-                    for (let i = 0; i < size; i++) {
-                        const vs = values2.map(v => v[i]);
-                        rsi.setByIndex(i, vs);
-                    }
-
-                    console.log(`rsi added in ${performance.now() - startTime} ms`);
-
-                    startTime = performance.now();
-                    const macd = this.klineSer.varOf("macd") as TVar<unknown[]>;
-                    const values3 = Object.values(result3);
-                    for (let i = 0; i < size; i++) {
-                        const vs = values3.map(v => v[i]);
-                        macd.setByIndex(i, vs);
-                    }
-
-                    console.log(`macd added in ${performance.now() - startTime} ms`);
+                    console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
                     this.updateState({
                         isLoaded: true,
-                        overlayIndicator: {
-                            tvar: ema, outputs: [
-                                { atIndex: 0, name: "SMA-9", plot: "line", color: "#1f77b4" },
-                                { atIndex: 1, name: "SMA-18", plot: "line", color: "#aec7e8" },
-                                { atIndex: 2, name: "SMA-36", plot: "line", color: "#ff7f0e" },
-                            ]
-                        },
-                        stackedIndicators: [
-                            {
-                                tvar: rsi, outputs: [
-                                    { atIndex: 0, name: "RSI-14", plot: "line", color: "white" }
-                                ]
-                            },
-                            {
-                                tvar: macd, outputs: [
-                                    { atIndex: 2, name: 'Histogram', plot: 'histogram', color: "white" },
-                                    { atIndex: 1, name: 'Signal', plot: 'line', color: "#ff7f0e" },
-                                    { atIndex: 0, name: 'MACD', plot: 'line', color: "#aec7e8" },
-                                ]
-                            }
-                        ],
+                        overlayIndicator: inds[0],
+                        stackedIndicators: [inds[1], inds[2]]
                     })
                 })
 
             })
-
-        //const indis = this.state.injectIndicators(pinets); //externalIndis(pinets)
 
     }
 
@@ -464,6 +452,7 @@ class KlineViewContainer extends Component<Props, State> {
                     />
                     <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                 </div>
+
                 <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
                     <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
                         onMouseMove={this.handleMouseMove}
@@ -551,7 +540,7 @@ class KlineViewContainer extends Component<Props, State> {
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                             <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.state.overlayIndicator.outputs.map(({ name, color }, n) =>
+                                    this.state.overlayIndicator.outputs.map(({ title: name, color }, n) =>
                                         <span key={"overlay-indicator-lable-" + n} >
                                             <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
                                             <Text style={{ color }}>{
@@ -564,10 +553,11 @@ class KlineViewContainer extends Component<Props, State> {
                                 }
                             </Group>
                         </Toolbar>
+
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                             <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ name, color }, n) =>
+                                    this.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ title: name, color }, n) =>
                                         <span key={"ovarlay-indicator-lable-" + n} >
                                             <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
                                             <Text style={{ color }}>{
@@ -597,7 +587,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
                                         {
-                                            outputs.map(({ name, color }, k) =>
+                                            outputs.map(({ title: name, color }, k) =>
                                                 <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                     <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
                                                     <Text style={{ color }}>{
@@ -615,7 +605,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
                                         {
-                                            this.xc.isReferCuroseVisible && outputs.map(({ name, color }, k) =>
+                                            this.xc.isReferCuroseVisible && outputs.map(({ title: name, color }, k) =>
                                                 <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                     <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
                                                     <Text style={{ color }}>{

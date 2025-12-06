@@ -39,7 +39,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = this.props.mainIndicatorOutputs.map(({ atIndex, color, name, plot }) => {
+        const charts = this.props.mainIndicatorOutputs.map(({ atIndex, color, title: name, style: plot }) => {
             switch (plot) {
                 case 'line':
                     return <LineChart

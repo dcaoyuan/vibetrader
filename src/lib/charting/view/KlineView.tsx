@@ -95,7 +95,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (this.props.overlayIndicator) {
             let depth = 1;
             const tvar = this.props.overlayIndicator.tvar;
-            for (const { plot, name, color, atIndex } of this.props.overlayIndicator.outputs) {
+            for (const { style: plot, title: name, color, atIndex } of this.props.overlayIndicator.outputs) {
                 let ovchart: JSX.Element;
                 switch (plot) {
                     case "line":
