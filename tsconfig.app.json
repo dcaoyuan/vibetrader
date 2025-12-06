@@ -31,6 +31,7 @@
         "noUncheckedSideEffectImports": true
     },
     "include": [
-        "src"
+        "src",
+        "tests/timeseries/KlineSer.ts"
     ]
 }

@@ -1,22 +1,20 @@
-import { DefaultTSer } from "../timeseris/DefaultTSer";
-import { TFrame } from "../timeseris/TFrame";
-import { Kline } from "./Kline";
-import klinesJson from "../klines.json"
-import type { TVar } from "../timeseris/TVar";
+import { DefaultTSer } from "../../src/lib/timeseris/DefaultTSer";
+import { TFrame } from "../../src/lib/timeseris/TFrame";
+import { Kline } from "../../src/lib/domain/Kline";
+import type { TVar } from "../../src/lib/timeseris/TVar";
+import klinesJson from "./klines.json"
 
 //const tzone = "America/Los_Angeles";
 const tzone = "America/Vancouver";
 const varName = "ETH";
 
-export function loadSer(varName: string) {
+function loadSer(varName: string) {
 	const ks = klinesJson //.reverse();
 
 	const klineSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
-	//console.log(qs)
-
-	for (const q of ks) {
-		const kline = new Kline(Date.parse(q.Date), q.Open, q.High, q.Low, q.Close, q.Volume, true);
+	for (const k of ks) {
+		const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
 		klineSer.addToVar(varName, kline);
 	}
 

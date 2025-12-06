@@ -6,7 +6,7 @@ import { ChartView, UpdateEvent, type Indicator, type UpdateCursor as UpdateCurs
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
-import type { Kline } from "../../domain/Kline";
+import { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
@@ -14,9 +14,10 @@ import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
 import { PineTS } from "@vibetrader/pinets";
+import { DefaultTSer } from "../../timeseris/DefaultTSer";
+import { TFrame } from "../../timeseris/TFrame";
 
 type Props = {
-    xc: ChartXControl,
     varName: string,
     width: number,
 }
@@ -49,6 +50,10 @@ type PlotOptions = {
 };
 
 type State = {
+    klineSer?: TSer;
+    kvar?: TVar<Kline>;
+    xc?: ChartXControl;
+
     shouldUpdateChart?: number;
     shouldUpdateCursors?: UpdateCursor;
 
@@ -77,9 +82,6 @@ type State = {
 
 class KlineViewContainer extends Component<Props, State> {
 
-    xc: ChartXControl
-    klineSer: TSer;
-    kvar: TVar<Kline>;
     varName: string;
     width: number;
     isInteractive: boolean;
@@ -95,12 +97,9 @@ class KlineViewContainer extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
-        this.xc = props.xc;
         this.varName = props.varName;
         this.width = props.width;
 
-        this.klineSer = this.xc.baseSer;
-        this.kvar = this.klineSer.varOf(this.varName) as TVar<Kline>;
 
         this.isInteractive = true;
 
@@ -125,48 +124,72 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     componentDidMount() {
+        const tzone = "America/Vancouver";
 
-        fetch("./indicators.js")
-            .then((res) => res.text())
-            .then(js => {
-                const indicatorsFunction = new Function(js);
+        const fetchData = fetch("./klines.json")
+            .then(r => r.json())
+            .then(json => {
+                const klineSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
-                let startTime = performance.now();
-                const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
+                for (const k of json) {
+                    const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
+                    klineSer.addToVar(this.varName, kline);
+                }
 
-                const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
+                const kvar = klineSer.varOf(this.varName) as TVar<Kline>;
 
-                Promise.all(fnRuns).then((results) => {
-                    console.log(`indicators calclated in ${performance.now() - startTime} ms`);
+                // xc instance will be shared by all views.
+                const xc = new ChartXControl(klineSer, this.width - ChartView.AXISY_WIDTH);
 
-                    startTime = performance.now();
-
-                    const inds = results.map(({ plots }, n) => {
-                        const tvar = this.klineSer.varOf("ind-" + n) as TVar<unknown[]>;
-                        const size = this.klineSer.size();
-                        const plotValues = Object.values(plots) as Plot[];
-                        const dataValues = plotValues.map(({ data }) => data);
-                        for (let i = 0; i < size; i++) {
-                            const vs = dataValues.map(v => v[i].value);
-                            tvar.setByIndex(i, vs);
-                        }
-                        const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) =>
-                            ({ atIndex, title, style, color })
-                        )
-
-                        return { tvar, outputs }
-                    })
-
-                    console.log(`indicators added to series in ${performance.now() - startTime} ms`);
-
-                    this.updateState({
-                        isLoaded: true,
-                        overlayIndicator: inds[0],
-                        stackedIndicators: [inds[1], inds[2]]
-                    })
-                })
-
+                return { klineSer, kvar, xc };
             })
+
+        fetchData.then(({ klineSer, kvar, xc }) => {
+            fetch("./indicators.js")
+                .then((r) => r.text())
+                .then(js => {
+                    const indicatorsFunction = new Function(js);
+
+                    let startTime = performance.now();
+                    const pinets = new PineTS(new TSerProvider(kvar), 'ETH', '1d');
+
+                    const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
+
+                    Promise.all(fnRuns).then((results) => {
+                        console.log(`indicators calclated in ${performance.now() - startTime} ms`);
+
+                        startTime = performance.now();
+
+                        const inds = results.map(({ plots }, n) => {
+                            const tvar = klineSer.varOf("ind-" + n) as TVar<unknown[]>;
+                            const size = klineSer.size();
+                            const plotValues = Object.values(plots) as Plot[];
+                            const dataValues = plotValues.map(({ data }) => data);
+                            for (let i = 0; i < size; i++) {
+                                const vs = dataValues.map(v => v[i].value);
+                                tvar.setByIndex(i, vs);
+                            }
+                            const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) =>
+                                ({ atIndex, title, style, color })
+                            )
+
+                            return { tvar, outputs }
+                        })
+
+                        console.log(`indicators added to series in ${performance.now() - startTime} ms`);
+
+                        this.updateState({
+                            klineSer,
+                            kvar,
+                            xc,
+                            isLoaded: true,
+                            overlayIndicator: inds[0],
+                            stackedIndicators: [inds[1], inds[2]]
+                        })
+                    })
+
+                })
+        })
 
     }
 
@@ -185,19 +208,24 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     updateState(state: State) {
+        const xc = state.xc || this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
         let referCursor = undefined
         let mouseCursor = undefined
         const referColor = '#00F0F0C0'; // 'orange'
-        if (this.xc.isReferCuroseVisible) {
-            const time = this.xc.tr(this.xc.referCursorRow)
-            if (this.xc.occurred(time)) {
-                const cursorX = this.xc.xr(this.xc.referCursorRow)
+        if (xc.isReferCuroseVisible) {
+            const time = xc.tr(xc.referCursorRow)
+            if (xc.occurred(time)) {
+                const cursorX = xc.xr(xc.referCursorRow)
                 referCursor = this.#plotCursor(cursorX, referColor)
             }
         }
 
-        if (this.xc.isMouseCuroseVisible) {
-            const cursorX = this.xc.xr(this.xc.mouseCursorRow)
+        if (xc.isMouseCuroseVisible) {
+            const cursorX = xc.xr(xc.mouseCursorRow)
             mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
 
@@ -272,33 +300,48 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     handleMouseLeave() {
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
         // clear mouse cursor
-        this.xc.isMouseCuroseVisible = false;
+        xc.isMouseCuroseVisible = false;
 
         this.notify(UpdateEvent.Cursors);
     }
 
     handleMouseMove(e: React.MouseEvent) {
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
         const targetRect = e.currentTarget.getBoundingClientRect();
         const x = e.pageX - targetRect.left;
         const y = e.pageY - targetRect.top;
 
-        const b = this.xc.bx(x);
+        const b = xc.bx(x);
 
         if (this.isNotInAxisYArea(x)) {
             // draw mouse cursor only when not in the axis-y area
-            const row = this.xc.rb(b)
-            this.xc.setMouseCursorByRow(row)
-            this.xc.isMouseCuroseVisible = true
+            const row = xc.rb(b)
+            xc.setMouseCursorByRow(row)
+            xc.isMouseCuroseVisible = true
 
         } else {
-            this.xc.isMouseCuroseVisible = false;
+            xc.isMouseCuroseVisible = false;
         }
 
         this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
     }
 
     handleMouseDown(e: React.MouseEvent) {
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
         if (e.ctrlKey) {
             // will select chart on pane
 
@@ -308,23 +351,23 @@ class KlineViewContainer extends Component<Props, State> {
             const x = e.pageX - targetRect.left;
             const y = e.pageY - targetRect.top;
 
-            const time = this.xc.tx(x);
-            if (!this.xc.occurred(time)) {
+            const time = xc.tx(x);
+            if (!xc.occurred(time)) {
                 return;
             }
 
             // align x to bar center
-            const b = this.xc.bx(x);
+            const b = xc.bx(x);
 
             if (this.isNotInAxisYArea(x)) {
                 // draw refer cursor only when not in the axis-y area
                 if (
                     y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
-                    b >= 1 && b <= this.xc.nBars
+                    b >= 1 && b <= xc.nBars
                 ) {
-                    const row = this.xc.rb(b)
-                    this.xc.setReferCursorByRow(row, true)
-                    this.xc.isReferCuroseVisible = true;
+                    const row = xc.rb(b)
+                    xc.setReferCursorByRow(row, true)
+                    xc.isReferCuroseVisible = true;
 
                     this.notify(UpdateEvent.Cursors);
                 }
@@ -333,66 +376,77 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     handleWheel(e: React.WheelEvent) {
-        const fastSteps = Math.floor(this.xc.nBars * 0.168)
-        const delta = Math.round(e.deltaY / this.xc.nBars);
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
+        const fastSteps = Math.floor(xc.nBars * 0.168)
+        const delta = Math.round(e.deltaY / xc.nBars);
         console.log(e, delta)
 
         if (e.shiftKey) {
             // zoom in / zoom out 
-            this.xc.growWBar(delta)
+            xc.growWBar(delta)
 
         } else if (e.ctrlKey) {
             if (!this.isInteractive) {
                 return
             }
 
-            const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
+            const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // move refer cursor left / right 
-            this.xc.scrollReferCursor(unitsToScroll, true)
+            xc.scrollReferCursor(unitsToScroll, true)
 
         } else {
             if (!this.isInteractive) {
                 return
             }
 
-            const unitsToScroll = this.xc.isCursorAccelerated ? delta * fastSteps : delta;
+            const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // keep referCursor staying same x in screen, and move
-            this.xc.scrollChartsHorizontallyByBar(unitsToScroll)
+            xc.scrollChartsHorizontallyByBar(unitsToScroll)
         }
 
         this.notify(UpdateEvent.Chart);
     }
 
     handleKeyDown(e: React.KeyboardEvent) {
-        const fastSteps = Math.floor(this.xc.nBars * 0.168)
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
+        const fastSteps = Math.floor(xc.nBars * 0.168)
 
         switch (e.key) {
             case "ArrowLeft":
                 if (e.ctrlKey) {
-                    this.xc.moveCursorInDirection(fastSteps, -1)
+                    xc.moveCursorInDirection(fastSteps, -1)
 
                 } else {
-                    this.xc.moveChartsInDirection(fastSteps, -1)
+                    xc.moveChartsInDirection(fastSteps, -1)
                 }
                 break;
 
             case "ArrowRight":
                 if (e.ctrlKey) {
-                    this.xc.moveCursorInDirection(fastSteps, 1)
+                    xc.moveCursorInDirection(fastSteps, 1)
+
                 } else {
-                    this.xc.moveChartsInDirection(fastSteps, 1)
+                    xc.moveChartsInDirection(fastSteps, 1)
                 }
                 break;
 
             case "ArrowUp":
                 if (!e.ctrlKey) {
-                    this.xc.growWBar(1)
+                    xc.growWBar(1)
                 }
                 break;
 
             case "ArrowDown":
                 if (!e.ctrlKey) {
-                    this.xc.growWBar(-1);
+                    xc.growWBar(-1);
                 }
                 break;
 
@@ -403,13 +457,18 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     handleKeyUp(e: React.KeyboardEvent) {
+        const xc = this.state.xc;
+        if (xc === undefined) {
+            return;
+        }
+
         switch (e.key) {
             case " ":
-                this.xc.isCursorAccelerated = !this.xc.isCursorAccelerated
+                xc.isCursorAccelerated = !xc.isCursorAccelerated
                 break;
 
             case "Escape":
-                this.xc.isReferCuroseVisible = false;
+                xc.isReferCuroseVisible = false;
                 this.notify(UpdateEvent.Cursors)
                 break;
 
@@ -447,8 +506,8 @@ class KlineViewContainer extends Component<Props, State> {
                     <Title
                         width={this.width}
                         height={this.hTitle}
-                        xc={this.xc}
-                        tvar={this.kvar}
+                        xc={this.state.xc}
+                        tvar={this.state.kvar}
                         shouldUpdateChart={this.state.shouldUpdateChart}
                         shouldUpadteCursors={this.state.shouldUpdateCursors}
                     />
@@ -470,9 +529,9 @@ class KlineViewContainer extends Component<Props, State> {
                             x={0}
                             width={this.width}
                             name="ETH"
-                            xc={this.xc}
-                            baseSer={this.klineSer}
-                            tvar={this.kvar}
+                            xc={this.state.xc}
+                            baseSer={this.state.klineSer}
+                            tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicator={this.state.overlayIndicator}
@@ -486,9 +545,9 @@ class KlineViewContainer extends Component<Props, State> {
                             x={0}
                             width={this.width}
                             name="Vol"
-                            xc={this.xc}
-                            baseSer={this.klineSer}
-                            tvar={this.kvar}
+                            xc={this.state.xc}
+                            baseSer={this.state.klineSer}
+                            tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
@@ -499,7 +558,7 @@ class KlineViewContainer extends Component<Props, State> {
                             height={this.hAxisx}
                             x={0}
                             width={this.width}
-                            xc={this.xc}
+                            xc={this.state.xc}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
@@ -513,8 +572,8 @@ class KlineViewContainer extends Component<Props, State> {
                                     x={0}
                                     name={"Indicator-" + n}
                                     width={this.width}
-                                    xc={this.xc}
-                                    baseSer={this.klineSer}
+                                    xc={this.state.xc}
+                                    baseSer={this.state.klineSer}
                                     tvar={tvar}
                                     mainIndicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
@@ -542,9 +601,9 @@ class KlineViewContainer extends Component<Props, State> {
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                             <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.state.overlayIndicator.outputs.map(({ title: name, color }, n) =>
+                                    this.state.overlayIndicator.outputs.map(({ title, color }, n) =>
                                         <span key={"overlay-indicator-lable-" + n} >
-                                            <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
+                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
                                             <Text style={{ color }}>{
                                                 this.state.overlayIndicatorLabels &&
                                                 this.state.overlayIndicatorLabels[n]}
@@ -559,9 +618,9 @@ class KlineViewContainer extends Component<Props, State> {
                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                             <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                 {
-                                    this.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ title: name, color }, n) =>
+                                    this.state.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ title, color }, n) =>
                                         <span key={"ovarlay-indicator-lable-" + n} >
-                                            <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
+                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                             <Text style={{ color }}>{
                                                 this.state.referOverlayIndicatorLabels &&
                                                 this.state.referOverlayIndicatorLabels[n]}
@@ -589,9 +648,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
                                         {
-                                            outputs.map(({ title: name, color }, k) =>
+                                            outputs.map(({ title, color }, k) =>
                                                 <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                    <Text style={{ color: '#00FF00' }}>{name}&nbsp;</Text>
+                                                    <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
                                                     <Text style={{ color }}>{
                                                         this.state.stackedIndicatorLabels &&
                                                         this.state.stackedIndicatorLabels[n] &&
@@ -607,9 +666,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                     <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
                                         {
-                                            this.xc.isReferCuroseVisible && outputs.map(({ title: name, color }, k) =>
+                                            this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
                                                 <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                    <Text style={{ color: '#00F0F0F0' }}>{name}&nbsp;</Text>
+                                                    <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                     <Text style={{ color }}>{
                                                         this.state.referStackedIndicatorLabels &&
                                                         this.state.referStackedIndicatorLabels[n] &&
