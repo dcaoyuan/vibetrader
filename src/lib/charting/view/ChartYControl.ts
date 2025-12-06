@@ -3,6 +3,7 @@ import { Geometry } from "../chart/Geometry";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
+import { LN_SCALAR } from "./scalar/LnScalar";
 
 export class ChartYControl {
     static readonly VALUE_SCALE_UNIT = 10000;
