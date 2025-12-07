@@ -160,6 +160,9 @@ class KlineViewContainer extends Component<Props, State> {
 
                         startTime = performance.now();
 
+                        let overlay = false
+                        let overlayOne = undefined
+                        const stackedOnes = [];
                         const inds = results.map(({ plots }, n) => {
                             const tvar = baseSer.varOf("ind-" + n) as TVar<unknown[]>;
                             const size = baseSer.size();
@@ -169,11 +172,21 @@ class KlineViewContainer extends Component<Props, State> {
                                 const vs = dataValues.map(v => v[i].value);
                                 tvar.setByIndex(i, vs);
                             }
-                            const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) =>
-                                ({ atIndex, title, style, color })
-                            )
 
-                            return { tvar, outputs }
+                            overlay = false;
+                            const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
+                                if (force_overlay) {
+                                    overlay = true;
+                                }
+                                return ({ atIndex, title, style, color })
+                            })
+
+                            if (overlay) {
+                                overlayOne = { tvar, outputs }
+
+                            } else {
+                                stackedOnes.push({ tvar, outputs })
+                            }
                         })
 
                         console.log(`indicators added to series in ${performance.now() - startTime} ms`);
@@ -183,8 +196,8 @@ class KlineViewContainer extends Component<Props, State> {
                             kvar,
                             xc,
                             isLoaded: true,
-                            overlayIndicator: inds[0],
-                            stackedIndicators: [inds[1], inds[2]]
+                            overlayIndicator: overlayOne,
+                            stackedIndicators: stackedOnes
                         })
                     })
 
