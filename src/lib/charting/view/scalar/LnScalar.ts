@@ -4,11 +4,11 @@ class LnScalar implements Scalar {
     readonly kind = "ln";
 
     doScale(v: number): number {
-        return Math.log(v);
+        return v <= 0 ? v : Math.log(v);
     }
 
     unScale(v: number): number {
-        return Math.pow(Math.E, v);
+        return v <= 0 ? v : Math.pow(Math.E, v);
     }
 }
 

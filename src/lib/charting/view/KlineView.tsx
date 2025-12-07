@@ -9,6 +9,7 @@ import './chartview.css';
 import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import type { JSX } from "react";
+import { LN_SCALAR } from "./scalar/LnScalar";
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
 
@@ -47,6 +48,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         super(props);
 
         this.kvar = props.tvar as TVar<Kline>;
+        //this.yc.valueScalar = LN_SCALAR
 
         const { charts, axisy, stackCharts } = this.plot();
 

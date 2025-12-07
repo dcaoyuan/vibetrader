@@ -1,8 +1,6 @@
 import type { TSer } from "../../timeseris/TSer";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
-import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
-import { LN_SCALAR } from "./scalar/LnScalar";
 
 export class ChartYControl {
     static readonly VALUE_SCALE_UNIT = 10000;
@@ -14,6 +12,13 @@ export class ChartYControl {
         this.baseSer = baseSer;
         this.height = height;
     }
+
+    valueScalar: Scalar = LINEAR_SCALAR
+
+    isAutoReferCursorValue: boolean;
+
+    mouseCursorValue: number;
+    mouseCursorY: number;
 
     /** geometry that need to be set before chart plotting and render */
     #hChart = 0               // chart height in pixels, corresponds to the value range (maxValue - minValue)
@@ -28,15 +33,6 @@ export class ChartYControl {
     #minValue = 0.0           // fetched from view
     #maxScalarValue = 0.0
     #minScalarValue = 0.0
-
-    valueScalar: Scalar = LINEAR_SCALAR
-
-    isMouseEntered: boolean;
-    referCursorValue: number;
-    isAutoReferCursorValue: boolean;
-
-    mouseCursorValue: number;
-    mouseCursorY: number;
 
     /**
      * the percent of hCanvas to be used to render charty, is can be used to scale the chart
@@ -156,9 +152,12 @@ export class ChartYControl {
      * @param value
      * @return y on the pane
      */
-    yv(value: number): number {
+    yv(value: number, d?: boolean): number {
         const scalarValue = this.valueScalar.doScale(value)
-        return ChartYControl.yv(scalarValue, this.#hOne, this.#minScalarValue, this.#yChartLower)
+        if (d) {
+            console.log(value, scalarValue)
+        }
+        return -((this.#hOne * (scalarValue - this.#minScalarValue) - this.#yChartLower));
     }
 
     /**
@@ -167,7 +166,7 @@ export class ChartYControl {
      * @return value
      */
     vy(y: number): number {
-        const scalarValue = ChartYControl.vy(y, this.#hOne, this.#minScalarValue, this.#yChartLower)
+        const scalarValue = ((y - this.#yChartLower) / this.#hOne - this.#minScalarValue);
         return this.valueScalar.unScale(scalarValue);
     }
 
@@ -211,18 +210,6 @@ export class ChartYControl {
 
     get minValue(): number {
         return this.#minValue;
-    }
-
-    static hOne(vRange: number, hRange: number): number {
-        return vRange === 0 ? 1.0 : hRange / vRange;
-    }
-
-    static yv(v: number, hOne: number, vMin: number, yLower: number): number {
-        return -((hOne * (v - vMin) - yLower));
-    }
-
-    static vy(y: number, hOne: number, vMin: number, yLower: number): number {
-        return -((y - yLower) / hOne - vMin);
     }
 
     static yOfLine(x: number, baseX: number, baseY: number, k: number): number {

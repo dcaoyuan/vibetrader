@@ -4,11 +4,11 @@ class LgScalar implements Scalar {
 	readonly kind = "lg";
 
 	doScale(v: number): number {
-		return Math.log10(v);
+		return v <= 0 ? v : Math.log10(v);
 	}
 
 	unScale(v: number): number {
-		return Math.pow(10, v);
+		return v <= 0 ? v : Math.pow(10, v);
 	}
 }
 

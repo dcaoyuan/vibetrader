@@ -77,10 +77,9 @@ export const AxisY = (props: Props) => {
         const maxValueOnCanvas = yc.maxValue
         const minValueOnCanvas = yc.minValue
 
-        const vMaxTick = maxValueOnCanvas
-        let vMinTick = minValueOnCanvas // init value, will adjust later
+        let vMinTick = minValueOnCanvas
 
-        const vRange = vMaxTick - vMinTick
+        const vRange = maxValueOnCanvas - vMinTick
         let vTickUnit = vRange / nTicks
         vTickUnit = normTickUnit(vTickUnit);
 
@@ -96,7 +95,7 @@ export const AxisY = (props: Props) => {
         // 
         const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
 
-        const shouldScale = Math.abs(vMaxTick) >= ChartYControl.VALUE_SCALE_UNIT;
+        const shouldScale = Math.abs(maxValueOnCanvas) >= ChartYControl.VALUE_SCALE_UNIT;
         const multiple = "x10^" + Math.log10(ChartYControl.VALUE_SCALE_UNIT);
 
         const vTicks = [];
@@ -125,7 +124,6 @@ export const AxisY = (props: Props) => {
                 i++;
             }
         }
-        console.log(vTicks)
 
         const path = new Path;
         const texts = new Texts;
@@ -138,7 +136,8 @@ export const AxisY = (props: Props) => {
         for (let i = 0; i < vTicks.length; i++) {
             let vTick = vTicks[i];
 
-            const yTick = Math.round(yc.yv(vTick))
+            const yTick = Math.round(yc.yv(vTick, true))
+            console.log(vTick)
 
             path.moveto(0, yTick)
             path.lineto(wTick, yTick)
