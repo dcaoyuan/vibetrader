@@ -16,13 +16,8 @@ type Props = {
     yc: ChartYControl
 }
 
-type State = {
-    path: Path,
-    texts: Texts,
-}
-
 export const AxisY = (props: Props) => {
-    const { x, y, width, height, yc } = props;
+    const { x, y, height, yc } = props;
     const symmetricByMiddleValue = false;
 
     const color = Theme.now().axisColor;
@@ -30,25 +25,26 @@ export const AxisY = (props: Props) => {
     const chart = plot();
 
     // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
-    // const [state, setState] = useState<State>(plotAxisY())
 
-    function normTickUnit(unit: number) {
+    function normTickUnit(potantialUnit: number, range: number, nTicksMax: number) {
         // which pow will bring tick between >= 1 & < 10
-        const normPow = Math.ceil(Math.log10(1 / unit))
+        const normPow = Math.ceil(Math.log10(1 / potantialUnit))
         const normScale = Math.pow(10, normPow)
 
-        unit = Math.round(unit * normScale)
+        // determine which N is the best N in [1, 5, 10]
+        const normUnits = [1, 5, 10]
+        let i = 0;
+        while (i < normUnits.length) {
+            const normUnit = normUnits[i];
+            const unit = normUnit / normScale;
 
-        if (unit >= 2 && unit <= 7) {
-            unit = 5;
+            const nTicks = Math.round(range / unit)
+            if (nTicks <= nTicksMax) {
+                return unit;
+            }
 
-        } else if (unit > 7) {
-            unit = 10;
+            i++;
         }
-
-        unit = unit / normScale
-
-        return unit;
     }
 
     function normMinTick(tick: number) {
@@ -69,23 +65,20 @@ export const AxisY = (props: Props) => {
     }
 
     function plot() {
-        let nTicks = 6.0;
-        while (Math.floor(yc.hCanvas / nTicks) < MIN_TICK_SPACING && nTicks > 2) {
-            nTicks -= 1
+        let nTicksMax = 6.0;
+        while (yc.hCanvas / nTicksMax < MIN_TICK_SPACING && nTicksMax > 2) {
+            nTicksMax -= 1
         }
 
         const maxValueOnCanvas = yc.maxValue
         const minValueOnCanvas = yc.minValue
 
-        let vMinTick = minValueOnCanvas
 
-        const vRange = maxValueOnCanvas - vMinTick
-        let vTickUnit = vRange / nTicks
-        vTickUnit = normTickUnit(vTickUnit);
+        const vRange = maxValueOnCanvas - minValueOnCanvas
+        const potentialUnit = vRange / nTicksMax;
+        const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
 
-        vMinTick = normMinTick(vMinTick);
-
-        // console.log(vTickUnit, vMinTick)
+        const vMinTick = normMinTick(minValueOnCanvas);
 
         // if (!symmetricByMiddleValue) {
         //     vTickUnit = roundTickUnit(vTickUnit)
@@ -136,8 +129,7 @@ export const AxisY = (props: Props) => {
         for (let i = 0; i < vTicks.length; i++) {
             let vTick = vTicks[i];
 
-            const yTick = Math.round(yc.yv(vTick, true))
-            console.log(vTick)
+            const yTick = Math.round(yc.yv(vTick))
 
             path.moveto(0, yTick)
             path.lineto(wTick, yTick)

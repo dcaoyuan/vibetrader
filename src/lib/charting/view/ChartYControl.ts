@@ -152,11 +152,8 @@ export class ChartYControl {
      * @param value
      * @return y on the pane
      */
-    yv(value: number, d?: boolean): number {
+    yv(value: number): number {
         const scalarValue = this.valueScalar.doScale(value)
-        if (d) {
-            console.log(value, scalarValue)
-        }
         return -((this.#hOne * (scalarValue - this.#minScalarValue) - this.#yChartLower));
     }
 

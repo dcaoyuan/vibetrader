@@ -48,7 +48,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         super(props);
 
         this.kvar = props.tvar as TVar<Kline>;
-        //this.yc.valueScalar = LN_SCALAR
+
+        this.yc.valueScalar = LINEAR_SCALAR;
 
         const { charts, axisy, stackCharts } = this.plot();
 
