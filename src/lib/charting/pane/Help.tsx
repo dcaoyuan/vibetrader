@@ -15,11 +15,11 @@ export const Help = (props: Props) => {
     return (
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
             <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
-                <ListBoxItem textValue="O">
+                <ListBoxItem textValue="A">
                     <Text style={{ color: mColor }}>Click on chart: </Text>
                     <Text style={{ color: rColor }}>Put a reference cursor</Text>
                 </ListBoxItem>
-                <ListBoxItem textValue="H">
+                <ListBoxItem textValue="B">
                     <Text style={{ color: mColor }}>Click on chart view: </Text>
                     <Text style={{ color: rColor }}>Gain keyboard focus</Text>
                 </ListBoxItem>
@@ -27,22 +27,26 @@ export const Help = (props: Props) => {
                     <Text style={{ color: mColor }}>Left/Right arrow: </Text>
                     <Text style={{ color: rColor }}>Keep reference cursor, move chart</Text>
                 </ListBoxItem>
-                <ListBoxItem textValue="V">
+                <ListBoxItem textValue="D">
                     <Text style={{ color: mColor }}>Ctrl + Left/Right arrow: </Text>
                     <Text style={{ color: rColor }}>Keep chart, move reference cursor</Text>
                 </ListBoxItem>
             </ListBox>
 
             <ListBox layout="grid" aria-label="Refer kline" style={{ textAlign: 'left' }}>
-                <ListBoxItem textValue="L">
+                <ListBoxItem textValue="A">
                     <Text style={{ color: mColor }}>ESC: </Text>
                     <Text style={{ color: rColor }}>Remove reference cursor</Text>
                 </ListBoxItem>
-                <ListBoxItem textValue="O">
+                <ListBoxItem textValue="B">
                     <Text style={{ color: mColor }}>Up/Down arrow: </Text>
                     <Text style={{ color: rColor }}>Zoom in/out chart</Text>
                 </ListBoxItem>
-                <ListBoxItem textValue="H">
+                <ListBoxItem textValue="C">
+                    <Text style={{ color: mColor }}>Space: </Text>
+                    <Text style={{ color: rColor }}>Swich fast/normal moving speed</Text>
+                </ListBoxItem>
+                <ListBoxItem textValue="D">
                     <Text style={{ color: mColor }}>Mouse wheel: </Text>
                     <Text style={{ color: rColor }}>Keep reference cursor, move chart</Text>
                 </ListBoxItem>

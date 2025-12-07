@@ -3,7 +3,6 @@ import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
-import { COMMON_DECIMAL_FORMAT, CURRENCY_DECIMAL_FORMAT } from "../view/Format";
 
 const MIN_TICK_SPACING = 40 // in pixels
 
@@ -145,7 +144,6 @@ export const AxisY = (props: Props) => {
             const yText = yTick + 4
             texts.text(8, yText, vStr);
         }
-
 
         // draw end line 
         path.moveto(0, 0);
