@@ -8,14 +8,11 @@ import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
 
 export class VolumeView extends ChartView<ViewProps, ViewState> {
-    kvar: TVar<Kline>;
     maxVolume = 0.0;
     minVolume = 0.0
 
     constructor(props: ViewProps) {
         super(props);
-
-        this.kvar = props.tvar as TVar<Kline>;
 
         const { charts, axisy } = this.plot();
 
@@ -42,7 +39,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
 
         const charts = [
             <VolmueChart
-                kvar={this.kvar}
+                kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
                 yc={this.yc}
                 depth={0}
@@ -70,7 +67,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         for (let i = 1; i <= xc.nBars; i++) {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
-                const kline = this.kvar.getByTime(time);
+                const kline = this.props.tvar.getByTime(time) as Kline;
                 if (kline.close > 0) {
                     max = Math.max(max, kline.volume)
                 }
@@ -105,7 +102,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     }
 
     override valueAtTime(time: number) {
-        return this.kvar.getByTime(time).volume
+        return (this.props.tvar.getByTime(time) as Kline).volume
     }
 
     render() {

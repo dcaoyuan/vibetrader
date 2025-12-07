@@ -115,12 +115,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     yc: ChartYControl;
     baseSer: TSer;
-    isMasterView: boolean;
-
-    tvar: TVar<unknown>;
-
-    name: string
-    id: string;
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
@@ -128,10 +122,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         this.yc = new ChartYControl(props.baseSer, props.height);
 
-        this.name = props.name;
-        this.id = props.id;
-
-        console.log(`${this.name} ChartView render`)
+        console.log(`${this.props.name} ChartView render`)
     }
 
     protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
@@ -476,7 +467,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
             const xyMouse = this.props.shouldUpdateCursors.xyMouse;
             if (xyMouse !== undefined) {
-                if (xyMouse.who === this.id) {
+                if (xyMouse.who === this.props.id) {
                     this.updateCursors(xyMouse.x, xyMouse.y);
 
                 } else {

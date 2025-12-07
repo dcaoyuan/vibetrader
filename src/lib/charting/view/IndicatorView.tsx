@@ -8,13 +8,8 @@ import LineChart from "../chart/LineChart";
 import HistogramChart from "../chart/HistogramChart";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
-    maxVolume = 0.0;
-    minVolume = 0.0
-
     constructor(props: ViewProps) {
         super(props);
-
-        this.tvar = props.tvar
 
         const { charts, axisy } = this.plot();
 
@@ -43,7 +38,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             switch (plot) {
                 case 'line':
                     return <LineChart
-                        tvar={this.tvar as TVar<unknown[]>}
+                        tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
@@ -53,7 +48,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     />
                 case 'histogram':
                     return <HistogramChart
-                        tvar={this.tvar as TVar<unknown[]>}
+                        tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
@@ -89,7 +84,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         for (let i = 1; i <= xc.nBars; i++) {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
-                const values = this.tvar.getByTime(time);
+                const values = this.props.tvar.getByTime(time);
                 for (const { atIndex } of this.props.mainIndicatorOutputs) {
                     const v = values[atIndex];
                     if (v !== undefined && isNaN(v) === false) {
@@ -102,10 +97,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
         if (max === 0) {
             max = 1
-        }
-
-        if (max === min) {
-            this.maxVolume++;
         }
 
         // if (max === min) {
