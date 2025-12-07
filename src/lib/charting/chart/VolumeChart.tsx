@@ -30,8 +30,8 @@ const VolmueChart = (props: Props) => {
         const y1 = yc.yv(0)
         let bar = 1
         while (bar <= xc.nBars) {
-            let open = undefined as number;
-            let close = undefined as number;
+            let open = undefined;
+            let close = undefined;
             let volume = Number.NEGATIVE_INFINITY; // we are going to get max of volume during nBarsCompressed
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)

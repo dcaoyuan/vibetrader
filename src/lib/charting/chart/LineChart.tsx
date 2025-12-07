@@ -26,13 +26,13 @@ const LineChart = (props: Props) => {
     }
 
     function plotLineChart(path: Path) {
-        let y1 = NaN // for prev
-        let y2 = NaN // for curr
+        let y1 = undefined // for prev
+        let y2 = undefined // for curr
         let bar = 1
         while (bar <= xc.nBars) {
             // use `undefiend` to test if value has been set at least one time
-            let open = NaN
-            let close = NaN
+            let open = undefined
+            let close = undefined
             let max = Number.NEGATIVE_INFINITY;
             let min = Number.POSITIVE_INFINITY;
             for (let i = 0; i < xc.nBarsCompressed; i++) {
