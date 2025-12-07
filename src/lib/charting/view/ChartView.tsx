@@ -50,8 +50,6 @@ export interface ViewProps {
     shouldUpdateCursors: UpdateCursor;
     name: string;
 
-    isKlineView?: boolean;
-
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
@@ -307,11 +305,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (latestTime !== undefined && latestTime > 0) {
-            if (this.props.isKlineView) {
-                const kline = this.props.tvar.getByTime(latestTime)
-                if (kline !== undefined && kline instanceof Kline) {
-                    latestColor = kline.close > kline.open ? "#BB0000" : "#00AA00"
-                }
+            const kline = this.props.tvar.getByTime(latestTime)
+            if (kline !== undefined && kline instanceof Kline) {
+                latestColor = kline.close > kline.open ? "#BB0000" : "#00AA00"
             }
 
             const value = this.valueAtTime(latestTime);

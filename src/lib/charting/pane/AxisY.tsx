@@ -25,9 +25,9 @@ export const AxisY = (props: Props) => {
 
     // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
 
-    function normTickUnit(potantialUnit: number, range: number, nTicksMax: number) {
+    function normTickUnit(potentialUnit: number, range: number, nTicksMax: number) {
         // which pow will bring tick between >= 1 & < 10
-        const normPow = Math.ceil(Math.log10(1 / potantialUnit))
+        const normPow = Math.ceil(Math.log10(1 / potentialUnit))
         const normScale = Math.pow(10, normPow)
 
         // determine which N is the best N in [1, 2, 5, 10]
