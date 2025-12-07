@@ -536,6 +536,7 @@ class KlineViewContainer extends Component<Props, State> {
                             xc={this.state.xc}
                             baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
+                            isKlineView={true}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicator={this.state.overlayIndicator}

@@ -167,6 +167,10 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 this.yc.valueScalar = LG_SCALAR;
                 break;
 
+            case LG_SCALAR.kind:
+                this.yc.valueScalar = LN_SCALAR;
+                break;
+
             default:
                 this.yc.valueScalar = LINEAR_SCALAR;
         }
@@ -182,9 +186,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             <g transform={transform}>
                 {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
                 {this.state.axisy}
+                {this.state.latestValueLabel}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
-                {this.state.latestValueLabel}
                 {this.state.stackCharts.map((c, n) => <g key={n}>{c}</g>)}
             </g >
         )

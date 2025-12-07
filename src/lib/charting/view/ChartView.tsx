@@ -7,6 +7,7 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
+import { Kline } from "../../domain/Kline";
 
 export enum UpdateEvent {
     Chart,
@@ -48,6 +49,8 @@ export interface ViewProps {
     shouldUpdateChart: number;
     shouldUpdateCursors: UpdateCursor;
     name: string;
+
+    isKlineView?: boolean;
 
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
@@ -251,7 +254,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let latestValueLabel = undefined
         const referColor = '#00F0F0C0';
         const mouseColor = '#00F000';
-        const latestColor = '#ffa500'; // orange
+        let latestColor = '#ffa500'; // orange
 
         const xc = this.props.xc;
 
@@ -313,6 +316,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (latestTime !== undefined && latestTime > 0) {
+            if (this.props.isKlineView) {
+                const kline = this.props.tvar.getByTime(latestTime)
+                if (kline !== undefined && kline instanceof Kline) {
+                    latestColor = kline.close > kline.open ? "#BB0000" : "#00AA00"
+                }
+            }
+
             const value = this.valueAtTime(latestTime);
             if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
