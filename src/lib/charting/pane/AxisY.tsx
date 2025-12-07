@@ -31,8 +31,8 @@ export const AxisY = (props: Props) => {
         const normPow = Math.ceil(Math.log10(1 / potantialUnit))
         const normScale = Math.pow(10, normPow)
 
-        // determine which N is the best N in [1, 5, 10]
-        const normUnits = [1, 5, 10]
+        // determine which N is the best N in [1, 2, 5, 10]
+        const normUnits = [1, 2, 5, 10]
         let i = 0;
         while (i < normUnits.length) {
             const normUnit = normUnits[i];
