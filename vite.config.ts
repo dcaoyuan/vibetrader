@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
     plugins: [react()],
     base: '/vibetrader/',
+    //base: '/',
     build: {
         sourcemap: true,
         minify: true, // TODO, transpile 'minified' indicator code correctly.

@@ -351,15 +351,15 @@ class KlineViewContainer extends Component<Props, State> {
             const x = e.pageX - targetRect.left;
             const y = e.pageY - targetRect.top;
 
-            const time = xc.tx(x);
-            if (!xc.occurred(time)) {
-                return;
-            }
-
-            // align x to bar center
-            const b = xc.bx(x);
-
             if (this.isNotInAxisYArea(x)) {
+                const time = xc.tx(x);
+                if (!xc.occurred(time)) {
+                    return;
+                }
+
+                // align x to bar center
+                const b = xc.bx(x);
+
                 // draw refer cursor only when not in the axis-y area
                 if (
                     y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
@@ -371,6 +371,10 @@ class KlineViewContainer extends Component<Props, State> {
 
                     this.notify(UpdateEvent.Cursors);
                 }
+
+            } else {
+                xc.isReferCuroseVisible = false;
+                this.notify(UpdateEvent.Cursors)
             }
         }
     }
