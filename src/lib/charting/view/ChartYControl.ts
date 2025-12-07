@@ -1,5 +1,4 @@
 import type { TSer } from "../../timeseris/TSer";
-import { Geometry } from "../chart/Geometry";
 import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
 import { LG_SCALAR } from "../view/scalar/LgScalar";
 import type { Scalar } from "../view/scalar/Scalar";
@@ -159,7 +158,7 @@ export class ChartYControl {
      */
     yv(value: number): number {
         const scalarValue = this.valueScalar.doScale(value)
-        return Geometry.yv(scalarValue, this.#hOne, this.#minScalarValue, this.#yChartLower)
+        return ChartYControl.yv(scalarValue, this.#hOne, this.#minScalarValue, this.#yChartLower)
     }
 
     /**
@@ -168,7 +167,7 @@ export class ChartYControl {
      * @return value
      */
     vy(y: number): number {
-        const scalarValue = Geometry.vy(y, this.#hOne, this.#minScalarValue, this.#yChartLower)
+        const scalarValue = ChartYControl.vy(y, this.#hOne, this.#minScalarValue, this.#yChartLower)
         return this.valueScalar.unScale(scalarValue);
     }
 
@@ -212,6 +211,54 @@ export class ChartYControl {
 
     get minValue(): number {
         return this.#minValue;
+    }
+
+    static hOne(vRange: number, hRange: number): number {
+        return vRange === 0 ? 1.0 : hRange / vRange;
+    }
+
+    static yv(v: number, hOne: number, vMin: number, yLower: number): number {
+        return -((hOne * (v - vMin) - yLower));
+    }
+
+    static vy(y: number, hOne: number, vMin: number, yLower: number): number {
+        return -((y - yLower) / hOne - vMin);
+    }
+
+    static yOfLine(x: number, baseX: number, baseY: number, k: number): number {
+        return (baseY + (x - baseX) * k);
+    }
+
+    /**
+     * @param x
+     * @param xCenter center point x of arc
+     * @param yCenter center point y of arc
+     * @return y or Null.Double
+     */
+    static yOfCircle(x: number, xCenter: number, yCenter: number, radius: number, positiveSide: boolean): number {
+        const dx = x - xCenter;
+        const dy = Math.sqrt(radius * radius - dx * dx);
+        return positiveSide ? yCenter + dy : yCenter - dy;
+    }
+
+    // export function yOfCircle(x: number, circle: Arc2D, positiveSide: Boolean): number {
+    //   const xCenter = circle.getCenterX
+    //   const yCenter = circle.getCenterY
+    //   const radius  = circle.getHeight / 2.0
+    //   return yOfCircle(x, xCenter, yCenter, radius, positiveSide)
+    // }
+
+    // export function distanceToCircle(x: number, y: number, circle: Arc2D): number  {
+    //   const xCenter = circle.getCenterX
+    //   const yCenter = circle.getCenterY
+    //   const radius  = circle.getHeight / 2.0
+    //   const dx = x - xCenter
+    //   const dy = y - yCenter
+    //   return (Math.sqrt(dx * dx + dy * dy) - radius)
+    // }
+
+    static samePoint(x1: number, y1: number, x2: number, y2: number): boolean {
+        return Math.round(x1) === Math.round(x2) && Math.round(y1) === Math.round(y2);
     }
 
 }
