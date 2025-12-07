@@ -326,7 +326,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             const value = this.valueAtTime(latestTime);
             if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
-                latestValueLabel = this.plotYValueLabel(y, value.toFixed(3), latestColor)
+                latestValueLabel = this.plotYValueLabel(y, value.toFixed(3), "#FFFFFF", latestColor)
             }
         }
 
@@ -408,7 +408,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         crossPath.moveto(0, y);
         crossPath.lineto(this.props.width - wAxisY, y)
 
-        const valueLabel = this.plotYValueLabel(y, valueStr, color);
+        const valueLabel = this.plotYValueLabel(y, valueStr, "#000000", color);
 
         return (
             <>
@@ -420,7 +420,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         )
     }
 
-    plotYValueLabel(y: number, valueStr: string, color: string) {
+    plotYValueLabel(y: number, valueStr: string, textColor: string, backgroud: string) {
         const wLabel = 44; // label width
         const hLabel = 12; // label height
 
@@ -448,8 +448,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // pay attention to the order to avoid text being overlapped
             <>
                 <g transform={transformYAnnot}>
-                    {axisyPath.render('axisy-tick', { stroke: color, fill: color })}
-                    {axisyTexts.render('axisy-annot', { fill: '#000000' })}
+                    {axisyPath.render('axisy-tick', { stroke: backgroud, fill: backgroud })}
+                    {axisyTexts.render('axisy-annot', { fill: textColor })}
                 </g>
             </>
         )
