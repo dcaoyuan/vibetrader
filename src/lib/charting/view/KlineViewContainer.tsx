@@ -1,8 +1,8 @@
-import { Component, Fragment, memo, useRef, useState, type JSX, type ReactNode } from "react";
+import { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, UpdateEvent, type Indicator, type UpdateCursor as UpdateCursor } from "./ChartView";
+import { ChartView, UpdateEvent, type Indicator, type UpdateCursor } from "./ChartView";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -16,6 +16,7 @@ import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-component
 import { PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
+import * as Binance from "../../domain/BinanaceData";
 
 type Props = {
     varName: string,
@@ -136,15 +137,51 @@ class KlineViewContainer extends Component<Props, State> {
                     baseSer.addToVar(this.varName, kline);
                 }
 
-                const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
-
-                // xc instance will be shared across all views.
-                const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-
-                return { baseSer, kvar, xc };
+                return baseSer;
             })
 
-        fetchData.then(({ baseSer, kvar, xc }) => {
+        const fetchDataBinance = async () => {
+            const SYMBOL = 'BTCUSDC';
+            const INTERVAL = '1d'; // Daily candles
+
+            const endTime = new Date().getTime();
+            const startTime = endTime - 300 * 3600 * 1000 * 24; // back 300 days
+
+            return Binance.fetchAllKlines(SYMBOL, INTERVAL, startTime, endTime).then(binanceKline => {
+                console.log(`\n✅ Successfully fetched ${binanceKline.length} klines`);
+
+                // Sort by openTime to ensure chronological order
+                binanceKline.sort((a, b) => a.openTime - b.openTime);
+
+                // Remove duplicates (in case of any overlap)
+                const uniqueKlines = binanceKline.filter((kline, index, self) =>
+                    index === self.findIndex((k) => k.openTime === kline.openTime)
+                );
+
+                console.log(`After deduplication: ${uniqueKlines.length} candles`);
+
+                const baseSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
+
+                for (const k of uniqueKlines) {
+                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, true);
+                    baseSer.addToVar(this.varName, kline);
+                }
+
+                return baseSer;
+            })
+
+        }
+
+        const fetchKSer = fetchDataBinance().then(baseSer => {
+            const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
+
+            // xc instance will be shared across all views.
+            const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+            return { baseSer, kvar, xc };
+        })
+
+        fetchKSer.then(({ baseSer, kvar, xc }) => {
             fetch("./indicators.js")
                 .then((r) => r.text())
                 .then(js => {
@@ -743,4 +780,4 @@ class KlineViewContainer extends Component<Props, State> {
     }
 }
 
-export default KlineViewContainer 
+export default KlineViewContainer
