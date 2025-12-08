@@ -1,7 +1,7 @@
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
-import { LINEAR_SCALAR } from "./scalar/LinearScala";
-import { LG_SCALAR } from "./scalar/LgScalar";
+import { LINEAR_SCALAR } from "../scalar/LinearScala";
+import { LG_SCALAR } from "../scalar/LgScalar";
 import AxisY from "../pane/AxisY";
 import './chartview.css';
 import LineChart from "../chart/LineChart";

@@ -15,7 +15,45 @@ type Props = {
     yc: ChartYControl
 }
 
-export const AxisY = (props: Props) => {
+function normTickUnit(potentialUnit: number, range: number, nTicksMax: number) {
+    // which pow will bring tick between >= 1 & < 10
+    const normPow = Math.ceil(Math.log10(1 / potentialUnit))
+    const normScale = Math.pow(10, normPow)
+
+    // determine which N is the best N in [1, 2, 5, 10]
+    const normUnits = [1, 2, 5, 10]
+    let i = 0;
+    while (i < normUnits.length) {
+        const normUnit = normUnits[i];
+        const unit = normUnit / normScale;
+
+        const nTicks = Math.round(range / unit)
+        if (nTicks <= nTicksMax) {
+            return unit;
+        }
+
+        i++;
+    }
+}
+
+function normMinTick(tick: number) {
+    const sign = Math.sign(tick);
+    tick = Math.abs(tick)
+    if (tick === 0) {
+        return tick
+    }
+
+    // which pow will bring tick between >= 1 & < 10
+    const normPow = Math.ceil(Math.log10(1 / tick))
+    const normScale = Math.pow(10, normPow)
+
+    tick = Math.round(tick * normScale)
+    tick = tick / normScale
+
+    return sign * tick;
+}
+
+const AxisY = (props: Props) => {
     const { x, y, height, yc } = props;
     const symmetricByMiddleValue = false;
 
@@ -24,44 +62,6 @@ export const AxisY = (props: Props) => {
     const chart = plot();
 
     // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
-
-    function normTickUnit(potentialUnit: number, range: number, nTicksMax: number) {
-        // which pow will bring tick between >= 1 & < 10
-        const normPow = Math.ceil(Math.log10(1 / potentialUnit))
-        const normScale = Math.pow(10, normPow)
-
-        // determine which N is the best N in [1, 2, 5, 10]
-        const normUnits = [1, 2, 5, 10]
-        let i = 0;
-        while (i < normUnits.length) {
-            const normUnit = normUnits[i];
-            const unit = normUnit / normScale;
-
-            const nTicks = Math.round(range / unit)
-            if (nTicks <= nTicksMax) {
-                return unit;
-            }
-
-            i++;
-        }
-    }
-
-    function normMinTick(tick: number) {
-        const sign = Math.sign(tick);
-        tick = Math.abs(tick)
-        if (tick === 0) {
-            return tick
-        }
-
-        // which pow will bring tick between >= 1 & < 10
-        const normPow = Math.ceil(Math.log10(1 / tick))
-        const normScale = Math.pow(10, normPow)
-
-        tick = Math.round(tick * normScale)
-        tick = tick / normScale
-
-        return sign * tick;
-    }
 
     function plot() {
         let nTicksMax = 6.0;

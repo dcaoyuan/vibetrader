@@ -1,6 +1,6 @@
 import type { TSer } from "../../timeseris/TSer";
-import { LINEAR_SCALAR } from "../view/scalar/LinearScala";
-import type { Scalar } from "../view/scalar/Scalar";
+import { LINEAR_SCALAR } from "../scalar/LinearScala";
+import type { Scalar } from "../scalar/Scalar";
 
 export class ChartYControl {
     static readonly VALUE_SCALE_UNIT = 10000;

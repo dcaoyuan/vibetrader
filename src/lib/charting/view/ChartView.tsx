@@ -300,7 +300,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
         } else {
-            // mouse cursor invisible
+            // mouse cursor invisible, will show latest value
             mouseTime = latestTime;
         }
 
@@ -310,9 +310,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 latestColor = "#fdf6e3" // kline.close > kline.open ? "#BB0000" : "#00AA00"
             }
 
-            const value = this.valueAtTime(latestTime);
+            let value = this.valueAtTime(latestTime);
             if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
+
+                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
+                    value /= ChartYControl.VALUE_SCALE_UNIT
+                }
+
                 latestValueLabel = this.plotYValueLabel(y, value, "#000000", latestColor)
             }
         }
