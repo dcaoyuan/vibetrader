@@ -163,7 +163,7 @@ export class ChartYControl {
      * @return value
      */
     vy(y: number): number {
-        const scalarValue = ((y - this.#yChartLower) / this.#hOne - this.#minScalarValue);
+        const scalarValue = -((y - this.#yChartLower) / this.#hOne - this.#minScalarValue);
         return this.valueScalar.unScale(scalarValue);
     }
 
