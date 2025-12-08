@@ -89,30 +89,33 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         />
 
         const stackCharts = []
-        if (this.props.overlayIndicator) {
+        if (this.props.overlayIndicators) {
             let depth = 1;
-            const tvar = this.props.overlayIndicator.tvar;
-            for (const { style: plot, title: name, color, atIndex } of this.props.overlayIndicator.outputs) {
-                let ovchart: JSX.Element;
-                switch (plot) {
-                    case "line":
-                        ovchart = <LineChart
-                            tvar={tvar}
-                            name={name}
-                            color={color}
-                            atIndex={atIndex}
-                            xc={this.props.xc}
-                            yc={this.yc}
-                            depth={depth++}
-                        />
-                        break;
+            this.props.overlayIndicators.map((indicator, n) => {
+                const tvar = indicator.tvar;
+                for (const { style: plot, title: name, color, atIndex } of indicator.outputs) {
+                    let ovchart: JSX.Element;
+                    switch (plot) {
+                        case "line":
+                            ovchart = <LineChart
+                                tvar={tvar}
+                                name={name}
+                                color={color}
+                                atIndex={atIndex}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                depth={depth++}
+                            />
+                            break;
 
-                    default:
+                        default:
+                    }
+                    if (ovchart !== undefined) {
+                        stackCharts.push(ovchart)
+                    }
                 }
-                if (ovchart !== undefined) {
-                    stackCharts.push(ovchart)
-                }
-            }
+
+            })
         }
 
         return { charts, axisy, stackCharts }

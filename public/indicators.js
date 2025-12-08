@@ -55,6 +55,16 @@ const indi3 = (context) => {
     plot(macd, 'MACD', { style: 'line', color: "#ff7f0e" })
 }
 
+const indi4 = (context) => {
+    const { ta } = context.pine;
+    const { close } = context.data;
+    const { plot, plotchar, nz, color } = context.core;
+
+    const ma1 = ta.ema(close, 36);
+
+    plot(ma1, "EMA-70", { style: "line", color: "#1faab4", linewidth: 1, force_overlay: true })
+}
+
 // const indi4 = (context) => {
 //     const { ta } = context.pine;
 //     const { close } = context.data;
@@ -87,5 +97,5 @@ const indi3 = (context) => {
 // }
 
 
-return [indi1, indi2, indi3]
+return [indi1, indi2, indi3, indi4]
 

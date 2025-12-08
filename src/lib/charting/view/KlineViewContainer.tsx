@@ -60,13 +60,13 @@ type State = {
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
 
-    overlayIndicator?: Indicator;
+    overlayIndicators?: Indicator[];
     stackedIndicators?: Indicator[];
 
-    overlayIndicatorLabels?: string[];
+    overlayIndicatorLabels?: string[][];
     stackedIndicatorLabels?: string[][];
 
-    referOverlayIndicatorLabels?: string[];
+    referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
     yKlineView?: number;
@@ -161,8 +161,8 @@ class KlineViewContainer extends Component<Props, State> {
                         startTime = performance.now();
 
                         let overlay = false
-                        let overlayOne = undefined
-                        const stackedOnes = [];
+                        const overlayIndicators = [];
+                        const stackedIndicators = [];
                         const inds = results.map(({ plots }, n) => {
                             const tvar = baseSer.varOf("ind-" + n) as TVar<unknown[]>;
                             const size = baseSer.size();
@@ -182,10 +182,10 @@ class KlineViewContainer extends Component<Props, State> {
                             })
 
                             if (overlay) {
-                                overlayOne = { tvar, outputs }
+                                overlayIndicators.push({ tvar, outputs })
 
                             } else {
-                                stackedOnes.push({ tvar, outputs })
+                                stackedIndicators.push({ tvar, outputs })
                             }
                         })
 
@@ -196,8 +196,8 @@ class KlineViewContainer extends Component<Props, State> {
                             kvar,
                             xc,
                             isLoaded: true,
-                            overlayIndicator: overlayOne,
-                            stackedIndicators: stackedOnes
+                            overlayIndicators,
+                            stackedIndicators
                         })
                     })
 
@@ -493,18 +493,32 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    setOverlayIndicatorLabels(vs: string[], refVs?: string[]) {
-        this.setState({ overlayIndicatorLabels: vs, referOverlayIndicatorLabels: refVs })
+    setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
+        let overlayIndicatorLabels = this.state.overlayIndicatorLabels
+        let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
+
+        overlayIndicatorLabels = overlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
+        referOverlayIndicatorLabels = referOverlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
+        console.log(vs)
+
+        for (let n = 0; n < vs.length; n++) {
+            overlayIndicatorLabels[n] = vs[n];
+            referOverlayIndicatorLabels[n] = refVs[n];
+        }
+
+        this.setState({ overlayIndicatorLabels, referOverlayIndicatorLabels })
     }
+
 
     setStackedIndicatorLabels(n: number) {
         return (vs: string[], refVs?: string[]) => {
             let stackedIndicatorLabels = this.state.stackedIndicatorLabels
-            stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
-            stackedIndicatorLabels[n] = vs;
-
             let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
+
+            stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
             referStackedIndicatorLabels = referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+
+            stackedIndicatorLabels[n] = vs;
             referStackedIndicatorLabels[n] = refVs;
 
             this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
@@ -551,7 +565,7 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
-                            overlayIndicator={this.state.overlayIndicator}
+                            overlayIndicators={this.state.overlayIndicators}
                             updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
                         />
 
@@ -605,53 +619,55 @@ class KlineViewContainer extends Component<Props, State> {
 
                     </svg>
 
-                    {/* labels for overlay indicator  */}
-                    <div style={{
-                        position: 'absolute',
-                        top: this.state.yKlineView - this.hSpacing + 2,
-                        zIndex: 2, // ensure it's above the SVG
-                        backgroundColor: 'transparent',
-                        width: this.width - ChartView.AXISY_WIDTH,
-                        display: 'flex', justifyContent: 'space-between',
-                        padding: '0px 0px'
-                    }}>
-                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                            <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
-                                {
-                                    this.state.overlayIndicator.outputs.map(({ title, color }, n) =>
-                                        <span key={"overlay-indicator-lable-" + n} >
-                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
-                                            <Text style={{ color }}>{
-                                                this.state.overlayIndicatorLabels &&
-                                                this.state.overlayIndicatorLabels[n]}
-                                                &nbsp;&nbsp;
-                                            </Text>
-                                        </span>
-                                    )
-                                }
-                            </Group>
-                        </Toolbar>
+                    { // labels for overlay indicators
+                        this.state.overlayIndicators.map(({ outputs }, m) =>
+                            <div style={{
+                                position: 'absolute',
+                                top: this.state.yKlineView - this.hSpacing + 2 + m * 16,
+                                zIndex: 2, // ensure it's above the SVG
+                                backgroundColor: 'transparent',
+                                width: this.width - ChartView.AXISY_WIDTH,
+                                display: 'flex', justifyContent: 'space-between',
+                                padding: '0px 0px'
+                            }}>
+                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                    <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
+                                        {
+                                            outputs.map(({ title, color }, n) =>
+                                                <span key={"overlay-indicator-lable-" + n} >
+                                                    <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                    <Text style={{ color }}>{
+                                                        this.state.overlayIndicatorLabels &&
+                                                        this.state.overlayIndicatorLabels[m][n]}
+                                                        &nbsp;&nbsp;
+                                                    </Text>
+                                                </span>
+                                            )
+                                        }
+                                    </Group>
+                                </Toolbar>
 
-                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                            <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
-                                {
-                                    this.state.xc.isReferCuroseVisible && this.state.overlayIndicator.outputs.map(({ title, color }, n) =>
-                                        <span key={"ovarlay-indicator-lable-" + n} >
-                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
-                                            <Text style={{ color }}>{
-                                                this.state.referOverlayIndicatorLabels &&
-                                                this.state.referOverlayIndicatorLabels[n]}
-                                                &nbsp;&nbsp;
-                                            </Text>
-                                        </span>
-                                    )
-                                }
-                            </Group>
-                        </Toolbar>
-                    </div>
+                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                    <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
+                                        {
+                                            this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
+                                                <span key={"ovarlay-indicator-lable-" + n} >
+                                                    <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                    <Text style={{ color }}>{
+                                                        this.state.referOverlayIndicatorLabels &&
+                                                        this.state.referOverlayIndicatorLabels[m][n]}
+                                                        &nbsp;&nbsp;
+                                                    </Text>
+                                                </span>
+                                            )
+                                        }
+                                    </Group>
+                                </Toolbar>
+                            </div>
+                        )
+                    }
 
-                    {/* labels for stacked indicators */}
-                    {
+                    { // labels for stacked indicators
                         this.state.stackedIndicators.map(({ outputs }, n) =>
                             <div key={"indicator-title-" + n} style={{
                                 position: 'absolute',

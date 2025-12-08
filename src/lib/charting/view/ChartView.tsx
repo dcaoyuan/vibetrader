@@ -53,9 +53,9 @@ export interface ViewProps {
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
-    overlayIndicator?: Indicator;
+    overlayIndicators?: Indicator[];
 
-    updateOverlayIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+    updateOverlayIndicatorLabels?: (vs: string[][], refVs?: string[][]) => void;
     updateStackedIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
 }
 
@@ -322,40 +322,51 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
-        if (this.props.overlayIndicator && this.props.updateOverlayIndicatorLabels) {
-            const tvar = this.props.overlayIndicator.tvar;
+        // overlay indicators
+        if (this.props.overlayIndicators && this.props.updateOverlayIndicatorLabels) {
+            const allmvs = []
+            const allrvs = []
+            this.props.overlayIndicators.map((indicator, n) => {
+                const tvar = indicator.tvar;
 
-            let mvs = undefined;
-            if (mouseTime !== undefined && mouseTime > 0) {
-                mvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
-                    const values = tvar.getByTime(mouseTime);
-                    const v = values ? values[atIndex] : '';
-                    return typeof v === 'number'
-                        ? isNaN(v) ? "" : v.toFixed(2)
-                        : '' + v
-                })
+                let mvs = undefined;
+                if (mouseTime !== undefined && mouseTime > 0) {
+                    mvs = indicator.outputs.map(({ atIndex }, n) => {
+                        const values = tvar.getByTime(mouseTime);
+                        const v = values ? values[atIndex] : '';
+                        return typeof v === 'number'
+                            ? isNaN(v) ? "" : v.toFixed(2)
+                            : '' + v
+                    })
 
-            } else {
-                mvs = new Array(this.props.overlayIndicator.outputs.length);
-            }
+                } else {
+                    mvs = new Array(indicator.outputs.length);
+                }
 
-            let rvs = undefined;
-            if (referTime != undefined && referTime > 0) {
-                rvs = this.props.overlayIndicator.outputs.map(({ atIndex }, n) => {
-                    const values = tvar.getByTime(referTime);
-                    const v = values ? values[atIndex] : '';
-                    return typeof v === 'number'
-                        ? isNaN(v) ? "" : v.toFixed(2)
-                        : '' + v
-                })
+                allmvs.push(mvs)
+                console.log(allmvs)
 
-            } else {
-                rvs = new Array(this.props.overlayIndicator.outputs.length);
-            }
+                let rvs = undefined;
+                if (referTime != undefined && referTime > 0) {
+                    rvs = indicator.outputs.map(({ atIndex }, n) => {
+                        const values = tvar.getByTime(referTime);
+                        const v = values ? values[atIndex] : '';
+                        return typeof v === 'number'
+                            ? isNaN(v) ? "" : v.toFixed(2)
+                            : '' + v
+                    })
 
-            this.props.updateOverlayIndicatorLabels(mvs, rvs);
+                } else {
+                    rvs = new Array(indicator.outputs.length);
+                }
+
+                allrvs.push(rvs)
+            })
+
+            this.props.updateOverlayIndicatorLabels(allmvs, allrvs);
         }
 
+        // stacked indicators
         if (this.props.updateStackedIndicatorLabels) {
             const tvar = this.props.tvar;
             let mvs = undefined;
@@ -456,7 +467,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.updateChart();
         }
 
-        if (this.props.overlayIndicator !== prevProps.overlayIndicator) {
+        if (areDeeplyEqualArrays(this.props.overlayIndicators, prevProps.overlayIndicators)) {
             this.updateChart();
         }
 
@@ -476,6 +487,37 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
+}
+
+function areDeeplyEqualArrays(arr1, arr2) {
+    // Check if both inputs are arrays
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
+        return false;
+    }
+
+    // Check if lengths are equal
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    // Iterate and recursively compare elements
+    for (let i = 0; i < arr1.length; i++) {
+        const elem1 = arr1[i];
+        const elem2 = arr2[i];
+
+        // If elements are not primitive and are arrays/objects, recurse
+        if (typeof elem1 === 'object' && elem1 !== null &&
+            typeof elem2 === 'object' && elem2 !== null) {
+            if (!areDeeplyEqualArrays(elem1, elem2)) { // Assuming a general deep equal function handles objects as well
+                return false;
+            }
+
+        } else if (elem1 !== elem2) { // Primitive comparison
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
