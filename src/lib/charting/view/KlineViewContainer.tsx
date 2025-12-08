@@ -1,4 +1,4 @@
-import { Component, memo, useRef, useState, type JSX, type ReactNode } from "react";
+import { Component, Fragment, memo, useRef, useState, type JSX, type ReactNode } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -621,8 +621,8 @@ class KlineViewContainer extends Component<Props, State> {
                     {
                         // labels for overlay indicators
                         this.state.overlayIndicators.map(({ outputs }, m) =>
-                            <>
-                                <div key={"indicator-values-" + m} style={{
+                            <Fragment key={"indicator-values-" + m}>
+                                <div style={{
                                     position: 'absolute',
                                     top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
                                     zIndex: 2, // ensure it's above the SVG
@@ -647,7 +647,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                                 </div>
 
-                                <div key={"indicator-refer-values-" + m} style={{
+                                <div style={{
                                     position: 'absolute',
                                     top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
                                     right: ChartView.AXISY_WIDTH,
@@ -671,14 +671,14 @@ class KlineViewContainer extends Component<Props, State> {
                                         </Group>
                                     </Toolbar>
                                 </div>
-                            </>)
+                            </Fragment>)
                     }
 
                     {
                         // labels for stacked indicators
                         this.state.stackedIndicators.map(({ outputs }, n) =>
-                            <>
-                                <div key={"indicator-values-" + n} style={{
+                            <Fragment key={"indicator-values-" + n}>
+                                <div style={{
                                     position: 'absolute',
                                     top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
                                     zIndex: 2, // ensure it's above the SVG
@@ -704,7 +704,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                                 </div>
 
-                                <div key={"indicator-refer-values-" + n} style={{
+                                <div style={{
                                     position: 'absolute',
                                     top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
                                     right: ChartView.AXISY_WIDTH,
@@ -729,7 +729,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         </Group>
                                     </Toolbar>
                                 </div>
-                            </>
+                            </Fragment>
                         )
                     }
                 </div>

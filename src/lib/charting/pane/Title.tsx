@@ -18,7 +18,6 @@ type Props = {
 }
 
 type State = {
-    chart: JSX.Element,
 
     referKline: Kline,
     mouseKline: Kline,
@@ -31,8 +30,7 @@ class Title extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        const chart = this.plot();
-        this.state = { chart, mouseKline: undefined, referKline: undefined, delta: undefined };
+        this.state = { mouseKline: undefined, referKline: undefined, delta: undefined };
 
         let tframeName = this.props.xc.baseSer.timeframe.compactName.toLowerCase();
         const matchLeadingNumbers = tframeName.match(/^\d+/);
@@ -44,19 +42,11 @@ class Title extends Component<Props, State> {
         console.log("Title render");
     }
 
-    plot() {
-        return (
-            <>
-            </>
-        );
-    }
-
     protected updateChart() {
         // clear mouse cursor and prev value
         this.props.xc.isMouseCuroseVisible = false;
 
-        const chart = this.plot();
-        this.updateState({ chart });
+        this.updateState({});
     }
 
     protected updateCursors() {
@@ -64,8 +54,8 @@ class Title extends Component<Props, State> {
     }
 
     protected updateState(state: object) {
-        let referKline: Kline = undefined
-        let mouseKline: Kline = undefined
+        let referKline = undefined
+        let mouseKline = undefined
 
         const xc = this.props.xc;
 
@@ -76,29 +66,33 @@ class Title extends Component<Props, State> {
             }
         }
 
-        if (xc.isMouseCuroseVisible) {
-            const time = xc.tr(xc.mouseCursorRow)
-            if (xc.occurred(time)) {
-                mouseKline = this.props.tvar.getByTime(time);
-            }
+        const time = xc.isMouseCuroseVisible
+            ? xc.tr(xc.mouseCursorRow)
+            : xc.lastOccurredTime()
 
-        } else {
-            const time = xc.lastOccurredTime()
-            if (time && time > 0) {
-                mouseKline = this.props.tvar.getByTime(time);
-            }
+        if (time && time > 0 && xc.occurred(time)) {
+            mouseKline = this.props.tvar.getByTime(time);
         }
 
-        const delta = this.calcDelta()
+        let delta = undefined
+        if (xc.isMouseCuroseVisible && xc.isCursorCrossVisible) {
+            delta = this.calcDelta()
 
-        this.setState({ ...state, referKline: referKline, mouseKline: mouseKline, delta })
+        } else {
+            // will show last occured's change
+            const prevRow = xc.rt(time) - 1
+            const prevOccurredTime = xc.tr(prevRow)
+            const prevKline = this.props.tvar.getByTime(prevOccurredTime);
+            delta = prevKline !== undefined
+                ? { percent: (mouseKline.close - prevKline.close) / prevKline.close }
+                : undefined
+        }
+
+        this.setState({ ...state, referKline, mouseKline, delta })
     }
 
     calcDelta() {
         const xc = this.props.xc;
-        if (!xc.isReferCuroseVisible || !xc.isMouseCuroseVisible) {
-            return undefined;
-        }
 
         const isAutoReferCursorValue = true; // TODO
 
@@ -176,7 +170,13 @@ class Title extends Component<Props, State> {
                             <Text style={{ color: lColor }}>C </Text>
                             <Text style={{ color: mColor }}>
                                 {delta
-                                    ? mKline.close + ` (${delta.percent.toFixed(2)}% in ${delta.period} ${delta.period === 1 ? this.tframeName : this.tframeName + 's'})`
+                                    ? mKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                        delta.period
+                                            ? ` in ${delta.period} ${delta.period === 1
+                                                ? this.tframeName
+                                                : this.tframeName + 's'})`
+                                            : ')'
+                                    )
                                     : mKline.close
                                 }
                             </Text>

@@ -289,12 +289,11 @@ export class ChartXControl {
         } else {
             let i = 0
             const n = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1;
-            let breakNow = false
-            while (i < n && !breakNow) {
+            while (i < n) {
                 if (newWBar > ChartXControl.PREDEFINED_BAR_WIDTHS[i] && newWBar < ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1]) {
                     /** which one is the nearest ? */
                     this.#wBarIdx = Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i] - newWBar) < Math.abs(ChartXControl.PREDEFINED_BAR_WIDTHS[i + 1] - newWBar) ? i : i + 1
-                    breakNow = true;
+                    break;
                 }
                 i++;
             }
