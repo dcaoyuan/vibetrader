@@ -143,6 +143,6 @@ export namespace Colors {
     };
 
     export function of(color: string) {
-        return colors[color.toLowerCase() as keyof {}];
+        return colors[color.toLowerCase()];
     }
 }

@@ -307,13 +307,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (latestTime !== undefined && latestTime > 0) {
             const kline = this.props.tvar.getByTime(latestTime)
             if (kline !== undefined && kline instanceof Kline) {
-                latestColor = kline.close > kline.open ? "#BB0000" : "#00AA00"
+                latestColor = "#fdf6e3" // kline.close > kline.open ? "#BB0000" : "#00AA00"
             }
 
             const value = this.valueAtTime(latestTime);
             if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
-                latestValueLabel = this.plotYValueLabel(y, value.toFixed(3), "#FFFFFF", latestColor)
+                latestValueLabel = this.plotYValueLabel(y, value, "#000000", latestColor)
             }
         }
 
@@ -393,10 +393,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-    #plotCursor(x: number, y: number, time: number, value: number, color: string) {
+    #plotCursor(x: number, y: number, time: number, value: number, background: string) {
         const wAxisY = ChartView.AXISY_WIDTH
-
-        const valueStr = value.toPrecision(5);
 
         const crossPath = new Path;
         // crossPath.stroke_dasharray = '1, 1'
@@ -405,19 +403,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         crossPath.moveto(0, y);
         crossPath.lineto(this.props.width - wAxisY, y)
 
-        const valueLabel = this.plotYValueLabel(y, valueStr, "#000000", color);
+        const valueLabel = this.plotYValueLabel(y, value, "#000000", background);
 
         return (
             <>
                 <g shapeRendering="crispEdges" >
-                    {crossPath.render('axisy-cross', { stroke: color })}
+                    {crossPath.render('axisy-cross', { stroke: background })}
                 </g>
                 {valueLabel}
             </>
         )
     }
 
-    plotYValueLabel(y: number, valueStr: string, textColor: string, backgroud: string) {
+    plotYValueLabel(y: number, value: number, textColor: string, backgroud: string) {
+        const valueStr = parseFloat(value.toPrecision(5)).toString();
+
         const wLabel = 44; // label width
         const hLabel = 12; // label height
 
