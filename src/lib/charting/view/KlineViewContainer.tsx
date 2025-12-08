@@ -618,101 +618,118 @@ class KlineViewContainer extends Component<Props, State> {
 
                     </svg>
 
-                    { // labels for overlay indicators
+                    {
+                        // labels for overlay indicators
                         this.state.overlayIndicators.map(({ outputs }, m) =>
-                            <div key={"indicator-title-" + m} style={{
-                                position: 'absolute',
-                                top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
-                                zIndex: 2, // ensure it's above the SVG
-                                backgroundColor: 'transparent',
-                                width: this.width - ChartView.AXISY_WIDTH,
-                                display: 'flex', justifyContent: 'space-between',
-                                padding: '0px 0px'
-                            }}>
-                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                    <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
-                                        {
-                                            outputs.map(({ title, color }, n) =>
-                                                <span key={"overlay-indicator-lable-" + n} >
-                                                    <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
-                                                    <Text style={{ color }}>{
-                                                        this.state.overlayIndicatorLabels &&
-                                                        this.state.overlayIndicatorLabels[m][n]}
-                                                        &nbsp;&nbsp;
-                                                    </Text>
-                                                </span>
-                                            )
-                                        }
-                                    </Group>
-                                </Toolbar>
+                            <>
+                                <div key={"indicator-values-" + m} style={{
+                                    position: 'absolute',
+                                    top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                    zIndex: 2, // ensure it's above the SVG
+                                    backgroundColor: 'transparent',
+                                }}>
+                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                        <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
+                                            {
+                                                outputs.map(({ title, color }, n) =>
+                                                    <span key={"overlay-indicator-lable-" + n} >
+                                                        <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                        <Text style={{ color }}>{
+                                                            this.state.overlayIndicatorLabels &&
+                                                            this.state.overlayIndicatorLabels[m][n]}
+                                                            &nbsp;&nbsp;
+                                                        </Text>
+                                                    </span>
+                                                )
+                                            }
+                                        </Group>
+                                    </Toolbar>
 
-                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                    <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
-                                        {
-                                            this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
-                                                <span key={"ovarlay-indicator-lable-" + n} >
-                                                    <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
-                                                    <Text style={{ color }}>{
-                                                        this.state.referOverlayIndicatorLabels &&
-                                                        this.state.referOverlayIndicatorLabels[m][n]}
-                                                        &nbsp;&nbsp;
-                                                    </Text>
-                                                </span>
-                                            )
-                                        }
-                                    </Group>
-                                </Toolbar>
-                            </div>
-                        )
+                                </div>
+
+                                <div key={"indicator-refer-values-" + m} style={{
+                                    position: 'absolute',
+                                    top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                    right: ChartView.AXISY_WIDTH,
+                                    zIndex: 2, // ensure it's above the SVG
+                                    backgroundColor: 'transparent',
+                                }}>
+                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                        <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
+                                            {
+                                                this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
+                                                    <span key={"ovarlay-indicator-lable-" + n} >
+                                                        <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                        <Text style={{ color }}>{
+                                                            this.state.referOverlayIndicatorLabels &&
+                                                            this.state.referOverlayIndicatorLabels[m][n]}
+                                                            &nbsp;&nbsp;
+                                                        </Text>
+                                                    </span>
+                                                )
+                                            }
+                                        </Group>
+                                    </Toolbar>
+                                </div>
+                            </>)
                     }
 
-                    { // labels for stacked indicators
+                    {
+                        // labels for stacked indicators
                         this.state.stackedIndicators.map(({ outputs }, n) =>
-                            <div key={"indicator-title-" + n} style={{
-                                position: 'absolute',
-                                top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
-                                zIndex: 2, // ensure it's above the SVG
-                                backgroundColor: 'transparent',
-                                width: this.width - ChartView.AXISY_WIDTH,
-                                display: 'flex', justifyContent: 'space-between',
-                                padding: '0px 0px'
-                            }}>
-                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                    <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
-                                        {
-                                            outputs.map(({ title, color }, k) =>
-                                                <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                    <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
-                                                    <Text style={{ color }}>{
-                                                        this.state.stackedIndicatorLabels &&
-                                                        this.state.stackedIndicatorLabels[n] &&
-                                                        this.state.stackedIndicatorLabels[n][k]}
-                                                        &nbsp;&nbsp;
-                                                    </Text>
-                                                </span>
-                                            )
-                                        }
-                                    </Group>
-                                </Toolbar>
+                            <>
+                                <div key={"indicator-values-" + n} style={{
+                                    position: 'absolute',
+                                    top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                    zIndex: 2, // ensure it's above the SVG
+                                    backgroundColor: 'transparent',
+                                }}>
+                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                        <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
+                                            {
+                                                outputs.map(({ title, color }, k) =>
+                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                        <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                        <Text style={{ color }}>{
+                                                            this.state.stackedIndicatorLabels &&
+                                                            this.state.stackedIndicatorLabels[n] &&
+                                                            this.state.stackedIndicatorLabels[n][k]}
+                                                            &nbsp;&nbsp;
+                                                        </Text>
+                                                    </span>
+                                                )
+                                            }
+                                        </Group>
+                                    </Toolbar>
 
-                                <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                    <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
-                                        {
-                                            this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
-                                                <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                    <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
-                                                    <Text style={{ color }}>{
-                                                        this.state.referStackedIndicatorLabels &&
-                                                        this.state.referStackedIndicatorLabels[n] &&
-                                                        this.state.referStackedIndicatorLabels[n][k]}
-                                                        &nbsp;&nbsp;
-                                                    </Text>
-                                                </span>
-                                            )
-                                        }
-                                    </Group>
-                                </Toolbar>
-                            </div>
+                                </div>
+
+                                <div key={"indicator-refer-values-" + n} style={{
+                                    position: 'absolute',
+                                    top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                    right: ChartView.AXISY_WIDTH,
+                                    zIndex: 2, // ensure it's above the SVG
+                                    backgroundColor: 'transparent',
+                                }}>
+                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                        <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
+                                            {
+                                                this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
+                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                        <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                        <Text style={{ color }}>{
+                                                            this.state.referStackedIndicatorLabels &&
+                                                            this.state.referStackedIndicatorLabels[n] &&
+                                                            this.state.referStackedIndicatorLabels[n][k]}
+                                                            &nbsp;&nbsp;
+                                                        </Text>
+                                                    </span>
+                                                )
+                                            }
+                                        </Group>
+                                    </Toolbar>
+                                </div>
+                            </>
                         )
                     }
                 </div>
