@@ -499,7 +499,6 @@ class KlineViewContainer extends Component<Props, State> {
 
         overlayIndicatorLabels = overlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
         referOverlayIndicatorLabels = referOverlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
-        console.log(vs)
 
         for (let n = 0; n < vs.length; n++) {
             overlayIndicatorLabels[n] = vs[n];
@@ -621,9 +620,9 @@ class KlineViewContainer extends Component<Props, State> {
 
                     { // labels for overlay indicators
                         this.state.overlayIndicators.map(({ outputs }, m) =>
-                            <div style={{
+                            <div key={"indicator-title-" + m} style={{
                                 position: 'absolute',
-                                top: this.state.yKlineView - this.hSpacing + 2 + m * 16,
+                                top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
                                 zIndex: 2, // ensure it's above the SVG
                                 backgroundColor: 'transparent',
                                 width: this.width - ChartView.AXISY_WIDTH,

@@ -344,7 +344,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 }
 
                 allmvs.push(mvs)
-                console.log(allmvs)
 
                 let rvs = undefined;
                 if (referTime != undefined && referTime > 0) {

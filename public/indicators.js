@@ -60,9 +60,9 @@ const indi4 = (context) => {
     const { close } = context.data;
     const { plot, plotchar, nz, color } = context.core;
 
-    const ma1 = ta.ema(close, 36);
+    const ma1 = ta.ema(close, 9);
 
-    plot(ma1, "EMA-70", { style: "line", color: "#1faab4", linewidth: 1, force_overlay: true })
+    plot(ma1, "EMA-9", { style: "line", color: "white", linewidth: 1, force_overlay: true })
 }
 
 // const indi4 = (context) => {
