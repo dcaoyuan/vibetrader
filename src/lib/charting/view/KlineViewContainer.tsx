@@ -89,6 +89,9 @@ class KlineViewContainer extends Component<Props, State> {
     width: number;
     isInteractive: boolean;
 
+    refreshTimeoutId = undefined;
+
+    // geometry variables
     hTitle = 98;
     hHelp = 80;
 
@@ -131,24 +134,28 @@ class KlineViewContainer extends Component<Props, State> {
 
     componentDidMount() {
 
-        const fetchData = () => fetch("./klines.json")
+        const fetchData = (startTime?: number) => fetch("./klines.json")
             .then(r => r.json())
             .then(json => {
                 for (const k of json) {
                     const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
                     this.baseSer.addToVar(this.varName, kline);
                 }
+
+                return undefined; // latestTime
             })
 
-        const fetchDataBinance = async () => {
+        const fetchDataBinance = async (startTime?: number) => {
             const SYMBOL = 'BTCUSDC';
             const INTERVAL = '1d'; // Daily candles
 
             const endTime = new Date().getTime();
-            const startTime = endTime - 300 * 3600 * 1000 * 24; // back 300 days
+            startTime = startTime
+                ? startTime :
+                endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
             return Binance.fetchAllKlines(SYMBOL, INTERVAL, startTime, endTime).then(binanceKline => {
-                console.log(`\n✅ Successfully fetched ${binanceKline.length} klines`);
+                console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
                 // Sort by openTime to ensure chronological order
                 binanceKline.sort((a, b) => a.openTime - b.openTime);
@@ -158,79 +165,107 @@ class KlineViewContainer extends Component<Props, State> {
                     index === self.findIndex((k) => k.openTime === kline.openTime)
                 );
 
-                console.log(`After deduplication: ${uniqueKlines.length} candles`);
+
+                console.log(`After deduplication: ${uniqueKlines.length} klines`);
+
+                const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
+                console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
+
 
                 for (const k of uniqueKlines) {
                     const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, true);
                     this.baseSer.addToVar(this.varName, kline);
                 }
 
+                return latestKline ? latestKline.openTime : undefined;
             })
 
         }
 
-        fetchDataBinance().then(() => {
-            fetch("./indicators.js")
-                .then((r) => r.text())
-                .then(js => {
-                    const indicatorsFunction = new Function(js);
+        const refreshData = (startTime?: number) => fetchDataBinance(startTime)
+            .then((latestTime) =>
+                fetch("./indicators.js")
+                    .then((r) => r.text())
+                    .then(js => {
+                        const indicatorsFunction = new Function(js);
 
-                    let startTime = performance.now();
-                    const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
+                        let startTime = performance.now();
+                        const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
 
-                    const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
+                        const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
 
-                    Promise.all(fnRuns).then((results) => {
-                        console.log(`indicators calclated in ${performance.now() - startTime} ms`);
+                        Promise.all(fnRuns).then((results) => {
+                            console.log(`indicators calclated in ${performance.now() - startTime} ms`);
 
-                        startTime = performance.now();
+                            startTime = performance.now();
 
-                        let overlay = false
-                        const overlayIndicators = [];
-                        const stackedIndicators = [];
+                            let overlay = false
+                            const overlayIndicators = [];
+                            const stackedIndicators = [];
 
-                        results.map(({ plots }, n) => {
-                            const tvar = this.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
-                            const size = this.baseSer.size();
-                            const plotValues = Object.values(plots) as Plot[];
-                            const dataValues = plotValues.map(({ data }) => data);
-                            for (let i = 0; i < size; i++) {
-                                const vs = dataValues.map(v => v[i].value);
-                                tvar.setByIndex(i, vs);
-                            }
-
-                            overlay = false;
-                            const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
-                                if (force_overlay) {
-                                    overlay = true;
+                            results.map(({ plots }, n) => {
+                                const tvar = this.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
+                                const size = this.baseSer.size();
+                                const plotValues = Object.values(plots) as Plot[];
+                                const dataValues = plotValues.map(({ data }) => data);
+                                for (let i = 0; i < size; i++) {
+                                    const vs = dataValues.map(v => v[i].value);
+                                    tvar.setByIndex(i, vs);
                                 }
-                                return ({ atIndex, title, style, color })
+
+                                overlay = false;
+                                const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
+                                    if (force_overlay) {
+                                        overlay = true;
+                                    }
+                                    return ({ atIndex, title, style, color })
+                                })
+
+                                if (overlay) {
+                                    overlayIndicators.push({ tvar, outputs })
+
+                                } else {
+                                    stackedIndicators.push({ tvar, outputs })
+                                }
                             })
 
-                            if (overlay) {
-                                overlayIndicators.push({ tvar, outputs })
+                            console.log(`indicators added to series in ${performance.now() - startTime} ms`);
+
+                            // xc instance will be shared across all views and will be reinited here.
+                            const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+
+
+                            if (this.state.isLoaded) {
+                                this.updateState({
+                                    shouldUpdateChart: this.state.shouldUpdateChart + 1,
+                                    xc,
+                                    overlayIndicators,
+                                    stackedIndicators
+                                })
 
                             } else {
-                                stackedIndicators.push({ tvar, outputs })
+                                this.updateState({
+                                    xc,
+                                    isLoaded: true,
+                                    overlayIndicators,
+                                    stackedIndicators
+                                })
                             }
+
+                            this.refreshTimeoutId = setTimeout(() => refreshData(latestTime), 5000)
                         })
 
-                        console.log(`indicators added to series in ${performance.now() - startTime} ms`);
-
-                        // xc instance will be shared across all views and will be reinited here.
-                        const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
-
-                        this.updateState({
-                            xc,
-                            isLoaded: true,
-                            overlayIndicators,
-                            stackedIndicators
-                        })
                     })
+            )
 
-                })
-        })
+        refreshData()
 
+    }
+
+    override componentWillUnmount() {
+        if (this.refreshTimeoutId) {
+            clearTimeout(this.refreshTimeoutId);
+        }
     }
 
     notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }) {
