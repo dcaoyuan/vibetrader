@@ -51,7 +51,7 @@ type PlotOptions = {
 };
 
 type State = {
-    // it seems we should put xc in state instead of let it to be member of class.
+    // it seems we should put xc in state instead of let it to be member of class to avoid too deeply state update?
     xc?: ChartXControl;
 
     shouldUpdateChart?: number;
@@ -84,6 +84,7 @@ class KlineViewContainer extends Component<Props, State> {
     tzone: string;
     baseSer: TSer;
     kvar: TVar<Kline>;
+    xc: ChartXControl;
 
     varName: string;
     width: number;
@@ -109,6 +110,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.tzone = "America/Vancouver";
         this.baseSer = new DefaultTSer(TFrame.DAILY, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(this.varName) as TVar<Kline>;
+        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         this.isInteractive = true;
 
@@ -232,20 +234,22 @@ class KlineViewContainer extends Component<Props, State> {
                             console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
                             // xc instance will be shared across all views and will be reinited here.
-                            const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
-
+                            // const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+                            if (!this.state.isLoaded) {
+                                this.xc.reinit()
+                            }
 
                             if (this.state.isLoaded) {
                                 this.updateState({
                                     shouldUpdateChart: this.state.shouldUpdateChart + 1,
-                                    xc,
+                                    xc: this.xc,
                                     overlayIndicators,
                                     stackedIndicators
                                 })
 
                             } else {
                                 this.updateState({
-                                    xc,
+                                    xc: this.xc,
                                     isLoaded: true,
                                     overlayIndicators,
                                     stackedIndicators
@@ -284,9 +288,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     updateState(state: State) {
         const xc = state.xc || this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         let referCursor = undefined
         let mouseCursor = undefined
@@ -376,9 +377,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleMouseLeave() {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         // clear mouse cursor
         xc.isMouseCuroseVisible = false;
@@ -388,9 +386,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleMouseMove(e: React.MouseEvent) {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         const targetRect = e.currentTarget.getBoundingClientRect();
         const x = e.pageX - targetRect.left;
@@ -413,9 +408,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleMouseDown(e: React.MouseEvent) {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         if (e.ctrlKey) {
             // will select chart on pane
@@ -456,9 +448,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
         const delta = Math.round(e.deltaY / xc.nBars);
@@ -492,9 +481,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleKeyDown(e: React.KeyboardEvent) {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
 
@@ -537,9 +523,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleKeyUp(e: React.KeyboardEvent) {
         const xc = this.state.xc;
-        if (xc === undefined) {
-            return;
-        }
 
         switch (e.key) {
             case " ":
