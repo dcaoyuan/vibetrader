@@ -93,7 +93,7 @@ class KlineViewContainer extends Component<Props, State> {
     refreshTimeoutId = undefined;
 
     // geometry variables
-    hTitle = 98;
+    hTitle = 114;
     hHelp = 80;
 
     hKlineView = 400;
@@ -140,7 +140,8 @@ class KlineViewContainer extends Component<Props, State> {
             .then(r => r.json())
             .then(json => {
                 for (const k of json) {
-                    const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
+                    const time = Date.parse(k.Date);
+                    const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
                     this.baseSer.addToVar(this.varName, kline);
                 }
 
@@ -167,15 +168,13 @@ class KlineViewContainer extends Component<Props, State> {
                     index === self.findIndex((k) => k.openTime === kline.openTime)
                 );
 
-
                 console.log(`After deduplication: ${uniqueKlines.length} klines`);
 
                 const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
                 console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
 
-
                 for (const k of uniqueKlines) {
-                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, true);
+                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
                     this.baseSer.addToVar(this.varName, kline);
                 }
 

@@ -14,7 +14,8 @@ function loadSer(varName: string) {
 	const kser = new DefaultTSer(TFrame.DAILY, tzone, 1000);
 
 	for (const k of ks) {
-		const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
+		const time = Date.parse(k.Date);
+		const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
 		kser.addToVar(varName, kline);
 	}
 

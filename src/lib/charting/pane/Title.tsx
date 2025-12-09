@@ -26,6 +26,7 @@ type State = {
 
 class Title extends Component<Props, State> {
     tframeName: string;
+    dtFormat: Intl.DateTimeFormat
 
     constructor(props: Props) {
         super(props);
@@ -38,6 +39,19 @@ class Title extends Component<Props, State> {
         tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
         this.tframeName = tframeName;
+
+        const tzone = props.xc.baseSer.timezone;
+
+        this.dtFormat = new Intl.DateTimeFormat("en-US", {
+            timeZone: tzone,
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+        });
 
         console.log("Title render");
     }
@@ -80,11 +94,21 @@ class Title extends Component<Props, State> {
 
         } else {
             // will show last occured's change
-            const prevRow = xc.rt(time) - 1
-            const prevOccurredTime = xc.tr(prevRow)
-            if (xc.occurred(prevOccurredTime)) {
-                const prevKline = this.props.tvar.getByTime(prevOccurredTime);
-                delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+            if (pointKline !== undefined) {
+                const prevRow = xc.rt(time) - 1
+                const prevOccurredTime = xc.tr(prevRow)
+                if (xc.occurred(prevOccurredTime)) {
+                    const prevKline = this.props.tvar.getByTime(prevOccurredTime);
+                    delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+
+                    let latestUpdateTime = new Date();
+                    console.log(latestUpdateTime.getTime() > pointKline.closeTime)
+                    latestUpdateTime = latestUpdateTime.getTime() > pointKline.closeTime
+                        ? pointKline.closeTime
+                        : latestUpdateTime;
+
+                    pointKline.closeTime = latestUpdateTime;
+                }
             }
         }
 
@@ -149,6 +173,12 @@ class Title extends Component<Props, State> {
                 <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                     <ListBoxItem textValue="O">
                         {pKline && <>
+                            <Text style={{ color: lColor }}>T </Text>
+                            <Text style={{ color: pColor }}>{this.dtFormat.format(new Date(pKline.closeTime))}</Text>
+                        </>}
+                    </ListBoxItem>
+                    <ListBoxItem textValue="O">
+                        {pKline && <>
                             <Text style={{ color: lColor }}>O </Text>
                             <Text style={{ color: pColor }}>{pKline.open}</Text>
                         </>}
@@ -191,6 +221,12 @@ class Title extends Component<Props, State> {
                 </ListBox>
 
                 <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
+                    <ListBoxItem textValue="T">
+                        {rKline && <>
+                            <Text style={{ color: lColor }}>T </Text>
+                            <Text style={{ color: rColor }}>{this.dtFormat.format(new Date(rKline.closeTime))}</Text>
+                        </>}
+                    </ListBoxItem>
                     <ListBoxItem textValue="O">
                         {rKline && <>
                             <Text style={{ color: lColor }}>O </Text>
