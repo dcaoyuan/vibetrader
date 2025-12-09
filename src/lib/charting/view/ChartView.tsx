@@ -224,6 +224,24 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     abstract plot(): ChartParts;
 
+    protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean, xMouse: number, yMouse: number) {
+        let chartParts = undefined;
+        if (willUpdateChart) {
+            // clear mouse cursor and prev value
+            this.props.xc.isMouseCuroseVisible = false;
+            this.yc.setMouseCursorValue(undefined, undefined)
+
+            chartParts = this.plot();
+        }
+
+        if (willUpdateCursor) {
+            this.updateState(chartParts, xMouse, yMouse)
+
+        } else if (willUpdateChart) {
+            this.updateState(chartParts);
+        }
+    }
+
     protected updateChart() {
         // clear mouse cursor and prev value
         this.props.xc.isMouseCuroseVisible = false;
@@ -467,27 +485,42 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // If setState is called unconditionally, it will trigger another update,
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
+        let willUpdateChart = false
+        let willUpdateCursor = false;
+        let xMouse = undefined;
+        let yMouse = undefined;
+
         if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
-            this.updateChart();
+            willUpdateChart = true;
         }
 
         if (areDeeplyEqualArrays(this.props.overlayIndicators, prevProps.overlayIndicators)) {
-            this.updateChart();
+            willUpdateChart = true;
         }
 
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
             const xyMouse = this.props.shouldUpdateCursors.xyMouse;
             if (xyMouse !== undefined) {
                 if (xyMouse.who === this.props.id) {
-                    this.updateCursors(xyMouse.x, xyMouse.y);
+                    willUpdateCursor = true;
+                    xMouse = xyMouse.x;
+                    yMouse = xyMouse.y;
 
                 } else {
-                    this.updateCursors(xyMouse.x, undefined);
+                    willUpdateCursor = true;
+                    xMouse = xyMouse.x;
+                    yMouse = undefined;
                 }
 
             } else {
-                this.updateCursors(undefined, undefined);
+                willUpdateCursor = true;
+                xMouse = undefined;
+                yMouse = undefined;
             }
+        }
+
+        if (willUpdateChart || willUpdateCursor) {
+            this.updateChart_Cursor(willUpdateChart, willUpdateCursor, xMouse, yMouse)
         }
     }
 
