@@ -75,7 +75,7 @@ class Title extends Component<Props, State> {
         }
 
         let delta = undefined
-        if (xc.isMouseCuroseVisible && xc.isCursorCrossVisible) {
+        if (xc.isMouseCuroseVisible && xc.isReferCuroseVisible) {
             delta = this.calcDelta()
 
         } else {
@@ -84,7 +84,6 @@ class Title extends Component<Props, State> {
             const prevOccurredTime = xc.tr(prevRow)
             if (xc.occurred(prevOccurredTime)) {
                 const prevKline = this.props.tvar.getByTime(prevOccurredTime);
-                console.log(prevKline.close, pointKline.close)
                 delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
             }
         }
