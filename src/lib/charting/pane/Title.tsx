@@ -20,7 +20,7 @@ type Props = {
 type State = {
 
     referKline: Kline,
-    mouseKline: Kline,
+    pointKline: Kline,
     delta: { period: number, percent: number, volumeSum: number }
 }
 
@@ -30,7 +30,7 @@ class Title extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        this.state = { mouseKline: undefined, referKline: undefined, delta: undefined };
+        this.state = { pointKline: undefined, referKline: undefined, delta: undefined };
 
         let tframeName = this.props.xc.baseSer.timeframe.compactName.toLowerCase();
         const matchLeadingNumbers = tframeName.match(/^\d+/);
@@ -55,7 +55,7 @@ class Title extends Component<Props, State> {
 
     protected updateState(state: object) {
         let referKline = undefined
-        let mouseKline = undefined
+        let pointKline = undefined
 
         const xc = this.props.xc;
 
@@ -71,7 +71,7 @@ class Title extends Component<Props, State> {
             : xc.lastOccurredTime()
 
         if (time && time > 0 && xc.occurred(time)) {
-            mouseKline = this.props.tvar.getByTime(time);
+            pointKline = this.props.tvar.getByTime(time);
         }
 
         let delta = undefined
@@ -82,13 +82,14 @@ class Title extends Component<Props, State> {
             // will show last occured's change
             const prevRow = xc.rt(time) - 1
             const prevOccurredTime = xc.tr(prevRow)
-            const prevKline = this.props.tvar.getByTime(prevOccurredTime);
-            delta = prevKline !== undefined
-                ? { percent: (mouseKline.close - prevKline.close) / prevKline.close }
-                : undefined
+            if (xc.occurred(prevOccurredTime)) {
+                const prevKline = this.props.tvar.getByTime(prevOccurredTime);
+                console.log(prevKline.close, pointKline.close)
+                delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+            }
         }
 
-        this.setState({ ...state, referKline, mouseKline, delta })
+        this.setState({ ...state, referKline, pointKline, delta })
     }
 
     calcDelta() {
@@ -139,53 +140,53 @@ class Title extends Component<Props, State> {
     render() {
         const lColor = '#F00000'; // Theme.now().axisColor
         const rColor = '#00F0F0'; // 'orange'
-        const mColor = '#00F000'; // Theme.now().axisColor 
+        const pColor = '#00F000'; // Theme.now().axisColor 
         const rKline = this.state.referKline
-        const mKline = this.state.mouseKline
+        const pKline = this.state.pointKline
         const delta = this.state.delta;
 
         return (
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
                 <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                     <ListBoxItem textValue="O">
-                        {mKline && <>
+                        {pKline && <>
                             <Text style={{ color: lColor }}>O </Text>
-                            <Text style={{ color: mColor }}>{mKline.open}</Text>
+                            <Text style={{ color: pColor }}>{pKline.open}</Text>
                         </>}
                     </ListBoxItem>
                     <ListBoxItem textValue="H">
-                        {mKline && <>
+                        {pKline && <>
                             <Text style={{ color: lColor }}>H </Text>
-                            <Text style={{ color: mColor }}>{mKline.high}</Text>
+                            <Text style={{ color: pColor }}>{pKline.high}</Text>
                         </>}
                     </ListBoxItem>
                     <ListBoxItem textValue="L">
-                        {mKline && <>
+                        {pKline && <>
                             <Text style={{ color: lColor }}>L </Text>
-                            <Text style={{ color: mColor }}>{mKline.low}</Text>
+                            <Text style={{ color: pColor }}>{pKline.low}</Text>
                         </>}
                     </ListBoxItem>
                     <ListBoxItem textValue="C">
-                        {mKline && <>
+                        {pKline && <>
                             <Text style={{ color: lColor }}>C </Text>
-                            <Text style={{ color: mColor }}>
+                            <Text style={{ color: pColor }}>
                                 {delta
-                                    ? mKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                    ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
                                         delta.period
                                             ? ` in ${delta.period} ${delta.period === 1
                                                 ? this.tframeName
                                                 : this.tframeName + 's'})`
                                             : ')'
                                     )
-                                    : mKline.close
+                                    : pKline.close
                                 }
                             </Text>
                         </>}
                     </ListBoxItem>
                     <ListBoxItem textValue="V">
-                        {mKline && <>
+                        {pKline && <>
                             <Text style={{ color: lColor }}>V </Text>
-                            <Text style={{ color: mColor }}>{mKline.volume}</Text>
+                            <Text style={{ color: pColor }}>{pKline.volume}</Text>
                         </>}
                     </ListBoxItem>
                 </ListBox>
