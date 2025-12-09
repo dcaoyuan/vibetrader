@@ -51,8 +51,7 @@ type PlotOptions = {
 };
 
 type State = {
-    baseSer?: TSer;
-    kvar?: TVar<Kline>;
+    // it seems we should put xc in state instead of let it to be member of class.
     xc?: ChartXControl;
 
     shouldUpdateChart?: number;
@@ -82,6 +81,9 @@ type State = {
 }
 
 class KlineViewContainer extends Component<Props, State> {
+    tzone: string;
+    baseSer: TSer;
+    kvar: TVar<Kline>;
 
     varName: string;
     width: number;
@@ -101,6 +103,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.varName = props.varName;
         this.width = props.width;
 
+        this.tzone = "America/Vancouver";
+        this.baseSer = new DefaultTSer(TFrame.DAILY, this.tzone, 1000);
+        this.kvar = this.baseSer.varOf(this.varName) as TVar<Kline>;
 
         this.isInteractive = true;
 
@@ -125,19 +130,14 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     componentDidMount() {
-        const tzone = "America/Vancouver";
 
-        const fetchData = fetch("./klines.json")
+        const fetchData = () => fetch("./klines.json")
             .then(r => r.json())
             .then(json => {
-                const baseSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
-
                 for (const k of json) {
                     const kline = new Kline(Date.parse(k.Date), k.Open, k.High, k.Low, k.Close, k.Volume, true);
-                    baseSer.addToVar(this.varName, kline);
+                    this.baseSer.addToVar(this.varName, kline);
                 }
-
-                return baseSer;
             })
 
         const fetchDataBinance = async () => {
@@ -160,35 +160,23 @@ class KlineViewContainer extends Component<Props, State> {
 
                 console.log(`After deduplication: ${uniqueKlines.length} candles`);
 
-                const baseSer = new DefaultTSer(TFrame.DAILY, tzone, 1000);
-
                 for (const k of uniqueKlines) {
                     const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, true);
-                    baseSer.addToVar(this.varName, kline);
+                    this.baseSer.addToVar(this.varName, kline);
                 }
 
-                return baseSer;
             })
 
         }
 
-        const fetchKSer = fetchDataBinance().then(baseSer => {
-            const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
-
-            // xc instance will be shared across all views.
-            const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-
-            return { baseSer, kvar, xc };
-        })
-
-        fetchKSer.then(({ baseSer, kvar, xc }) => {
+        fetchDataBinance().then(() => {
             fetch("./indicators.js")
                 .then((r) => r.text())
                 .then(js => {
                     const indicatorsFunction = new Function(js);
 
                     let startTime = performance.now();
-                    const pinets = new PineTS(new TSerProvider(kvar), 'ETH', '1d');
+                    const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
 
                     const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
 
@@ -200,9 +188,10 @@ class KlineViewContainer extends Component<Props, State> {
                         let overlay = false
                         const overlayIndicators = [];
                         const stackedIndicators = [];
-                        const inds = results.map(({ plots }, n) => {
-                            const tvar = baseSer.varOf("ind-" + n) as TVar<unknown[]>;
-                            const size = baseSer.size();
+
+                        results.map(({ plots }, n) => {
+                            const tvar = this.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
+                            const size = this.baseSer.size();
                             const plotValues = Object.values(plots) as Plot[];
                             const dataValues = plotValues.map(({ data }) => data);
                             for (let i = 0; i < size; i++) {
@@ -228,9 +217,10 @@ class KlineViewContainer extends Component<Props, State> {
 
                         console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
+                        // xc instance will be shared across all views and will be reinited here.
+                        const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+
                         this.updateState({
-                            baseSer,
-                            kvar,
                             xc,
                             isLoaded: true,
                             overlayIndicators,
@@ -574,7 +564,7 @@ class KlineViewContainer extends Component<Props, State> {
                         width={this.width}
                         height={this.hTitle}
                         xc={this.state.xc}
-                        tvar={this.state.kvar}
+                        tvar={this.kvar}
                         shouldUpdateChart={this.state.shouldUpdateChart}
                         shouldUpadteCursors={this.state.shouldUpdateCursors}
                     />
@@ -597,8 +587,8 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="ETH"
                             xc={this.state.xc}
-                            baseSer={this.state.baseSer}
-                            tvar={this.state.kvar}
+                            baseSer={this.baseSer}
+                            tvar={this.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicators={this.state.overlayIndicators}
@@ -613,8 +603,8 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="Vol"
                             xc={this.state.xc}
-                            baseSer={this.state.baseSer}
-                            tvar={this.state.kvar}
+                            baseSer={this.baseSer}
+                            tvar={this.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
@@ -640,7 +630,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     name={"Indicator-" + n}
                                     width={this.width}
                                     xc={this.state.xc}
-                                    baseSer={this.state.baseSer}
+                                    baseSer={this.baseSer}
                                     tvar={tvar}
                                     mainIndicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}

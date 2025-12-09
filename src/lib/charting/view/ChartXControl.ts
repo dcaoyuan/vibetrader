@@ -49,6 +49,10 @@ export class ChartXControl {
         this.#internal_initCursorRow()
     }
 
+    reinit() {
+        this.#internal_initCursorRow()
+    }
+
     rightSideRow = 0;
 
     referCursorRow = 0;
