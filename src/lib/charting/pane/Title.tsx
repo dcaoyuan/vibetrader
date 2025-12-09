@@ -193,6 +193,12 @@ class Title extends Component<Props, State> {
                                 <Text style={{ color: pColor }}>{this.dtFormat.format(new Date(pKline.closeTime))}</Text>
                             </>}
                         </ListBoxItem>
+                        <ListBoxItem textValue="V">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>V </Text>
+                                <Text style={{ color: pColor }}>{pKline.volume}</Text>
+                            </>}
+                        </ListBoxItem>
                         <ListBoxItem textValue="O">
                             {pKline && <>
                                 <Text style={{ color: lColor }}>O </Text>
@@ -228,12 +234,6 @@ class Title extends Component<Props, State> {
                                 </Text>
                             </>}
                         </ListBoxItem>
-                        <ListBoxItem textValue="V">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>V </Text>
-                                <Text style={{ color: pColor }}>{pKline.volume}</Text>
-                            </>}
-                        </ListBoxItem>
                     </ListBox>
 
                     <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
@@ -241,6 +241,12 @@ class Title extends Component<Props, State> {
                             {rKline && <>
                                 <Text style={{ color: lColor }}>T </Text>
                                 <Text style={{ color: rColor }}>{this.dtFormat.format(new Date(rKline.closeTime))}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="V">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>V </Text>
+                                <Text style={{ color: rColor }}>{rKline.volume}</Text>
                             </>}
                         </ListBoxItem>
                         <ListBoxItem textValue="O">
@@ -265,12 +271,6 @@ class Title extends Component<Props, State> {
                             {rKline && <>
                                 <Text style={{ color: lColor }}>C </Text>
                                 <Text style={{ color: rColor }}>{rKline.close}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="V">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>V </Text>
-                                <Text style={{ color: rColor }}>{rKline.volume}</Text>
                             </>}
                         </ListBoxItem>
                     </ListBox>
