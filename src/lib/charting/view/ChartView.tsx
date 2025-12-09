@@ -262,8 +262,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 if (value && !isNaN(value)) {
                     cursorY = this.yc.yv(value)
 
-                    if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                        value /= ChartYControl.VALUE_SCALE_UNIT
+                    if (this.yc.shouldNormScale) {
+                        value /= this.yc.normScale
                     }
 
                     referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, referColor)
@@ -292,8 +292,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
             if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && !isNaN(value)) {
-                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                    value /= ChartYControl.VALUE_SCALE_UNIT
+                if (this.yc.shouldNormScale) {
+                    value /= this.yc.normScale
                 }
 
                 mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, mouseColor)
@@ -314,8 +314,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             if (value !== undefined && !isNaN(value)) {
                 const y = this.yc.yv(value);
 
-                if (Math.abs(value) >= ChartYControl.VALUE_SCALE_UNIT) {
-                    value /= ChartYControl.VALUE_SCALE_UNIT
+                if (this.yc.shouldNormScale) {
+                    value /= this.yc.normScale
                 }
 
                 latestValueLabel = this.plotYValueLabel(y, value, "#000000", latestColor)

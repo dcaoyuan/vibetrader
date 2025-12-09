@@ -1,9 +1,9 @@
 import type { TSer } from "../../timeseris/TSer";
+import { getNormPow } from "../Normalize";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import type { Scalar } from "../scalar/Scalar";
 
 export class ChartYControl {
-    static readonly VALUE_SCALE_UNIT = 10000;
 
     baseSer: TSer;
     height: number;
@@ -41,6 +41,14 @@ export class ChartYControl {
 
     /** the pixels used to record the chart vertically moving */
     #hChartScrolled: number = 0;
+
+
+    // to normalize value as x 10^n
+    normPow: number
+    normScale: number
+    shouldNormScale: boolean
+    normMultiple: string
+
 
     computeGeometry(
         maxValue: number, minValue: number,
@@ -94,6 +102,11 @@ export class ChartYControl {
 
         /** avoid hOne == 0 */
         this.#hOne = Math.max(this.#hOne, 0.0000000001)
+
+        this.normPow = getNormPow(maxValue);
+        this.normScale = Math.pow(10, this.normPow);
+        this.shouldNormScale = this.normPow !== 0;
+        this.normMultiple = "x10^" + this.normPow;
 
         // console.log('ChartYControl computeGeometry:',
         //   {

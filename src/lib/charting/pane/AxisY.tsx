@@ -3,6 +3,7 @@ import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
+import { getNormPow, normMinTick, normTickUnit } from "../Normalize";
 
 const MIN_TICK_SPACING = 40 // in pixels
 
@@ -13,44 +14,6 @@ type Props = {
     height: number,
     xc: ChartXControl,
     yc: ChartYControl
-}
-
-function normTickUnit(potentialUnit: number, range: number, nTicksMax: number) {
-    // which pow will bring tick between >= 1 & < 10
-    const normPow = Math.ceil(Math.log10(1 / potentialUnit))
-    const normScale = Math.pow(10, normPow)
-
-    // determine which N is the best N in [1, 2, 5, 10]
-    const normUnits = [1, 2, 5, 10]
-    let i = 0;
-    while (i < normUnits.length) {
-        const normUnit = normUnits[i];
-        const unit = normUnit / normScale;
-
-        const nTicks = Math.round(range / unit)
-        if (nTicks <= nTicksMax) {
-            return unit;
-        }
-
-        i++;
-    }
-}
-
-function normMinTick(tick: number) {
-    const sign = Math.sign(tick);
-    tick = Math.abs(tick)
-    if (tick === 0) {
-        return tick
-    }
-
-    // which pow will bring tick between >= 1 & < 10
-    const normPow = Math.ceil(Math.log10(1 / tick))
-    const normScale = Math.pow(10, normPow)
-
-    tick = Math.round(tick * normScale)
-    tick = tick / normScale
-
-    return sign * tick;
 }
 
 const AxisY = (props: Props) => {
@@ -87,16 +50,13 @@ const AxisY = (props: Props) => {
         // 
         const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
 
-        const shouldScale = Math.abs(maxValueOnCanvas) >= ChartYControl.VALUE_SCALE_UNIT;
-        const multiple = "x10^" + Math.log10(ChartYControl.VALUE_SCALE_UNIT);
-
         const vTicks = [];
         if (vMidTick === undefined) {
             let i = 0
             let vTick = minValueOnCanvas;
             while (vTick <= maxValueOnCanvas) {
                 vTick = vMinTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || shouldScale) && vTick <= maxValueOnCanvas) {
+                if ((vTick > minValueOnCanvas || yc.shouldNormScale) && vTick <= maxValueOnCanvas) {
                     vTicks.push(vTick);
                 }
 
@@ -109,7 +69,7 @@ const AxisY = (props: Props) => {
             let vTick = 0;
             while (vTick >= minValueOnCanvas && vTick <= maxValueOnCanvas) {
                 vTick = vMidTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || shouldScale) && vTick <= maxValueOnCanvas) {
+                if ((vTick > minValueOnCanvas || yc.shouldNormScale) && vTick <= maxValueOnCanvas) {
                     vTicks.push(vTick);
                 }
 
@@ -133,12 +93,12 @@ const AxisY = (props: Props) => {
             path.moveto(0, yTick)
             path.lineto(wTick, yTick)
 
-            vTick = shouldScale
-                ? vTick / ChartYControl.VALUE_SCALE_UNIT
+            vTick = yc.shouldNormScale
+                ? vTick / yc.normScale
                 : vTick;
 
-            const vStr = i === 0 && shouldScale
-                ? multiple
+            const vStr = i === 0 && yc.shouldNormScale
+                ? yc.normMultiple
                 : parseFloat(vTick.toFixed(4)).toString();
 
             const yText = yTick + 4
