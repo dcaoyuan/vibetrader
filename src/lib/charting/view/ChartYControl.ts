@@ -106,7 +106,7 @@ export class ChartYControl {
         this.normPow = getNormPow(maxValue);
         this.normScale = Math.pow(10, this.normPow);
         this.shouldNormScale = this.normPow !== 0;
-        this.normMultiple = "x10^" + this.normPow;
+        this.normMultiple = "x 10^" + this.normPow;
 
         // console.log('ChartYControl computeGeometry:',
         //   {

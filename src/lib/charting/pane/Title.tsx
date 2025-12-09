@@ -103,7 +103,6 @@ class Title extends Component<Props, State> {
                     delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
 
                     let latestUpdateTime = new Date();
-                    console.log(latestUpdateTime.getTime() > pointKline.closeTime)
                     latestUpdateTime = latestUpdateTime.getTime() > pointKline.closeTime
                         ? pointKline.closeTime
                         : latestUpdateTime;

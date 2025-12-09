@@ -86,23 +86,26 @@ const AxisY = (props: Props) => {
 
         const wTick = 4;
         for (let i = 0; i < vTicks.length; i++) {
-            let vTick = vTicks[i];
+            if (i !== 0 || !yc.shouldNormScale) {
+                let vTick = vTicks[i];
+                const yTick = Math.round(yc.yv(vTick))
 
-            const yTick = Math.round(yc.yv(vTick))
+                path.moveto(0, yTick)
+                path.lineto(wTick, yTick)
 
-            path.moveto(0, yTick)
-            path.lineto(wTick, yTick)
+                vTick = yc.shouldNormScale
+                    ? vTick / yc.normScale
+                    : vTick;
 
-            vTick = yc.shouldNormScale
-                ? vTick / yc.normScale
-                : vTick;
+                const vStr = parseFloat(vTick.toFixed(4)).toString();
+                const yText = yTick + 4
 
-            const vStr = i === 0 && yc.shouldNormScale
-                ? yc.normMultiple
-                : parseFloat(vTick.toFixed(4)).toString();
+                texts.text(8, yText, vStr);
+            }
+        }
 
-            const yText = yTick + 4
-            texts.text(8, yText, vStr);
+        if (yc.shouldNormScale) {
+            texts.text(8, yc.hCanvas, yc.normMultiple);
         }
 
         // draw end line 
