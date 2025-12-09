@@ -77,6 +77,8 @@ type State = {
     containerHeight?: number;
     yCursorRange?: number[];
 
+    symbol?: string;
+
     isLoaded?: boolean;
 }
 
@@ -93,7 +95,7 @@ class KlineViewContainer extends Component<Props, State> {
     refreshTimeoutId = undefined;
 
     // geometry variables
-    hTitle = 114;
+    hTitle = 128;
     hHelp = 80;
 
     hKlineView = 400;
@@ -118,6 +120,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         const geometry = this.#calcGeometry([]);
         this.state = {
+            symbol: "BTCUSDC",
             shouldUpdateChart: 0,
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
@@ -149,7 +152,6 @@ class KlineViewContainer extends Component<Props, State> {
             })
 
         const fetchDataBinance = async (startTime?: number) => {
-            const SYMBOL = 'BTCUSDC';
             const INTERVAL = '1d'; // Daily candles
 
             const endTime = new Date().getTime();
@@ -157,7 +159,7 @@ class KlineViewContainer extends Component<Props, State> {
                 ? startTime :
                 endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-            return Binance.fetchAllKlines(SYMBOL, INTERVAL, startTime, endTime).then(binanceKline => {
+            return Binance.fetchAllKlines(this.state.symbol, INTERVAL, startTime, endTime).then(binanceKline => {
                 console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
                 // Sort by openTime to ensure chronological order
@@ -319,7 +321,7 @@ class KlineViewContainer extends Component<Props, State> {
         const yAxisx = yIndicatorViews + stackedIndicators.length * (this.hIndicatorView + this.hSpacing);
 
         const svgHeight = yAxisx + this.hAxisx;
-        const containerHeight = svgHeight + this.hTitle;
+        const containerHeight = svgHeight + this.hTitle + this.hHelp;
         const yCursorRange = [0, yAxisx];
 
         return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
@@ -580,6 +582,7 @@ class KlineViewContainer extends Component<Props, State> {
                         height={this.hTitle}
                         xc={this.state.xc}
                         tvar={this.kvar}
+                        symbol={this.state.symbol}
                         shouldUpdateChart={this.state.shouldUpdateChart}
                         shouldUpadteCursors={this.state.shouldUpdateCursors}
                     />

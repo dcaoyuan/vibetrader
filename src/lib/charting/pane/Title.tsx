@@ -14,7 +14,8 @@ type Props = {
     height: number,
     shouldUpdateChart: number,
     shouldUpadteCursors: UpdateCursor,
-    tvar: TVar<Kline>;
+    tvar: TVar<Kline>,
+    symbol: string
 }
 
 type State = {
@@ -169,96 +170,101 @@ class Title extends Component<Props, State> {
         const delta = this.state.delta;
 
         return (
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
-                    <ListBoxItem textValue="O">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>T </Text>
-                            <Text style={{ color: pColor }}>{this.dtFormat.format(new Date(pKline.closeTime))}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="O">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>O </Text>
-                            <Text style={{ color: pColor }}>{pKline.open}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="H">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>H </Text>
-                            <Text style={{ color: pColor }}>{pKline.high}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="L">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>L </Text>
-                            <Text style={{ color: pColor }}>{pKline.low}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="C">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>C </Text>
-                            <Text style={{ color: pColor }}>
-                                {delta
-                                    ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
-                                        delta.period
-                                            ? ` in ${delta.period} ${delta.period === 1
-                                                ? this.tframeName
-                                                : this.tframeName + 's'})`
-                                            : ')'
-                                    )
-                                    : pKline.close
-                                }
-                            </Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="V">
-                        {pKline && <>
-                            <Text style={{ color: lColor }}>V </Text>
-                            <Text style={{ color: pColor }}>{pKline.volume}</Text>
-                        </>}
-                    </ListBoxItem>
-                </ListBox>
+            <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <Text style={{ color: "white" }}>{this.props.symbol}</Text>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                        <ListBoxItem textValue="O">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>T </Text>
+                                <Text style={{ color: pColor }}>{this.dtFormat.format(new Date(pKline.closeTime))}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="O">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>O </Text>
+                                <Text style={{ color: pColor }}>{pKline.open}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="H">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>H </Text>
+                                <Text style={{ color: pColor }}>{pKline.high}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="L">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>L </Text>
+                                <Text style={{ color: pColor }}>{pKline.low}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="C">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>C </Text>
+                                <Text style={{ color: pColor }}>
+                                    {delta
+                                        ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                            delta.period
+                                                ? ` in ${delta.period} ${delta.period === 1
+                                                    ? this.tframeName
+                                                    : this.tframeName + 's'})`
+                                                : ')'
+                                        )
+                                        : pKline.close
+                                    }
+                                </Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="V">
+                            {pKline && <>
+                                <Text style={{ color: lColor }}>V </Text>
+                                <Text style={{ color: pColor }}>{pKline.volume}</Text>
+                            </>}
+                        </ListBoxItem>
+                    </ListBox>
 
-                <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
-                    <ListBoxItem textValue="T">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>T </Text>
-                            <Text style={{ color: rColor }}>{this.dtFormat.format(new Date(rKline.closeTime))}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="O">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>O </Text>
-                            <Text style={{ color: rColor }}>{rKline.open}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="H">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>H </Text>
-                            <Text style={{ color: rColor }}>{rKline.high}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="L">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>L </Text>
-                            <Text style={{ color: rColor }}>{rKline.low}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="C">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>C </Text>
-                            <Text style={{ color: rColor }}>{rKline.close}</Text>
-                        </>}
-                    </ListBoxItem>
-                    <ListBoxItem textValue="V">
-                        {rKline && <>
-                            <Text style={{ color: lColor }}>V </Text>
-                            <Text style={{ color: rColor }}>{rKline.volume}</Text>
-                        </>}
-                    </ListBoxItem>
-                </ListBox>
-            </div>
+                    <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
+                        <ListBoxItem textValue="T">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>T </Text>
+                                <Text style={{ color: rColor }}>{this.dtFormat.format(new Date(rKline.closeTime))}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="O">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>O </Text>
+                                <Text style={{ color: rColor }}>{rKline.open}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="H">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>H </Text>
+                                <Text style={{ color: rColor }}>{rKline.high}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="L">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>L </Text>
+                                <Text style={{ color: rColor }}>{rKline.low}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="C">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>C </Text>
+                                <Text style={{ color: rColor }}>{rKline.close}</Text>
+                            </>}
+                        </ListBoxItem>
+                        <ListBoxItem textValue="V">
+                            {rKline && <>
+                                <Text style={{ color: lColor }}>V </Text>
+                                <Text style={{ color: rColor }}>{rKline.volume}</Text>
+                            </>}
+                        </ListBoxItem>
+                    </ListBox>
+                </div>
+            </>
         )
     }
 
