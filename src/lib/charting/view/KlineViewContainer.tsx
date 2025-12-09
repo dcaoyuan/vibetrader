@@ -234,11 +234,6 @@ class KlineViewContainer extends Component<Props, State> {
 
                             console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
-                            // xc instance will be shared across all views and will be reinited here.
-                            if (!this.state.isLoaded) {
-                                this.xc.reinit()
-                            }
-
                             if (this.state.isLoaded) {
                                 this.updateState({
                                     shouldUpdateChart: this.state.shouldUpdateChart + 1,
@@ -247,6 +242,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 })
 
                             } else {
+                                // reinit it to get correct last occured time/row 
+                                this.xc.reinit()
+
                                 this.updateState({
                                     xc: this.xc,
                                     isLoaded: true,

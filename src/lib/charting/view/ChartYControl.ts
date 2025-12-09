@@ -50,10 +50,7 @@ export class ChartYControl {
     normMultiple: string
 
 
-    computeGeometry(
-        maxValue: number, minValue: number,
-        maxVolume: number = undefined, minVolume: number = undefined
-    ) {
+    computeGeometry(maxValue: number, minValue: number) {
         /**
          * @TIPS:
          * if want to leave spare space at lower side, do hCanvas -= space
@@ -70,12 +67,6 @@ export class ChartYControl {
         this.#hSpaceUpper = 0
         this.#maxValue = maxValue
         this.#minValue = minValue
-
-        /** adjust if necessary */
-        if (maxVolume !== undefined && minVolume !== undefined) {
-            this.#maxValue = maxVolume;
-            this.#minValue = minVolume;
-        }
 
         this.#maxScalarValue = this.valueScalar.doScale(this.#maxValue)
         this.#minScalarValue = this.valueScalar.doScale(this.#minValue)

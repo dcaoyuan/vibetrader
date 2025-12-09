@@ -48,14 +48,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const { charts, axisy, stackCharts } = this.plot();
 
         this.state = {
-            width: props.width,
-            height: props.height,
-
-            hasInnerVolume: false,
-
-            maxValue: 1.0,
-            minValue: 0.0,
-
             isInteractive: true,
             isPinned: false,
 
@@ -121,13 +113,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         return { charts, axisy, stackCharts }
     }
 
-    override computeMaxMin() {
+    override computeMaxValueMinValue() {
         let max = Number.NEGATIVE_INFINITY;
         let min = Number.POSITIVE_INFINITY;
-
-        /** minimum volume should be 0 */
-        this.maxVolume = Number.NEGATIVE_INFINITY;
-        this.minVolume = 0
 
         const xc = this.props.xc;
         for (let i = 1; i <= xc.nBars; i++) {
@@ -137,17 +125,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 if (kline.close > 0) {
                     max = Math.max(max, kline.high)
                     min = Math.min(min, kline.low)
-                    this.maxVolume = Math.max(this.maxVolume, kline.volume)
                 }
             }
-        }
-
-        if (this.maxVolume == 0) {
-            this.maxVolume = 1
-        }
-
-        if (this.maxVolume == this.minVolume) {
-            this.maxVolume++;
         }
 
         if (max == min) {
@@ -155,7 +134,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             min *= 0.95
         }
 
-        this.setMaxMinValue(max, min)
+        return [max, min]
     }
 
     swithScalarType() {

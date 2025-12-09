@@ -8,8 +8,6 @@ import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
 
 export class VolumeView extends ChartView<ViewProps, ViewState> {
-    maxVolume = 0.0;
-    minVolume = 0.0
 
     constructor(props: ViewProps) {
         super(props);
@@ -17,14 +15,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const { charts, axisy } = this.plot();
 
         this.state = {
-            width: props.width,
-            height: props.height,
-
-            hasInnerVolume: false,
-
-            maxValue: 1.0,
-            minValue: 0.0,
-
             isInteractive: true,
             isPinned: false,
 
@@ -58,7 +48,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         return { charts, axisy }
     }
 
-    override computeMaxMin() {
+    override computeMaxValueMinValue() {
         let max = Number.NEGATIVE_INFINITY;
         const min = 0// Number.POSITIVE_INFINITY;
 
@@ -78,16 +68,12 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             max = 1
         }
 
-        if (max === min) {
-            this.maxVolume++;
-        }
-
         // if (max === min) {
         //   max *= 1.05
         //   min *= 0.95
         // }
 
-        this.setMaxMinValue(max, min)
+        return [max, min]
     }
 
     swithScalarType() {

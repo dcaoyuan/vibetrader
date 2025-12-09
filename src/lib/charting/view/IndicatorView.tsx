@@ -14,14 +14,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const { charts, axisy } = this.plot();
 
         this.state = {
-            width: props.width,
-            height: props.height,
-
-            hasInnerVolume: false,
-
-            maxValue: 1.0,
-            minValue: 0.0,
-
             isInteractive: true,
             isPinned: false,
 
@@ -75,7 +67,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         return { charts, axisy }
     }
 
-    override computeMaxMin() {
+    override computeMaxValueMinValue() {
         let max = Number.NEGATIVE_INFINITY;
         let min = Number.POSITIVE_INFINITY;
 
@@ -104,7 +96,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         //   min *= 0.95
         // }
 
-        this.setMaxMinValue(max, min)
+        return [max, min]
     }
 
     swithScalarType() {

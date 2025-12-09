@@ -60,16 +60,6 @@ export interface ViewProps {
 }
 
 export interface ViewState {
-    width: number;
-    height: number;
-
-    hasInnerVolume: false;
-    maxVolume?: number;
-    minVolume?: number;
-
-    maxValue: 1.0
-    minValue: 0.0
-
     isInteractive: true
     isPinned: false
 
@@ -127,15 +117,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
 
-    hasInnerVolume = false;
-    maxVolume?: number;
-    minVolume?: number;
-
-    maxValue = 1.0
-    minValue = 0.0
-
-    isInteractive = true
-
     #isPinned = false
 
     /**
@@ -151,15 +132,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
      * and if success, the newNBars computed here will equals the newNBars you want.
      */
     protected computeGeometry() {
-        this.computeMaxMin();
+        const [maxValue, minValue] = this.computeMaxValueMinValue();
 
         // compute y after compute maxmin
-        this.yc.computeGeometry(this.maxValue, this.minValue)
-    }
-
-    protected setMaxMinValue(max: number, min: number) {
-        this.maxValue = max;
-        this.minValue = min;
+        this.yc.computeGeometry(maxValue, minValue)
     }
 
     wChart(): number {
@@ -213,10 +189,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     popupToDesktop() {
     }
 
-    computeMaxMin() {
+    computeMaxValueMinValue() {
         // if no need maxValue/minValue, don't let them all equal 0, just set to 1 and 0 
-        this.maxValue = 1;
-        this.minValue = 0;
+        return [1, 0];
     }
 
     // return `value !== undefined` to show cursor value of time
