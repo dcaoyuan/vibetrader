@@ -45,8 +45,6 @@ export class DefaultTSer implements TSer {
     protected _lname = ""; // Long description 
     protected _sname = ""; // Short description
 
-    isOverlapping = false;
-
     #isInLoading = false;
     #isLoaded = false;
 
@@ -95,9 +93,6 @@ export class DefaultTSer implements TSer {
         }
         this._vars.set(name, v);
     }
-
-    /** --- for charting horizontal grids of this indicator used to draw grid */
-    grids: number[] = [];
 
     get isLoaded() {
         return this.#isLoaded;

@@ -25,13 +25,6 @@ export interface TSer {
 
     addVar(name: string, v: TVar<unknown>): void
 
-    // --- for charting
-
-    // horizonal grids of this indicator used to draw grid
-    grids: number[]
-
-    isOverlapping: boolean;
-
     occurred(time: number): boolean;
 
     firstOccurredTime(): number;
