@@ -234,7 +234,6 @@ class KlineViewContainer extends Component<Props, State> {
                             console.log(`indicators added to series in ${performance.now() - startTime} ms`);
 
                             // xc instance will be shared across all views and will be reinited here.
-                            // const xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
                             if (!this.state.isLoaded) {
                                 this.xc.reinit()
                             }
@@ -242,7 +241,6 @@ class KlineViewContainer extends Component<Props, State> {
                             if (this.state.isLoaded) {
                                 this.updateState({
                                     shouldUpdateChart: this.state.shouldUpdateChart + 1,
-                                    xc: this.xc,
                                     overlayIndicators,
                                     stackedIndicators
                                 })

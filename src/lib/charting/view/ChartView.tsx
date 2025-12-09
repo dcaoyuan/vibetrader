@@ -107,7 +107,7 @@ export interface ViewState {
  */
 export abstract class ChartView<P extends ViewProps, S extends ViewState> extends Component<P, S> {
 
-    static readonly AXISY_WIDTH = 50
+    static readonly AXISY_WIDTH = 55
     static readonly CONTROL_HEIGHT = 12
     static readonly TITLE_HEIGHT_PER_LINE = 14
 
@@ -439,9 +439,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     plotYValueLabel(y: number, value: number, textColor: string, backgroud: string) {
-        const valueStr = parseFloat(value.toPrecision(5)).toString();
+        const valueStr = value.toFixed(3);
 
-        const wLabel = 44; // label width
+        const wLabel = ChartView.AXISY_WIDTH; // label width
         const hLabel = 12; // label height
 
         const wAxisY = ChartView.AXISY_WIDTH
