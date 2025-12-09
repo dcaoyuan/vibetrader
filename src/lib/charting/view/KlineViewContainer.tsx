@@ -84,6 +84,7 @@ type State = {
 
 class KlineViewContainer extends Component<Props, State> {
     tzone: string;
+    tframe: TFrame;
     baseSer: TSer;
     kvar: TVar<Kline>;
     xc: ChartXControl;
@@ -110,7 +111,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.width = props.width;
 
         this.tzone = "America/Vancouver";
-        this.baseSer = new DefaultTSer(TFrame.DAILY, this.tzone, 1000);
+        this.tframe = TFrame.DAILY;
+
+        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(this.varName) as TVar<Kline>;
         this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
@@ -152,36 +155,36 @@ class KlineViewContainer extends Component<Props, State> {
             })
 
         const fetchDataBinance = async (startTime?: number) => {
-            const INTERVAL = '1d'; // Daily candles
 
             const endTime = new Date().getTime();
             startTime = startTime
                 ? startTime :
                 endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-            return Binance.fetchAllKlines(this.state.symbol, INTERVAL, startTime, endTime).then(binanceKline => {
-                console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
+            return Binance.fetchAllKlines(this.state.symbol, this.tframe.shortName.toLowerCase(), startTime, endTime)
+                .then(binanceKline => {
+                    console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
-                // Sort by openTime to ensure chronological order
-                binanceKline.sort((a, b) => a.openTime - b.openTime);
+                    // Sort by openTime to ensure chronological order
+                    binanceKline.sort((a, b) => a.openTime - b.openTime);
 
-                // Remove duplicates (in case of any overlap)
-                const uniqueKlines = binanceKline.filter((kline, index, self) =>
-                    index === self.findIndex((k) => k.openTime === kline.openTime)
-                );
+                    // Remove duplicates (in case of any overlap)
+                    const uniqueKlines = binanceKline.filter((kline, index, self) =>
+                        index === self.findIndex((k) => k.openTime === kline.openTime)
+                    );
 
-                console.log(`After deduplication: ${uniqueKlines.length} klines`);
+                    console.log(`After deduplication: ${uniqueKlines.length} klines`);
 
-                const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
-                console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
+                    const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
+                    console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
 
-                for (const k of uniqueKlines) {
-                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                    this.baseSer.addToVar(this.varName, kline);
-                }
+                    for (const k of uniqueKlines) {
+                        const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
+                        this.baseSer.addToVar(this.varName, kline);
+                    }
 
-                return latestKline ? latestKline.openTime : undefined;
-            })
+                    return latestKline ? latestKline.openTime : undefined;
+                })
 
         }
 
@@ -192,15 +195,15 @@ class KlineViewContainer extends Component<Props, State> {
                     .then(js => {
                         const indicatorsFunction = new Function(js);
 
-                        let startTime = performance.now();
+                        let start = performance.now();
                         const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
 
                         const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
 
                         Promise.all(fnRuns).then((results) => {
-                            console.log(`indicators calclated in ${performance.now() - startTime} ms`);
+                            console.log(`indicators calclated in ${performance.now() - start} ms`);
 
-                            startTime = performance.now();
+                            start = performance.now();
 
                             let overlay = false
                             const overlayIndicators = [];
@@ -232,7 +235,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 }
                             })
 
-                            console.log(`indicators added to series in ${performance.now() - startTime} ms`);
+                            console.log(`indicators added to series in ${performance.now() - start} ms`);
 
                             if (this.state.isLoaded) {
                                 this.updateState({

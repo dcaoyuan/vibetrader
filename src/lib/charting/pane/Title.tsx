@@ -1,10 +1,9 @@
 import { ChartXControl } from "../view/ChartXControl";
-import { Component, type JSX, } from "react";
+import { Component } from "react";
 import type { UpdateCursor } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
 import '../view/chartview.css';
-import { Theme } from "../theme/Theme";
 import { ListBox, ListBoxItem } from 'react-aria-components';
 import { Text } from 'react-aria-components';
 
@@ -15,7 +14,7 @@ type Props = {
     shouldUpdateChart: number,
     shouldUpadteCursors: UpdateCursor,
     tvar: TVar<Kline>,
-    symbol: string
+    symbol: string,
 }
 
 type State = {
@@ -26,20 +25,29 @@ type State = {
 }
 
 class Title extends Component<Props, State> {
-    tframeName: string;
+    tframeShowName: string;
+    tframeShortName: string;
     dtFormat: Intl.DateTimeFormat
 
     constructor(props: Props) {
         super(props);
 
-        this.state = { pointKline: undefined, referKline: undefined, delta: undefined };
+        this.state = {
+            pointKline: undefined,
+            referKline: undefined,
+            delta: undefined
+        };
 
-        let tframeName = this.props.xc.baseSer.timeframe.compactName.toLowerCase();
+        const tframe = this.props.xc.baseSer.timeframe;
+
+        this.tframeShortName = tframe.shortName;
+
+        let tframeName = tframe.compactName.toLowerCase();
         const matchLeadingNumbers = tframeName.match(/^\d+/);
         const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
         tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
-        this.tframeName = tframeName;
+        this.tframeShowName = tframeName;
 
         const tzone = props.xc.baseSer.timezone;
 
@@ -57,11 +65,15 @@ class Title extends Component<Props, State> {
         console.log("Title render");
     }
 
-    protected updateChart() {
-        // clear mouse cursor and prev value
-        this.props.xc.isMouseCuroseVisible = false;
+    protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean) {
+        if (willUpdateChart) {
+            // clear mouse cursor and prev value
+            this.props.xc.isMouseCuroseVisible = false;
+        }
 
-        this.updateState({});
+        if (willUpdateChart || willUpdateCursor) {
+            this.updateState({});
+        }
     }
 
     protected updateCursors() {
@@ -171,7 +183,7 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <Text style={{ color: "white" }}>{this.props.symbol}</Text>
+                    <Text style={{ color: "white" }}>{this.props.symbol} &middot; {this.tframeShortName}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
                     <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
@@ -207,8 +219,8 @@ class Title extends Component<Props, State> {
                                         ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
                                             delta.period
                                                 ? ` in ${delta.period} ${delta.period === 1
-                                                    ? this.tframeName
-                                                    : this.tframeName + 's'})`
+                                                    ? this.tframeShowName
+                                                    : this.tframeShowName + 's'})`
                                                 : ')'
                                         )
                                         : pKline.close
@@ -277,12 +289,19 @@ class Title extends Component<Props, State> {
     // If setState is called unconditionally, it will trigger another update,
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: Props, prevState: State) {
+        let willUpdateChart = false;
+        let willUpdateCursor = false;
+
         if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
-            this.updateChart();
+            willUpdateChart = true;
         }
 
         if (this.props.shouldUpadteCursors.changed !== prevProps.shouldUpadteCursors.changed) {
-            this.updateCursors();
+            willUpdateCursor = true;
+        }
+
+        if (willUpdateChart || willUpdateCursor) {
+            this.updateChart_Cursor(willUpdateChart, willUpdateCursor)
         }
     }
 }
