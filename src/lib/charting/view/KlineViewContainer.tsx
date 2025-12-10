@@ -51,6 +51,13 @@ type PlotOptions = {
 };
 
 type State = {
+    tzone?: string;
+    tframe?: TFrame;
+    symbol?: string;
+
+    baseSer?: TSer;
+    kvar?: TVar<Kline>;
+
     // it seems we should put xc in state instead of let it to be member of class to avoid too deeply state update?
     xc?: ChartXControl;
 
@@ -77,18 +84,11 @@ type State = {
     containerHeight?: number;
     yCursorRange?: number[];
 
-    symbol?: string;
 
     isLoaded?: boolean;
 }
 
 class KlineViewContainer extends Component<Props, State> {
-    tzone: string;
-    tframe: TFrame;
-    baseSer: TSer;
-    kvar: TVar<Kline>;
-    xc: ChartXControl;
-
     varName: string;
     width: number;
     isInteractive: boolean;
@@ -110,12 +110,12 @@ class KlineViewContainer extends Component<Props, State> {
         this.varName = props.varName;
         this.width = props.width;
 
-        this.tzone = "America/Vancouver";
-        this.tframe = TFrame.DAILY;
+        const tzone = "America/Vancouver"
+        const tframe = TFrame.DAILY
 
-        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-        this.kvar = this.baseSer.varOf(this.varName) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+        const baseSer = new DefaultTSer(tframe, tzone, 1000);
+        const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
 
         this.isInteractive = true;
 
@@ -124,6 +124,11 @@ class KlineViewContainer extends Component<Props, State> {
         const geometry = this.#calcGeometry([]);
         this.state = {
             symbol: "BTCUSDC",
+            tzone,
+            tframe,
+            baseSer,
+            kvar,
+            xc,
             shouldUpdateChart: 0,
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
@@ -148,7 +153,7 @@ class KlineViewContainer extends Component<Props, State> {
                 for (const k of json) {
                     const time = Date.parse(k.Date);
                     const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
-                    this.baseSer.addToVar(this.varName, kline);
+                    this.state.baseSer.addToVar(this.varName, kline);
                 }
 
                 return undefined; // latestTime
@@ -161,7 +166,7 @@ class KlineViewContainer extends Component<Props, State> {
                 ? startTime :
                 endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-            return Binance.fetchAllKlines(this.state.symbol, this.tframe.shortName.toLowerCase(), startTime, endTime)
+            return Binance.fetchAllKlines(this.state.symbol, this.state.tframe.shortName.toLowerCase(), startTime, endTime)
                 .then(binanceKline => {
                     console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
@@ -180,7 +185,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                     for (const k of uniqueKlines) {
                         const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                        this.baseSer.addToVar(this.varName, kline);
+                        this.state.baseSer.addToVar(this.varName, kline);
                     }
 
                     return latestKline ? latestKline.openTime : undefined;
@@ -196,7 +201,7 @@ class KlineViewContainer extends Component<Props, State> {
                         const indicatorsFunction = new Function(js);
 
                         let start = performance.now();
-                        const pinets = new PineTS(new TSerProvider(this.kvar), 'ETH', '1d');
+                        const pinets = new PineTS(new TSerProvider(this.state.kvar), 'ETH', '1d');
 
                         const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
 
@@ -210,8 +215,8 @@ class KlineViewContainer extends Component<Props, State> {
                             const stackedIndicators = [];
 
                             results.map(({ plots }, n) => {
-                                const tvar = this.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
-                                const size = this.baseSer.size();
+                                const tvar = this.state.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
+                                const size = this.state.baseSer.size();
                                 const plotValues = Object.values(plots) as Plot[];
                                 const dataValues = plotValues.map(({ data }) => data);
                                 for (let i = 0; i < size; i++) {
@@ -246,10 +251,9 @@ class KlineViewContainer extends Component<Props, State> {
 
                             } else {
                                 // reinit it to get correct last occured time/row 
-                                this.xc.reinit()
+                                this.state.xc.reinit()
 
                                 this.updateState({
-                                    xc: this.xc,
                                     isLoaded: true,
                                     overlayIndicators,
                                     stackedIndicators
@@ -582,7 +586,7 @@ class KlineViewContainer extends Component<Props, State> {
                         width={this.width}
                         height={this.hTitle}
                         xc={this.state.xc}
-                        tvar={this.kvar}
+                        tvar={this.state.kvar}
                         symbol={this.state.symbol}
                         shouldUpdateChart={this.state.shouldUpdateChart}
                         shouldUpadteCursors={this.state.shouldUpdateCursors}
@@ -606,8 +610,8 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="ETH"
                             xc={this.state.xc}
-                            baseSer={this.baseSer}
-                            tvar={this.kvar}
+                            baseSer={this.state.baseSer}
+                            tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicators={this.state.overlayIndicators}
@@ -622,8 +626,8 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="Vol"
                             xc={this.state.xc}
-                            baseSer={this.baseSer}
-                            tvar={this.kvar}
+                            baseSer={this.state.baseSer}
+                            tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
@@ -649,7 +653,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     name={"Indicator-" + n}
                                     width={this.width}
                                     xc={this.state.xc}
-                                    baseSer={this.baseSer}
+                                    baseSer={this.state.baseSer}
                                     tvar={tvar}
                                     mainIndicatorOutputs={outputs}
                                     shouldUpdateChart={this.state.shouldUpdateChart}
