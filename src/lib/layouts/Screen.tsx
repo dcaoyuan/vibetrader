@@ -4,11 +4,10 @@ import KlineViewContainer from '../charting/view/KlineViewContainer';
 
 const Screen = () => {
     const width = 900;
-    const varName = "ETC";
 
     return (
         <div>
-            <KlineViewContainer varName={varName} width={width} />
+            <KlineViewContainer width={width} />
         </div>
     )
 };

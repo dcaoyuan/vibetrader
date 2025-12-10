@@ -19,7 +19,6 @@ import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
 
 type Props = {
-    varName: string,
     width: number,
 }
 
@@ -57,8 +56,6 @@ type State = {
 
     baseSer?: TSer;
     kvar?: TVar<Kline>;
-
-    // it seems we should put xc in state instead of let it to be member of class to avoid too deeply state update?
     xc?: ChartXControl;
 
     shouldUpdateChart?: number;
@@ -84,12 +81,12 @@ type State = {
     containerHeight?: number;
     yCursorRange?: number[];
 
-
     isLoaded?: boolean;
 }
 
+const KVAR_NAME = "kline";
+
 class KlineViewContainer extends Component<Props, State> {
-    varName: string;
     width: number;
     isInteractive: boolean;
 
@@ -107,14 +104,14 @@ class KlineViewContainer extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
-        this.varName = props.varName;
         this.width = props.width;
 
         const tzone = "America/Vancouver"
         const tframe = TFrame.DAILY
+        const symbol = "BTCUSDC"
 
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
-        const kvar = baseSer.varOf(this.varName) as TVar<Kline>;
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
         const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
 
         this.isInteractive = true;
@@ -123,7 +120,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         const geometry = this.#calcGeometry([]);
         this.state = {
-            symbol: "BTCUSDC",
+            symbol,
             tzone,
             tframe,
             baseSer,
@@ -153,7 +150,7 @@ class KlineViewContainer extends Component<Props, State> {
                 for (const k of json) {
                     const time = Date.parse(k.Date);
                     const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
-                    this.state.baseSer.addToVar(this.varName, kline);
+                    this.state.baseSer.addToVar(KVAR_NAME, kline);
                 }
 
                 return undefined; // latestTime
@@ -185,7 +182,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                     for (const k of uniqueKlines) {
                         const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                        this.state.baseSer.addToVar(this.varName, kline);
+                        this.state.baseSer.addToVar(KVAR_NAME, kline);
                     }
 
                     return latestKline ? latestKline.openTime : undefined;
