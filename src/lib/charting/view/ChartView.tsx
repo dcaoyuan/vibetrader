@@ -7,6 +7,7 @@ import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
+import { areDeeplyEqualArrays } from "../../Utils";
 
 export enum UpdateEvent {
     Chart,
@@ -474,36 +475,4 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
 }
-
-function areDeeplyEqualArrays(arr1, arr2) {
-    // Check if both inputs are arrays
-    if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
-        return false;
-    }
-
-    // Check if lengths are equal
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-
-    // Iterate and recursively compare elements
-    for (let i = 0; i < arr1.length; i++) {
-        const elem1 = arr1[i];
-        const elem2 = arr2[i];
-
-        // If elements are not primitive and are arrays/objects, recurse
-        if (typeof elem1 === 'object' && elem1 !== null &&
-            typeof elem2 === 'object' && elem2 !== null) {
-            if (!areDeeplyEqualArrays(elem1, elem2)) { // Assuming a general deep equal function handles objects as well
-                return false;
-            }
-
-        } else if (elem1 !== elem2) { // Primitive comparison
-            return false;
-        }
-    }
-
-    return true;
-}
-
 
