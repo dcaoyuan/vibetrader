@@ -108,3 +108,21 @@
     stroke: #00AA00;
     fill: #00AA00;
 }
+
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.blinking-label {
+    animation: blink 1s 1;
+}

@@ -22,6 +22,7 @@ type State = {
     pointKline: Kline,
     delta: { period: number, percent: number, volumeSum: number }
     snapshots: Snapshot[]
+    newSnapshot: boolean
 }
 
 type Snapshot = {
@@ -29,6 +30,8 @@ type Snapshot = {
     price: number,
     volume: number
 }
+
+const L_SNAPSHOTS = 6;
 
 class Title extends Component<Props, State> {
     tframeShowName: string;
@@ -46,6 +49,7 @@ class Title extends Component<Props, State> {
             referKline: undefined,
             delta: undefined,
             snapshots: [],
+            newSnapshot: false
         };
 
         const tframe = this.props.xc.baseSer.timeframe;
@@ -146,6 +150,7 @@ class Title extends Component<Props, State> {
 
         // calculate snapshots
         const snapshots = this.state.snapshots;
+        let newSnapshot = this.state.newSnapshot;
         if (latestOccurredTime !== undefined && latestOccurredTime > 0) {
             const latestKline = this.props.tvar.getByTime(latestOccurredTime);
             if (latestKline !== undefined) {
@@ -155,9 +160,10 @@ class Title extends Component<Props, State> {
                         const price = latestKline.close
                         const time = new Date().getTime()
                         snapshots.push({ time, price, volume })
-                        if (snapshots.length > 6) {
+                        if (snapshots.length > L_SNAPSHOTS) {
                             snapshots.shift()
                         }
+                        newSnapshot = !newSnapshot;
                     }
                 }
 
@@ -165,7 +171,7 @@ class Title extends Component<Props, State> {
             }
         }
 
-        this.setState({ ...state, referKline, pointKline, delta, snapshots })
+        this.setState({ ...state, referKline, pointKline, delta, snapshots, newSnapshot })
     }
 
     calcDelta() {
@@ -233,37 +239,51 @@ class Title extends Component<Props, State> {
                             <ListBoxItem textValue="O">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>T </Text>
-                                    <Text style={{ color: pColor }}>{this.dtFormatL.format(new Date(pKline.closeTime))}</Text>
+                                    <Text style={{ color: pColor }}>
+                                        {this.dtFormatL.format(new Date(pKline.closeTime))}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="V">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>V </Text>
-                                    <Text style={{ color: pColor }}>{pKline.volume}</Text>
+                                    <Text style={{ color: pColor }} >
+                                        {pKline.volume}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="O">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>O </Text>
-                                    <Text style={{ color: pColor }}>{pKline.open.toPrecision(8)}</Text>
+                                    <Text style={{ color: pColor }} >
+                                        {pKline.open.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="H">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>H </Text>
-                                    <Text style={{ color: pColor }}>{pKline.high.toPrecision(8)}</Text>
+                                    <Text style={{ color: pColor }} >
+                                        {pKline.high.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="L">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>L </Text>
-                                    <Text style={{ color: pColor }}>{pKline.low.toPrecision(8)}</Text>
+                                    <Text style={{ color: pColor }} >
+                                        {pKline.low.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="C">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>C </Text>
-                                    <Text style={{ color: pColor }}>
+                                    <Text
+                                        key={"close-" + pKline.close.toPrecision(8)}
+                                        className="blinking-label"
+                                        style={{ color: pColor }}
+                                    >
                                         {delta
                                             ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
                                                 delta.period
@@ -284,7 +304,11 @@ class Title extends Component<Props, State> {
                         <ListBox aria-label="snapshots" style={{ textAlign: 'left' }}>
                             {
                                 this.state.snapshots.map(({ time, price, volume }, n) =>
-                                    <ListBoxItem key={"snapshot-" + n} textValue="S">
+                                    <ListBoxItem className="blinking-label" key={
+                                        n === L_SNAPSHOTS - 1
+                                            ? "snapshot-" + n + time // tell react this is a new component, will retrigger blinking
+                                            : "snapshot-" + n
+                                    } textValue="S">
                                         <>
                                             <Text style={{ color: lColor }}>{this.dtFormatS.format(new Date(time))} </Text>
                                             <Text style={{ color: pColor }}>{price.toPrecision(8)} </Text>
