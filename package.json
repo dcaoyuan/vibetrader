@@ -13,8 +13,8 @@
     "dependencies": {
         "@vibetrader/pinets": "^0.5.4",
         "react": "^19.2.0",
-        "react-dom": "^19.2.0",
         "react-aria-components": "^1.13.0",
+        "react-dom": "^19.2.0",
         "temporal-polyfill": "^0.3.0"
     },
     "devDependencies": {

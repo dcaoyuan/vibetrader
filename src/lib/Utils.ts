@@ -22,8 +22,18 @@ export function toFixedIfPrecise(num: number, fixedDecimals: number, precisionTh
     }
 }
 
-export function areDeeplyEqualArrays(arr1, arr2) {
+export function arrayDeeplyEquals(arr1: unknown, arr2: unknown) {
     // Check if both inputs are arrays
+    if (arr1 === undefined && arr2 === undefined) {
+        return true;
+
+    } else if (arr1 === undefined || arr2 !== undefined) {
+        return false;
+
+    } else if (arr1 !== undefined && arr2 === undefined) {
+        return false;
+    }
+
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
         return false;
     }
@@ -41,7 +51,7 @@ export function areDeeplyEqualArrays(arr1, arr2) {
         // If elements are not primitive and are arrays/objects, recurse
         if (typeof elem1 === 'object' && elem1 !== null &&
             typeof elem2 === 'object' && elem2 !== null) {
-            if (!areDeeplyEqualArrays(elem1, elem2)) { // Assuming a general deep equal function handles objects as well
+            if (!arrayDeeplyEquals(elem1, elem2)) { // Assuming a general deep equal function handles objects as well
                 return false;
             }
 

@@ -13,7 +13,8 @@ import { Help } from "../pane/Help";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
-import { PineTS } from "@vibetrader/pinets";
+import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
+import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
@@ -73,6 +74,8 @@ type State = {
     referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
+    selectedIndTags?: 'all' | Iterable<string | number>;
+
     yKlineView?: number;
     yVolumeView?: number;
     yIndicatorViews?: number;
@@ -82,9 +85,12 @@ type State = {
     yCursorRange?: number[];
 
     isLoaded?: boolean;
+    componentKey?: number;
 }
 
 const KVAR_NAME = "kline";
+
+const allInds = ['ema', 'sma', 'rsi', 'macd']
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
@@ -92,8 +98,13 @@ class KlineViewContainer extends Component<Props, State> {
 
     refreshTimeoutId = undefined;
 
+    loadedIndFns: Map<string, ((pinets: PineTS) => unknown)>;
+
+    latestTime: number;
+
     // geometry variables
     hTitle = 130;
+    hIndtags = 26;
     hHelp = 80;
 
     hKlineView = 400;
@@ -121,6 +132,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         const geometry = this.#calcGeometry([]);
         this.state = {
+            componentKey: Math.random(),
             symbol,
             tzone,
             tframe,
@@ -130,6 +142,7 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateChart: 0,
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
+            selectedIndTags: new Set(['ema', 'rsi', 'macd']),
             ...geometry,
         }
 
@@ -141,131 +154,179 @@ class KlineViewContainer extends Component<Props, State> {
         this.handleWheel = this.handleWheel.bind(this);
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this);
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this);
+        this.setSelectedIndTags = this.setSelectedIndTags.bind(this)
     }
 
-    componentDidMount() {
+    fetchIndicatorFns = (indNames: string[]) =>
+        Promise.all(
+            indNames.map(indName => this.fetchIndicatorFn(indName))
+        )
 
-        const fetchData = (startTime?: number) => fetch("./klines.json")
-            .then(r => r.json())
-            .then(json => {
-                for (const k of json) {
-                    const time = Date.parse(k.Date);
-                    const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
+    fetchIndicatorFn = (indName: string) =>
+        fetch("./indicators/" + indName + ".js")
+            .then(r => r.text())
+            .then(js => {
+                js = js + "\n return ind;"
+                const indicatorsFunction = new Function(js);
+                const fn = indicatorsFunction();
+
+                return { indName, fn };
+            })
+
+    fetchFromLocalData = (startTime?: number) => fetch("./klines.json")
+        .then(r => r.json())
+        .then(json => {
+            for (const k of json) {
+                const time = Date.parse(k.Date);
+                const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
+                this.state.baseSer.addToVar(KVAR_NAME, kline);
+            }
+
+            return undefined; // latestTime
+        })
+
+    fetchDataBinance = async (startTime?: number) => {
+        const endTime = new Date().getTime();
+        startTime = startTime
+            ? startTime :
+            endTime - 300 * 3600 * 1000 * 24; // back 300 days
+
+        return Binance.fetchAllKlines(this.state.symbol, this.state.tframe.shortName.toLowerCase(), startTime, endTime)
+            .then(binanceKline => {
+                // console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
+
+                // Sort by openTime to ensure chronological order
+                binanceKline.sort((a, b) => a.openTime - b.openTime);
+
+                // Remove duplicates (in case of any overlap)
+                const uniqueKlines = binanceKline.filter((kline, index, self) =>
+                    index === self.findIndex((k) => k.openTime === kline.openTime)
+                );
+
+                // console.log(`After deduplication: ${uniqueKlines.length} klines`);
+
+                const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
+                // console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
+
+                for (const k of uniqueKlines) {
+                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
                     this.state.baseSer.addToVar(KVAR_NAME, kline);
                 }
 
-                return undefined; // latestTime
+                return latestKline ? latestKline.openTime : undefined;
             })
 
-        const fetchDataBinance = async (startTime?: number) => {
+    }
 
-            const endTime = new Date().getTime();
-            startTime = startTime
-                ? startTime :
-                endTime - 300 * 3600 * 1000 * 24; // back 300 days
+    fetchData_calcInds = (startTime?: number, selectedIndTags?: 'all' | Iterable<string | number>) => {
+        this.fetchDataBinance(startTime)
+            .then((latestTime) => {
+                let start = performance.now()
 
-            return Binance.fetchAllKlines(this.state.symbol, this.state.tframe.shortName.toLowerCase(), startTime, endTime)
-                .then(binanceKline => {
-                    console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
+                let selectedIndFns = new Map<string, ((pinets: PineTS) => unknown)>();
+                const selectedIndTagsNow = selectedIndTags || this.state.selectedIndTags
+                if (selectedIndTagsNow === 'all') {
+                    selectedIndFns = this.loadedIndFns;
 
-                    // Sort by openTime to ensure chronological order
-                    binanceKline.sort((a, b) => a.openTime - b.openTime);
-
-                    // Remove duplicates (in case of any overlap)
-                    const uniqueKlines = binanceKline.filter((kline, index, self) =>
-                        index === self.findIndex((k) => k.openTime === kline.openTime)
-                    );
-
-                    console.log(`After deduplication: ${uniqueKlines.length} klines`);
-
-                    const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
-                    console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
-
-                    for (const k of uniqueKlines) {
-                        const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                        this.state.baseSer.addToVar(KVAR_NAME, kline);
+                } else {
+                    for (const indName of selectedIndTagsNow) {
+                        selectedIndFns.set(indName as string, this.loadedIndFns.get(indName as string))
                     }
+                }
 
-                    return latestKline ? latestKline.openTime : undefined;
-                })
+                const pinets = new PineTS(new TSerProvider(this.state.kvar), 'ETH', '1d');
 
-        }
+                const fnRuns: Promise<{ indName: string, result: Context }>[] = []
+                for (const [indName, fn] of selectedIndFns) {
+                    const fnRun = pinets.run(fn).then(result => ({ indName, result }));
+                    fnRuns.push(fnRun)
+                }
 
-        const refreshData = (startTime?: number) => fetchDataBinance(startTime)
-            .then((latestTime) =>
-                fetch("./indicators.js")
-                    .then((r) => r.text())
-                    .then(js => {
-                        const indicatorsFunction = new Function(js);
+                Promise.all(fnRuns).then(results => {
+                    console.log(`indicators calclated in ${performance.now() - start} ms`);
 
-                        let start = performance.now();
-                        const pinets = new PineTS(new TSerProvider(this.state.kvar), 'ETH', '1d');
+                    start = performance.now();
 
-                        const fnRuns = indicatorsFunction().map(fn => pinets.run(fn));
+                    let overlay = false
+                    const overlayIndicators = [];
+                    const stackedIndicators = [];
 
-                        Promise.all(fnRuns).then((results) => {
-                            console.log(`indicators calclated in ${performance.now() - start} ms`);
+                    results.map(({ indName, result }, n) => {
+                        const tvar = this.state.baseSer.varOf(indName) as TVar<unknown[]>;
+                        const size = this.state.baseSer.size();
+                        const plotValues = Object.values(result.plots) as Plot[];
+                        const dataValues = plotValues.map(({ data }) => data);
+                        for (let i = 0; i < size; i++) {
+                            const vs = dataValues.map(v => v[i].value);
+                            tvar.setByIndex(i, vs);
+                        }
 
-                            start = performance.now();
-
-                            let overlay = false
-                            const overlayIndicators = [];
-                            const stackedIndicators = [];
-
-                            results.map(({ plots }, n) => {
-                                const tvar = this.state.baseSer.varOf("ind-" + n) as TVar<unknown[]>;
-                                const size = this.state.baseSer.size();
-                                const plotValues = Object.values(plots) as Plot[];
-                                const dataValues = plotValues.map(({ data }) => data);
-                                for (let i = 0; i < size; i++) {
-                                    const vs = dataValues.map(v => v[i].value);
-                                    tvar.setByIndex(i, vs);
-                                }
-
-                                overlay = false;
-                                const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
-                                    if (force_overlay) {
-                                        overlay = true;
-                                    }
-                                    return ({ atIndex, title, style, color })
-                                })
-
-                                if (overlay) {
-                                    overlayIndicators.push({ tvar, outputs })
-
-                                } else {
-                                    stackedIndicators.push({ tvar, outputs })
-                                }
-                            })
-
-                            console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                            if (this.state.isLoaded) {
-                                this.updateState({
-                                    shouldUpdateChart: this.state.shouldUpdateChart + 1,
-                                    overlayIndicators,
-                                    stackedIndicators
-                                })
-
-                            } else {
-                                // reinit it to get correct last occured time/row 
-                                this.state.xc.reinit()
-
-                                this.updateState({
-                                    isLoaded: true,
-                                    overlayIndicators,
-                                    stackedIndicators
-                                })
+                        overlay = false;
+                        const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
+                            if (force_overlay) {
+                                overlay = true;
                             }
-
-                            this.refreshTimeoutId = setTimeout(() => refreshData(latestTime), 5000)
+                            return ({ atIndex, title, style, color })
                         })
 
+                        if (overlay) {
+                            overlayIndicators.push({ indName, tvar, outputs })
+
+                        } else {
+                            stackedIndicators.push({ indName, tvar, outputs })
+                        }
                     })
-            )
 
-        refreshData()
+                    // console.log(`indicators added to series in ${performance.now() - start} ms`);
 
+                    this.latestTime = latestTime;
+
+                    if (this.state.isLoaded) {
+                        // regular update
+                        if (selectedIndTags !== undefined) { // selectedIndTags changed
+                            this.updateState({
+                                overlayIndicators,
+                                stackedIndicators,
+                                selectedIndTags
+                            })
+
+                        } else {
+                            this.updateState({
+                                shouldUpdateChart: this.state.shouldUpdateChart + 1,
+                                overlayIndicators,
+                                stackedIndicators,
+                            })
+                        }
+
+                    } else {
+                        // reinit it to get correct last occured time/row 
+                        this.state.xc.reinit()
+
+                        this.updateState({
+                            isLoaded: true,
+                            overlayIndicators,
+                            stackedIndicators,
+                        })
+                    }
+
+                    this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+
+                })
+
+            })
+
+    }
+
+    componentDidMount() {
+        this.fetchIndicatorFns(allInds).then(fns => {
+            this.loadedIndFns = new Map();
+            for (const { indName, fn } of fns) {
+                this.loadedIndFns.set(indName, fn);
+            }
+
+        }).then(() =>
+            this.fetchData_calcInds(undefined, this.state.selectedIndTags)
+        )
     }
 
     override componentWillUnmount() {
@@ -324,7 +385,7 @@ class KlineViewContainer extends Component<Props, State> {
         const yAxisx = yIndicatorViews + stackedIndicators.length * (this.hIndicatorView + this.hSpacing);
 
         const svgHeight = yAxisx + this.hAxisx;
-        const containerHeight = svgHeight + this.hTitle + this.hHelp;
+        const containerHeight = svgHeight + this.hTitle + this.hHelp + this.hIndtags;
         const yCursorRange = [0, yAxisx];
 
         return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
@@ -549,10 +610,12 @@ class KlineViewContainer extends Component<Props, State> {
         let overlayIndicatorLabels = this.state.overlayIndicatorLabels
         let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
 
-        overlayIndicatorLabels = overlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
-        referOverlayIndicatorLabels = referOverlayIndicatorLabels || new Array(this.state.overlayIndicators.length)
+        const nOverlayInds = this.state.overlayIndicators.length
 
-        for (let n = 0; n < vs.length; n++) {
+        overlayIndicatorLabels = overlayIndicatorLabels || new Array(nOverlayInds)
+        referOverlayIndicatorLabels = referOverlayIndicatorLabels || new Array(nOverlayInds)
+
+        for (let n = 0; n < nOverlayInds; n++) {
             overlayIndicatorLabels[n] = vs[n];
             referOverlayIndicatorLabels[n] = refVs[n];
         }
@@ -576,6 +639,14 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
+    setSelectedIndTags(selectedIndTags: 'all' | Iterable<string | number>) {
+        if (this.refreshTimeoutId) {
+            clearTimeout(this.refreshTimeoutId);
+        }
+
+        this.fetchData_calcInds(this.latestTime, selectedIndTags)
+    }
+
     render() {
         return this.state.isLoaded && (
             // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
@@ -583,6 +654,7 @@ class KlineViewContainer extends Component<Props, State> {
                 onKeyDown={this.handleKeyDown}
                 onKeyUp={this.handleKeyUp}
                 tabIndex={0}
+                key={this.state.componentKey}
             >
                 <div className="title" style={{ width: this.width, height: this.hTitle }}>
                     <Title
@@ -595,6 +667,21 @@ class KlineViewContainer extends Component<Props, State> {
                         shouldUpadteCursors={this.state.shouldUpdateCursors}
                     />
                     <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
+                </div>
+
+                <div className="" style={{ width: this.width, height: this.hIndtags, paddingTop: "6px" }}>
+                    <TagGroup
+                        aria-label="ind-tags"
+                        selectionMode="multiple"
+                        selectedKeys={this.state.selectedIndTags}
+                        onSelectionChange={this.setSelectedIndTags}
+                    >
+                        <TagList>
+                            {allInds.map((tag, n) =>
+                                <Tag aria-label={tag} key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
+                            )}
+                        </TagList>
+                    </TagGroup>
                 </div>
 
                 <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
@@ -619,6 +706,7 @@ class KlineViewContainer extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicators={this.state.overlayIndicators}
                             updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
+                            key={this.state.componentKey}
                         />
 
                         <VolumeView
@@ -646,9 +734,9 @@ class KlineViewContainer extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                         />
                         {
-                            this.state.stackedIndicators.map(({ tvar, outputs }, n) =>
+                            this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
                                 <IndicatorView
-                                    key={"stacked-indicator-view-" + n}
+                                    key={"stacked-indicator-view-" + indName}
                                     id={this.#indicatorViewId(n)}
                                     y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                     height={this.hIndicatorView}
@@ -685,11 +773,13 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
                                             {
                                                 outputs.map(({ title, color }, n) =>
-                                                    <span key={"overlay-indicator-lable-" + n} >
+                                                    <span key={"overlay-indicator-lable-" + title} >
                                                         <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
                                                         <Text style={{ color }}>{
-                                                            this.state.overlayIndicatorLabels &&
-                                                            this.state.overlayIndicatorLabels[m][n]}
+                                                            this.state.overlayIndicatorLabels !== undefined &&
+                                                            this.state.overlayIndicatorLabels[m] !== undefined &&
+                                                            this.state.overlayIndicatorLabels[m][n]
+                                                        }
                                                             &nbsp;&nbsp;
                                                         </Text>
                                                     </span>
@@ -697,7 +787,6 @@ class KlineViewContainer extends Component<Props, State> {
                                             }
                                         </Group>
                                     </Toolbar>
-
                                 </div>
 
                                 <div style={{
@@ -711,11 +800,13 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                             {
                                                 this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
-                                                    <span key={"ovarlay-indicator-lable-" + n} >
+                                                    <span key={"ovarlay-indicator-lable-" + title} >
                                                         <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                         <Text style={{ color }}>{
                                                             this.state.referOverlayIndicatorLabels &&
-                                                            this.state.referOverlayIndicatorLabels[m][n]}
+                                                            this.state.referOverlayIndicatorLabels[m] &&
+                                                            this.state.referOverlayIndicatorLabels[m][n]
+                                                        }
                                                             &nbsp;&nbsp;
                                                         </Text>
                                                     </span>
@@ -746,7 +837,8 @@ class KlineViewContainer extends Component<Props, State> {
                                                         <Text style={{ color }}>{
                                                             this.state.stackedIndicatorLabels &&
                                                             this.state.stackedIndicatorLabels[n] &&
-                                                            this.state.stackedIndicatorLabels[n][k]}
+                                                            this.state.stackedIndicatorLabels[n][k]
+                                                        }
                                                             &nbsp;&nbsp;
                                                         </Text>
                                                     </span>

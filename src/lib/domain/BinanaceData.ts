@@ -30,7 +30,7 @@ export async function fetchKlinesBatch(
 
     const url = `${BINANCE_API_URL}/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
 
-    console.log(`Fetching batch: ${new Date(startTime).toISOString()} to ${new Date(endTime).toISOString()}`);
+    // console.log(`Fetching batch: ${new Date(startTime).toISOString()} to ${new Date(endTime).toISOString()}`);
 
     return fetch(url)
         .then(r => r.json())
@@ -69,12 +69,12 @@ export async function fetchAllKlines(
     let batchNumber = 1;
 
     while (currentStartTime < endTime) {
-        console.log(`\nFetching batch ${batchNumber}...`);
+        // console.log(`\nFetching batch ${batchNumber}...`);
 
         const batch = await fetchKlinesBatch(symbol, interval, currentStartTime, endTime, MAX_LIMIT);
 
         if (batch.length === 0) {
-            console.log('No more data available');
+            // console.log('No more data available');
             break;
         }
 
@@ -83,7 +83,7 @@ export async function fetchAllKlines(
 
         // If we got less than the max limit, we've reached the end
         if (batch.length < MAX_LIMIT) {
-            console.log('Reached end of data');
+            // console.log('Reached end of data');
             break;
         }
 

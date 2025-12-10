@@ -7,7 +7,7 @@ import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
-import { areDeeplyEqualArrays } from "../../Utils";
+import { arrayDeeplyEquals } from "../../Utils";
 
 export enum UpdateEvent {
     Chart,
@@ -25,6 +25,7 @@ export type UpdateCursor = {
 }
 
 export type Indicator = {
+    indName: string,
     tvar: TVar<unknown[]>,
     outputs: Output[],
     overlay?: boolean
@@ -71,7 +72,7 @@ export interface ViewState {
 
     latestValueLabel?: JSX.Element
 
-    stackCharts?: JSX.Element[];
+    overlayCharts?: JSX.Element[];
 }
 
 /**
@@ -174,17 +175,29 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     abstract plot(): ChartParts;
 
-    protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean, xMouse: number, yMouse: number) {
-        let chartParts = undefined;
+    protected updateChart_Cursor(
+        willUpdateChart: boolean,
+        willUpdateOverlayCharts: boolean,
+        willUpdateCursor: boolean, xMouse: number, yMouse: number
+    ) {
+
+        let state = {};
+
         if (willUpdateChart) {
-            chartParts = this.plot();
+            const chartParts = this.plot();
+            state = { ...state, chartParts }
+        }
+
+        if (willUpdateOverlayCharts) {
+            const overlayCharts = this.plotOverlayCharts()
+            state = { ...state, overlayCharts }
         }
 
         if (willUpdateCursor) {
-            this.updateState(chartParts, xMouse, yMouse)
+            this.updateState(state, xMouse, yMouse)
 
-        } else if (willUpdateChart) {
-            this.updateState(chartParts);
+        } else {
+            this.updateState(state);
         }
     }
 
@@ -195,6 +208,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     protected updateCursors(xMouse: number, yMouse: number) {
         this.updateState({}, xMouse, yMouse);
+    }
+
+    protected plotOverlayCharts(): JSX.Element[] {
+        return [];
     }
 
     protected updateState(state: object, xMouse?: number, yMouse?: number) {
@@ -429,6 +446,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
         let willUpdateChart = false
         let willUpdateCursor = false;
+        let willUpdateOverlayCharts = false;
+
         let xMouse = undefined;
         let yMouse = undefined;
 
@@ -436,8 +455,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             willUpdateChart = true;
         }
 
-        if (areDeeplyEqualArrays(this.props.overlayIndicators, prevProps.overlayIndicators)) {
-            willUpdateChart = true;
+        if (this.isOverlayIndicatorsChanged(this.props.overlayIndicators, prevProps.overlayIndicators)) {
+            // console.log(this.props.id, "overlayIndicators changed")
+            willUpdateOverlayCharts = true;
         }
 
         if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
@@ -461,9 +481,34 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (willUpdateChart || willUpdateCursor) {
-            this.updateChart_Cursor(willUpdateChart, willUpdateCursor, xMouse, yMouse)
+        if (willUpdateChart || willUpdateOverlayCharts || willUpdateCursor) {
+            this.updateChart_Cursor(willUpdateChart, willUpdateOverlayCharts, willUpdateCursor, xMouse, yMouse)
         }
+    }
+
+    isOverlayIndicatorsChanged(newInds: Indicator[], oldInds: Indicator[]) {
+        if (newInds === undefined && oldInds === undefined) {
+            return false;
+
+        } else if (newInds === undefined || oldInds === undefined) {
+            return true;
+        }
+
+        if (newInds.length !== oldInds.length) {
+            return true;
+        }
+
+        for (let i = 0; i < newInds.length; i++) {
+            const newInd = newInds[i];
+            const oldInd = oldInds[i];
+
+            if (newInd.indName !== oldInd.indName) {
+                return true
+            }
+        }
+
+        return false;
+
     }
 
 }

@@ -45,7 +45,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         this.yc.valueScalar = LINEAR_SCALAR;
 
-        const { charts, axisy, stackCharts } = this.plot();
+        const { charts, axisy, overlayCharts } = this.plot();
 
         this.state = {
             isInteractive: true,
@@ -53,7 +53,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
             charts,
             axisy,
-            stackCharts,
+            overlayCharts,
         };
 
     }
@@ -80,7 +80,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
-        const stackCharts = []
+        const overlayCharts = this.plotOverlayCharts();
+
+        return { charts, axisy, overlayCharts }
+    }
+
+    override plotOverlayCharts() {
+        const overlayCharts: JSX.Element[] = []
         if (this.props.overlayIndicators) {
             let depth = 1;
             this.props.overlayIndicators.map((indicator, n) => {
@@ -102,15 +108,16 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
                         default:
                     }
+
                     if (ovchart !== undefined) {
-                        stackCharts.push(ovchart)
+                        overlayCharts.push(ovchart)
                     }
                 }
 
             })
         }
 
-        return { charts, axisy, stackCharts }
+        return overlayCharts;
     }
 
     override computeMaxValueMinValue() {
@@ -165,7 +172,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.latestValueLabel}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
-                {this.state.stackCharts.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.overlayCharts.map((c, n) => <g key={n}>{c}</g>)}
             </g >
         )
     }

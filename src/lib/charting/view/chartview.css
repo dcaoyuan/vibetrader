@@ -1,3 +1,5 @@
+@import "ariatheme.css";
+
 .container {
     /* display: grid;
   grid-template-areas:
@@ -10,7 +12,7 @@
     background-color: #333333;
     /* background-color: #242424; */
     /* background-color: white; */
-    padding: 0px;
+    /* padding: 0px; */
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
     /* cursor: crosshair; */
@@ -24,7 +26,6 @@
 .container div {
     /* background-color: #333333; */
     /* background-color: white; */
-    padding: 0px;
 }
 
 .container div.chartview {
