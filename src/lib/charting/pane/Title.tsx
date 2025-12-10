@@ -1,5 +1,5 @@
 import { ChartXControl } from "../view/ChartXControl";
-import { Component } from "react";
+import { Component, Fragment } from "react";
 import type { UpdateCursor } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
@@ -18,16 +18,25 @@ type Props = {
 }
 
 type State = {
-
     referKline: Kline,
     pointKline: Kline,
     delta: { period: number, percent: number, volumeSum: number }
+    snapshots: Snapshot[]
+}
+
+type Snapshot = {
+    time: number,
+    price: number,
+    volume: number
 }
 
 class Title extends Component<Props, State> {
     tframeShowName: string;
     tframeShortName: string;
-    dtFormat: Intl.DateTimeFormat
+    dtFormatL: Intl.DateTimeFormat
+    dtFormatS: Intl.DateTimeFormat
+
+    prevVolume: number
 
     constructor(props: Props) {
         super(props);
@@ -35,7 +44,8 @@ class Title extends Component<Props, State> {
         this.state = {
             pointKline: undefined,
             referKline: undefined,
-            delta: undefined
+            delta: undefined,
+            snapshots: [],
         };
 
         const tframe = this.props.xc.baseSer.timeframe;
@@ -51,12 +61,19 @@ class Title extends Component<Props, State> {
 
         const tzone = props.xc.baseSer.timezone;
 
-        this.dtFormat = new Intl.DateTimeFormat("en-US", {
+        this.dtFormatL = new Intl.DateTimeFormat("en-US", {
             timeZone: tzone,
             year: "numeric",
             month: "numeric",
             day: "numeric",
             hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+        });
+
+        this.dtFormatS = new Intl.DateTimeFormat("en-US", {
+            timeZone: tzone,
             minute: "numeric",
             second: "numeric",
             hour12: false,
@@ -86,6 +103,8 @@ class Title extends Component<Props, State> {
 
         const xc = this.props.xc;
 
+        const latestOccurredTime = xc.lastOccurredTime();
+
         if (xc.isReferCuroseVisible) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
@@ -95,9 +114,9 @@ class Title extends Component<Props, State> {
 
         const time = xc.isMouseCuroseVisible
             ? xc.tr(xc.mouseCursorRow)
-            : xc.lastOccurredTime()
+            : latestOccurredTime
 
-        if (time && time > 0 && xc.occurred(time)) {
+        if (time !== undefined && time > 0 && xc.occurred(time)) {
             pointKline = this.props.tvar.getByTime(time);
         }
 
@@ -124,7 +143,30 @@ class Title extends Component<Props, State> {
             }
         }
 
-        this.setState({ ...state, referKline, pointKline, delta })
+        // calculate snapshots
+        const snapshots = this.state.snapshots;
+        if (latestOccurredTime !== undefined && latestOccurredTime > 0) {
+            const latestKline = this.props.tvar.getByTime(latestOccurredTime);
+            if (latestKline !== undefined) {
+                if (this.prevVolume) {
+                    const volume = latestKline.volume - this.prevVolume;
+                    console.log(volume)
+                    if (volume > 0) {
+                        const price = latestKline.close
+                        const time = new Date().getTime()
+                        snapshots.push({ time, price, volume })
+                        if (snapshots.length > 6) {
+                            snapshots.shift()
+                        }
+                    }
+                }
+
+                this.prevVolume = latestKline.volume
+            }
+        }
+        console.log(snapshots)
+
+        this.setState({ ...state, referKline, pointKline, delta, snapshots })
     }
 
     calcDelta() {
@@ -186,95 +228,121 @@ class Title extends Component<Props, State> {
                     <Text style={{ color: "white" }}>{this.props.symbol} &middot; {this.tframeShortName}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
-                        <ListBoxItem textValue="O">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>T </Text>
-                                <Text style={{ color: pColor }}>{this.dtFormat.format(new Date(pKline.closeTime))}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="V">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>V </Text>
-                                <Text style={{ color: pColor }}>{pKline.volume}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="O">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>O </Text>
-                                <Text style={{ color: pColor }}>{pKline.open}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="H">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>H </Text>
-                                <Text style={{ color: pColor }}>{pKline.high}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="L">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>L </Text>
-                                <Text style={{ color: pColor }}>{pKline.low}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="C">
-                            {pKline && <>
-                                <Text style={{ color: lColor }}>C </Text>
-                                <Text style={{ color: pColor }}>
-                                    {delta
-                                        ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
-                                            delta.period
-                                                ? ` in ${delta.period} ${delta.period === 1
-                                                    ? this.tframeShowName
-                                                    : this.tframeShowName + 's'})`
-                                                : ')'
-                                        )
-                                        : pKline.close
-                                    }
-                                </Text>
-                            </>}
-                        </ListBoxItem>
-                    </ListBox>
+                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                        <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                            <ListBoxItem textValue="O">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>T </Text>
+                                    <Text style={{ color: pColor }}>{this.dtFormatL.format(new Date(pKline.closeTime))}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="V">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>V </Text>
+                                    <Text style={{ color: pColor }}>{pKline.volume}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="O">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>O </Text>
+                                    <Text style={{ color: pColor }}>{pKline.open}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="H">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>H </Text>
+                                    <Text style={{ color: pColor }}>{pKline.high}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="L">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>L </Text>
+                                    <Text style={{ color: pColor }}>{pKline.low}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="C">
+                                {pKline && <>
+                                    <Text style={{ color: lColor }}>C </Text>
+                                    <Text style={{ color: pColor }}>
+                                        {delta
+                                            ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                                delta.period
+                                                    ? ` in ${delta.period} ${delta.period === 1
+                                                        ? this.tframeShowName
+                                                        : this.tframeShowName + 's'})`
+                                                    : ')'
+                                            )
+                                            : pKline.close
+                                        }
+                                    </Text>
+                                </>}
+                            </ListBoxItem>
+                        </ListBox>
+                    </div>
 
-                    <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
-                        <ListBoxItem textValue="T">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>T </Text>
-                                <Text style={{ color: rColor }}>{this.dtFormat.format(new Date(rKline.closeTime))}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="V">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>V </Text>
-                                <Text style={{ color: rColor }}>{rKline.volume}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="O">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>O </Text>
-                                <Text style={{ color: rColor }}>{rKline.open}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="H">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>H </Text>
-                                <Text style={{ color: rColor }}>{rKline.high}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="L">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>L </Text>
-                                <Text style={{ color: rColor }}>{rKline.low}</Text>
-                            </>}
-                        </ListBoxItem>
-                        <ListBoxItem textValue="C">
-                            {rKline && <>
-                                <Text style={{ color: lColor }}>C </Text>
-                                <Text style={{ color: rColor }}>{rKline.close}</Text>
-                            </>}
-                        </ListBoxItem>
-                    </ListBox>
-                </div>
+                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                        <ListBox aria-label="snapshots" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                            {
+                                this.state.snapshots.map(({ time, price, volume }, n) =>
+                                    <ListBoxItem key={"snapshot-" + n} textValue="S">
+                                        <>
+                                            <Text style={{ color: lColor }}>{this.dtFormatS.format(new Date(time))} </Text>
+                                            <Text style={{ color: pColor }}>{price} </Text>
+                                            <Text style={{ color: rColor }}>{volume}</Text>
+                                        </>
+                                    </ListBoxItem>
+                                )
+                            }
+                        </ListBox>
+                    </div>
+
+                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                        <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
+                            <ListBoxItem textValue="T">
+                                {rKline
+                                    ? <>
+                                        <Text style={{ color: lColor }}>T </Text>
+                                        <Text style={{ color: rColor }}>{this.dtFormatL.format(new Date(rKline.closeTime))}</Text>
+                                    </>
+                                    : <div style={{ visibility: "hidden" }}>
+                                        <Text style={{ color: lColor }}>T </Text>
+                                        <Text style={{ color: rColor }}>{this.dtFormatL.format(new Date())}</Text>
+                                    </div>
+                                }
+                            </ListBoxItem>
+                            <ListBoxItem textValue="V">
+                                {rKline && <>
+                                    <Text style={{ color: lColor }}>V </Text>
+                                    <Text style={{ color: rColor }}>{rKline.volume}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="O">
+                                {rKline && <>
+                                    <Text style={{ color: lColor }}>O </Text>
+                                    <Text style={{ color: rColor }}>{rKline.open}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="H">
+                                {rKline && <>
+                                    <Text style={{ color: lColor }}>H </Text>
+                                    <Text style={{ color: rColor }}>{rKline.high}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="L">
+                                {rKline && <>
+                                    <Text style={{ color: lColor }}>L </Text>
+                                    <Text style={{ color: rColor }}>{rKline.low}</Text>
+                                </>}
+                            </ListBoxItem>
+                            <ListBoxItem textValue="C">
+                                {rKline && <>
+                                    <Text style={{ color: lColor }}>C </Text>
+                                    <Text style={{ color: rColor }}>{rKline.close}</Text>
+                                </>}
+                            </ListBoxItem>
+                        </ListBox>
+                    </div>
+                </div >
             </>
         )
     }
