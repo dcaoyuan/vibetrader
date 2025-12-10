@@ -74,6 +74,7 @@ class Title extends Component<Props, State> {
 
         this.dtFormatS = new Intl.DateTimeFormat("en-US", {
             timeZone: tzone,
+            hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
             hour12: false,
