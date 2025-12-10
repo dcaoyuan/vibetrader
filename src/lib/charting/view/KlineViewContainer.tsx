@@ -93,7 +93,7 @@ class KlineViewContainer extends Component<Props, State> {
     refreshTimeoutId = undefined;
 
     // geometry variables
-    hTitle = 128;
+    hTitle = 130;
     hHelp = 80;
 
     hKlineView = 400;
@@ -410,6 +410,8 @@ class KlineViewContainer extends Component<Props, State> {
     handleMouseDown(e: React.MouseEvent) {
         const xc = this.state.xc;
 
+        xc.isMouseCuroseVisible = false;
+
         if (e.ctrlKey) {
             // will select chart on pane
 
@@ -449,6 +451,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
+        xc.isMouseCuroseVisible = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
         const delta = Math.round(e.deltaY / xc.nBars);
@@ -482,6 +485,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleKeyDown(e: React.KeyboardEvent) {
         const xc = this.state.xc;
+        xc.isMouseCuroseVisible = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
 
@@ -524,6 +528,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleKeyUp(e: React.KeyboardEvent) {
         const xc = this.state.xc;
+        xc.isMouseCuroseVisible = false;
 
         switch (e.key) {
             case " ":

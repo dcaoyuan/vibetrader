@@ -177,10 +177,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean, xMouse: number, yMouse: number) {
         let chartParts = undefined;
         if (willUpdateChart) {
-            // clear mouse cursor and prev value
-            this.props.xc.isMouseCuroseVisible = false;
-            this.yc.setMouseCursorValue(undefined, undefined)
-
             chartParts = this.plot();
         }
 
@@ -193,10 +189,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateChart() {
-        // clear mouse cursor and prev value
-        this.props.xc.isMouseCuroseVisible = false;
-        this.yc.setMouseCursorValue(undefined, undefined)
-
         const chartParts = this.plot();
         this.updateState(chartParts);
     }

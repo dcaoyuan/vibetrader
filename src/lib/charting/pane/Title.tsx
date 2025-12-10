@@ -88,11 +88,6 @@ class Title extends Component<Props, State> {
     }
 
     protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean) {
-        if (willUpdateChart) {
-            // clear mouse cursor and prev value
-            this.props.xc.isMouseCuroseVisible = false;
-        }
-
         if (willUpdateChart || willUpdateCursor) {
             this.updateState({});
         }
@@ -130,7 +125,7 @@ class Title extends Component<Props, State> {
             delta = this.calcDelta()
 
         } else {
-            // will show latest occured's change
+            // will show latest occured change
             if (pointKline !== undefined) {
                 const prevRow = xc.rt(time) - 1
                 const prevOccurredTime = xc.tr(prevRow)
@@ -281,7 +276,7 @@ class Title extends Component<Props, State> {
                                     <Text style={{ color: lColor }}>C </Text>
                                     <Text
                                         key={"close-" + pKline.close.toPrecision(8)}
-                                        className="blinking-label"
+                                        className={this.props.xc.isMouseCuroseVisible ? "" : "blinking-label"}
                                         style={{ color: pColor }}
                                     >
                                         {delta

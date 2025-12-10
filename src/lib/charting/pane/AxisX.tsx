@@ -142,9 +142,6 @@ class AxisX extends Component<Props, State> {
 	}
 
 	protected updateChart() {
-		// clear mouse cursor and prev value
-		this.props.xc.isMouseCuroseVisible = false;
-
 		const chart = this.plot();
 		this.updateState({ chart });
 	}
