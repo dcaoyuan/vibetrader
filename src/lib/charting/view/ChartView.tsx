@@ -1,7 +1,6 @@
 import { TVal } from "../../timeseris/TVal";
 import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
-import { Chart } from "../chart/Chart";
 import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
 import { Component, type JSX } from "react";
@@ -113,10 +112,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         console.log(`${this.props.name} ChartView render`)
     }
 
-    protected readonly overlappingSerChartToVars = new Map<TSer, Map<Chart, Set<TVar<TVal>>>>()
-
-    readonly mainSerChartToVars = new Map<Chart, Set<TVar<TVal>>>()
-
     #isPinned = false
 
     /**
@@ -163,27 +158,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         //this.glassPane.pin(false);
 
         this.#isPinned = false;
-    }
-
-    chartToVarsOf(ser: TSer): Map<Chart, Set<TVar<TVal>>> | undefined {
-        //assert(ser != null, "Do not pass me a null ser!")
-        //let x = this.overlappingSerChartToVars.get(ser);
-        return ser === this.baseSer ? this.mainSerChartToVars : this.overlappingSerChartToVars.get(ser);
-    }
-
-    overlappingSers() {
-        return this.overlappingSerChartToVars.keys();
-    }
-
-    allSers() {
-        const _allSers = new Set<TSer>()
-
-        _allSers.add(this.baseSer);
-        for (const s of this.overlappingSers()) {
-            _allSers.add(s);
-        }
-
-        return _allSers
     }
 
     popupToDesktop() {
