@@ -106,7 +106,8 @@ class KlineViewContainer extends Component<Props, State> {
         super(props);
         this.width = props.width;
 
-        const tzone = "America/Vancouver"
+        const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        //const tzone = "America/Vancouver"
         const tframe = TFrame.DAILY
         const symbol = "BTCUSDC"
 

@@ -36,6 +36,8 @@ const L_SNAPSHOTS = 6;
 class Title extends Component<Props, State> {
     tframeShowName: string;
     tframeShortName: string;
+    tzone: string;
+    tzoneShort: string;
     dtFormatL: Intl.DateTimeFormat
     dtFormatS: Intl.DateTimeFormat
 
@@ -63,10 +65,13 @@ class Title extends Component<Props, State> {
 
         this.tframeShowName = tframeName;
 
-        const tzone = props.xc.baseSer.timezone;
+        this.tzone = props.xc.baseSer.timezone;
+
+        const dateStringWithTZ = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
+        this.tzoneShort = dateStringWithTZ.split(' ').pop();
 
         this.dtFormatL = new Intl.DateTimeFormat("en-US", {
-            timeZone: tzone,
+            timeZone: this.tzone,
             year: "2-digit",
             month: "2-digit",
             day: "2-digit",
@@ -77,7 +82,7 @@ class Title extends Component<Props, State> {
         });
 
         this.dtFormatS = new Intl.DateTimeFormat("en-US", {
-            timeZone: tzone,
+            timeZone: this.tzone,
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
@@ -225,7 +230,9 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <Text style={{ color: "white" }}>{this.props.symbol} &middot; {this.tframeShortName}</Text>
+                    <Text style={{ color: "white" }}>
+                        {this.props.symbol} &middot; {this.tframeShortName} &middot; {this.tzoneShort}
+                    </Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
