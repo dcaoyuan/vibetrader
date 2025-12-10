@@ -63,19 +63,19 @@ class Title extends Component<Props, State> {
 
         this.dtFormatL = new Intl.DateTimeFormat("en-US", {
             timeZone: tzone,
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
             hour12: false,
         });
 
         this.dtFormatS = new Intl.DateTimeFormat("en-US", {
             timeZone: tzone,
-            minute: "numeric",
-            second: "numeric",
+            minute: "2-digit",
+            second: "2-digit",
             hour12: false,
         });
 
@@ -227,8 +227,8 @@ class Title extends Component<Props, State> {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
-                    <div style={{ flex: 1, padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
-                        <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                    <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>
+                        <ListBox aria-label="Mouse kline" style={{ textAlign: 'left' }}>
                             <ListBoxItem textValue="O">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>T </Text>
@@ -279,8 +279,8 @@ class Title extends Component<Props, State> {
                         </ListBox>
                     </div>
 
-                    <div style={{ flex: 1, padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
-                        <ListBox aria-label="snapshots" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
+                    <div style={{ flex: 1, padding: '0px 0px' }}>
+                        <ListBox aria-label="snapshots" style={{ textAlign: 'left' }}>
                             {
                                 this.state.snapshots.map(({ time, price, volume }, n) =>
                                     <ListBoxItem key={"snapshot-" + n} textValue="S">
@@ -295,7 +295,7 @@ class Title extends Component<Props, State> {
                         </ListBox>
                     </div>
 
-                    <div style={{ justifyContent: "flex-end", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div style={{ justifyContent: "flex-end", padding: '0px 0px' }}>
                         <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
                             <ListBoxItem textValue="T">
                                 {rKline
