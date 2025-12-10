@@ -245,19 +245,19 @@ class Title extends Component<Props, State> {
                             <ListBoxItem textValue="O">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>O </Text>
-                                    <Text style={{ color: pColor }}>{pKline.open}</Text>
+                                    <Text style={{ color: pColor }}>{pKline.open.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="H">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>H </Text>
-                                    <Text style={{ color: pColor }}>{pKline.high}</Text>
+                                    <Text style={{ color: pColor }}>{pKline.high.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="L">
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>L </Text>
-                                    <Text style={{ color: pColor }}>{pKline.low}</Text>
+                                    <Text style={{ color: pColor }}>{pKline.low.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="C">
@@ -265,7 +265,7 @@ class Title extends Component<Props, State> {
                                     <Text style={{ color: lColor }}>C </Text>
                                     <Text style={{ color: pColor }}>
                                         {delta
-                                            ? pKline.close + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                            ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
                                                 delta.period
                                                     ? ` in ${delta.period} ${delta.period === 1
                                                         ? this.tframeShowName
@@ -287,8 +287,8 @@ class Title extends Component<Props, State> {
                                     <ListBoxItem key={"snapshot-" + n} textValue="S">
                                         <>
                                             <Text style={{ color: lColor }}>{this.dtFormatS.format(new Date(time))} </Text>
-                                            <Text style={{ color: pColor }}>{price} </Text>
-                                            <Text style={{ color: rColor }}>{volume}</Text>
+                                            <Text style={{ color: pColor }}>{price.toPrecision(8)} </Text>
+                                            <Text style={{ color: rColor }}>{parseFloat(volume.toPrecision(8))}</Text>
                                         </>
                                     </ListBoxItem>
                                 )
@@ -319,25 +319,25 @@ class Title extends Component<Props, State> {
                             <ListBoxItem textValue="O">
                                 {rKline && <>
                                     <Text style={{ color: lColor }}>O </Text>
-                                    <Text style={{ color: rColor }}>{rKline.open}</Text>
+                                    <Text style={{ color: rColor }}>{rKline.open.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="H">
                                 {rKline && <>
                                     <Text style={{ color: lColor }}>H </Text>
-                                    <Text style={{ color: rColor }}>{rKline.high}</Text>
+                                    <Text style={{ color: rColor }}>{rKline.high.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="L">
                                 {rKline && <>
                                     <Text style={{ color: lColor }}>L </Text>
-                                    <Text style={{ color: rColor }}>{rKline.low}</Text>
+                                    <Text style={{ color: rColor }}>{rKline.low.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="C">
                                 {rKline && <>
                                     <Text style={{ color: lColor }}>C </Text>
-                                    <Text style={{ color: rColor }}>{rKline.close}</Text>
+                                    <Text style={{ color: rColor }}>{rKline.close.toPrecision(8)}</Text>
                                 </>}
                             </ListBoxItem>
                         </ListBox>
