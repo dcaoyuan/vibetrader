@@ -125,7 +125,7 @@ class Title extends Component<Props, State> {
             delta = this.calcDelta()
 
         } else {
-            // will show last occured's change
+            // will show latest occured's change
             if (pointKline !== undefined) {
                 const prevRow = xc.rt(time) - 1
                 const prevOccurredTime = xc.tr(prevRow)
@@ -150,7 +150,6 @@ class Title extends Component<Props, State> {
             if (latestKline !== undefined) {
                 if (this.prevVolume) {
                     const volume = latestKline.volume - this.prevVolume;
-                    console.log(volume)
                     if (volume > 0) {
                         const price = latestKline.close
                         const time = new Date().getTime()
@@ -164,7 +163,6 @@ class Title extends Component<Props, State> {
                 this.prevVolume = latestKline.volume
             }
         }
-        console.log(snapshots)
 
         this.setState({ ...state, referKline, pointKline, delta, snapshots })
     }
