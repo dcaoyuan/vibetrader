@@ -226,7 +226,8 @@ class Title extends Component<Props, State> {
                     <Text style={{ color: "white" }}>{this.props.symbol} &middot; {this.tframeShortName}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+
+                    <div style={{ flex: 1, padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
                         <ListBox aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                             <ListBoxItem textValue="O">
                                 {pKline && <>
@@ -278,7 +279,7 @@ class Title extends Component<Props, State> {
                         </ListBox>
                     </div>
 
-                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div style={{ flex: 1, padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
                         <ListBox aria-label="snapshots" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                             {
                                 this.state.snapshots.map(({ time, price, volume }, n) =>
@@ -294,7 +295,7 @@ class Title extends Component<Props, State> {
                         </ListBox>
                     </div>
 
-                    <div style={{ justifyContent: "space-between", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div style={{ justifyContent: "flex-end", padding: '0px 0px', fontFamily: 'monospace', fontSize: '12px' }}>
                         <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
                             <ListBoxItem textValue="T">
                                 {rKline
