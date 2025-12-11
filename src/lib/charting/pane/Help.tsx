@@ -20,8 +20,8 @@ export const Help = (props: Props) => {
                     <Text style={{ color: rColor }}>Put a reference cursor</Text>
                 </ListBoxItem>
                 <ListBoxItem textValue="B">
-                    <Text style={{ color: mColor }}>Click on chart view: </Text>
-                    <Text style={{ color: rColor }}>Gain keyboard focus</Text>
+                    <Text style={{ color: mColor }}>Click on axis-y part: </Text>
+                    <Text style={{ color: rColor }}>Remove reference cursor</Text>
                 </ListBoxItem>
                 <ListBoxItem textValue="C">
                     <Text style={{ color: mColor }}>Left/Right arrow: </Text>
