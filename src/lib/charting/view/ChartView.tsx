@@ -7,16 +7,10 @@ import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
-import { arrayDeeplyEquals } from "../../Utils";
 
 export enum UpdateEvent {
     Chart,
     Cursors
-}
-
-export type ChartParts = {
-    charts: JSX.Element[],
-    axisy: JSX.Element
 }
 
 export type UpdateCursor = {
@@ -173,7 +167,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): ChartParts;
+    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element };
 
     protected updateChart_Cursor(
         willUpdateChart: boolean,
@@ -184,11 +178,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let state = {};
 
         if (willUpdateChart) {
-            const chartParts = this.plot();
-            state = { ...state, chartParts }
+            const { charts, axisy } = this.plot();
+            const overlayCharts = this.plotOverlayCharts()
+            state = { ...state, charts, axisy, overlayCharts }
         }
 
-        if (willUpdateOverlayCharts) {
+        if (!willUpdateChart && willUpdateOverlayCharts) {
             const overlayCharts = this.plotOverlayCharts()
             state = { ...state, overlayCharts }
         }
@@ -202,8 +197,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateChart() {
-        const chartParts = this.plot();
-        this.updateState(chartParts);
+        const { charts, axisy } = this.plot();
+        this.updateState({ charts, axisy });
     }
 
     protected updateCursors(xMouse: number, yMouse: number) {
