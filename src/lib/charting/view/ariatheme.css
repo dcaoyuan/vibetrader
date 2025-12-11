@@ -74,7 +74,7 @@
     --button-background: var(--gray-50);
     --button-background-pressed: var(--background-color);
     /* these colors are the same between light and dark themes
-   * to ensure contrast with the foreground color */
+    to ensure contrast with the foreground color */
     --highlight-background: #6f46ed;
     /* purple-300 from dark theme, 3.03:1 against background-color */
     --highlight-background-pressed: #522acd;
@@ -141,7 +141,7 @@
     forced-color-adjust: none;
     border-radius: 4px;
     /* padding: 2px 8px; */
-    padding: 4px 8px 0px 8px;
+    padding: 3px 8px 1px 8px;
     font-size: 12px;
     outline: none;
     cursor: default;
