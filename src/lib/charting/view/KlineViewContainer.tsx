@@ -173,7 +173,7 @@ class KlineViewContainer extends Component<Props, State> {
                 return { indName, fn };
             })
 
-    fetchFromLocalData = (startTime?: number) => fetch("./klines.json")
+    fetchDataLocal = (startTime?: number) => fetch("./klines.json")
         .then(r => r.json())
         .then(json => {
             for (const k of json) {
@@ -220,6 +220,10 @@ class KlineViewContainer extends Component<Props, State> {
 
     fetchData_calcInds = (startTime?: number, selectedIndTags?: 'all' | Iterable<string | number>) => {
         this.fetchDataBinance(startTime)
+            .catch(ex => {
+                console.error(ex);
+                return this.fetchDataLocal()
+            })
             .then((latestTime) => {
                 let start = performance.now()
 
@@ -309,7 +313,9 @@ class KlineViewContainer extends Component<Props, State> {
                         })
                     }
 
-                    this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                    if (latestTime !== undefined) {
+                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                    }
 
                 })
 
