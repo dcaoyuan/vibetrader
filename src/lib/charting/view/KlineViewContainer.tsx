@@ -1,4 +1,4 @@
-import { Component, Fragment, type JSX } from "react";
+import React, { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -85,7 +85,6 @@ type State = {
     yCursorRange?: number[];
 
     isLoaded?: boolean;
-    componentKey?: number;
 }
 
 const KVAR_NAME = "kline";
@@ -97,10 +96,13 @@ class KlineViewContainer extends Component<Props, State> {
     isInteractive: boolean;
 
     refreshTimeoutId = undefined;
+    globalKeyboardListener = undefined
 
     loadedIndFns: Map<string, ((pinets: PineTS) => unknown)>;
 
     latestTime: number;
+
+    focusRef: React.RefObject<HTMLDivElement>;
 
     // geometry variables
     hTitle = 130;
@@ -126,13 +128,14 @@ class KlineViewContainer extends Component<Props, State> {
         const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
         const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
 
+        this.focusRef = React.createRef();
+
         this.isInteractive = true;
 
         console.log("KlinerViewContainer render");
 
         const geometry = this.#calcGeometry([]);
         this.state = {
-            componentKey: Math.random(),
             symbol,
             tzone,
             tframe,
@@ -146,8 +149,7 @@ class KlineViewContainer extends Component<Props, State> {
             ...geometry,
         }
 
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.handleGlobalKeyDown = this.handleGlobalKeyDown.bind(this);
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.handleMouseLeave = this.handleMouseLeave.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
@@ -323,21 +325,93 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    componentDidMount() {
+    handleGlobalKeyDown(e: KeyboardEvent) {
+        if (
+            document.activeElement.tagName === 'INPUT' ||
+            document.activeElement.tagName === 'TEXTAREA'
+        ) {
+            return;
+        }
+
+        const xc = this.state.xc;
+        xc.isMouseCuroseVisible = false;
+
+        const fastSteps = Math.floor(xc.nBars * 0.168)
+
+        switch (e.key) {
+            case "ArrowLeft":
+                if (e.ctrlKey) {
+                    xc.moveCursorInDirection(fastSteps, -1)
+
+                } else {
+                    xc.moveChartsInDirection(fastSteps, -1)
+                }
+                break;
+
+            case "ArrowRight":
+                if (e.ctrlKey) {
+                    xc.moveCursorInDirection(fastSteps, 1)
+
+                } else {
+                    xc.moveChartsInDirection(fastSteps, 1)
+                }
+                break;
+
+            case "ArrowUp":
+                if (!e.ctrlKey) {
+                    xc.growWBar(1)
+                }
+                break;
+
+            case "ArrowDown":
+                if (!e.ctrlKey) {
+                    xc.growWBar(-1);
+                }
+                break;
+
+            case " ":
+                xc.isCursorAccelerated = !xc.isCursorAccelerated
+                break;
+
+            case "Escape":
+                xc.isReferCuroseVisible = false;
+                this.notify(UpdateEvent.Cursors)
+                break;
+
+            default:
+        }
+
+        this.notify(UpdateEvent.Chart)
+    }
+
+
+    override componentDidMount() {
         this.fetchIndicatorFns(allInds).then(fns => {
             this.loadedIndFns = new Map();
             for (const { indName, fn } of fns) {
                 this.loadedIndFns.set(indName, fn);
             }
 
-        }).then(() =>
+        }).then(() => {
             this.fetchData_calcInds(undefined, this.state.selectedIndTags)
-        )
+
+            this.globalKeyboardListener = this.handleGlobalKeyDown;
+            document.addEventListener("keydown", this.handleGlobalKeyDown);
+
+            if (this.focusRef.current) {
+                this.focusRef.current.focus()
+            }
+        })
+
     }
 
     override componentWillUnmount() {
         if (this.refreshTimeoutId) {
             clearTimeout(this.refreshTimeoutId);
+        }
+
+        if (this.globalKeyboardListener) {
+            document.removeEventListener("keydown", this.handleGlobalKeyDown)
         }
     }
 
@@ -477,7 +551,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     handleMouseDown(e: React.MouseEvent) {
         const xc = this.state.xc;
-
         xc.isMouseCuroseVisible = false;
 
         if (e.ctrlKey) {
@@ -551,67 +624,6 @@ class KlineViewContainer extends Component<Props, State> {
         this.notify(UpdateEvent.Chart);
     }
 
-    handleKeyDown(e: React.KeyboardEvent) {
-        const xc = this.state.xc;
-        xc.isMouseCuroseVisible = false;
-
-        const fastSteps = Math.floor(xc.nBars * 0.168)
-
-        switch (e.key) {
-            case "ArrowLeft":
-                if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, -1)
-
-                } else {
-                    xc.moveChartsInDirection(fastSteps, -1)
-                }
-                break;
-
-            case "ArrowRight":
-                if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, 1)
-
-                } else {
-                    xc.moveChartsInDirection(fastSteps, 1)
-                }
-                break;
-
-            case "ArrowUp":
-                if (!e.ctrlKey) {
-                    xc.growWBar(1)
-                }
-                break;
-
-            case "ArrowDown":
-                if (!e.ctrlKey) {
-                    xc.growWBar(-1);
-                }
-                break;
-
-            default:
-        }
-
-        this.notify(UpdateEvent.Chart)
-    }
-
-    handleKeyUp(e: React.KeyboardEvent) {
-        const xc = this.state.xc;
-        xc.isMouseCuroseVisible = false;
-
-        switch (e.key) {
-            case " ":
-                xc.isCursorAccelerated = !xc.isCursorAccelerated
-                break;
-
-            case "Escape":
-                xc.isReferCuroseVisible = false;
-                this.notify(UpdateEvent.Cursors)
-                break;
-
-            default:
-        }
-    }
-
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
         let overlayIndicatorLabels = this.state.overlayIndicatorLabels
         let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
@@ -657,10 +669,8 @@ class KlineViewContainer extends Component<Props, State> {
         return this.state.isLoaded && (
             // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
             <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
-                onKeyDown={this.handleKeyDown}
-                onKeyUp={this.handleKeyUp}
-                tabIndex={0}
-                key={this.state.componentKey}
+                key="klineviewcontainer"
+                ref={this.focusRef}
             >
                 <div className="title" style={{ width: this.width, height: this.hTitle }}>
                     <Title
@@ -712,7 +722,6 @@ class KlineViewContainer extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicators={this.state.overlayIndicators}
                             updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
-                            key={this.state.componentKey}
                         />
 
                         <VolumeView
