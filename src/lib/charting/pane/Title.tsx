@@ -282,7 +282,7 @@ class Title extends Component<Props, State> {
                                 {pKline && <>
                                     <Text style={{ color: lColor }}>C </Text>
                                     <Text
-                                        key={"close-" + pKline.close.toPrecision(8)}
+                                        key={"close-" + pKline.close.toPrecision(8)} // tell react to retrigger blinking when key i.e. the close price changes
                                         className={this.props.xc.isMouseCuroseVisible ? "" : "blinking-label"}
                                         style={{ color: pColor }}
                                     >
@@ -308,7 +308,7 @@ class Title extends Component<Props, State> {
                                 this.state.snapshots.map(({ time, price, volume }, n) =>
                                     <ListBoxItem className="blinking-label" key={
                                         n === L_SNAPSHOTS - 1
-                                            ? "snapshot-" + n + time // tell react this is a new component, will retrigger blinking
+                                            ? "snapshot-" + n + time // tell react to retrigger blinking when the key i.e. the time changes 
                                             : "snapshot-" + n
                                     } textValue="S">
                                         <>
