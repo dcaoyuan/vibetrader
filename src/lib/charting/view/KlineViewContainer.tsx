@@ -346,6 +346,7 @@ class KlineViewContainer extends Component<Props, State> {
                 } else {
                     xc.moveChartsInDirection(fastSteps, -1)
                 }
+                this.notify(UpdateEvent.Chart)
                 break;
 
             case "ArrowRight":
@@ -355,17 +356,21 @@ class KlineViewContainer extends Component<Props, State> {
                 } else {
                     xc.moveChartsInDirection(fastSteps, 1)
                 }
+
+                this.notify(UpdateEvent.Chart)
                 break;
 
             case "ArrowUp":
                 if (!e.ctrlKey) {
                     xc.growWBar(1)
+                    this.notify(UpdateEvent.Chart)
                 }
                 break;
 
             case "ArrowDown":
                 if (!e.ctrlKey) {
                     xc.growWBar(-1);
+                    this.notify(UpdateEvent.Chart)
                 }
                 break;
 
@@ -375,15 +380,13 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "Escape":
                 xc.isReferCuroseVisible = false;
-                this.notify(UpdateEvent.Cursors)
+                this.notify(UpdateEvent.Chart)
                 break;
 
             default:
         }
 
-        this.notify(UpdateEvent.Chart)
     }
-
 
     override componentDidMount() {
         this.fetchIndicatorFns(allInds).then(fns => {
