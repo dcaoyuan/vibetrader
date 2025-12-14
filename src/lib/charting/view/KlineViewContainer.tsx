@@ -19,6 +19,7 @@ import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
 import { ChartYControl } from "./ChartYControl";
+import { DrawingMouseAdapter } from "../drawingchart/DrawingMouseAdapter";
 
 type Props = {
     width: number,
@@ -153,14 +154,15 @@ class KlineViewContainer extends Component<Props, State> {
             ...geometry,
         }
 
-        this.handleGlobalKeyDown = this.handleGlobalKeyDown.bind(this);
-        this.handleMouseDown = this.handleMouseDown.bind(this);
-        this.handleMouseLeave = this.handleMouseLeave.bind(this);
-        this.handleMouseMove = this.handleMouseMove.bind(this);
-        this.handleWheel = this.handleWheel.bind(this);
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this);
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this);
         this.setSelectedIndTags = this.setSelectedIndTags.bind(this)
+
+        this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
+        this.onMouseDown = this.onMouseDown.bind(this);
+        this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.onMouseMove = this.onMouseMove.bind(this);
+        this.onWheel = this.onWheel.bind(this);
     }
 
     fetchIndicatorFns = (indNames: string[]) =>
@@ -329,7 +331,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    handleGlobalKeyDown(e: KeyboardEvent) {
+    onGlobalKeyDown(e: KeyboardEvent) {
         if (
             document.activeElement.tagName === 'INPUT' ||
             document.activeElement.tagName === 'TEXTAREA'
@@ -402,8 +404,8 @@ class KlineViewContainer extends Component<Props, State> {
         }).then(() => {
             this.fetchData_calcInds(undefined, this.state.selectedIndTags)
 
-            this.globalKeyboardListener = this.handleGlobalKeyDown;
-            document.addEventListener("keydown", this.handleGlobalKeyDown);
+            this.globalKeyboardListener = this.onGlobalKeyDown;
+            document.addEventListener("keydown", this.onGlobalKeyDown);
 
             if (this.focusRef.current) {
                 this.focusRef.current.focus()
@@ -418,7 +420,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         if (this.globalKeyboardListener) {
-            document.removeEventListener("keydown", this.handleGlobalKeyDown)
+            document.removeEventListener("keydown", this.onGlobalKeyDown)
         }
     }
 
@@ -525,7 +527,9 @@ class KlineViewContainer extends Component<Props, State> {
         return x < this.width - ChartView.AXISY_WIDTH
     }
 
-    handleMouseLeave() {
+    isUnderDrawing: boolean = false
+
+    onMouseLeave() {
         const xc = this.state.xc;
 
         // clear mouse cursor
@@ -534,7 +538,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.notify(UpdateEvent.Cursors);
     }
 
-    handleMouseMove(e: React.MouseEvent) {
+    onMouseMove(e: React.MouseEvent) {
         const xc = this.state.xc;
 
         const targetRect = e.currentTarget.getBoundingClientRect();
@@ -556,7 +560,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
     }
 
-    handleMouseDown(e: React.MouseEvent) {
+    onMouseDown(e: React.MouseEvent) {
         const xc = this.state.xc;
         xc.isMouseCuroseVisible = false;
 
@@ -597,7 +601,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    handleWheel(e: React.WheelEvent) {
+    onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
         xc.isMouseCuroseVisible = false;
 
@@ -709,10 +713,10 @@ class KlineViewContainer extends Component<Props, State> {
 
                 <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
                     <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
-                        onMouseMove={this.handleMouseMove}
-                        onMouseLeave={this.handleMouseLeave}
-                        onMouseDown={this.handleMouseDown}
-                        onWheel={this.handleWheel}
+                        onMouseLeave={this.onMouseLeave}
+                        onMouseMove={this.onMouseMove}
+                        onMouseDown={this.onMouseDown}
+                        onWheel={this.onWheel}
                         style={{ zIndex: 1 }}
                     >
                         <KlineView
