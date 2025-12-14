@@ -59,7 +59,6 @@ const LineChart = (props: Props) => {
                     const x = xc.xb(bar)
                     path.moveto(x, yc.yv(min));
                     path.lineto(x, yc.yv(max));
-                    console.log(yc.yv(min), yc.yv(max))
 
                 } else {
                     if (y1 !== undefined && isNaN(y1) === false) {

@@ -18,6 +18,7 @@ import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
+import { ChartYControl } from "./ChartYControl";
 
 type Props = {
     width: number,
@@ -115,6 +116,8 @@ class KlineViewContainer extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 25;
 
+    ycKlineView: ChartYControl;
+
     constructor(props: Props) {
         super(props);
         this.width = props.width;
@@ -127,6 +130,7 @@ class KlineViewContainer extends Component<Props, State> {
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
         const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
         const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.ycKlineView = new ChartYControl(baseSer, this.hKlineView);
 
         this.focusRef = React.createRef();
 
@@ -719,6 +723,7 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="ETH"
                             xc={this.state.xc}
+                            yc={this.ycKlineView}
                             baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
@@ -735,6 +740,7 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             name="Vol"
                             xc={this.state.xc}
+                            yc={new ChartYControl(this.state.baseSer, this.hVolumeView)}
                             baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
@@ -762,6 +768,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     name={"Indicator-" + n}
                                     width={this.width}
                                     xc={this.state.xc}
+                                    yc={new ChartYControl(this.state.baseSer, this.hIndicatorView)}
                                     baseSer={this.state.baseSer}
                                     tvar={tvar}
                                     mainIndicatorOutputs={outputs}

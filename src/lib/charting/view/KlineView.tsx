@@ -10,7 +10,6 @@ import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import type { JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
-
 export class KlineView extends ChartView<ViewProps, ViewState> {
 
     static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
@@ -43,7 +42,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        this.yc.valueScalar = LINEAR_SCALAR;
+        this.props.yc.valueScalar = LINEAR_SCALAR;
 
         const { charts, axisy, overlayCharts } = this.plot();
 
@@ -55,7 +54,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             axisy,
             overlayCharts,
         };
-
     }
 
     override plot() {
@@ -65,7 +63,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             <KlineChart
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
-                yc={this.yc}
+                yc={this.props.yc}
                 kind={KlineChartKind.Candle}
                 depth={0}
             />
@@ -77,7 +75,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             width={ChartView.AXISY_WIDTH}
             height={this.props.height}
             xc={this.props.xc}
-            yc={this.yc}
+            yc={this.props.yc}
         />
 
         const overlayCharts = this.plotOverlayCharts();
@@ -101,7 +99,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 color={color}
                                 atIndex={atIndex}
                                 xc={this.props.xc}
-                                yc={this.yc}
+                                yc={this.props.yc}
                                 depth={depth++}
                             />
                             break;
@@ -145,17 +143,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     swithScalarType() {
-        switch (this.yc.valueScalar.kind) {
+        switch (this.props.yc.valueScalar.kind) {
             case LINEAR_SCALAR.kind:
-                this.yc.valueScalar = LG_SCALAR;
+                this.props.yc.valueScalar = LG_SCALAR;
                 break;
 
             case LG_SCALAR.kind:
-                this.yc.valueScalar = LN_SCALAR;
+                this.props.yc.valueScalar = LN_SCALAR;
                 break;
 
             default:
-                this.yc.valueScalar = LINEAR_SCALAR;
+                this.props.yc.valueScalar = LINEAR_SCALAR;
         }
     }
 
@@ -166,7 +164,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     render() {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
-            <g transform={transform}>
+            <g transform={transform} >
                 {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
                 {this.state.axisy}
                 {this.state.latestValueLabel}

@@ -125,5 +125,5 @@
 }
 
 .blinking-label {
-    animation: blink 1s 1;
+    animation: blink 1s;
 }

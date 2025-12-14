@@ -39,6 +39,7 @@ export interface ViewProps {
     width: number;
     height: number;
     xc: ChartXControl;
+    yc: ChartYControl;
     baseSer: TSer;
     tvar: TVar<unknown>;
     shouldUpdateChart: number;
@@ -96,15 +97,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     static readonly CONTROL_HEIGHT = 12
     static readonly TITLE_HEIGHT_PER_LINE = 14
 
-    yc: ChartYControl;
     baseSer: TSer;
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
-
-        this.yc = new ChartYControl(props.baseSer, props.height);
-
         console.log(`${this.props.name} ChartView render`)
     }
 
@@ -126,7 +123,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const [maxValue, minValue] = this.computeMaxValueMinValue();
 
         // compute y after compute maxmin
-        this.yc.computeGeometry(maxValue, minValue)
+        this.props.yc.computeGeometry(maxValue, minValue)
     }
 
     wChart(): number {
@@ -218,6 +215,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let latestColor = '#ffa500'; // orange
 
         const xc = this.props.xc;
+        const yc = this.props.yc;
 
         const latestTime = this.props.xc.lastOccurredTime();
 
@@ -232,10 +230,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 let cursorY: number
                 let value = this.valueAtTime(referTime);
                 if (value && !isNaN(value)) {
-                    cursorY = this.yc.yv(value)
+                    cursorY = yc.yv(value)
 
-                    if (this.yc.shouldNormScale) {
-                        value /= this.yc.normScale
+                    if (yc.shouldNormScale) {
+                        value /= yc.normScale
                     }
 
                     referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, referColor)
@@ -255,17 +253,17 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
                 if (value !== undefined && !isNaN(value)) {
-                    cursorY = this.yc.yv(value);
+                    cursorY = yc.yv(value);
                 }
 
             } else {
                 cursorY = yMouse;
-                value = this.yc.vy(cursorY);
+                value = yc.vy(cursorY);
             }
 
             if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && !isNaN(value)) {
-                if (this.yc.shouldNormScale) {
-                    value /= this.yc.normScale
+                if (yc.shouldNormScale) {
+                    value /= yc.normScale
                 }
 
                 mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, mouseColor)
@@ -284,10 +282,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             let value = this.valueAtTime(latestTime);
             if (value !== undefined && !isNaN(value)) {
-                const y = this.yc.yv(value);
+                const y = yc.yv(value);
 
-                if (this.yc.shouldNormScale) {
-                    value /= this.yc.normScale
+                if (yc.shouldNormScale) {
+                    value /= yc.normScale
                 }
 
                 latestValueLabel = this.plotYValueLabel(y, value, "#000000", latestColor)

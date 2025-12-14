@@ -32,7 +32,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     return <LineChart
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
-                        yc={this.yc}
+                        yc={this.props.yc}
                         depth={0}
                         color={color}
                         name={name}
@@ -42,7 +42,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     return <HistogramChart
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
-                        yc={this.yc}
+                        yc={this.props.yc}
                         depth={0}
                         color={color}
                         name={name}
@@ -61,7 +61,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             width={ChartView.AXISY_WIDTH}
             height={this.props.height}
             xc={this.props.xc}
-            yc={this.yc}
+            yc={this.props.yc}
         />
 
         return { charts, axisy }
@@ -100,13 +100,13 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     }
 
     swithScalarType() {
-        switch (this.yc.valueScalar.kind) {
+        switch (this.props.yc.valueScalar.kind) {
             case LINEAR_SCALAR.kind:
-                this.yc.valueScalar = LG_SCALAR;
+                this.props.yc.valueScalar = LG_SCALAR;
                 break;
 
             default:
-                this.yc.valueScalar = LINEAR_SCALAR;
+                this.props.yc.valueScalar = LINEAR_SCALAR;
         }
     }
 
