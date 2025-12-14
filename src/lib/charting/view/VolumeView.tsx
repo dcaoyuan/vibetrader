@@ -31,7 +31,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             <VolmueChart
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
-                yc={this.props.yc}
+                yc={this.yc}
                 depth={0}
             />
         ]
@@ -42,7 +42,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             width={ChartView.AXISY_WIDTH}
             height={this.props.height}
             xc={this.props.xc}
-            yc={this.props.yc}
+            yc={this.yc}
         />
 
         return { charts, axisy }
@@ -77,13 +77,13 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     }
 
     swithScalarType() {
-        switch (this.props.yc.valueScalar.kind) {
+        switch (this.yc.valueScalar.kind) {
             case LINEAR_SCALAR.kind:
-                this.props.yc.valueScalar = LG_SCALAR;
+                this.yc.valueScalar = LG_SCALAR;
                 break;
 
             default:
-                this.props.yc.valueScalar = LINEAR_SCALAR;
+                this.yc.valueScalar = LINEAR_SCALAR;
         }
     }
 

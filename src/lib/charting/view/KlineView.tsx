@@ -42,7 +42,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        this.props.yc.valueScalar = LINEAR_SCALAR;
+        this.yc.valueScalar = LINEAR_SCALAR;
 
         const { charts, axisy, overlayCharts } = this.plot();
 
@@ -63,7 +63,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             <KlineChart
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
-                yc={this.props.yc}
+                yc={this.yc}
                 kind={KlineChartKind.Candle}
                 depth={0}
             />
@@ -75,7 +75,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             width={ChartView.AXISY_WIDTH}
             height={this.props.height}
             xc={this.props.xc}
-            yc={this.props.yc}
+            yc={this.yc}
         />
 
         const overlayCharts = this.plotOverlayCharts();
@@ -99,7 +99,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 color={color}
                                 atIndex={atIndex}
                                 xc={this.props.xc}
-                                yc={this.props.yc}
+                                yc={this.yc}
                                 depth={depth++}
                             />
                             break;
@@ -143,17 +143,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     swithScalarType() {
-        switch (this.props.yc.valueScalar.kind) {
+        switch (this.yc.valueScalar.kind) {
             case LINEAR_SCALAR.kind:
-                this.props.yc.valueScalar = LG_SCALAR;
+                this.yc.valueScalar = LG_SCALAR;
                 break;
 
             case LG_SCALAR.kind:
-                this.props.yc.valueScalar = LN_SCALAR;
+                this.yc.valueScalar = LN_SCALAR;
                 break;
 
             default:
-                this.props.yc.valueScalar = LINEAR_SCALAR;
+                this.yc.valueScalar = LINEAR_SCALAR;
         }
     }
 

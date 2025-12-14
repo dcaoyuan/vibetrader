@@ -39,7 +39,6 @@ export interface ViewProps {
     width: number;
     height: number;
     xc: ChartXControl;
-    yc: ChartYControl;
     baseSer: TSer;
     tvar: TVar<unknown>;
     shouldUpdateChart: number;
@@ -97,11 +96,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     static readonly CONTROL_HEIGHT = 12
     static readonly TITLE_HEIGHT_PER_LINE = 14
 
-    baseSer: TSer;
+    yc: ChartYControl;
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
+
+        this.yc = new ChartYControl(props.baseSer, props.height);
+
         console.log(`${this.props.name} ChartView render`)
     }
 
@@ -123,7 +125,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const [maxValue, minValue] = this.computeMaxValueMinValue();
 
         // compute y after compute maxmin
-        this.props.yc.computeGeometry(maxValue, minValue)
+        this.yc.computeGeometry(maxValue, minValue)
     }
 
     wChart(): number {
@@ -215,7 +217,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let latestColor = '#ffa500'; // orange
 
         const xc = this.props.xc;
-        const yc = this.props.yc;
+        const yc = this.yc;
 
         const latestTime = this.props.xc.lastOccurredTime();
 
