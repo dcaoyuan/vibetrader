@@ -70,7 +70,7 @@ export interface ViewState {
 
     overlayCharts?: JSX.Element[];
 
-    drawingCharts?: JSX.Element[];
+    drawing?: JSX.Element[];
 }
 
 /**
@@ -440,10 +440,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // translate offset x, y to svg to x, y to this view
     protected translate(eOnWholeSVG: React.MouseEvent) {
-        return {
-            x: eOnWholeSVG.nativeEvent.offsetX - this.props.x,
-            y: eOnWholeSVG.nativeEvent.offsetY - this.props.y
-        }
+        return [
+            eOnWholeSVG.nativeEvent.offsetX - this.props.x,
+            eOnWholeSVG.nativeEvent.offsetY - this.props.y
+        ]
     }
 
     override componentDidMount(): void {

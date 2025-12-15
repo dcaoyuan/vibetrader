@@ -1,61 +1,53 @@
 import { Path } from "../../svg/Path"
-import { Drawing, Handle, type TPoint } from "./Drawing"
+import { Drawing } from "./Drawing"
 
 export class LineDrawing extends Drawing {
     isExtended: boolean = true
-
-    point1: TPoint
-    point2: TPoint
 
     init() {
         this.nHandles = 2;
     }
 
-    setModel(handles: Handle[]) {
-        this.point1 = handles[0].point;
-        this.point2 = handles[1].point;
-    }
-
     hits(x: number, y: number): boolean {
-        if (this.point1 === undefined || this.point2 === undefined) {
-            return;
+        if (this.handles.length < this.nHandles) {
+            return
         }
 
-        const x1 = this.xc.xb(this.xc.bt(this.point1.time))
-        const x2 = this.xc.xb(this.xc.bt(this.point2.time))
+        const x0 = this.xt(this.handles[0])
+        const x1 = this.xt(this.handles[1])
 
-        const y1 = this.yc.yv(this.point1.value)
-        const y2 = this.yc.yv(this.point2.value)
+        const y0 = this.yv(this.handles[0])
+        const y1 = this.yv(this.handles[1])
 
-        const dx = x2 - x1
-        const dy = y2 - y1
+        const dx = x1 - x0
+        const dy = y1 - y0
         const k = dx === 0 ? 1 : dy / dx
 
         // k = (y - y1) / (x - x1)
-        const yHit = (x - x1) * k + y1
+        const yHit = (x - x0) * k + y0
 
-        return Math.abs(yHit - y) <= 2
+        return Math.abs(yHit - y) <= 3
     }
 
     plotDrawing() {
         const path = new Path()
 
-        const x1 = this.xc.xb(this.xc.bt(this.point1.time))
-        const x2 = this.xc.xb(this.xc.bt(this.point2.time))
+        const x0 = this.xt(this.handles[0])
+        const x1 = this.xt(this.handles[1])
 
-        const y1 = this.yc.yv(this.point1.value)
-        const y2 = this.yc.yv(this.point2.value)
+        const y0 = this.yv(this.handles[0])
+        const y1 = this.yv(this.handles[1])
 
         if (this.isExtended) {
-            const dx = x2 - x1
-            const dy = y2 - y1
+            const dx = x1 - x0
+            const dy = y1 - y0
             const k = dx === 0 ? 1 : dy / dx
 
-            this.plotLine(x1, y1, k, path)
+            this.plotLine(x0, y0, k, path)
 
         } else {
-            path.moveto(x1, y1);
-            path.lineto(x2, y2);
+            path.moveto(x0, y0);
+            path.lineto(x1, y1);
         }
 
         return [path];

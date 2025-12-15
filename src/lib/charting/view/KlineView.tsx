@@ -62,7 +62,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             charts,
             axisy,
             overlayCharts,
-            drawingCharts: []
+            drawing: []
         };
 
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
@@ -201,23 +201,24 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const x = e.nativeEvent.offsetX - this.props.x
         const y = e.nativeEvent.offsetY - this.props.y
 
-        const chart = this.selectedDrawing
+        const working = this.selectedDrawing
         // sinlge-clicked ? go on drawing, or, check my selection status 
 
         // go on drawing ?
-        if (chart.isActivated && !chart.isCompleted) {
-            const isCompleted = chart.anchorHandle(this.p(x, y))
+        if (working.isActivated && !working.isCompleted) {
+            const isCompleted = working.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                //drawingPane.accomplishedHandledChartChanged(AbstractHandledChart.this)
+                const drawing = working.renderDrawing();
+                this.setState({ drawing: [drawing] })
             }
 
             // always set is selected in such case: 
-            chart.isSelected = true
+            working.isSelected = true
 
         } else {
             // else, check selection status
-            if (chart.hits(x, y)) {
-                if (chart.isSelected) {
+            if (working.hits(x, y)) {
+                if (working.isSelected) {
                     //   this.chart.lookupActionAt(classOf[EditAction], e.getPoint) foreach {
                     //     action =>
                     //       /** as the glassPane is always in the front, so add it there */
@@ -226,13 +227,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     //   }
                 }
 
-                chart.isSelected = true
+                working.isSelected = true
                 // chart is just selected, don't call activate() here, let drawingPane 
                 // to decide if also activate it.
 
             } else {
 
-                chart.isSelected = false
+                working.isSelected = false
                 // chart is just deselected, don't call passivate() here, let drawingPane
                 // to decide if also passivate it.
             }
@@ -244,43 +245,50 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             return;
         }
 
-        console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
-        const { x, y } = this.translate(e)
+        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
+        const [x, y] = this.translate(e)
 
-        const chart = this.selectedDrawing
-        if (chart.isActivated) {
-            if (chart.isCompleted) {
+        const working = this.selectedDrawing
+        // const hit = this.selectedDrawing.hits(x, y)
+        // console.log(hit)
+        // if (hit) {
+        //     const drawingWithHandles = working.renderWithHandles()
+        //     this.setState({ drawing: [drawingWithHandles] })
+        // }
+
+        if (working.isActivated) {
+            if (working.isCompleted) {
                 // completed, decide what kind of cursor will be used and if it's ready to be moved
-                const handle = chart.getHandleAt(x, y)
+                const handle = working.getHandleAt(x, y)
                 // mouse points to this handle ? 
                 if (handle !== undefined) {
-                    const idx = chart.currHandles.indexOf(handle)
+                    const idx = working.handles.indexOf(handle)
                     if (idx >= 0) {
-                        chart.selectedHandleIdx = idx
+                        working.selectedHandleIdx = idx
                     }
 
                     this.cursor = HANDLE_CURSOR
 
                 } else {
                     // else, mouse does not point to any handle 
-                    chart.selectedHandleIdx = -1
+                    working.selectedHandleIdx = -1
                     // mouse points to this chart ? 
-                    if (chart.hits(x, y)) {
-                        chart.isReadyToDrag = true
+                    if (working.hits(x, y)) {
+                        working.isReadyToDrag = true
                         this.cursor = MOVE_CURSOR
 
                     } else {
                         // else, mouse does not point to this chart 
-                        chart.isReadyToDrag = false
+                        working.isReadyToDrag = false
                         this.cursor = DEFAULT_CURSOR
                     }
                 }
 
             } else {
                 // not completed, strecth handle
-                if (chart.isAnchored) {
-                    const drawingCharts = chart.stretchHandle(this.p(x, y))
-                    this.setState({ drawingCharts })
+                if (working.isAnchored) {
+                    const drawingWithHandles = working.stretchHandle(this.p(x, y))
+                    this.setState({ drawing: [drawingWithHandles] })
                 }
             }
         }
@@ -294,15 +302,15 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         if (e.detail === 2) {
-            const { x, y } = this.translate(e)
+            const [x, y] = this.translate(e)
 
-            const chart = this.selectedDrawing
+            const working = this.selectedDrawing
             // double clicked, process chart whose nHandles is variable
-            if (!chart.isCompleted) {
-                if (chart.nHandles === undefined) {
-                    chart.isAnchored = false;
-                    chart.isCompleted = true;
-                    chart.selectedHandleIdx = -1;
+            if (!working.isCompleted) {
+                if (working.nHandles === undefined) {
+                    working.isAnchored = false;
+                    working.isCompleted = true;
+                    working.selectedHandleIdx = -1;
                 }
             }
         }
@@ -314,16 +322,16 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         }
 
         console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        const { x, y } = this.translate(e)
+        const [x, y] = this.translate(e)
 
-        const chart = this.selectedDrawing
-        if (chart.isReadyToDrag) {
-            chart.mousePressedPoint = this.p(x, y)
+        const working = this.selectedDrawing
+        if (working.isReadyToDrag) {
+            working.mousePressedPoint = this.p(x, y)
             // record handles when mouse pressed, for moveChart() 
-            const n = chart.currHandles.length
+            const n = working.handles.length
             let i = 0
             while (i < n) {
-                chart.currHandlesWhenMousePressed[i].point = chart.currHandles[i].point
+                working.currHandlesWhenMousePressed[i].point = working.handles[i].point
                 i++
             }
         }
@@ -358,17 +366,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         }
 
         console.log("mouse drag", e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        const { x, y } = this.translate(e)
+        const [x, y] = this.translate(e)
 
-        const chart = this.selectedDrawing
+        const working = this.selectedDrawing
         // only do something when isCompleted() 
-        if (chart.isActivated && chart.isCompleted) {
-            if (chart.selectedHandleIdx != -1) {
-                chart.stretchHandle(this.p(x, y))
+        if (working.isActivated && working.isCompleted) {
+            if (working.selectedHandleIdx != -1) {
+                working.stretchHandle(this.p(x, y))
 
             } else {
-                if (chart.isReadyToDrag) {
-                    chart.moveDrawing(this.p(x, y))
+                if (working.isReadyToDrag) {
+                    working.moveDrawing(this.p(x, y))
                 }
             }
         }
@@ -394,7 +402,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.referCursor}
                 {this.state.mouseCursor}
                 {this.state.overlayCharts.map((c, n) => <g key={n}>{c}</g>)}
-                {this.state.drawingCharts.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.drawing.map((c, n) => <g key={n}>{c}</g>)}
             </g >
         )
     }
