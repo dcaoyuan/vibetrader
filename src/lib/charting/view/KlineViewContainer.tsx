@@ -12,12 +12,13 @@ import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
-import { Button, Group, Text, ToggleButton, Toolbar } from 'react-aria-components';
+import { Button, Group, Separator, Text, ToggleButton, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
 import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -684,241 +685,259 @@ class KlineViewContainer extends Component<Props, State> {
 
     render() {
         return this.state.isLoaded && (
-            // onKeyDown/onKeyUp etc upon <div/> should combine tabIndex={0} to work correctly.
-            <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
-                key="klineviewcontainer"
-                ref={this.focusRef}
-            >
-                <div className="title" style={{ width: this.width, height: this.hTitle }}>
-                    <Title
-                        width={this.width}
-                        height={this.hTitle}
-                        xc={this.state.xc}
-                        tvar={this.state.kvar}
-                        symbol={this.state.symbol}
-                        shouldUpdateChart={this.state.shouldUpdateChart}
-                        shouldUpadteCursors={this.state.shouldUpdateCursors}
-                    />
-                    <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
+            <div style={{ display: "flex" }} >
+
+                {/* Toolbar */}
+                <div style={{ display: "flex", paddingRight: "6px", paddingTop: '4px' }}>
+                    <Toolbar aria-label="Tools" orientation="vertical" >
+                        <Group aria-label="Select" style={{ flexDirection: "column" }}>
+                            <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
+                            <Button aria-label="Icon2"><HashIcon fill="white" /></Button>
+                            <Button aria-label="Icon3"><LadderSimpleIcon fill="white" /></Button>
+                        </Group>
+                        <Separator orientation="horizontal" />
+                        <Group aria-label="Draw" style={{ flexDirection: "column" }}>
+                            <Button aria-label="Icon4"><LineSegmentIcon fill="white" /></Button>
+                            <Button aria-label="Icon5"><NotchesIcon fill="white" /></Button>
+                        </Group>
+                    </Toolbar>
                 </div>
 
-                <div className="" style={{ width: this.width, height: this.hIndtags, paddingTop: "6px" }}>
-                    <TagGroup
-                        aria-label="ind-tags"
-                        selectionMode="multiple"
-                        selectedKeys={this.state.selectedIndTags}
-                        onSelectionChange={this.setSelectedIndTags}
-                    >
-                        <TagList>
-                            {allInds.map((tag, n) =>
-                                <Tag aria-label={tag} key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
-                            )}
-                        </TagList>
-                    </TagGroup>
-                </div>
-
-                <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
-                    <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
-                        onMouseLeave={this.onMouseLeave}
-                        onMouseMove={this.onMouseMove}
-                        onMouseDown={this.onMouseDown}
-                        onWheel={this.onWheel}
-                        style={{ zIndex: 1 }}
-                    >
-                        <KlineView
-                            id={"kline"}
-                            y={this.state.yKlineView}
-                            height={this.hKlineView}
-                            x={0}
+                <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
+                    key="klineviewcontainer"
+                    ref={this.focusRef}
+                >
+                    <div className="title" style={{ width: this.width, height: this.hTitle }}>
+                        <Title
                             width={this.width}
-                            name="ETH"
+                            height={this.hTitle}
                             xc={this.state.xc}
-                            baseSer={this.state.baseSer}
                             tvar={this.state.kvar}
+                            symbol={this.state.symbol}
                             shouldUpdateChart={this.state.shouldUpdateChart}
-                            shouldUpdateCursors={this.state.shouldUpdateCursors}
-                            overlayIndicators={this.state.overlayIndicators}
-                            updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
-                            isUnderDrawing={this.state.isUnderDrawing}
+                            shouldUpadteCursors={this.state.shouldUpdateCursors}
                         />
+                        <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
+                    </div>
 
-                        <VolumeView
-                            id={"volume"}
-                            y={this.state.yVolumeView}
-                            height={this.hVolumeView}
-                            x={0}
-                            width={this.width}
-                            name="Vol"
-                            xc={this.state.xc}
-                            baseSer={this.state.baseSer}
-                            tvar={this.state.kvar}
-                            shouldUpdateChart={this.state.shouldUpdateChart}
-                            shouldUpdateCursors={this.state.shouldUpdateCursors}
-                            isUnderDrawing={this.state.isUnderDrawing}
-                        />
+                    <div className="" style={{ width: this.width, height: this.hIndtags, paddingTop: "6px" }}>
+                        <TagGroup
+                            aria-label="ind-tags"
+                            selectionMode="multiple"
+                            selectedKeys={this.state.selectedIndTags}
+                            onSelectionChange={this.setSelectedIndTags}
+                        >
+                            <TagList>
+                                {allInds.map((tag, n) =>
+                                    <Tag aria-label={tag} key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
+                                )}
+                            </TagList>
+                        </TagGroup>
+                    </div>
 
-                        <AxisX
-                            id={"axisx"}
-                            y={this.state.yAxisx}
-                            height={this.hAxisx}
-                            x={0}
-                            width={this.width}
-                            xc={this.state.xc}
-                            shouldUpdateChart={this.state.shouldUpdateChart}
-                            shouldUpdateCursors={this.state.shouldUpdateCursors}
-                        />
+                    <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
+                        <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
+                            onMouseLeave={this.onMouseLeave}
+                            onMouseMove={this.onMouseMove}
+                            onMouseDown={this.onMouseDown}
+                            onWheel={this.onWheel}
+                            style={{ zIndex: 1 }}
+                        >
+                            <KlineView
+                                id={"kline"}
+                                y={this.state.yKlineView}
+                                height={this.hKlineView}
+                                x={0}
+                                width={this.width}
+                                name="ETH"
+                                xc={this.state.xc}
+                                baseSer={this.state.baseSer}
+                                tvar={this.state.kvar}
+                                shouldUpdateChart={this.state.shouldUpdateChart}
+                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                overlayIndicators={this.state.overlayIndicators}
+                                updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
+                                isUnderDrawing={this.state.isUnderDrawing}
+                            />
+
+                            <VolumeView
+                                id={"volume"}
+                                y={this.state.yVolumeView}
+                                height={this.hVolumeView}
+                                x={0}
+                                width={this.width}
+                                name="Vol"
+                                xc={this.state.xc}
+                                baseSer={this.state.baseSer}
+                                tvar={this.state.kvar}
+                                shouldUpdateChart={this.state.shouldUpdateChart}
+                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                isUnderDrawing={this.state.isUnderDrawing}
+                            />
+
+                            <AxisX
+                                id={"axisx"}
+                                y={this.state.yAxisx}
+                                height={this.hAxisx}
+                                x={0}
+                                width={this.width}
+                                xc={this.state.xc}
+                                shouldUpdateChart={this.state.shouldUpdateChart}
+                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                            />
+                            {
+                                this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
+                                    <IndicatorView
+                                        key={"stacked-indicator-view-" + indName}
+                                        id={this.#indicatorViewId(n)}
+                                        y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
+                                        height={this.hIndicatorView}
+                                        x={0}
+                                        name={"Indicator-" + n}
+                                        width={this.width}
+                                        xc={this.state.xc}
+                                        baseSer={this.state.baseSer}
+                                        tvar={tvar}
+                                        mainIndicatorOutputs={outputs}
+                                        shouldUpdateChart={this.state.shouldUpdateChart}
+                                        shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                        updateStackedIndicatorLabels={this.setStackedIndicatorLabels(n)}
+                                        isUnderDrawing={this.state.isUnderDrawing}
+                                    />
+                                )
+                            }
+
+                            {this.state.referCursor}
+                            {this.state.mouseCursor}
+
+                        </svg>
+
                         {
-                            this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
-                                <IndicatorView
-                                    key={"stacked-indicator-view-" + indName}
-                                    id={this.#indicatorViewId(n)}
-                                    y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
-                                    height={this.hIndicatorView}
-                                    x={0}
-                                    name={"Indicator-" + n}
-                                    width={this.width}
-                                    xc={this.state.xc}
-                                    baseSer={this.state.baseSer}
-                                    tvar={tvar}
-                                    mainIndicatorOutputs={outputs}
-                                    shouldUpdateChart={this.state.shouldUpdateChart}
-                                    shouldUpdateCursors={this.state.shouldUpdateCursors}
-                                    updateStackedIndicatorLabels={this.setStackedIndicatorLabels(n)}
-                                    isUnderDrawing={this.state.isUnderDrawing}
-                                />
-                            )
+                            // labels for overlay indicators
+                            this.state.overlayIndicators.map(({ outputs }, m) =>
+                                <Fragment key={"indicator-values-" + m}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                        zIndex: 2, // ensure it's above the SVG
+                                        backgroundColor: 'transparent',
+                                    }}>
+                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                            <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
+                                                {
+                                                    outputs.map(({ title, color }, n) =>
+                                                        <span key={"overlay-indicator-lable-" + title} >
+                                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                            <Text style={{ color }}>{
+                                                                this.state.overlayIndicatorLabels !== undefined &&
+                                                                this.state.overlayIndicatorLabels[m] !== undefined &&
+                                                                this.state.overlayIndicatorLabels[m][n]
+                                                            }
+                                                                &nbsp;&nbsp;
+                                                            </Text>
+                                                        </span>
+                                                    )
+                                                }
+                                            </Group>
+                                        </Toolbar>
+                                    </div>
+
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                        right: ChartView.AXISY_WIDTH,
+                                        zIndex: 2, // ensure it's above the SVG
+                                        backgroundColor: 'transparent',
+                                    }}>
+                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
+                                            <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
+                                                {
+                                                    this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
+                                                        <span key={"ovarlay-indicator-lable-" + title} >
+                                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                            <Text style={{ color }}>{
+                                                                this.state.referOverlayIndicatorLabels &&
+                                                                this.state.referOverlayIndicatorLabels[m] &&
+                                                                this.state.referOverlayIndicatorLabels[m][n]
+                                                            }
+                                                                &nbsp;&nbsp;
+                                                            </Text>
+                                                        </span>
+                                                    )
+                                                }
+                                            </Group>
+                                        </Toolbar>
+                                    </div>
+                                </Fragment>)
                         }
 
-                        {this.state.referCursor}
-                        {this.state.mouseCursor}
+                        {
+                            // labels for stacked indicators
+                            this.state.stackedIndicators.map(({ outputs }, n) =>
+                                <Fragment key={"indicator-values-" + n}>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                        zIndex: 2, // ensure it's above the SVG
+                                        backgroundColor: 'transparent',
+                                    }}>
+                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                            <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
+                                                {
+                                                    outputs.map(({ title, color }, k) =>
+                                                        <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                            <Text style={{ color }}>{
+                                                                this.state.stackedIndicatorLabels &&
+                                                                this.state.stackedIndicatorLabels[n] &&
+                                                                this.state.stackedIndicatorLabels[n][k]
+                                                            }
+                                                                &nbsp;&nbsp;
+                                                            </Text>
+                                                        </span>
+                                                    )
+                                                }
+                                            </Group>
+                                        </Toolbar>
 
-                    </svg>
+                                    </div>
 
-                    {
-                        // labels for overlay indicators
-                        this.state.overlayIndicators.map(({ outputs }, m) =>
-                            <Fragment key={"indicator-values-" + m}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
-                                    zIndex: 2, // ensure it's above the SVG
-                                    backgroundColor: 'transparent',
-                                }}>
-                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                        <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
-                                            {
-                                                outputs.map(({ title, color }, n) =>
-                                                    <span key={"overlay-indicator-lable-" + title} >
-                                                        <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
-                                                        <Text style={{ color }}>{
-                                                            this.state.overlayIndicatorLabels !== undefined &&
-                                                            this.state.overlayIndicatorLabels[m] !== undefined &&
-                                                            this.state.overlayIndicatorLabels[m][n]
-                                                        }
-                                                            &nbsp;&nbsp;
-                                                        </Text>
-                                                    </span>
-                                                )
-                                            }
-                                        </Group>
-                                    </Toolbar>
-                                </div>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                        right: ChartView.AXISY_WIDTH,
+                                        zIndex: 2, // ensure it's above the SVG
+                                        backgroundColor: 'transparent',
+                                    }}>
+                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
+                                            <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
+                                                {
+                                                    this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
+                                                        <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                            <Text style={{ color }}>{
+                                                                this.state.referStackedIndicatorLabels &&
+                                                                this.state.referStackedIndicatorLabels[n] &&
+                                                                this.state.referStackedIndicatorLabels[n][k]}
+                                                                &nbsp;&nbsp;
+                                                            </Text>
+                                                        </span>
+                                                    )
+                                                }
+                                            </Group>
+                                        </Toolbar>
+                                    </div>
+                                </Fragment>
+                            )
+                        }
+                    </div>
 
-                                <div style={{
-                                    position: 'absolute',
-                                    top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
-                                    right: ChartView.AXISY_WIDTH,
-                                    zIndex: 2, // ensure it's above the SVG
-                                    backgroundColor: 'transparent',
-                                }}>
-                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                        <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
-                                            {
-                                                this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
-                                                    <span key={"ovarlay-indicator-lable-" + title} >
-                                                        <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
-                                                        <Text style={{ color }}>{
-                                                            this.state.referOverlayIndicatorLabels &&
-                                                            this.state.referOverlayIndicatorLabels[m] &&
-                                                            this.state.referOverlayIndicatorLabels[m][n]
-                                                        }
-                                                            &nbsp;&nbsp;
-                                                        </Text>
-                                                    </span>
-                                                )
-                                            }
-                                        </Group>
-                                    </Toolbar>
-                                </div>
-                            </Fragment>)
-                    }
-
-                    {
-                        // labels for stacked indicators
-                        this.state.stackedIndicators.map(({ outputs }, n) =>
-                            <Fragment key={"indicator-values-" + n}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
-                                    zIndex: 2, // ensure it's above the SVG
-                                    backgroundColor: 'transparent',
-                                }}>
-                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                        <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
-                                            {
-                                                outputs.map(({ title, color }, k) =>
-                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                        <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
-                                                        <Text style={{ color }}>{
-                                                            this.state.stackedIndicatorLabels &&
-                                                            this.state.stackedIndicatorLabels[n] &&
-                                                            this.state.stackedIndicatorLabels[n][k]
-                                                        }
-                                                            &nbsp;&nbsp;
-                                                        </Text>
-                                                    </span>
-                                                )
-                                            }
-                                        </Group>
-                                    </Toolbar>
-
-                                </div>
-
-                                <div style={{
-                                    position: 'absolute',
-                                    top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
-                                    right: ChartView.AXISY_WIDTH,
-                                    zIndex: 2, // ensure it's above the SVG
-                                    backgroundColor: 'transparent',
-                                }}>
-                                    <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                        <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
-                                            {
-                                                this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
-                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                        <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
-                                                        <Text style={{ color }}>{
-                                                            this.state.referStackedIndicatorLabels &&
-                                                            this.state.referStackedIndicatorLabels[n] &&
-                                                            this.state.referStackedIndicatorLabels[n][k]}
-                                                            &nbsp;&nbsp;
-                                                        </Text>
-                                                    </span>
-                                                )
-                                            }
-                                        </Group>
-                                    </Toolbar>
-                                </div>
-                            </Fragment>
-                        )
-                    }
-                </div>
-
-                <div className="title" style={{ width: this.width, height: this.hHelp }}>
-                    <Help width={this.width} height={this.hHelp} />
-                    <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />
-                </div>
-            </div >
+                    <div className="title" style={{ width: this.width, height: this.hHelp }}>
+                        <Help width={this.width} height={this.hHelp} />
+                        <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />
+                    </div>
+                </div >
+            </div>
         )
     }
 }
