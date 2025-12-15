@@ -52,6 +52,8 @@ export interface ViewProps {
 
     updateOverlayIndicatorLabels?: (vs: string[][], refVs?: string[][]) => void;
     updateStackedIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+
+    isUnderDrawing?: boolean
 }
 
 export interface ViewState {
@@ -67,6 +69,8 @@ export interface ViewState {
     latestValueLabel?: JSX.Element
 
     overlayCharts?: JSX.Element[];
+
+    drawingCharts?: JSX.Element[];
 }
 
 /**
@@ -373,20 +377,25 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     #plotCursor(x: number, y: number, time: number, value: number, background: string) {
         const wAxisY = ChartView.AXISY_WIDTH
 
-        const crossPath = new Path;
-        // crossPath.stroke_dasharray = '1, 1'
+        let crossPath = undefined
+        if (!this.props.isUnderDrawing) {
+            crossPath = new Path();
+            // crossPath.stroke_dasharray = '1, 1'
 
-        // horizontal line
-        crossPath.moveto(0, y);
-        crossPath.lineto(this.props.width - wAxisY, y)
+            // horizontal line
+            crossPath.moveto(0, y);
+            crossPath.lineto(this.props.width - wAxisY, y)
+        }
 
         const valueLabel = this.plotYValueLabel(y, value, "#000000", background);
 
         return (
             <>
-                <g shapeRendering="crispEdges" >
-                    {crossPath.render('axisy-cross', { stroke: background })}
-                </g>
+                {crossPath &&
+                    <g shapeRendering="crispEdges" >
+                        {crossPath.render('axisy-cross', { stroke: background })}
+                    </g>
+                }
                 {valueLabel}
             </>
         )
@@ -427,6 +436,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 </g>
             </>
         )
+    }
+
+    // translate offset x, y to svg to x, y to this view
+    protected translate(eOnWholeSVG: React.MouseEvent) {
+        return {
+            x: eOnWholeSVG.nativeEvent.offsetX - this.props.x,
+            y: eOnWholeSVG.nativeEvent.offsetY - this.props.y
+        }
     }
 
     override componentDidMount(): void {

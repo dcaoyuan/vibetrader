@@ -18,8 +18,6 @@ import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { ChartYControl } from "./ChartYControl";
-import { DrawingMouseAdapter } from "../drawingchart/DrawingMouseAdapter";
 
 type Props = {
     width: number,
@@ -87,6 +85,9 @@ type State = {
     yCursorRange?: number[];
 
     isLoaded?: boolean;
+
+    isUnderDrawing?: boolean
+
 }
 
 const KVAR_NAME = "kline";
@@ -117,7 +118,6 @@ class KlineViewContainer extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 25;
 
-    ycKlineView: ChartYControl;
 
     constructor(props: Props) {
         super(props);
@@ -130,12 +130,10 @@ class KlineViewContainer extends Component<Props, State> {
 
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
         const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+
         const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-        this.ycKlineView = new ChartYControl(baseSer, this.hKlineView);
 
         this.focusRef = React.createRef();
-
-        this.isInteractive = true;
 
         console.log("KlinerViewContainer render");
 
@@ -389,6 +387,12 @@ class KlineViewContainer extends Component<Props, State> {
                 this.notify(UpdateEvent.Chart)
                 break;
 
+            case "d":
+            case "D":
+                this.setState({ isUnderDrawing: !this.state.isUnderDrawing })
+
+                break;
+
             default:
         }
 
@@ -509,6 +513,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
+        if (this.state.isUnderDrawing) {
+            return <></>
+        }
+
         const crossPath = new Path;
         // crossPath.stroke_dasharray = '1, 1'
 
@@ -526,8 +534,6 @@ class KlineViewContainer extends Component<Props, State> {
     isNotInAxisYArea(x: number) {
         return x < this.width - ChartView.AXISY_WIDTH
     }
-
-    isUnderDrawing: boolean = false
 
     onMouseLeave() {
         const xc = this.state.xc;
@@ -733,6 +739,7 @@ class KlineViewContainer extends Component<Props, State> {
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
                             overlayIndicators={this.state.overlayIndicators}
                             updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
+                            isUnderDrawing={this.state.isUnderDrawing}
                         />
 
                         <VolumeView
@@ -747,6 +754,7 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar={this.state.kvar}
                             shouldUpdateChart={this.state.shouldUpdateChart}
                             shouldUpdateCursors={this.state.shouldUpdateCursors}
+                            isUnderDrawing={this.state.isUnderDrawing}
                         />
 
                         <AxisX
@@ -776,6 +784,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     shouldUpdateChart={this.state.shouldUpdateChart}
                                     shouldUpdateCursors={this.state.shouldUpdateCursors}
                                     updateStackedIndicatorLabels={this.setStackedIndicatorLabels(n)}
+                                    isUnderDrawing={this.state.isUnderDrawing}
                                 />
                             )
                         }
