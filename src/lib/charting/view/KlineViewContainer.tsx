@@ -79,6 +79,7 @@ type State = {
     referStackedIndicatorLabels?: string[][];
 
     selectedIndTags?: 'all' | Iterable<Key>;
+    selectedDrawing?: Iterable<Key>;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -171,6 +172,7 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
             selectedIndTags: new Set(['ema', 'rsi', 'macd']),
+            selectedDrawing: undefined,
             ...geometry,
         }
 
@@ -187,7 +189,8 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.callbacks = {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
-            updateStackedIndicatorLabels: this.setStackedIndicatorLabels
+            updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
+            updateSelectedDrawing: this.setSelectedDrawing,
         }
     }
 
@@ -589,6 +592,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseDown(e: React.MouseEvent) {
+        if (this.state.isUnderDrawing) {
+            return
+        }
+
         const xc = this.state.xc;
         xc.isMouseCuroseVisible = false;
 
@@ -718,9 +725,14 @@ class KlineViewContainer extends Component<Props, State> {
         this.fetchData_calcInds(this.latestTime, selectedIndTags)
     }
 
-    setSelectedDrawing(ids: Set<Key>) {
-        const [drawingId] = ids
-        this.setState({ isUnderDrawing: drawingId as string })
+    setSelectedDrawing(ids?: Set<Key>) {
+        if (ids === undefined || ids.size === 0) {
+            this.setState({ isUnderDrawing: undefined, selectedDrawing: new Set() })
+
+        } else {
+            const [drawingId] = ids
+            this.setState({ isUnderDrawing: drawingId as string })
+        }
     }
 
     render() {
@@ -735,6 +747,7 @@ class KlineViewContainer extends Component<Props, State> {
                             selectionMode="single"
                             orientation="vertical"
                             style={{ flexDirection: "column" }}
+                            selectedKeys={this.state.selectedDrawing}
                             onSelectionChange={this.setSelectedDrawing}
                         >
                             <TooltipTrigger delay={0}>

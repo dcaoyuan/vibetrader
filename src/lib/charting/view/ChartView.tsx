@@ -1,4 +1,3 @@
-import { TVal } from "../../timeseris/TVal";
 import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { ChartXControl } from "./ChartXControl";
@@ -7,7 +6,7 @@ import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
-import type { Drawing } from "../drawing/Drawing";
+import type { Key } from "react-aria-components";
 
 export enum UpdateEvent {
     Chart,
@@ -46,11 +45,10 @@ export interface ViewProps {
     shouldUpdateCursors: UpdateCursor;
     name: string;
 
-    indexOfStackedIndicators?: number
-
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
+    indexOfStackedIndicators?: number
     overlayIndicators?: Indicator[];
 
     callbacksToContainer?: CallbacksToContainer;
@@ -77,7 +75,8 @@ export interface ViewState {
 
 export type CallbacksToContainer = {
     updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
-    updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void;
+    updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
+    updateSelectedDrawing: (ids?: Set<Key>) => void;
 }
 
 
@@ -312,7 +311,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
         // overlay indicators
-        if (this.props.overlayIndicators && this.props.callbacksToContainer.updateOverlayIndicatorLabels) {
+        if (this.props.overlayIndicators !== undefined) {
             const allmvs: string[][] = []
             const allrvs: string[][] = []
             this.props.overlayIndicators.map((indicator, n) => {

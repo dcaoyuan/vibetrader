@@ -216,8 +216,11 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (working.isActivated && !working.isCompleted) {
             const isCompleted = working.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawing = working.renderDrawing();
+                const drawing = working.renderDrawing()
                 this.setState({ drawing: [drawing] })
+
+                this.selectedDrawing = undefined
+                this.props.callbacksToContainer.updateSelectedDrawing()
             }
 
             // always set is selected in such case: 
