@@ -20,7 +20,7 @@ type Props = {
 type State = {
     referKline: Kline,
     pointKline: Kline,
-    delta: { period: number, percent: number, volumeSum: number }
+    delta: { period?: number, percent?: number, volumeSum?: number }
     snapshots: Snapshot[]
     newSnapshot: boolean
 }
@@ -103,8 +103,8 @@ class Title extends Component<Props, State> {
     }
 
     protected updateState(state: object) {
-        let referKline = undefined
-        let pointKline = undefined
+        let referKline: Kline
+        let pointKline: Kline
 
         const xc = this.props.xc;
 
@@ -125,7 +125,7 @@ class Title extends Component<Props, State> {
             pointKline = this.props.tvar.getByTime(time);
         }
 
-        let delta = undefined
+        let delta: { period?: number, percent?: number, volumeSum?: number }
         if (xc.isMouseCuroseVisible && xc.isReferCuroseVisible) {
             delta = this.calcDelta()
 
@@ -138,8 +138,8 @@ class Title extends Component<Props, State> {
                     const prevKline = this.props.tvar.getByTime(prevOccurredTime);
                     delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
 
-                    let latestUpdateTime = new Date();
-                    latestUpdateTime = latestUpdateTime.getTime() > pointKline.closeTime
+                    let latestUpdateTime = new Date().getTime();
+                    latestUpdateTime = latestUpdateTime > pointKline.closeTime
                         ? pointKline.closeTime
                         : latestUpdateTime;
 

@@ -442,8 +442,8 @@ class KlineViewContainer extends Component<Props, State> {
     updateState(state: State) {
         const xc = state.xc || this.state.xc;
 
-        let referCursor = undefined
-        let mouseCursor = undefined
+        let referCursor: JSX.Element
+        let mouseCursor: JSX.Element
         const referColor = '#00F0F0C0'; // 'orange'
         if (xc.isReferCuroseVisible) {
             const time = xc.tr(xc.referCursorRow)

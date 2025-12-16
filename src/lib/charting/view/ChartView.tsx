@@ -214,9 +214,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateState(state: object, xMouse?: number, yMouse?: number) {
-        let referCursor = undefined
-        let mouseCursor = undefined
-        let latestValueLabel = undefined
+        let referCursor: JSX.Element
+        let mouseCursor: JSX.Element
+        let latestValueLabel: JSX.Element
         const referColor = '#00F0F0C0';
         const mouseColor = '#00F000';
         let latestColor = '#ffa500'; // orange
@@ -226,7 +226,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const latestTime = this.props.xc.lastOccurredTime();
 
-        let referTime = undefined;
+        let referTime: number
         if (xc.isReferCuroseVisible) {
             referTime = xc.tr(xc.referCursorRow)
             const isOccurredTime = xc.occurred(referTime);
@@ -248,7 +248,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        let mouseTime = undefined;
+        let mouseTime: number
         if (xc.isMouseCuroseVisible) {
             mouseTime = xc.tr(xc.mouseCursorRow)
             const isOccurredTime = xc.occurred(mouseTime);
@@ -306,12 +306,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
         // overlay indicators
         if (this.props.overlayIndicators && this.props.updateOverlayIndicatorLabels) {
-            const allmvs = []
-            const allrvs = []
+            const allmvs: string[][] = []
+            const allrvs: string[][] = []
             this.props.overlayIndicators.map((indicator, n) => {
                 const tvar = indicator.tvar;
 
-                let mvs = undefined;
+                let mvs: string[]
                 if (mouseTime !== undefined && mouseTime > 0) {
                     mvs = indicator.outputs.map(({ atIndex }, n) => {
                         const values = tvar.getByTime(mouseTime);
@@ -327,8 +327,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                 allmvs.push(mvs)
 
-                let rvs = undefined;
-                if (referTime != undefined && referTime > 0) {
+                let rvs: string[]
+                if (referTime !== undefined && referTime > 0) {
                     rvs = indicator.outputs.map(({ atIndex }, n) => {
                         const values = tvar.getByTime(referTime);
                         const v = values ? values[atIndex] : '';
@@ -350,8 +350,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         // stacked indicators
         if (this.props.updateStackedIndicatorLabels) {
             const tvar = this.props.tvar;
-            let mvs = undefined;
-            if (mouseTime != undefined && mouseTime > 0) {
+            let mvs: string[]
+            if (mouseTime !== undefined && mouseTime > 0) {
                 const values = tvar.getByTime(mouseTime);
                 mvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
@@ -361,7 +361,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             }
 
-            let rvs = undefined;
+            let rvs: string[]
             if (referTime !== undefined && referTime > 0) {
                 const values = tvar.getByTime(referTime);
                 rvs = values && (values as unknown[]).map((v) =>
@@ -378,10 +378,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     #plotCursor(x: number, y: number, time: number, value: number, background: string) {
         const wAxisY = ChartView.AXISY_WIDTH
 
-        let crossPath = undefined
+        let crossPath: Path
         if (!this.props.isUnderDrawing) {
             crossPath = new Path();
-            // crossPath.stroke_dasharray = '1, 1'
 
             // horizontal line
             crossPath.moveto(0, y);
@@ -392,7 +391,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         return (
             <>
-                {crossPath && crossPath.render('axisy-cross', { stroke: background, strokeWidth: "0.7px" })}
+                {crossPath && crossPath.render({ key: 'axisy-cross', style: { stroke: background, strokeWidth: "0.7px" } })}
                 {valueLabel}
             </>
         )
@@ -454,8 +453,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let willUpdateCursor = false;
         let willUpdateOverlayCharts = false;
 
-        let xMouse = undefined;
-        let yMouse = undefined;
+        let xMouse: number
+        let yMouse: number
 
         if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
             willUpdateChart = true;
