@@ -2,7 +2,7 @@ import React, { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, UpdateEvent, type Indicator, type UpdateCursor } from "./ChartView";
+import { ChartView, UpdateEvent, type CallbacksToContainer, type Indicator, type UpdateCursor } from "./ChartView";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -15,7 +15,8 @@ import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Separator, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
 import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
-import type { Key } from 'react-aria-components';
+import { OverlayArrow, Tooltip, TooltipTrigger } from 'react-aria-components';
+import type { Key, TooltipProps } from 'react-aria-components';
 import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
@@ -92,6 +93,24 @@ type State = {
     isUnderDrawing?: string;
 }
 
+
+interface VTTooltipProps extends Omit<TooltipProps, 'children'> {
+    children: React.ReactNode;
+}
+
+const VTTooltip = ({ children, ...props }: VTTooltipProps) => {
+    return (
+        <Tooltip {...props}>
+            <OverlayArrow>
+                <svg width={8} height={8} viewBox="0 0 8 8">
+                    <path d="M0 0 L4 4 L8 0" />
+                </svg>
+            </OverlayArrow>
+            {children}
+        </Tooltip>
+    );
+}
+
 const KVAR_NAME = "kline";
 
 const allInds = ['ema', 'sma', 'rsi', 'macd']
@@ -120,6 +139,7 @@ class KlineViewContainer extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 25;
 
+    callbacks: CallbacksToContainer
 
     constructor(props: Props) {
         super(props);
@@ -164,6 +184,11 @@ class KlineViewContainer extends Component<Props, State> {
         this.onMouseLeave = this.onMouseLeave.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
+
+        this.callbacks = {
+            updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
+            updateStackedIndicatorLabels: this.setStackedIndicatorLabels
+        }
     }
 
     fetchIndicatorFns = (indNames: string[]) =>
@@ -656,7 +681,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-    setStackedIndicatorLabels(n: number) {
+    setStackedIndicatorLabels_old(n: number) {
         return (vs: string[], refVs?: string[]) => {
             let stackedIndicatorLabels = this.state.stackedIndicatorLabels
             let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
@@ -670,6 +695,20 @@ class KlineViewContainer extends Component<Props, State> {
             this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
         }
     }
+
+    setStackedIndicatorLabels(n: number, vs: string[], refVs?: string[]) {
+        let stackedIndicatorLabels = this.state.stackedIndicatorLabels
+        let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
+
+        stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+        referStackedIndicatorLabels = referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+
+        stackedIndicatorLabels[n] = vs;
+        referStackedIndicatorLabels[n] = refVs;
+
+        this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
+    }
+
 
     setSelectedIndTags(selectedIndTags: 'all' | Iterable<Key>) {
         if (this.refreshTimeoutId) {
@@ -698,9 +737,26 @@ class KlineViewContainer extends Component<Props, State> {
                             style={{ flexDirection: "column" }}
                             onSelectionChange={this.setSelectedDrawing}
                         >
-                            <ToggleButton id="line" aria-label="Line"><LineSegmentIcon fill="white" /></ToggleButton>
-                            <ToggleButton id="parallel" aria-label="ParallelLine"><NotchesIcon fill="white" /></ToggleButton>
-                            <ToggleButton id="ladder" aria-label="Icon3"><LadderSimpleIcon fill="white" /></ToggleButton>
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="line" aria-label="Line"><LineSegmentIcon fill="white" /></ToggleButton>
+                                <VTTooltip placement="end">
+                                    Draw line
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="parallel" aria-label="ParallelLine"><NotchesIcon fill="white" /></ToggleButton>
+                                <VTTooltip placement="end">
+                                    Draw parallel
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="ladder" aria-label="Icon3"><LadderSimpleIcon fill="white" /></ToggleButton>
+                                <VTTooltip placement="end">
+                                    TODO
+                                </VTTooltip>
+                            </TooltipTrigger>
 
                         </ToggleButtonGroup>
 
@@ -766,7 +822,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 shouldUpdateChart={this.state.shouldUpdateChart}
                                 shouldUpdateCursors={this.state.shouldUpdateCursors}
                                 overlayIndicators={this.state.overlayIndicators}
-                                updateOverlayIndicatorLabels={this.setOverlayIndicatorLabels}
+                                callbacksToContainer={this.callbacks}
                                 isUnderDrawing={this.state.isUnderDrawing}
                             />
 
@@ -811,7 +867,8 @@ class KlineViewContainer extends Component<Props, State> {
                                         mainIndicatorOutputs={outputs}
                                         shouldUpdateChart={this.state.shouldUpdateChart}
                                         shouldUpdateCursors={this.state.shouldUpdateCursors}
-                                        updateStackedIndicatorLabels={this.setStackedIndicatorLabels(n)}
+                                        indexOfStackedIndicators={n}
+                                        callbacksToContainer={this.callbacks}
                                         isUnderDrawing={this.state.isUnderDrawing}
                                     />
                                 )

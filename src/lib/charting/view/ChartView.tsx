@@ -46,13 +46,14 @@ export interface ViewProps {
     shouldUpdateCursors: UpdateCursor;
     name: string;
 
+    indexOfStackedIndicators?: number
+
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
     overlayIndicators?: Indicator[];
 
-    updateOverlayIndicatorLabels?: (vs: string[][], refVs?: string[][]) => void;
-    updateStackedIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
+    callbacksToContainer?: CallbacksToContainer;
 
     isUnderDrawing?: string
 }
@@ -73,6 +74,12 @@ export interface ViewState {
 
     drawing?: JSX.Element[];
 }
+
+export type CallbacksToContainer = {
+    updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
+    updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void;
+}
+
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -305,7 +312,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
         // overlay indicators
-        if (this.props.overlayIndicators && this.props.updateOverlayIndicatorLabels) {
+        if (this.props.overlayIndicators && this.props.callbacksToContainer.updateOverlayIndicatorLabels) {
             const allmvs: string[][] = []
             const allrvs: string[][] = []
             this.props.overlayIndicators.map((indicator, n) => {
@@ -344,11 +351,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 allrvs.push(rvs)
             })
 
-            this.props.updateOverlayIndicatorLabels(allmvs, allrvs);
+            this.props.callbacksToContainer.updateOverlayIndicatorLabels(allmvs, allrvs);
         }
 
         // stacked indicators
-        if (this.props.updateStackedIndicatorLabels) {
+        if (this.props.indexOfStackedIndicators !== undefined) {
             const tvar = this.props.tvar;
             let mvs: string[]
             if (mouseTime !== undefined && mouseTime > 0) {
@@ -371,7 +378,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 );
             }
 
-            this.props.updateStackedIndicatorLabels(mvs, rvs);
+            this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicators, mvs, rvs);
         }
     }
 
