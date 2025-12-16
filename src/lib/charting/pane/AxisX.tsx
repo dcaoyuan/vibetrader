@@ -131,8 +131,8 @@ class AxisX extends Component<Props, State> {
 
 		return (
 			<g>
-				{path.render('axisx-tick', { stroke: color, strokeWidth: '0.7px' })}
-				{texts.render('axisx-text', { fill: color })}
+				{path.render({ key: 'axisx-tick', style: { stroke: color, strokeWidth: '0.7px' } })}
+				{texts.render({ key: 'axisx-text', style: { fill: color } })}
 			</g>
 		);
 	}
@@ -199,8 +199,8 @@ class AxisX extends Component<Props, State> {
 
 		return (
 			<g>
-				{axisxPath.render('axisx-tick', { stroke: color, fill: color })}
-				{axisxTexts.render('axisx-annot', { fill: '#000000' })}
+				{axisxPath.render({ key: 'axisx-tick', style: { stroke: color, fill: color } })}
+				{axisxTexts.render({ key: 'axisx-annot', style: { fill: '#000000' } })}
 			</g>
 		)
 	}

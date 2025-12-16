@@ -118,8 +118,8 @@ const AxisY = (props: Props) => {
     const transform = `translate(${x} ${y})`;
     return (
         <g transform={transform} >
-            {chart.path.render('axisy-tick', { stroke: color, strokeWidth: '0.7px' })}
-            {chart.texts.render('axisy-text', { fill: color })}
+            {chart.path.render({ style: { stroke: color, strokeWidth: '0.7px' } })}
+            {chart.texts.render({ style: { fill: color } })}
         </g>
     );
 }

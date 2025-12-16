@@ -244,7 +244,10 @@ export abstract class Drawing {
     renderDrawing() {
         return (
             <g>
-                {this.plotDrawing().map((seg, n) => seg.render("seg-" + n, { stroke: "yellow", strokeWidth: "0.7px" }))}
+                {this.plotDrawing().map((seg, n) => seg.render({
+                    key: "seg-" + n,
+                    style: { stroke: "yellow", strokeWidth: "0.7px" }
+                }))}
             </g>
         )
     }
@@ -252,7 +255,10 @@ export abstract class Drawing {
     renderDrawingWithHandles() {
         return (
             <g>
-                {this.plotDrawing().map((seg, n) => seg.render("seg-" + n, { stroke: "yellow", strokeWidth: "0.7px" }))}
+                {this.plotDrawing().map((seg, n) => seg.render({
+                    key: "seg-" + n,
+                    style: { stroke: "yellow", strokeWidth: "0.7px" }
+                }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
         )
@@ -358,7 +364,7 @@ export class Handle {
     render(key: string) {
         const path = this.plot();
 
-        return path.render(key, { stroke: "yellow", strokeWidth: "0.7px" })
+        return path.render({ key, style: { stroke: "yellow", strokeWidth: "0.7px" } })
     }
 
     equals(o: unknown): boolean {

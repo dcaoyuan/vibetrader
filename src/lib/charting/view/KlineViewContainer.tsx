@@ -523,7 +523,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         return (
             <g>
-                {crossPath.render('container-cross', { stroke: color, strokeWidth: '0.7px' })}
+                {crossPath.render({ key: 'container-cross', style: { stroke: color, strokeWidth: '0.7px' } })}
             </g>
         )
     }

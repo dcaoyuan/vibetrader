@@ -1,4 +1,4 @@
-import type { Seg } from "./Seg";
+import type { Options, Seg } from "./Seg";
 
 /**
  * https://svgwg.org/svg2-draft/paths.html#PathElement
@@ -87,13 +87,9 @@ export class Path implements Seg {
         this.pathDatas.push(c)
     }
 
-    render(key: string, style?: {
-        fill?: string,
-        stroke?: string,
-        strokeWidth?: string | number,
-        strokeDasharray?: string | number,
-        opacity?: number
-    }, className?: string) {
+    render(options: Options) {
+        const { key, style, className } = options
+
         let path = '';
         for (const { type, values } of this.pathDatas) {
             path = path + type;

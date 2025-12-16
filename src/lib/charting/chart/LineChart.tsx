@@ -81,9 +81,7 @@ const LineChart = (props: Props) => {
     const { path } = plotChart();
 
     return (
-        <>
-            {path && path.render('line-' + depth, { stroke: color })}
-        </>
+        path && path.render({ key: 'line-' + depth, style: { stroke: color } })
     )
 }
 

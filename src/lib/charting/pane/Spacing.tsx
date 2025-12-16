@@ -61,12 +61,11 @@ class Spacing extends Component<Props, State> {
                 path.lineto(0, 8);
         }
 
-        return path.render('spacing-' + this.props.id, { stroke: Theme.now().axisColor })
+        return path.render({ key: 'spacing-' + this.props.id, style: { stroke: Theme.now().axisColor } })
     }
 
     render() {
         const transform = `translate(${this.props.x} ${this.props.y})`;
-
         return (
             <g transform={transform}  >
                 {this.chart}

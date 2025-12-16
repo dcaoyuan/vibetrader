@@ -76,8 +76,8 @@ const VolmueChart = (props: Props) => {
 
     return (
         <g className="volumechart">
-            {posPath && posPath.render('volume-pos', {}, 'positive')}
-            {negPath && negPath.render('volume-neg', {}, 'negative')}
+            {posPath && posPath.render({ key: 'volume-pos', className: 'positive' })}
+            {negPath && negPath.render({ key: 'volume-neg', className: 'negative' })}
         </g>
     )
 }

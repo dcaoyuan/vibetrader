@@ -423,15 +423,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         axisyTexts.text(8, y0 - 1, valueStr);
 
         const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
-
         return (
             // pay attention to the order to avoid text being overlapped
-            <>
-                <g transform={transformYAnnot}>
-                    {axisyPath.render('axisy-tick', { stroke: backgroud, fill: backgroud, strokeWidth: "0.7px" })}
-                    {axisyTexts.render('axisy-annot', { fill: textColor })}
-                </g>
-            </>
+            <g transform={transformYAnnot}>
+                {axisyPath.render({ key: 'axisy-tick', style: { stroke: backgroud, fill: backgroud, strokeWidth: "0.7px" } })}
+                {axisyTexts.render({ key: 'axisy-annot', style: { fill: textColor } })}
+            </g>
         )
     }
 
