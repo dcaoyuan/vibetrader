@@ -57,6 +57,10 @@ export abstract class Drawing {
 
     private readonly handlePointsBuf: TPoint[] = []
 
+    protected newHandle(point?: TPoint) {
+        return new Handle(this.xc, this.yc, point)
+    }
+
     /**
      * init with known points
      */
@@ -67,12 +71,11 @@ export abstract class Drawing {
 
         let i = 0
         while (i < n) {
-            this.handles.push(new Handle(this.xc, this.yc))
-            this.currHandlesWhenMousePressed.push(new Handle(this.xc, this.yc))
+            this.handles.push(this.newHandle())
+            this.currHandlesWhenMousePressed.push(this.newHandle())
 
-            // assign currentHandles' points to points
+            // assign points to handles
             this.handles[i].point = points[i]
-
             i++
         }
 
@@ -89,16 +92,15 @@ export abstract class Drawing {
         if (this.handles.length === 0) {
             if (this.nHandles === undefined) {
                 // it is drawing with variable number of handles , create first handle 
-                this.handles.push(new Handle(this.xc, this.yc))
-                this.currHandlesWhenMousePressed.push(new Handle(this.xc, this.yc))
+                this.handles.push(this.newHandle())
+                this.currHandlesWhenMousePressed.push(this.newHandle())
 
             } else {
                 // it is drawing with known number of handles, create all handles 
                 let i = 0
                 while (i < this.nHandles) {
-                    this.handles.push(new Handle(this.xc, this.yc))
-                    this.currHandlesWhenMousePressed.push(new Handle(this.xc, this.yc))
-
+                    this.handles.push(this.newHandle())
+                    this.currHandlesWhenMousePressed.push(this.newHandle())
                     i++;
                 }
             }
@@ -111,7 +113,6 @@ export abstract class Drawing {
             let i = this.currHandleIdx + 1
             while (i < this.handles.length) {
                 this.handles[i].point = point
-
                 i++
             }
         }
@@ -124,8 +125,8 @@ export abstract class Drawing {
 
             /// create next handle if not created yet
             if (this.handles.length - 1 < this.currHandleIdx) {
-                this.handles.push(new Handle(this.xc, this.yc, point))
-                this.currHandlesWhenMousePressed.push(new Handle(this.xc, this.yc))
+                this.handles.push(this.newHandle(point))
+                this.currHandlesWhenMousePressed.push(this.newHandle())
             }
 
         } else {
@@ -147,6 +148,7 @@ export abstract class Drawing {
         this.handles[this.currHandleIdx].point = point
 
         if (!this.isCompleted) {
+            // fill handles that not yet anchored with the same point as selectedHandle 
             let i = this.currHandleIdx + 1
             while (i < this.handles.length) {
                 this.handles[i].point = point
@@ -154,13 +156,7 @@ export abstract class Drawing {
             }
         }
 
-        return (
-            <g>
-                {this.renderDrawing()}
-                {this.handles.map((Handle, n) => Handle.render("handle-" + n))}
-            </g>
-        )
-
+        return this.renderDrawingWithHandles()
     }
 
     moveDrawing(mouseDraggedPoint: TPoint) {
@@ -193,9 +189,7 @@ export abstract class Drawing {
             i++
         }
 
-        // current new drawing
-        this.renderDrawing()
-        this.renderHandles()
+        return this.renderDrawingWithHandles()
     }
 
     activate() {
@@ -216,13 +210,11 @@ export abstract class Drawing {
         let i = 0
         while (i < handles.length) {
             this.handlePointsBuf.push(handles[i].point)
-
             i++
         }
 
         return this.handlePointsBuf
     }
-
 
     getAllCurrentHandlesPath(): Path[] {
         const allCurrHandlesPathBuf = []
@@ -250,19 +242,17 @@ export abstract class Drawing {
     }
 
     renderDrawing() {
-        const segs = this.plotDrawing()
-
         return (
-            <g>{segs.map((seg, n) => seg.render("seg-" + n, { stroke: "yellow" }))}</g>
+            <g>
+                {this.plotDrawing().map((seg, n) => seg.render("seg-" + n, { stroke: "yellow" }))}
+            </g>
         )
     }
 
-    renderWithHandles() {
-        const segs = this.plotDrawing()
-
+    renderDrawingWithHandles() {
         return (
             <g>
-                {segs.map((seg, n) => seg.render("seg-" + n, { stroke: "yellow" }))}
+                {this.plotDrawing().map((seg, n) => seg.render("seg-" + n, { stroke: "yellow" }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
         )
@@ -276,33 +266,33 @@ export abstract class Drawing {
         return this.yc.yv(handle.point.value)
     }
 
-    protected plotLine(xBase: number, yBase: number, k: number, path: Path) {
-        const xBeg = 0
-        const yBeg = this.yOfLine(xBeg, xBase, yBase, k)
-        const xEnd = this.xc.wChart
-        const yEnd = this.yOfLine(xEnd, xBase, yBase, k)
+    protected plotLine(baseX: number, baseY: number, k: number, path: Path) {
+        const xstart = 0
+        const ystart = this.yOnLine(xstart, baseX, baseY, k)
+        const xend = this.xc.wChart
+        const yend = this.yOnLine(xend, baseX, baseY, k)
 
-        path.moveto(xBeg, yBeg)
-        path.lineto(xEnd, yEnd)
+        path.moveto(xstart, ystart)
+        path.lineto(xend, yend)
     }
 
     protected plotVerticalLine(bar: number, path: Path) {
         const x = this.xc.xb(bar)
-        const yBeg = this.yc.yCanvasLower
-        const yEnd = this.yc.yCanvasUpper
+        const xstart = this.yc.yCanvasLower
+        const yend = this.yc.yCanvasUpper
 
-        path.moveto(x, yBeg)
-        path.lineto(x, yEnd)
+        path.moveto(x, xstart)
+        path.lineto(x, yend)
     }
 
 
-    protected yOfLine(x: number, baseX: number, baseY: number, k: number) {
+    protected yOnLine(x: number, baseX: number, baseY: number, k: number) {
         return (baseY + (x - baseX) * k)
     }
 }
 
+const RADIUS = 2
 export class Handle {
-    private readonly RADIUS = 2
 
     point: TPoint
 
@@ -331,10 +321,10 @@ export class Handle {
 
         const { x, y } = this.xyLocation()
 
-        path.moveto(x - this.RADIUS, y - this.RADIUS)
-        path.lineto(x - this.RADIUS, y + this.RADIUS)
-        path.lineto(x + this.RADIUS, y + this.RADIUS)
-        path.lineto(x + this.RADIUS, y - this.RADIUS)
+        path.moveto(x - RADIUS, y - RADIUS)
+        path.lineto(x - RADIUS, y + RADIUS)
+        path.lineto(x + RADIUS, y + RADIUS)
+        path.lineto(x + RADIUS, y - RADIUS)
         path.closepath()
 
         return path;
@@ -358,20 +348,17 @@ export class Handle {
         const centery = location.y
 
         return (
-            x >= centerx - this.RADIUS &&
-            x <= centerx + this.RADIUS &&
-            y >= centery - this.RADIUS &&
-            y <= centery + this.RADIUS
+            x >= centerx - RADIUS &&
+            x <= centerx + RADIUS &&
+            y >= centery - RADIUS &&
+            y <= centery + RADIUS
         )
     }
 
     render(key: string) {
         const path = this.plot();
 
-        return (
-            <g>
-                {path.render(key, { stroke: "yellow" })}
-            </g>)
+        return path.render(key, { stroke: "yellow" })
     }
 
     equals(o: unknown): boolean {

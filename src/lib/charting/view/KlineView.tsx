@@ -212,8 +212,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         const working = this.workingDrawing()
 
-        console.log(working)
-
         // go on drawing ?
         if (working.isActivated && !working.isCompleted) {
             const isCompleted = working.anchorHandle(this.p(x, y))
