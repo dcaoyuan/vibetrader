@@ -10,9 +10,8 @@ import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import type { JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
-import type { Drawing, TPoint } from "../drawing/Drawing";
-import { LineDrawing } from "../drawing/LineDrawing";
-import { ParallelLineDrawing } from "../drawing/ParallelLineDrawing";
+import { type Drawing, type TPoint } from "../drawing/Drawing";
+import { createDrawing } from "../drawing/drawings";
 
 
 const HANDLE_CURSOR = "crosshair"
@@ -70,9 +69,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         this.drawingMouseDrag = this.drawingMouseDrag.bind(this)
         this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
         this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
-
-        this.selectedDrawing = new ParallelLineDrawing(props.xc, this.yc)
-        this.selectedDrawing.isActivated = true
     }
 
     override plot() {
@@ -182,6 +178,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
     selectedDrawing: Drawing
 
+    workingDrawing() {
+        if (this.selectedDrawing === undefined) {
+            if (this.props.isUnderDrawing) {
+                this.selectedDrawing = createDrawing(this.props.isUnderDrawing, this.props.xc, this.yc)
+                this.selectedDrawing.activate()
+            }
+        }
+
+        return this.selectedDrawing;
+    }
+
     private cursor: string = undefined
 
     private p(x: number, y: number): TPoint {
@@ -189,7 +196,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseUp(e: React.MouseEvent) {
-        if (!this.props.isUnderDrawing) {
+        if (this.props.isUnderDrawing === undefined) {
             return;
         }
 
@@ -197,12 +204,15 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             return;
         }
 
+        // sinlge-clicked ? go on drawing, or, check my selection status 
+
         console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         const x = e.nativeEvent.offsetX - this.props.x
         const y = e.nativeEvent.offsetY - this.props.y
 
-        const working = this.selectedDrawing
-        // sinlge-clicked ? go on drawing, or, check my selection status 
+        const working = this.workingDrawing()
+
+        console.log(working)
 
         // go on drawing ?
         if (working.isActivated && !working.isCompleted) {
@@ -232,7 +242,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 // to decide if also activate it.
 
             } else {
-
                 working.isSelected = false
                 // chart is just deselected, don't call passivate() here, let drawingPane
                 // to decide if also passivate it.
@@ -241,20 +250,21 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseMove(e: React.MouseEvent) {
-        if (!this.props.isUnderDrawing) {
-            return;
-        }
-
         // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
         const [x, y] = this.translate(e)
 
-        const working = this.selectedDrawing
-        // const hit = this.selectedDrawing.hits(x, y)
+        const working = this.workingDrawing()
+
+        const hit = working && working.hits(x, y)
         // console.log(hit)
         // if (hit) {
         //     const drawingWithHandles = working.renderWithHandles()
         //     this.setState({ drawing: [drawingWithHandles] })
         // }
+
+        if (working === undefined) {
+            return // TODO
+        }
 
         if (working.isActivated) {
             if (working.isCompleted) {
@@ -264,14 +274,14 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 if (handle !== undefined) {
                     const idx = working.handles.indexOf(handle)
                     if (idx >= 0) {
-                        working.selectedHandleIdx = idx
+                        working.currHandleIdx = idx
                     }
 
                     this.cursor = HANDLE_CURSOR
 
                 } else {
                     // else, mouse does not point to any handle 
-                    working.selectedHandleIdx = -1
+                    working.currHandleIdx = -1
                     // mouse points to this chart ? 
                     if (working.hits(x, y)) {
                         working.isReadyToDrag = true
@@ -296,7 +306,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        if (!this.props.isUnderDrawing) {
+        if (this.props.isUnderDrawing === undefined) {
             return;
         }
 
@@ -304,27 +314,27 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (e.detail === 2) {
             const [x, y] = this.translate(e)
 
-            const working = this.selectedDrawing
+            const working = this.workingDrawing()
             // double clicked, process chart whose nHandles is variable
             if (!working.isCompleted) {
                 if (working.nHandles === undefined) {
                     working.isAnchored = false;
                     working.isCompleted = true;
-                    working.selectedHandleIdx = -1;
+                    working.currHandleIdx = -1;
                 }
             }
         }
     }
 
     onDrawingMouseDown(e: React.MouseEvent) {
-        if (!this.props.isUnderDrawing) {
+        if (this.props.isUnderDrawing === undefined) {
             return;
         }
 
         console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         const [x, y] = this.translate(e)
 
-        const working = this.selectedDrawing
+        const working = this.workingDrawing()
         if (working.isReadyToDrag) {
             working.mousePressedPoint = this.p(x, y)
             // record handles when mouse pressed, for moveChart() 
@@ -361,17 +371,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     drawingMouseDrag(e: React.MouseEvent) {
-        if (!this.props.isUnderDrawing) {
+        if (this.props.isUnderDrawing === undefined) {
             return;
         }
 
         console.log("mouse drag", e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         const [x, y] = this.translate(e)
 
-        const working = this.selectedDrawing
+        const working = this.workingDrawing()
         // only do something when isCompleted() 
         if (working.isActivated && working.isCompleted) {
-            if (working.selectedHandleIdx != -1) {
+            if (working.currHandleIdx != -1) {
                 working.stretchHandle(this.p(x, y))
 
             } else {

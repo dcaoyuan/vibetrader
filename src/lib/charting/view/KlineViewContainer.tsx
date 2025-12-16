@@ -12,8 +12,10 @@ import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
-import { Button, Group, Separator, Text, ToggleButton, Toolbar } from 'react-aria-components';
+import { Button, Group, Separator, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
+import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
+import type { Key } from 'react-aria-components';
 import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
@@ -75,7 +77,7 @@ type State = {
     referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
-    selectedIndTags?: 'all' | Iterable<string | number>;
+    selectedIndTags?: 'all' | Iterable<Key>;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -87,8 +89,7 @@ type State = {
 
     isLoaded?: boolean;
 
-    isUnderDrawing?: boolean
-
+    isUnderDrawing?: string;
 }
 
 const KVAR_NAME = "kline";
@@ -153,9 +154,10 @@ class KlineViewContainer extends Component<Props, State> {
             ...geometry,
         }
 
-        this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this);
-        this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this);
+        this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
+        this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)
         this.setSelectedIndTags = this.setSelectedIndTags.bind(this)
+        this.setSelectedDrawing = this.setSelectedDrawing.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
@@ -321,7 +323,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        // this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -386,12 +388,6 @@ class KlineViewContainer extends Component<Props, State> {
             case "Escape":
                 xc.isReferCuroseVisible = false;
                 this.notify(UpdateEvent.Chart)
-                break;
-
-            case "d":
-            case "D":
-                this.setState({ isUnderDrawing: !this.state.isUnderDrawing })
-
                 break;
 
             default:
@@ -675,12 +671,17 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    setSelectedIndTags(selectedIndTags: 'all' | Iterable<string | number>) {
+    setSelectedIndTags(selectedIndTags: 'all' | Iterable<Key>) {
         if (this.refreshTimeoutId) {
             clearTimeout(this.refreshTimeoutId);
         }
 
         this.fetchData_calcInds(this.latestTime, selectedIndTags)
+    }
+
+    setSelectedDrawing(ids: Set<Key>) {
+        const [drawingId] = ids
+        this.setState({ isUnderDrawing: drawingId as string })
     }
 
     render() {
@@ -690,15 +691,24 @@ class KlineViewContainer extends Component<Props, State> {
                 {/* Toolbar */}
                 <div style={{ display: "flex", paddingRight: "6px", paddingTop: '4px' }}>
                     <Toolbar aria-label="Tools" orientation="vertical" >
-                        <Group aria-label="Select" style={{ flexDirection: "column" }}>
+                        <ToggleButtonGroup
+                            aria-label="Drawing"
+                            selectionMode="single"
+                            orientation="vertical"
+                            style={{ flexDirection: "column" }}
+                            onSelectionChange={this.setSelectedDrawing}
+                        >
+                            <ToggleButton id="line" aria-label="Line"><LineSegmentIcon fill="white" /></ToggleButton>
+                            <ToggleButton id="parallel" aria-label="ParallelLine"><NotchesIcon fill="white" /></ToggleButton>
+                            <ToggleButton id="ladder" aria-label="Icon3"><LadderSimpleIcon fill="white" /></ToggleButton>
+
+                        </ToggleButtonGroup>
+
+                        <Separator orientation="horizontal" />
+
+                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
                             <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
                             <Button aria-label="Icon2"><HashIcon fill="white" /></Button>
-                            <Button aria-label="Icon3"><LadderSimpleIcon fill="white" /></Button>
-                        </Group>
-                        <Separator orientation="horizontal" />
-                        <Group aria-label="Draw" style={{ flexDirection: "column" }}>
-                            <Button aria-label="Icon4"><LineSegmentIcon fill="white" /></Button>
-                            <Button aria-label="Icon5"><NotchesIcon fill="white" /></Button>
                         </Group>
                     </Toolbar>
                 </div>

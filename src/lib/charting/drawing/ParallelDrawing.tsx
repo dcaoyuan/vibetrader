@@ -1,8 +1,8 @@
-import { Drawing, Handle, type TPoint } from "./Drawing"
+import { Drawing } from "./Drawing"
 import { Path } from "../../svg/Path";
 
 
-export class ParallelLineDrawing extends Drawing {
+export class ParallelDrawing extends Drawing {
     isExtended: boolean = true;
 
     init() {

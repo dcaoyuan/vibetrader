@@ -7,6 +7,7 @@ import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
+import type { Drawing } from "../drawing/Drawing";
 
 export enum UpdateEvent {
     Chart,
@@ -53,7 +54,7 @@ export interface ViewProps {
     updateOverlayIndicatorLabels?: (vs: string[][], refVs?: string[][]) => void;
     updateStackedIndicatorLabels?: (vs: string[], refVs?: string[]) => void;
 
-    isUnderDrawing?: boolean
+    isUnderDrawing?: string
 }
 
 export interface ViewState {
