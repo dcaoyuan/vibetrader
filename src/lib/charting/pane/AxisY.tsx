@@ -118,12 +118,8 @@ const AxisY = (props: Props) => {
     const transform = `translate(${x} ${y})`;
     return (
         <g transform={transform} >
-            <g shapeRendering="crispEdges" >
-                {chart.path.render('axisy-tick', { stroke: color })}
-            </g>
-            <g>
-                {chart.texts.render('axisy-text', { fill: color })}
-            </g>
+            {chart.path.render('axisy-tick', { stroke: color, strokeWidth: '0.7px' })}
+            {chart.texts.render('axisy-text', { fill: color })}
         </g>
     );
 }

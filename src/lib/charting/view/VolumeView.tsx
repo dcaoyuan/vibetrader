@@ -6,6 +6,7 @@ import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
 import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
+import { Fragment } from "react/jsx-runtime";
 
 export class VolumeView extends ChartView<ViewProps, ViewState> {
 
@@ -95,7 +96,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}

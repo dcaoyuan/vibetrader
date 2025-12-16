@@ -130,14 +130,10 @@ class AxisX extends Component<Props, State> {
 		}
 
 		return (
-			<>
-				<g shapeRendering="crispEdges" >
-					{path.render('axisx-tick', { stroke: color })}
-				</g>
-				<g key='texts'>
-					{texts.render('axisx-text', { fill: color })}
-				</g>
-			</>
+			<g>
+				{path.render('axisx-tick', { stroke: color, strokeWidth: '0.7px' })}
+				{texts.render('axisx-text', { fill: color })}
+			</g>
 		);
 	}
 

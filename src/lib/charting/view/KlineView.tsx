@@ -8,7 +8,7 @@ import AxisY from "../pane/AxisY";
 import './chartview.css';
 import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
-import type { JSX } from "react";
+import { Fragment, type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import { type Drawing, type TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/drawings";
@@ -404,13 +404,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {/* Invisible background to capture clicks in empty space */}
                 <rect width="100%" height="100%" fill="transparent" pointerEvents="all" />
 
-                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.axisy}
                 {this.state.latestValueLabel}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
-                {this.state.overlayCharts.map((c, n) => <g key={n}>{c}</g>)}
-                {this.state.drawing.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.overlayCharts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.drawing.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
             </g >
         )
     }

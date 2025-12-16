@@ -68,7 +68,7 @@ class Spacing extends Component<Props, State> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
 
         return (
-            <g transform={transform} shapeRendering="crispEdges" >
+            <g transform={transform}  >
                 {this.chart}
             </g>
         )

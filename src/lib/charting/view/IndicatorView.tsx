@@ -6,6 +6,7 @@ import AxisY from "../pane/AxisY";
 import './chartview.css';
 import LineChart from "../chart/LineChart";
 import HistogramChart from "../chart/HistogramChart";
+import { Fragment } from "react/jsx-runtime";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -119,7 +120,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.charts.map((c, n) => <g key={n}>{c}</g>)}
+                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.axisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}

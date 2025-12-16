@@ -90,7 +90,7 @@ export class Path implements Seg {
     render(key: string, style?: {
         fill?: string,
         stroke?: string,
-        strokeWidth?: number,
+        strokeWidth?: string | number,
         strokeDasharray?: string | number,
         opacity?: number
     }, className?: string) {

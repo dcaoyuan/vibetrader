@@ -522,8 +522,8 @@ class KlineViewContainer extends Component<Props, State> {
         crossPath.lineto(x, this.state.yCursorRange[1])
 
         return (
-            <g shapeRendering="crispEdges" >
-                {crossPath.render('container-cross', { stroke: color })}
+            <g>
+                {crossPath.render('container-cross', { stroke: color, strokeWidth: '0.7px' })}
             </g>
         )
     }

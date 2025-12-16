@@ -392,11 +392,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         return (
             <>
-                {crossPath &&
-                    <g shapeRendering="crispEdges" >
-                        {crossPath.render('axisy-cross', { stroke: background })}
-                    </g>
-                }
+                {crossPath && crossPath.render('axisy-cross', { stroke: background, strokeWidth: "0.7px" })}
                 {valueLabel}
             </>
         )
@@ -432,7 +428,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // pay attention to the order to avoid text being overlapped
             <>
                 <g transform={transformYAnnot}>
-                    {axisyPath.render('axisy-tick', { stroke: backgroud, fill: backgroud })}
+                    {axisyPath.render('axisy-tick', { stroke: backgroud, fill: backgroud, strokeWidth: "0.7px" })}
                     {axisyTexts.render('axisy-annot', { fill: textColor })}
                 </g>
             </>
