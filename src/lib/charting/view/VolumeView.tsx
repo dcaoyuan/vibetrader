@@ -13,14 +13,14 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        const { charts, axisy } = this.plot();
+        const { chartLines, chartAxisy } = this.plot();
 
         this.state = {
             isInteractive: true,
             isPinned: false,
 
-            charts,
-            axisy,
+            chartLines,
+            chartAxisy,
         };
 
     }
@@ -28,7 +28,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = [
+        const chartLines = [
             <VolmueChart
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
@@ -37,7 +37,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             />
         ]
 
-        const axisy = <AxisY
+        const chartAxisy = <AxisY
             x={this.props.width - ChartView.AXISY_WIDTH}
             y={0}
             width={ChartView.AXISY_WIDTH}
@@ -46,7 +46,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
-        return { charts, axisy }
+        return { chartLines, chartAxisy }
     }
 
     override computeMaxValueMinValue() {
@@ -96,8 +96,8 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.axisy}
+                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.chartAxisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
             </g>

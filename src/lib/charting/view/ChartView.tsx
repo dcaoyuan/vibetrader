@@ -62,10 +62,10 @@ export interface ViewState {
     isInteractive: true
     isPinned: false
 
-    charts: JSX.Element[];
-    axisy?: JSX.Element;
-    overlayCharts?: JSX.Element[];
-    drawingShapes?: JSX.Element[];
+    chartLines: JSX.Element[];
+    chartAxisy?: JSX.Element;
+    overlayChartLines?: JSX.Element[];
+    drawingLines?: JSX.Element[];
 
 
     mouseCursor?: JSX.Element
@@ -184,7 +184,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): Pick<ViewState, "charts" | "axisy" | "overlayCharts" | "drawingShapes">;
+    abstract plot(): Pick<ViewState, "chartLines" | "chartAxisy" | "overlayChartLines" | "drawingLines">;
 
     protected updateChart_Cursor(
         willUpdateChart: boolean,
@@ -195,8 +195,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let state = {};
 
         if (willUpdateChart) {
-            const { charts, axisy, overlayCharts, drawingShapes } = this.plot();
-            state = { ...state, charts, axisy, overlayCharts, drawingShapes }
+            const { chartLines, chartAxisy, overlayChartLines, drawingLines } = this.plot();
+            state = { ...state, chartLines, chartAxisy, overlayChartLines, drawingLines }
         }
 
         if (!willUpdateChart && willUpdateOverlayCharts) {
@@ -213,8 +213,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateChart() {
-        const { charts, axisy } = this.plot();
-        this.updateState({ charts, axisy });
+        const { chartLines, chartAxisy } = this.plot();
+        this.updateState({ chartLines, chartAxisy });
     }
 
     protected updateCursors(xMouse: number, yMouse: number) {

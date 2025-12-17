@@ -12,14 +12,14 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        const { charts, axisy } = this.plot();
+        const { chartLines, chartAxisy } = this.plot();
 
         this.state = {
             isInteractive: true,
             isPinned: false,
 
-            charts,
-            axisy,
+            chartLines,
+            chartAxisy,
         };
 
     }
@@ -27,7 +27,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = this.props.mainIndicatorOutputs.map(({ atIndex, color, title: name, style: plot }) => {
+        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, color, title: name, style: plot }) => {
             switch (plot) {
                 case 'line':
                     return <LineChart
@@ -56,7 +56,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             }
         })
 
-        const axisy = <AxisY
+        const chartAxisy = <AxisY
             x={this.props.width - ChartView.AXISY_WIDTH}
             y={0}
             width={ChartView.AXISY_WIDTH}
@@ -65,7 +65,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
-        return { charts, axisy }
+        return { chartLines, chartAxisy }
     }
 
     override computeMaxValueMinValue() {
@@ -120,8 +120,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.axisy}
+                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.chartAxisy}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
             </g>

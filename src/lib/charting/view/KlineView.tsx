@@ -52,16 +52,16 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         this.yc.valueScalar = LINEAR_SCALAR;
 
-        const { charts, axisy, overlayCharts, drawingShapes } = this.plot();
+        const { chartLines, chartAxisy, overlayChartLines, drawingLines } = this.plot();
 
         this.state = {
             isInteractive: true,
             isPinned: false,
 
-            charts,
-            axisy,
-            overlayCharts,
-            drawingShapes
+            chartLines,
+            chartAxisy,
+            overlayChartLines,
+            drawingLines
         };
 
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
@@ -74,7 +74,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const charts = [
+        const chartLines = [
             <KlineChart
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
@@ -84,7 +84,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             />
         ]
 
-        const axisy = <AxisY
+        const chartAxisy = <AxisY
             x={this.props.width - ChartView.AXISY_WIDTH}
             y={0}
             width={ChartView.AXISY_WIDTH}
@@ -93,10 +93,10 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
-        const overlayCharts = this.plotOverlayCharts();
-        const drawingShapes = this.plotDrawings()
+        const overlayChartLines = this.plotOverlayCharts();
+        const drawingLines = this.plotDrawings()
 
-        return { charts, axisy, overlayCharts, drawingShapes }
+        return { chartLines, chartAxisy, overlayChartLines, drawingLines }
     }
 
     override plotOverlayCharts() {
@@ -221,9 +221,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (working.isActivated && !working.isCompleted) {
             const isCompleted = working.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawingShape = working.renderDrawing()
-                const drawingShapes = this.state.drawingShapes
-                this.setState({ drawingShapes: [...drawingShapes, drawingShape], sketching: undefined })
+                const drawingLine = working.renderDrawing()
+                const drawingLines = this.state.drawingLines
+                this.setState({ drawingLines: [...drawingLines, drawingLine], sketching: undefined })
 
                 this.drawings.push(working)
                 this.selectedDrawing = undefined
@@ -266,26 +266,26 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
         if (hitIdx != -1) {
             this.hitDrawingIdx = hitIdx
-            const drawingShape = this.drawings[this.hitDrawingIdx].renderDrawingWithHandles()
-            const drawingShapes = [
-                ...this.state.drawingShapes.slice(0, this.hitDrawingIdx),
-                drawingShape,
-                ...this.state.drawingShapes.slice(this.hitDrawingIdx + 1)
+            const drawingLine = this.drawings[this.hitDrawingIdx].renderDrawingWithHandles()
+            const drawingLines = [
+                ...this.state.drawingLines.slice(0, this.hitDrawingIdx),
+                drawingLine,
+                ...this.state.drawingLines.slice(this.hitDrawingIdx + 1)
             ];
 
-            this.setState({ drawingShapes })
+            this.setState({ drawingLines })
 
         } else {
             if (this.hitDrawingIdx >= 0) {
-                const drawingShape = this.drawings[this.hitDrawingIdx].renderDrawing()
-                const drawingShapes = [
-                    ...this.state.drawingShapes.slice(0, this.hitDrawingIdx),
-                    drawingShape,
-                    ...this.state.drawingShapes.slice(this.hitDrawingIdx + 1)
+                const drawingLine = this.drawings[this.hitDrawingIdx].renderDrawing()
+                const drawingLines = [
+                    ...this.state.drawingLines.slice(0, this.hitDrawingIdx),
+                    drawingLine,
+                    ...this.state.drawingLines.slice(this.hitDrawingIdx + 1)
                 ];
                 this.hitDrawingIdx = undefined
 
-                this.setState({ drawingShapes })
+                this.setState({ drawingLines })
             }
         }
 
@@ -433,13 +433,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {/* Invisible background to capture clicks in empty space */}
                 <rect width="100%" height="100%" fill="transparent" pointerEvents="all" />
 
-                {this.state.charts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.axisy}
+                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.chartAxisy}
                 {this.state.latestValueLabel}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
-                {this.state.overlayCharts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {!this.props.isHidingDrawings && this.state.drawingShapes.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {!this.props.isHidingDrawings && this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )
