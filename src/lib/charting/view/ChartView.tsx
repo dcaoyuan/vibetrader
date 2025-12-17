@@ -63,15 +63,14 @@ export interface ViewState {
 
     charts: JSX.Element[];
     axisy?: JSX.Element;
+    overlayCharts?: JSX.Element[];
+    drawingShapes?: JSX.Element[];
+
 
     mouseCursor?: JSX.Element
     referCursor?: JSX.Element
 
     latestValueLabel?: JSX.Element
-
-    overlayCharts?: JSX.Element[];
-
-    drawingShapes?: JSX.Element[];
 
     sketching?: JSX.Element
 }
@@ -182,7 +181,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element, overlayCharts?: JSX.Element[], drawingShapes?: JSX.Element[] };
+    abstract plot(): Pick<ViewState, "charts" | "axisy" | "overlayCharts" | "drawingShapes">;
 
     protected updateChart_Cursor(
         willUpdateChart: boolean,
