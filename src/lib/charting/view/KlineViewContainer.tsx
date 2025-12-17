@@ -21,7 +21,7 @@ import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -369,7 +369,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         const xc = this.state.xc;
-        xc.isMouseCuroseVisible = false;
+        xc.isMouseCursorVisible = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
 
@@ -414,8 +414,14 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case "Escape":
-                xc.isReferCuroseVisible = false;
-                this.notify(UpdateEvent.Chart)
+                if (xc.isReferCursorVisible) {
+                    xc.isReferCursorVisible = false;
+
+                } else {
+                    xc.isDisableCrosshair = !xc.isDisableCrosshair
+                }
+
+                this.notify(UpdateEvent.Cursors)
                 break;
 
             default:
@@ -473,7 +479,7 @@ class KlineViewContainer extends Component<Props, State> {
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
         const referColor = '#00F0F0C0'; // 'orange'
-        if (xc.isReferCuroseVisible) {
+        if (xc.isReferCursorVisible) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
                 const cursorX = xc.xr(xc.referCursorRow)
@@ -481,7 +487,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
         }
 
-        if (xc.isMouseCuroseVisible) {
+        if (xc.isMouseCursorVisible) {
             const cursorX = xc.xr(xc.mouseCursorRow)
             mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
@@ -538,20 +544,18 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        if (this.state.selectedDrawingId) {
+        if (this.state.selectedDrawingId || this.state.xc.isDisableCrosshair) {
             return <></>
         }
 
-        const crossPath = new Path;
-        // crossPath.stroke_dasharray = '1, 1'
-
+        const crosshair = new Path;
         // vertical line
-        crossPath.moveto(x, this.state.yCursorRange[0]);
-        crossPath.lineto(x, this.state.yCursorRange[1])
+        crosshair.moveto(x, this.state.yCursorRange[0]);
+        crosshair.lineto(x, this.state.yCursorRange[1])
 
         return (
             <g>
-                {crossPath.render({ key: 'container-cross', style: { stroke: color, strokeWidth: '0.7px' } })}
+                {crosshair.render({ key: 'container-cross', style: { stroke: color, strokeWidth: '0.7px' } })}
             </g>
         )
     }
@@ -564,7 +568,7 @@ class KlineViewContainer extends Component<Props, State> {
         const xc = this.state.xc;
 
         // clear mouse cursor
-        xc.isMouseCuroseVisible = false;
+        xc.isMouseCursorVisible = false;
 
         this.notify(UpdateEvent.Cursors);
     }
@@ -582,10 +586,10 @@ class KlineViewContainer extends Component<Props, State> {
             // draw mouse cursor only when not in the axis-y area
             const row = xc.rb(b)
             xc.setMouseCursorByRow(row)
-            xc.isMouseCuroseVisible = true
+            xc.isMouseCursorVisible = true
 
         } else {
-            xc.isMouseCuroseVisible = false;
+            xc.isMouseCursorVisible = false;
         }
 
         this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
@@ -597,7 +601,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         const xc = this.state.xc;
-        xc.isMouseCuroseVisible = false;
+        xc.isMouseCursorVisible = false;
 
         if (e.ctrlKey) {
             // will select chart on pane
@@ -624,13 +628,13 @@ class KlineViewContainer extends Component<Props, State> {
                 ) {
                     const row = xc.rb(b)
                     xc.setReferCursorByRow(row, true)
-                    xc.isReferCuroseVisible = true;
+                    xc.isReferCursorVisible = true;
 
                     this.notify(UpdateEvent.Cursors);
                 }
 
             } else {
-                xc.isReferCuroseVisible = false;
+                xc.isReferCursorVisible = false;
                 this.notify(UpdateEvent.Cursors)
             }
         }
@@ -638,7 +642,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
-        xc.isMouseCuroseVisible = false;
+        xc.isMouseCursorVisible = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
         const delta = Math.round(e.deltaY / xc.nBars);
@@ -773,9 +777,19 @@ class KlineViewContainer extends Component<Props, State> {
 
                         </ToggleButtonGroup>
 
+
                         <Separator orientation="horizontal" />
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="cross" aria-label="Icon3">
+                                    <PlusIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Show crosshair
+                                </VTTooltip>
+                            </TooltipTrigger>
+
                             <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
                             <Button aria-label="Icon2"><HashIcon fill="white" /></Button>
                         </Group>
@@ -930,7 +944,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                                             <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                                 {
-                                                    this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, n) =>
+                                                    this.state.xc.isReferCursorVisible && outputs.map(({ title, color }, n) =>
                                                         <span key={"ovarlay-indicator-lable-" + title} >
                                                             <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
@@ -990,7 +1004,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                             <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
                                                 {
-                                                    this.state.xc.isReferCuroseVisible && outputs.map(({ title, color }, k) =>
+                                                    this.state.xc.isReferCursorVisible && outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                             <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{

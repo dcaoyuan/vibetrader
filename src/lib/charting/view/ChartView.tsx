@@ -228,6 +228,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
         let latestValueLabel: JSX.Element
+
         const referColor = '#00F0F0C0';
         const mouseColor = '#00F000';
         let latestColor = '#ffa500'; // orange
@@ -238,7 +239,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const latestTime = this.props.xc.lastOccurredTime();
 
         let referTime: number
-        if (xc.isReferCuroseVisible) {
+        if (xc.isReferCursorVisible) {
             referTime = xc.tr(xc.referCursorRow)
             const isOccurredTime = xc.occurred(referTime);
 
@@ -260,7 +261,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         let mouseTime: number
-        if (xc.isMouseCuroseVisible) {
+        if (xc.isMouseCursorVisible) {
             mouseTime = xc.tr(xc.mouseCursorRow)
             const isOccurredTime = xc.occurred(mouseTime);
             // try to align x to bar center
@@ -389,20 +390,20 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     #plotCursor(x: number, y: number, time: number, value: number, background: string) {
         const wAxisY = ChartView.AXISY_WIDTH
 
-        let crossPath: Path
-        if (!this.props.selectedDrawingId) {
-            crossPath = new Path();
+        let crosshair: Path
+        if (!this.props.selectedDrawingId && !this.props.xc.isDisableCrosshair) {
+            crosshair = new Path();
 
             // horizontal line
-            crossPath.moveto(0, y);
-            crossPath.lineto(this.props.width - wAxisY, y)
+            crosshair.moveto(0, y);
+            crosshair.lineto(this.props.width - wAxisY, y)
         }
 
         const valueLabel = this.plotYValueLabel(y, value, "#000000", background);
 
         return (
             <>
-                {crossPath && crossPath.render({ key: 'axisy-cross', style: { stroke: background, strokeWidth: "0.7px" } })}
+                {crosshair && crosshair.render({ key: 'axisy-cross', style: { stroke: background, strokeWidth: "0.7px" } })}
                 {valueLabel}
             </>
         )

@@ -153,7 +153,7 @@ class AxisX extends Component<Props, State> {
 		const mouseColor = '#00F000';
 		const xc = this.props.xc;
 
-		if (this.props.xc.isReferCuroseVisible) {
+		if (this.props.xc.isReferCursorVisible) {
 			const time = xc.tr(xc.referCursorRow)
 			if (xc.occurred(time)) {
 				const cursorX = xc.xr(xc.referCursorRow)
@@ -162,7 +162,7 @@ class AxisX extends Component<Props, State> {
 			}
 		}
 
-		if (xc.isMouseCuroseVisible) {
+		if (xc.isMouseCursorVisible) {
 			const time = xc.tr(xc.mouseCursorRow)
 			const cursorX = xc.xr(xc.mouseCursorRow)
 			mouseCursor = this.#plotCursor(cursorX, time, mouseColor)

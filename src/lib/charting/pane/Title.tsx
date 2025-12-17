@@ -110,14 +110,14 @@ class Title extends Component<Props, State> {
 
         const latestOccurredTime = xc.lastOccurredTime();
 
-        if (xc.isReferCuroseVisible) {
+        if (xc.isReferCursorVisible) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
                 referKline = this.props.tvar.getByTime(time);
             }
         }
 
-        const time = xc.isMouseCuroseVisible
+        const time = xc.isMouseCursorVisible
             ? xc.tr(xc.mouseCursorRow)
             : latestOccurredTime
 
@@ -126,7 +126,7 @@ class Title extends Component<Props, State> {
         }
 
         let delta: { period?: number, percent?: number, volumeSum?: number }
-        if (xc.isMouseCuroseVisible && xc.isReferCuroseVisible) {
+        if (xc.isMouseCursorVisible && xc.isReferCursorVisible) {
             delta = this.calcDelta()
 
         } else {
@@ -283,7 +283,7 @@ class Title extends Component<Props, State> {
                                     <Text style={{ color: lColor }}>C </Text>
                                     <Text
                                         key={"close-" + pKline.close.toPrecision(8)} // tell react to retrigger blinking when key i.e. the close price changes
-                                        className={this.props.xc.isMouseCuroseVisible ? "" : "blinking-label"}
+                                        className={this.props.xc.isMouseCursorVisible ? "" : "blinking-label"}
                                         style={{ color: pColor }}
                                     >
                                         {delta
