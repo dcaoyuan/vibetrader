@@ -55,6 +55,7 @@ export interface ViewProps {
     callbacksToContainer?: CallbacksToContainer;
 
     selectedDrawingId?: string
+    isHidingDrawings?: boolean
 }
 
 export interface ViewState {

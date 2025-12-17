@@ -439,7 +439,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.referCursor}
                 {this.state.mouseCursor}
                 {this.state.overlayCharts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.drawingShapes.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {!this.props.isHidingDrawings && this.state.drawingShapes.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )

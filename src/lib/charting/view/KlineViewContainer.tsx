@@ -21,7 +21,7 @@ import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -81,6 +81,8 @@ type State = {
     selectedIndTags?: 'all' | Iterable<Key>;
     selectedDrawingIds?: Iterable<Key>;
     selectedDrawingId?: string;
+
+    isHidingDrawings?: boolean
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -173,6 +175,7 @@ class KlineViewContainer extends Component<Props, State> {
             stackedIndicators: [],
             selectedIndTags: new Set(['ema', 'rsi', 'macd']),
             selectedDrawingIds: new Set(),
+            isHidingDrawings: false,
             ...geometry,
         }
 
@@ -782,6 +785,17 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
                             <TooltipTrigger delay={0}>
+                                <ToggleButton id="cross" aria-label="Icon3"
+                                    isSelected={this.state.isHidingDrawings}
+                                    onChange={() => this.setState({ isHidingDrawings: !this.state.isHidingDrawings })}>
+                                    <NotEqualsIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Hide drawings
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
                                 <ToggleButton id="cross" aria-label="Icon3">
                                     <PlusIcon fill="white" />
                                 </ToggleButton>
@@ -789,6 +803,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     Show crosshair
                                 </VTTooltip>
                             </TooltipTrigger>
+
 
                             <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
                             <Button aria-label="Icon2"><HashIcon fill="white" /></Button>
@@ -838,10 +853,10 @@ class KlineViewContainer extends Component<Props, State> {
                         >
                             <KlineView
                                 id={"kline"}
-                                y={this.state.yKlineView}
-                                height={this.hKlineView}
                                 x={0}
+                                y={this.state.yKlineView}
                                 width={this.width}
+                                height={this.hKlineView}
                                 name="ETH"
                                 xc={this.state.xc}
                                 baseSer={this.state.baseSer}
@@ -851,14 +866,15 @@ class KlineViewContainer extends Component<Props, State> {
                                 overlayIndicators={this.state.overlayIndicators}
                                 callbacksToContainer={this.callbacks}
                                 selectedDrawingId={this.state.selectedDrawingId}
+                                isHidingDrawings={this.state.isHidingDrawings}
                             />
 
                             <VolumeView
                                 id={"volume"}
-                                y={this.state.yVolumeView}
-                                height={this.hVolumeView}
                                 x={0}
+                                y={this.state.yVolumeView}
                                 width={this.width}
+                                height={this.hVolumeView}
                                 name="Vol"
                                 xc={this.state.xc}
                                 baseSer={this.state.baseSer}
@@ -869,10 +885,10 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <AxisX
                                 id={"axisx"}
-                                y={this.state.yAxisx}
-                                height={this.hAxisx}
                                 x={0}
+                                y={this.state.yAxisx}
                                 width={this.width}
+                                height={this.hAxisx}
                                 xc={this.state.xc}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
                                 shouldUpdateCursors={this.state.shouldUpdateCursors}
@@ -882,11 +898,11 @@ class KlineViewContainer extends Component<Props, State> {
                                     <IndicatorView
                                         key={"stacked-indicator-view-" + indName}
                                         id={this.#indicatorViewId(n)}
-                                        y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
-                                        height={this.hIndicatorView}
-                                        x={0}
                                         name={"Indicator-" + n}
+                                        x={0}
+                                        y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                         width={this.width}
+                                        height={this.hIndicatorView}
                                         xc={this.state.xc}
                                         baseSer={this.state.baseSer}
                                         tvar={tvar}
