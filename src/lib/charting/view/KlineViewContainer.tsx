@@ -172,7 +172,7 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
             selectedIndTags: new Set(['ema', 'rsi', 'macd']),
-            selectedDrawing: undefined,
+            selectedDrawing: new Set(),
             ...geometry,
         }
 

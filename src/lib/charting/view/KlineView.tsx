@@ -47,8 +47,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         return newKind;
     }
 
-    private drawings: Drawing[] = []
-
     constructor(props: ViewProps) {
         super(props);
 
@@ -224,7 +222,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             const isCompleted = working.anchorHandle(this.p(x, y))
             if (isCompleted) {
                 const drawing = working.renderDrawing()
-                this.setState({ drawingParts: [drawing] })
+                const drawingParts = this.state.drawingParts
+                drawingParts.push(drawing)
+                this.setState({ drawingParts, sketching: undefined })
 
                 this.drawings.push(working)
                 this.selectedDrawing = undefined
@@ -306,8 +306,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             } else {
                 // not completed, strecth handle
                 if (working.isAnchored) {
-                    const drawingWithHandles = working.stretchHandle(this.p(x, y))
-                    this.setState({ drawingParts: [drawingWithHandles] })
+                    const sketching = working.stretchHandle(this.p(x, y))
+                    this.setState({ sketching })
                 }
             }
         }
@@ -422,6 +422,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.mouseCursor}
                 {this.state.overlayCharts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.drawingParts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.sketching}
             </g >
         )
     }

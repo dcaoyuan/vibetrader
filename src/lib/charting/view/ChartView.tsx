@@ -72,6 +72,8 @@ export interface ViewState {
     overlayCharts?: JSX.Element[];
 
     drawingParts?: JSX.Element[];
+
+    sketching?: JSX.Element
 }
 
 export type CallbacksToContainer = {
