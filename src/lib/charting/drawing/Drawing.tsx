@@ -1,3 +1,4 @@
+import type { Key } from "react-aria-components"
 import { Path } from "../../svg/Path"
 import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
@@ -241,9 +242,9 @@ export abstract class Drawing {
         </g>
     }
 
-    renderDrawing() {
+    renderDrawing(key?: Key) {
         return (
-            <g>
+            <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
                     style: { stroke: "yellow", strokeWidth: "0.7px" }
@@ -252,9 +253,9 @@ export abstract class Drawing {
         )
     }
 
-    renderDrawingWithHandles() {
+    renderDrawingWithHandles(key?: Key) {
         return (
-            <g>
+            <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
                     style: { stroke: "yellow", strokeWidth: "0.7px" }

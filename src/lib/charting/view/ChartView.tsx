@@ -7,6 +7,7 @@ import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
 import type { Key } from "react-aria-components";
+import type { Drawing } from "../drawing/Drawing";
 
 export enum UpdateEvent {
     Chart,
@@ -70,7 +71,7 @@ export interface ViewState {
 
     overlayCharts?: JSX.Element[];
 
-    drawing?: JSX.Element[];
+    drawingParts?: JSX.Element[];
 }
 
 export type CallbacksToContainer = {
@@ -108,6 +109,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     static readonly TITLE_HEIGHT_PER_LINE = 14
 
     yc: ChartYControl;
+
+    drawings: Drawing[] = []
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
@@ -177,7 +180,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element };
+    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element, overlayCharts?: JSX.Element[], drawingParts?: JSX.Element[] };
 
     protected updateChart_Cursor(
         willUpdateChart: boolean,
@@ -188,9 +191,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let state = {};
 
         if (willUpdateChart) {
-            const { charts, axisy } = this.plot();
-            const overlayCharts = this.plotOverlayCharts()
-            state = { ...state, charts, axisy, overlayCharts }
+            const { charts, axisy, overlayCharts, drawingParts } = this.plot();
+            state = { ...state, charts, axisy, overlayCharts, drawingParts }
         }
 
         if (!willUpdateChart && willUpdateOverlayCharts) {
