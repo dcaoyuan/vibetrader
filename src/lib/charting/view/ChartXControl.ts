@@ -68,6 +68,8 @@ export class ChartXControl {
     fixedNBars?: number;
     fixedLeftSideTime?: number;
 
+    // share across view and view container
+    selectedDrawingIdx: number;
 
     readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
     private popupViews() { return this.#popupViewRefs.keys() };

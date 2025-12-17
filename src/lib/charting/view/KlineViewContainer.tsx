@@ -415,6 +415,11 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case "Escape":
+                if (xc.selectedDrawingIdx !== undefined) {
+                    this.setState({ shouldUpdateDrawing: { action: 'deselect' } })
+                    break;
+                }
+
                 if (xc.isReferCursorVisible) {
                     xc.isReferCursorVisible = false;
 
@@ -423,6 +428,11 @@ class KlineViewContainer extends Component<Props, State> {
                 }
 
                 this.notify(UpdateEvent.Cursors)
+                break;
+
+            case 'Delete':
+                console.log('delet')
+                this.setState({ shouldUpdateDrawing: { action: 'delete' } })
                 break;
 
             default:
@@ -810,7 +820,18 @@ class KlineViewContainer extends Component<Props, State> {
 
 
                             <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
-                            <Button aria-label="Icon2"><MinusCircleIcon fill="white" /></Button>
+
+                            <TooltipTrigger delay={0}>
+                                <Button aria-label="delete"
+                                    onClick={() => this.setState({ shouldUpdateDrawing: { action: 'delete' } })}
+                                >
+                                    <MinusCircleIcon fill="white" />
+                                </Button>
+                                <VTTooltip placement="end">
+                                    Delete selected drawing
+                                </VTTooltip>
+                            </TooltipTrigger>
+
                         </Group>
                     </Toolbar>
                 </div>
