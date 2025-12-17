@@ -26,11 +26,10 @@ export class ParallelDrawing extends Drawing {
         const dy = y1 - y0
         const k = dx === 0 ? 1 : dy / dx
 
-        // k = (y - y1) / (x - x1)
-        const yHit0 = (x - x0) * k + y0
-        const yHit1 = (x - x2) * k + y2
+        const distance1 = this.distanceToLine(x, y, x0, y0, k)
+        const distance2 = this.distanceToLine(x, y, x2, y2, k)
 
-        return Math.abs(yHit0 - y) <= 3 || Math.abs(yHit1 - y) <= 3
+        return distance1 <= 4 || distance2 <= 4
     }
 
     plotDrawing() {
@@ -49,7 +48,7 @@ export class ParallelDrawing extends Drawing {
 
         const k = dx === 0 ? 1 : dy / dx
 
-        const distance = Math.abs(k * x2 - y2 + y0 - k * x0) / Math.sqrt(k * k + 1)
+        const distance = this.distanceToLine(x2, y2, x0, y0, k)
 
         if (this.isExtended) {
             this.plotLine(x0, y0, k, path);

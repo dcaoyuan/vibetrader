@@ -11,7 +11,7 @@ import LineChart from "../chart/LineChart";
 import { Fragment, type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import { type Drawing, type TPoint } from "../drawing/Drawing";
-import { createDrawing } from "../drawing/drawings";
+import { createDrawing } from "../drawing/Drawings";
 
 
 const HANDLE_CURSOR = "crosshair"

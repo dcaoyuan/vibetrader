@@ -247,7 +247,7 @@ export abstract class Drawing {
             <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
-                    style: { stroke: "yellow", strokeWidth: "0.7px" }
+                    style: { stroke: "#ffffff", strokeWidth: "0.7px" }
                 }))}
             </g>
         )
@@ -258,7 +258,7 @@ export abstract class Drawing {
             <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
-                    style: { stroke: "#ffff7f", strokeWidth: "1px" }
+                    style: { stroke: "#ffffff", strokeWidth: "1px" }
                 }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
@@ -295,6 +295,10 @@ export abstract class Drawing {
 
     protected yOnLine(x: number, baseX: number, baseY: number, k: number) {
         return (baseY + (x - baseX) * k)
+    }
+
+    protected distanceToLine(x: number, y: number, baseX: number, baseY: number, k: number) {
+        return Math.abs(k * x - y + baseY - k * baseX) / Math.sqrt(k * k + 1)
     }
 }
 
@@ -365,7 +369,7 @@ export class Handle {
     render(key: string) {
         const path = this.plot();
 
-        return path.render({ key, style: { stroke: "#ffff7f", strokeWidth: "1px" } })
+        return path.render({ key, style: { stroke: "#ffffff", strokeWidth: "1px" } })
     }
 
     equals(o: unknown): boolean {

@@ -23,10 +23,9 @@ export class LineDrawing extends Drawing {
         const dy = y1 - y0
         const k = dx === 0 ? 1 : dy / dx
 
-        // k = (y - y1) / (x - x1)
-        const yHit = (x - x0) * k + y0
+        const distance = this.distanceToLine(x, y, x0, y0, k)
 
-        return Math.abs(yHit - y) <= 3
+        return distance <= 4
     }
 
     plotDrawing() {
