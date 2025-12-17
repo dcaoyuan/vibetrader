@@ -135,7 +135,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     plotDrawings() {
-        return this.drawings.map((drawing, n) => drawing.renderDrawing("drawing-" + n))
+        return this.drawings.map((drawing, n) => this.selectedDrawingIdx === n
+            ? drawing.renderDrawingWithHandles("drawing-" + n)
+            : drawing.renderDrawing("drawing-" + n))
     }
 
     override computeMaxValueMinValue() {
@@ -185,8 +187,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
     workingDrawing() {
         if (this.selectedDrawing === undefined) {
-            if (this.props.selectedDrawingId) {
-                this.selectedDrawing = createDrawing(this.props.selectedDrawingId, this.props.xc, this.yc)
+            if (this.props.shouldUpdateDrawing.createDrawingId) {
+                this.selectedDrawing = createDrawing(this.props.shouldUpdateDrawing.createDrawingId, this.props.xc, this.yc)
                 this.selectedDrawing.activate()
             }
         }
@@ -201,7 +203,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseUp(e: React.MouseEvent) {
-        if (this.props.selectedDrawingId === undefined) {
+        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
             return;
         }
 
@@ -266,17 +268,17 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
         if (hitIdx != -1) {
             this.hitDrawingIdx = hitIdx
-            const drawingLine = this.drawings[this.hitDrawingIdx].renderDrawingWithHandles()
+            const drawingLine = this.drawings[hitIdx].renderDrawingWithHandles()
             const drawingLines = [
-                ...this.state.drawingLines.slice(0, this.hitDrawingIdx),
+                ...this.state.drawingLines.slice(0, hitIdx),
                 drawingLine,
-                ...this.state.drawingLines.slice(this.hitDrawingIdx + 1)
+                ...this.state.drawingLines.slice(hitIdx + 1)
             ];
 
             this.setState({ drawingLines })
 
         } else {
-            if (this.hitDrawingIdx >= 0) {
+            if (this.hitDrawingIdx >= 0 && this.selectedDrawingIdx !== this.hitDrawingIdx) {
                 const drawingLine = this.drawings[this.hitDrawingIdx].renderDrawing()
                 const drawingLines = [
                     ...this.state.drawingLines.slice(0, this.hitDrawingIdx),
@@ -333,7 +335,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        if (this.props.selectedDrawingId === undefined) {
+        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
             return;
         }
 
@@ -354,12 +356,29 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseDown(e: React.MouseEvent) {
-        if (this.props.selectedDrawingId === undefined) {
+        console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        const [x, y] = this.translate(e)
+
+        const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
+        if (hitIdx != -1) {
+            this.selectedDrawingIdx = hitIdx
+            const drawingLine = this.drawings[hitIdx].renderDrawingWithHandles()
+            const drawingLines = [
+                ...this.state.drawingLines.slice(0, hitIdx),
+                drawingLine,
+                ...this.state.drawingLines.slice(hitIdx + 1)
+            ];
+
+            this.setState({ drawingLines })
+
+            console.log(this.selectedDrawingIdx)
+        }
+
+
+        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
             return;
         }
 
-        console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        const [x, y] = this.translate(e)
 
         const working = this.workingDrawing()
         if (working.isReadyToDrag) {
@@ -398,7 +417,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     drawingMouseDrag(e: React.MouseEvent) {
-        if (this.props.selectedDrawingId === undefined) {
+        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
             return;
         }
 
@@ -439,7 +458,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.referCursor}
                 {this.state.mouseCursor}
                 {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {!this.props.isHidingDrawings && this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {!(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.isHidingDrawing) &&
+                    this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )

@@ -33,7 +33,14 @@ export type Output = {
     color: string,
 }
 
+export type UpdateDrawing = {
+    action?: 'create' | 'delete' | 'hide'
+    createDrawingId?: string
+    isHidingDrawing?: boolean;
+}
+
 export interface ViewProps {
+    name: string;
     id: string;
     x: number;
     y: number;
@@ -43,8 +50,8 @@ export interface ViewProps {
     baseSer: TSer;
     tvar: TVar<unknown>;
     shouldUpdateChart: number;
-    shouldUpdateCursors: UpdateCursor;
-    name: string;
+    shouldUpdateCursor: UpdateCursor;
+    shouldUpdateDrawing?: UpdateDrawing;
 
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
@@ -53,9 +60,6 @@ export interface ViewProps {
     overlayIndicators?: Indicator[];
 
     callbacksToContainer?: CallbacksToContainer;
-
-    selectedDrawingId?: string
-    isHidingDrawings?: boolean
 }
 
 export interface ViewState {
@@ -115,6 +119,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     drawings: Drawing[] = []
 
     hitDrawingIdx?: number;
+    selectedDrawingIdx: number;
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
@@ -392,7 +397,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const wAxisY = ChartView.AXISY_WIDTH
 
         let crosshair: Path
-        if (!this.props.selectedDrawingId && !this.props.xc.isDisableCrosshair) {
+        if (!(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.createDrawingId) && !this.props.xc.isDisableCrosshair) {
             crosshair = new Path();
 
             // horizontal line
@@ -478,8 +483,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             willUpdateOverlayCharts = true;
         }
 
-        if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
-            const xyMouse = this.props.shouldUpdateCursors.xyMouse;
+        if (this.props.shouldUpdateCursor.changed !== prevProps.shouldUpdateCursor.changed) {
+            const xyMouse = this.props.shouldUpdateCursor.xyMouse;
             if (xyMouse !== undefined) {
                 if (xyMouse.who === this.props.id) {
                     willUpdateCursor = true;

@@ -2,7 +2,7 @@ import React, { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, UpdateEvent, type CallbacksToContainer, type Indicator, type UpdateCursor } from "./ChartView";
+import { ChartView, UpdateEvent, type CallbacksToContainer, type Indicator, type UpdateCursor, type UpdateDrawing } from "./ChartView";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -21,7 +21,7 @@ import { Context, PineTS } from "@vibetrader/pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -64,7 +64,8 @@ type State = {
     xc?: ChartXControl;
 
     shouldUpdateChart?: number;
-    shouldUpdateCursors?: UpdateCursor;
+    shouldUpdateCursor?: UpdateCursor;
+    shouldUpdateDrawing?: UpdateDrawing;
 
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
@@ -78,11 +79,8 @@ type State = {
     referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
-    selectedIndTags?: 'all' | Iterable<Key>;
-    selectedDrawingIds?: Iterable<Key>;
-    selectedDrawingId?: string;
-
-    isHidingDrawings?: boolean
+    selectedIndTags?: 'all' | Set<Key>;
+    selectedDrawingIds?: Set<Key>;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -171,11 +169,11 @@ class KlineViewContainer extends Component<Props, State> {
             kvar,
             xc,
             shouldUpdateChart: 0,
-            shouldUpdateCursors: { changed: 0 },
+            shouldUpdateCursor: { changed: 0 },
+            shouldUpdateDrawing: {},
             stackedIndicators: [],
             selectedIndTags: new Set(['ema', 'rsi', 'macd']),
             selectedDrawingIds: new Set(),
-            isHidingDrawings: false,
             ...geometry,
         }
 
@@ -258,7 +256,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    fetchData_calcInds = (startTime?: number, selectedIndTags?: 'all' | Iterable<string | number>) => {
+    fetchData_calcInds = (startTime?: number, selectedIndTags?: 'all' | Set<string | number>) => {
         this.fetchDataBinance(startTime)
             .catch(ex => {
                 console.error(ex);
@@ -469,7 +467,7 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case UpdateEvent.Cursors:
-                this.updateState({ shouldUpdateCursors: { changed: this.state.shouldUpdateCursors.changed + 1, xyMouse } })
+                this.updateState({ shouldUpdateCursor: { changed: this.state.shouldUpdateCursor.changed + 1, xyMouse } })
                 break;
 
             default:
@@ -547,7 +545,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        if (this.state.selectedDrawingId || this.state.xc.isDisableCrosshair) {
+        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.isDisableCrosshair) {
             return <></>
         }
 
@@ -599,7 +597,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseDown(e: React.MouseEvent) {
-        if (this.state.selectedDrawingId) {
+        if (this.state.selectedDrawingIds.size > 0) {
             return
         }
 
@@ -724,7 +722,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-    setSelectedIndTags(selectedIndTags: 'all' | Iterable<Key>) {
+    setSelectedIndTags(selectedIndTags: 'all' | Set<Key>) {
         if (this.refreshTimeoutId) {
             clearTimeout(this.refreshTimeoutId);
         }
@@ -734,11 +732,17 @@ class KlineViewContainer extends Component<Props, State> {
 
     setSelectedDrawingIds(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
-            this.setState({ selectedDrawingId: undefined, selectedDrawingIds: new Set() })
+            this.setState({
+                shouldUpdateDrawing: { action: 'create', createDrawingId: undefined },
+                selectedDrawingIds: new Set()
+            })
 
         } else {
             const [drawingId] = ids
-            this.setState({ selectedDrawingId: drawingId as string, selectedDrawingIds: ids })
+            this.setState({
+                shouldUpdateDrawing: { action: 'create', createDrawingId: drawingId as string },
+                selectedDrawingIds: ids
+            })
         }
     }
 
@@ -785,9 +789,9 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="cross" aria-label="Icon3"
-                                    isSelected={this.state.isHidingDrawings}
-                                    onChange={() => this.setState({ isHidingDrawings: !this.state.isHidingDrawings })}>
+                                <ToggleButton id="showdrawing" aria-label="showdrawing"
+                                    isSelected={this.state.shouldUpdateDrawing.isHidingDrawing}
+                                    onChange={() => this.setState({ shouldUpdateDrawing: { action: 'hide', isHidingDrawing: !this.state.shouldUpdateDrawing.isHidingDrawing } })}>
                                     <NotEqualsIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
@@ -796,7 +800,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="cross" aria-label="Icon3">
+                                <ToggleButton id="crosshair" aria-label="crosshair">
                                     <PlusIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
@@ -806,7 +810,7 @@ class KlineViewContainer extends Component<Props, State> {
 
 
                             <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
-                            <Button aria-label="Icon2"><HashIcon fill="white" /></Button>
+                            <Button aria-label="Icon2"><MinusCircleIcon fill="white" /></Button>
                         </Group>
                     </Toolbar>
                 </div>
@@ -823,7 +827,7 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar={this.state.kvar}
                             symbol={this.state.symbol}
                             shouldUpdateChart={this.state.shouldUpdateChart}
-                            shouldUpadteCursors={this.state.shouldUpdateCursors}
+                            shouldUpadteCursors={this.state.shouldUpdateCursor}
                         />
                         <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                     </div>
@@ -862,11 +866,12 @@ class KlineViewContainer extends Component<Props, State> {
                                 baseSer={this.state.baseSer}
                                 tvar={this.state.kvar}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                shouldUpdateCursor={this.state.shouldUpdateCursor}
+                                shouldUpdateDrawing={this.state.shouldUpdateDrawing}
+
                                 overlayIndicators={this.state.overlayIndicators}
+
                                 callbacksToContainer={this.callbacks}
-                                selectedDrawingId={this.state.selectedDrawingId}
-                                isHidingDrawings={this.state.isHidingDrawings}
                             />
 
                             <VolumeView
@@ -880,7 +885,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 baseSer={this.state.baseSer}
                                 tvar={this.state.kvar}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                shouldUpdateCursor={this.state.shouldUpdateCursor}
                             />
 
                             <AxisX
@@ -891,7 +896,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 height={this.hAxisx}
                                 xc={this.state.xc}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                shouldUpdateCursors={this.state.shouldUpdateCursor}
                             />
                             {
                                 this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
@@ -908,7 +913,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         tvar={tvar}
                                         mainIndicatorOutputs={outputs}
                                         shouldUpdateChart={this.state.shouldUpdateChart}
-                                        shouldUpdateCursors={this.state.shouldUpdateCursors}
+                                        shouldUpdateCursor={this.state.shouldUpdateCursor}
                                         indexOfStackedIndicators={n}
                                         callbacksToContainer={this.callbacks}
                                     />
