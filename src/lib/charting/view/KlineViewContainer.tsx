@@ -79,7 +79,8 @@ type State = {
     referStackedIndicatorLabels?: string[][];
 
     selectedIndTags?: 'all' | Iterable<Key>;
-    selectedDrawing?: Iterable<Key>;
+    selectedDrawingIds?: Iterable<Key>;
+    selectedDrawingId?: string;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -91,7 +92,6 @@ type State = {
 
     isLoaded?: boolean;
 
-    isUnderDrawing?: string;
 }
 
 
@@ -172,14 +172,14 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateCursors: { changed: 0 },
             stackedIndicators: [],
             selectedIndTags: new Set(['ema', 'rsi', 'macd']),
-            selectedDrawing: new Set(),
+            selectedDrawingIds: new Set(),
             ...geometry,
         }
 
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)
         this.setSelectedIndTags = this.setSelectedIndTags.bind(this)
-        this.setSelectedDrawing = this.setSelectedDrawing.bind(this)
+        this.setSelectedDrawingIds = this.setSelectedDrawingIds.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onMouseDown = this.onMouseDown.bind(this);
@@ -190,7 +190,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.callbacks = {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
             updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
-            updateSelectedDrawing: this.setSelectedDrawing,
+            updateSelectedDrawingIds: this.setSelectedDrawingIds,
         }
     }
 
@@ -538,7 +538,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        if (this.state.isUnderDrawing) {
+        if (this.state.selectedDrawingId) {
             return <></>
         }
 
@@ -592,7 +592,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseDown(e: React.MouseEvent) {
-        if (this.state.isUnderDrawing) {
+        if (this.state.selectedDrawingId) {
             return
         }
 
@@ -725,13 +725,13 @@ class KlineViewContainer extends Component<Props, State> {
         this.fetchData_calcInds(this.latestTime, selectedIndTags)
     }
 
-    setSelectedDrawing(ids?: Set<Key>) {
+    setSelectedDrawingIds(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
-            this.setState({ isUnderDrawing: undefined, selectedDrawing: new Set() })
+            this.setState({ selectedDrawingId: undefined, selectedDrawingIds: new Set() })
 
         } else {
             const [drawingId] = ids
-            this.setState({ isUnderDrawing: drawingId as string })
+            this.setState({ selectedDrawingId: drawingId as string, selectedDrawingIds: ids })
         }
     }
 
@@ -747,8 +747,8 @@ class KlineViewContainer extends Component<Props, State> {
                             selectionMode="single"
                             orientation="vertical"
                             style={{ flexDirection: "column" }}
-                            selectedKeys={this.state.selectedDrawing}
-                            onSelectionChange={this.setSelectedDrawing}
+                            selectedKeys={this.state.selectedDrawingIds}
+                            onSelectionChange={this.setSelectedDrawingIds}
                         >
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="line" aria-label="Line"><LineSegmentIcon fill="white" /></ToggleButton>
@@ -836,7 +836,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 shouldUpdateCursors={this.state.shouldUpdateCursors}
                                 overlayIndicators={this.state.overlayIndicators}
                                 callbacksToContainer={this.callbacks}
-                                isUnderDrawing={this.state.isUnderDrawing}
+                                selectedDrawingId={this.state.selectedDrawingId}
                             />
 
                             <VolumeView
@@ -851,7 +851,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 tvar={this.state.kvar}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
                                 shouldUpdateCursors={this.state.shouldUpdateCursors}
-                                isUnderDrawing={this.state.isUnderDrawing}
                             />
 
                             <AxisX
@@ -882,7 +881,6 @@ class KlineViewContainer extends Component<Props, State> {
                                         shouldUpdateCursors={this.state.shouldUpdateCursors}
                                         indexOfStackedIndicators={n}
                                         callbacksToContainer={this.callbacks}
-                                        isUnderDrawing={this.state.isUnderDrawing}
                                     />
                                 )
                             }

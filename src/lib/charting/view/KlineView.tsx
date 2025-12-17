@@ -52,7 +52,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         this.yc.valueScalar = LINEAR_SCALAR;
 
-        const { charts, axisy, overlayCharts } = this.plot();
+        const { charts, axisy, overlayCharts, drawingShapes } = this.plot();
 
         this.state = {
             isInteractive: true,
@@ -61,13 +61,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             charts,
             axisy,
             overlayCharts,
-            drawingParts: []
+            drawingShapes
         };
 
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
         this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
-        this.drawingMouseDrag = this.drawingMouseDrag.bind(this)
         this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
+        this.drawingMouseDrag = this.drawingMouseDrag.bind(this)
         this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
     }
 
@@ -94,9 +94,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         />
 
         const overlayCharts = this.plotOverlayCharts();
-        const drawingParts = this.plotDrawings()
+        const drawingShapes = this.plotDrawings()
 
-        return { charts, axisy, overlayCharts, drawingParts }
+        return { charts, axisy, overlayCharts, drawingShapes }
     }
 
     override plotOverlayCharts() {
@@ -185,8 +185,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
     workingDrawing() {
         if (this.selectedDrawing === undefined) {
-            if (this.props.isUnderDrawing) {
-                this.selectedDrawing = createDrawing(this.props.isUnderDrawing, this.props.xc, this.yc)
+            if (this.props.selectedDrawingId) {
+                this.selectedDrawing = createDrawing(this.props.selectedDrawingId, this.props.xc, this.yc)
                 this.selectedDrawing.activate()
             }
         }
@@ -201,7 +201,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseUp(e: React.MouseEvent) {
-        if (this.props.isUnderDrawing === undefined) {
+        if (this.props.selectedDrawingId === undefined) {
             return;
         }
 
@@ -221,14 +221,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (working.isActivated && !working.isCompleted) {
             const isCompleted = working.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawing = working.renderDrawing()
-                const drawingParts = this.state.drawingParts
-                drawingParts.push(drawing)
-                this.setState({ drawingParts, sketching: undefined })
+                const drawingShape = working.renderDrawing()
+                const drawingShapes = this.state.drawingShapes
+                this.setState({ drawingShapes: [...drawingShapes, drawingShape], sketching: undefined })
 
                 this.drawings.push(working)
                 this.selectedDrawing = undefined
-                this.props.callbacksToContainer.updateSelectedDrawing()
+                this.props.callbacksToContainer.updateSelectedDrawingIds()
             }
 
             // always set is selected in such case: 
@@ -315,7 +314,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        if (this.props.isUnderDrawing === undefined) {
+        if (this.props.selectedDrawingId === undefined) {
             return;
         }
 
@@ -336,7 +335,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     onDrawingMouseDown(e: React.MouseEvent) {
-        if (this.props.isUnderDrawing === undefined) {
+        if (this.props.selectedDrawingId === undefined) {
             return;
         }
 
@@ -380,7 +379,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
 
     drawingMouseDrag(e: React.MouseEvent) {
-        if (this.props.isUnderDrawing === undefined) {
+        if (this.props.selectedDrawingId === undefined) {
             return;
         }
 
@@ -421,7 +420,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.referCursor}
                 {this.state.mouseCursor}
                 {this.state.overlayCharts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.drawingParts.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.drawingShapes.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )

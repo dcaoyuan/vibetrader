@@ -54,7 +54,7 @@ export interface ViewProps {
 
     callbacksToContainer?: CallbacksToContainer;
 
-    isUnderDrawing?: string
+    selectedDrawingId?: string
 }
 
 export interface ViewState {
@@ -71,7 +71,7 @@ export interface ViewState {
 
     overlayCharts?: JSX.Element[];
 
-    drawingParts?: JSX.Element[];
+    drawingShapes?: JSX.Element[];
 
     sketching?: JSX.Element
 }
@@ -79,7 +79,7 @@ export interface ViewState {
 export type CallbacksToContainer = {
     updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
     updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
-    updateSelectedDrawing: (ids?: Set<Key>) => void;
+    updateSelectedDrawingIds: (ids?: Set<Key>) => void;
 }
 
 
@@ -182,7 +182,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element, overlayCharts?: JSX.Element[], drawingParts?: JSX.Element[] };
+    abstract plot(): { charts: JSX.Element[], axisy: JSX.Element, overlayCharts?: JSX.Element[], drawingShapes?: JSX.Element[] };
 
     protected updateChart_Cursor(
         willUpdateChart: boolean,
@@ -193,8 +193,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let state = {};
 
         if (willUpdateChart) {
-            const { charts, axisy, overlayCharts, drawingParts } = this.plot();
-            state = { ...state, charts, axisy, overlayCharts, drawingParts }
+            const { charts, axisy, overlayCharts, drawingShapes } = this.plot();
+            state = { ...state, charts, axisy, overlayCharts, drawingShapes }
         }
 
         if (!willUpdateChart && willUpdateOverlayCharts) {
@@ -389,7 +389,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const wAxisY = ChartView.AXISY_WIDTH
 
         let crossPath: Path
-        if (!this.props.isUnderDrawing) {
+        if (!this.props.selectedDrawingId) {
             crossPath = new Path();
 
             // horizontal line
