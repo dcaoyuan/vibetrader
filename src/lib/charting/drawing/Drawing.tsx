@@ -258,7 +258,7 @@ export abstract class Drawing {
             <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
-                    style: { stroke: "yellow", strokeWidth: "0.7px" }
+                    style: { stroke: "#ffff7f", strokeWidth: "1px" }
                 }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
@@ -298,7 +298,7 @@ export abstract class Drawing {
     }
 }
 
-const RADIUS = 2
+const RADIUS = 3
 export class Handle {
 
     point: TPoint
@@ -365,7 +365,7 @@ export class Handle {
     render(key: string) {
         const path = this.plot();
 
-        return path.render({ key, style: { stroke: "yellow", strokeWidth: "0.7px" } })
+        return path.render({ key, style: { stroke: "#ffff7f", strokeWidth: "1px" } })
     }
 
     equals(o: unknown): boolean {

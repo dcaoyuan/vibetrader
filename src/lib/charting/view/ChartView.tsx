@@ -113,6 +113,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     drawings: Drawing[] = []
 
+    hitDrawingIdx?: number;
+
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)

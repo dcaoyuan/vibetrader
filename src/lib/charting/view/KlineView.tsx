@@ -263,12 +263,31 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         const working = this.workingDrawing()
 
-        const hit = working && working.hits(x, y)
-        // console.log(hit)
-        // if (hit) {
-        //     const drawingWithHandles = working.renderWithHandles()
-        //     this.setState({ drawing: [drawingWithHandles] })
-        // }
+        const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
+        if (hitIdx != -1) {
+            this.hitDrawingIdx = hitIdx
+            const drawingShape = this.drawings[this.hitDrawingIdx].renderDrawingWithHandles()
+            const drawingShapes = [
+                ...this.state.drawingShapes.slice(0, this.hitDrawingIdx),
+                drawingShape,
+                ...this.state.drawingShapes.slice(this.hitDrawingIdx + 1)
+            ];
+
+            this.setState({ drawingShapes })
+
+        } else {
+            if (this.hitDrawingIdx >= 0) {
+                const drawingShape = this.drawings[this.hitDrawingIdx].renderDrawing()
+                const drawingShapes = [
+                    ...this.state.drawingShapes.slice(0, this.hitDrawingIdx),
+                    drawingShape,
+                    ...this.state.drawingShapes.slice(this.hitDrawingIdx + 1)
+                ];
+                this.hitDrawingIdx = undefined
+
+                this.setState({ drawingShapes })
+            }
+        }
 
         if (working === undefined) {
             return // TODO
