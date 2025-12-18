@@ -352,7 +352,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        // this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -382,6 +382,7 @@ class KlineViewContainer extends Component<Props, State> {
                 } else {
                     xc.moveChartsInDirection(fastSteps, -1)
                 }
+
                 this.notify(UpdateEvent.Chart)
                 break;
 
@@ -432,7 +433,6 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case 'Delete':
-                console.log('delet')
                 this.setState({ shouldUpdateDrawing: { action: 'delete' } })
                 break;
 
