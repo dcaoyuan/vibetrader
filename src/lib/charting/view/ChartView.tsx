@@ -376,7 +376,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const wAxisY = ChartView.AXISY_WIDTH
 
         let crosshair: Path
-        if (!(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.createDrawingId) && !this.props.xc.isDisableCrosshair) {
+        if (
+            !(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.createDrawingId) &&
+            !this.props.xc.isDisableCrosshair
+        ) {
             crosshair = new Path();
 
             // horizontal line

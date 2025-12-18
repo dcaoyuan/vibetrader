@@ -183,7 +183,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.setSelectedDrawingIds = this.setSelectedDrawingIds.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
+        this.onMouseUp = this.onMouseUp.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
         this.onWheel = this.onWheel.bind(this);
@@ -606,8 +606,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
     }
 
-    onMouseDown(e: React.MouseEvent) {
-        if (this.state.selectedDrawingIds.size > 0) {
+    onMouseUp(e: React.MouseEvent) {
+        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.selectedDrawingIdx !== undefined) {
             return
         }
 
@@ -872,7 +872,7 @@ class KlineViewContainer extends Component<Props, State> {
                         <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
                             onMouseLeave={this.onMouseLeave}
                             onMouseMove={this.onMouseMove}
-                            onMouseDown={this.onMouseDown}
+                            onMouseUp={this.onMouseUp}
                             onWheel={this.onWheel}
                             style={{ zIndex: 1 }}
                         >
