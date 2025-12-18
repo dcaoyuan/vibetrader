@@ -416,6 +416,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "Escape":
                 if (xc.selectedDrawingIdx !== undefined) {
+                    xc.isReferCursorVisible = false;
                     this.setState({ shouldUpdateDrawing: { action: 'deselect' } })
                     break;
                 }
@@ -587,6 +588,16 @@ class KlineViewContainer extends Component<Props, State> {
     onMouseMove(e: React.MouseEvent) {
         const xc = this.state.xc;
 
+        if (
+            this.state.selectedDrawingIds.size > 0 ||
+            xc.selectedDrawingIdx !== undefined ||
+            xc.hitDrawingIdx !== undefined
+        ) {
+            xc.isMouseCursorVisible = false;
+            this.notify(UpdateEvent.Cursors);
+            return
+        }
+
         const targetRect = e.currentTarget.getBoundingClientRect();
         const x = e.pageX - targetRect.left;
         const y = e.pageY - targetRect.top;
@@ -607,11 +618,15 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseUp(e: React.MouseEvent) {
-        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.selectedDrawingIdx !== undefined) {
+        const xc = this.state.xc;
+
+        if (
+            this.state.selectedDrawingIds.size > 0 ||
+            xc.selectedDrawingIdx !== undefined
+        ) {
             return
         }
 
-        const xc = this.state.xc;
         xc.isMouseCursorVisible = false;
 
         if (e.ctrlKey) {
@@ -653,6 +668,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
+
         xc.isMouseCursorVisible = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)

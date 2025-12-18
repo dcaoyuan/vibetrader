@@ -70,6 +70,8 @@ export class ChartXControl {
 
     // share across view and view container
     selectedDrawingIdx: number;
+    hitDrawingIdx: number;
+
 
     readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
     private popupViews() { return this.#popupViewRefs.keys() };

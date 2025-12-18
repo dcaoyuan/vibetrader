@@ -123,8 +123,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     drawings: Drawing[] = []
 
-    hitDrawingIdx?: number;
-
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
@@ -673,13 +671,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
         if (hitIdx != -1) {
-            this.hitDrawingIdx = hitIdx
+            this.props.xc.hitDrawingIdx = hitIdx
             this.showDrawingSelect(hitIdx)
 
         } else {
-            if (this.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.hitDrawingIdx) {
-                this.showDrawingDeselect(this.hitDrawingIdx)
-                this.hitDrawingIdx = undefined
+            if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
+                this.showDrawingDeselect(this.props.xc.hitDrawingIdx)
+                this.props.xc.hitDrawingIdx = undefined
             }
         }
 
