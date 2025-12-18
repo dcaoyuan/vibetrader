@@ -8,9 +8,8 @@ import AxisY from "../pane/AxisY";
 import './chartview.css';
 import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
-import { Fragment, type JSX } from "react";
+import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
-import { type Drawing, type TPoint } from "../drawing/Drawing";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -95,7 +94,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
     }
 
     protected override plotOverlayCharts() {
-        const overlayCharts: JSX.Element[] = []
+        const overlayChartLines: JSX.Element[] = []
         if (this.props.overlayIndicators) {
             let depth = 1;
             this.props.overlayIndicators.map((indicator, n) => {
@@ -119,14 +118,14 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     }
 
                     if (ovchart !== undefined) {
-                        overlayCharts.push(ovchart)
+                        overlayChartLines.push(ovchart)
                     }
                 }
 
             })
         }
 
-        return overlayCharts;
+        return overlayChartLines;
     }
 
     override computeMaxValueMinValue() {

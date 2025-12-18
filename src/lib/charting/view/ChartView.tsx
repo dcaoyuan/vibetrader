@@ -178,7 +178,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         willUpdateCursor: boolean, xMouse: number, yMouse: number
     ) {
 
-        let state = {};
+        let state: Partial<ViewState> = {};
 
         if (willUpdateChart) {
             const { chartLines, chartAxisy, overlayChartLines, drawingLines } = this.plot();
@@ -186,8 +186,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (!willUpdateChart && willUpdateOverlayCharts) {
-            const overlayCharts = this.plotOverlayCharts()
-            state = { ...state, overlayCharts }
+            const overlayChartLines = this.plotOverlayCharts()
+            state = { ...state, overlayChartLines }
         }
 
         if (willUpdateCursor) {
@@ -207,7 +207,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.updateState({}, xMouse, yMouse);
     }
 
-    protected updateState(state: object, xMouse?: number, yMouse?: number) {
+    protected updateState(state: Partial<ViewState>, xMouse?: number, yMouse?: number) {
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
         let latestValueLabel: JSX.Element
@@ -295,7 +295,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         this.tryToUpdateIndicatorLables(mouseTime, referTime);
-        this.setState({ ...state, referCursor, mouseCursor, latestValueLabel })
+        this.setState({ ...(state as object), referCursor, mouseCursor, latestValueLabel })
     }
 
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {
@@ -538,7 +538,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     protected deleteSelectedDrawing() {
         const selectedDrawingIdx = this.props.xc.selectedDrawingIdx;
-        if (this.props.xc.selectedDrawingIdx !== undefined) {
+        if (selectedDrawingIdx !== undefined) {
             const drawingLines = [
                 ...this.state.drawingLines.slice(0, selectedDrawingIdx),
                 ...this.state.drawingLines.slice(selectedDrawingIdx + 1)
@@ -549,7 +549,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 ...this.drawings.slice(selectedDrawingIdx + 1)
             ]
 
-            this.drawings = drawings;
+            // should also clear hitDrawingIdx
+            this.props.xc.selectedDrawingIdx = undefined
+            this.props.xc.hitDrawingIdx = undefined
+
+            this.drawings = drawings
             this.setState({ drawingLines })
         }
     }
@@ -757,8 +761,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         } else {
             if (this.props.xc.selectedDrawingIdx !== undefined) {
-                this.showDrawingDeselect(this.props.xc.selectedDrawingIdx)
-                this.props.xc.selectedDrawingIdx = undefined
+                this.deselectDrawing()
             }
         }
 

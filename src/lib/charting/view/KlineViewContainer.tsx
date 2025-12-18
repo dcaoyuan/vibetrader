@@ -352,7 +352,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        // this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -748,12 +748,12 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-    setSelectedIndicatorTags(selectedTags: 'all' | Set<Key>) {
+    setSelectedIndicatorTags(selectedIndicatorTags: 'all' | Set<Key>) {
         if (this.refreshTimeoutId) {
             clearTimeout(this.refreshTimeoutId);
         }
 
-        this.fetchData_calcInds(this.latestTime, selectedTags)
+        this.fetchData_calcInds(this.latestTime, selectedIndicatorTags)
     }
 
     setSelectedDrawingIds(ids?: Set<Key>) {
