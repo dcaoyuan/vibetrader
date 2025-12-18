@@ -58,7 +58,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
         this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
         this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
-        this.drawingMouseDrag = this.drawingMouseDrag.bind(this)
         this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
     }
 

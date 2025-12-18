@@ -352,7 +352,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        // this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -759,7 +759,7 @@ class KlineViewContainer extends Component<Props, State> {
     setSelectedDrawingIds(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
             this.setState({
-                shouldUpdateDrawing: { action: 'create', createDrawingId: undefined },
+                shouldUpdateDrawing: { createDrawingId: undefined },
                 selectedDrawingIds: new Set()
             })
 

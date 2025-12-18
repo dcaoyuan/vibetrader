@@ -76,6 +76,8 @@ export interface ViewState {
     latestValueLabel?: JSX.Element
 
     sketching?: JSX.Element
+
+    cursor?: string;
 }
 
 export type CallbacksToContainer = {
@@ -84,10 +86,9 @@ export type CallbacksToContainer = {
     updateSelectedDrawingIds: (ids?: Set<Key>) => void;
 }
 
-const HANDLE_CURSOR = "crosshair"
 const DEFAULT_CURSOR = "default"
-const MOVE_CURSOR = "move"
-
+const HANDLE_CURSOR = "pointer"
+const MOVE_CURSOR = "all-scroll" // 'move' doesn't work?
 
 /**
  * A ChartView's container can be any Component even without a ChartViewContainer,
@@ -125,6 +126,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         super(props)
 
         this.yc = new ChartYControl(props.baseSer, props.height);
+
+        this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
+        this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
+        this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
+        this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
 
         console.log(`${this.props.name} ChartView render`)
     }
@@ -527,10 +533,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // --- drawing ---
 
-    selectedDrawing: Drawing
+    creatingDrawing: Drawing
+    isDragging: boolean
 
     protected plotDrawings() {
-        return this.drawings.map((drawing, n) => this.props.xc.selectedDrawingIdx === n
+        return this.drawings.map((drawing, n) => this.props.xc.selectedDrawingIdx === n || this.props.xc.hitDrawingIdx === n
             ? drawing.renderDrawingWithHandles("drawing-" + n)
             : drawing.renderDrawing("drawing-" + n))
     }
@@ -565,7 +572,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-    private showDrawingSelect(idx: number) {
+    private showDrawingSelect(idx: number, cursor?: string) {
         const drawingLine = this.drawings[idx].renderDrawingWithHandles()
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
@@ -573,10 +580,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             ...this.state.drawingLines.slice(idx + 1)
         ];
 
-        this.setState({ drawingLines })
+        this.setState({ drawingLines, cursor })
     }
 
-    private showDrawingDeselect(idx: number) {
+    private showDrawingDeselect(idx: number, cursor?: string) {
         const drawingLine = this.drawings[idx].renderDrawing()
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
@@ -584,172 +591,40 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             ...this.state.drawingLines.slice(idx + 1)
         ];
 
-        this.setState({ drawingLines })
+        this.setState({ drawingLines, cursor })
     }
 
     workingDrawing() {
-        if (this.selectedDrawing === undefined) {
+        if (this.creatingDrawing === undefined) {
             if (this.props.shouldUpdateDrawing.createDrawingId) {
-                this.selectedDrawing = createDrawing(this.props.shouldUpdateDrawing.createDrawingId, this.props.xc, this.yc)
-                this.selectedDrawing.activate()
+                this.creatingDrawing = createDrawing(this.props.shouldUpdateDrawing.createDrawingId, this.props.xc, this.yc)
             }
         }
 
-        return this.selectedDrawing;
-    }
+        if (this.creatingDrawing !== undefined) {
+            return this.creatingDrawing;
 
-    private cursor: string = undefined
+        } else {
+            if (this.props.xc.selectedDrawingIdx >= 0) {
+                return this.drawings[this.props.xc.selectedDrawingIdx]
+            }
+        }
+
+        return undefined;
+    }
 
     private p(x: number, y: number): TPoint {
         return { time: this.props.xc.tx(x), value: this.yc.vy(y) }
     }
 
-    onDrawingMouseUp(e: React.MouseEvent) {
-        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
-            return;
-        }
-
-        if (e.detail >= 2) {
-            return;
-        }
-
-        // sinlge-clicked ? go on drawing, or, check my selection status 
-
-        console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        const x = e.nativeEvent.offsetX - this.props.x
-        const y = e.nativeEvent.offsetY - this.props.y
-
-        const working = this.workingDrawing()
-
-        // go on drawing ?
-        if (working.isActivated && !working.isCompleted) {
-            const isCompleted = working.anchorHandle(this.p(x, y))
-            if (isCompleted) {
-                const drawingLine = working.renderDrawing()
-                const drawingLines = this.state.drawingLines
-                this.setState({ drawingLines: [...drawingLines, drawingLine], sketching: undefined })
-
-                this.drawings.push(working)
-                this.selectedDrawing = undefined
-                this.props.callbacksToContainer.updateSelectedDrawingIds()
-            }
-
-            // always set is selected in such case: 
-            working.isSelected = true
-
-        } else {
-            // else, check selection status
-            if (working.hits(x, y)) {
-                if (working.isSelected) {
-                    //   this.chart.lookupActionAt(classOf[EditAction], e.getPoint) foreach {
-                    //     action =>
-                    //       /** as the glassPane is always in the front, so add it there */
-                    //       action.anchorEditor(drawingPane.view.glassPane)
-                    //     action.execute
-                    //   }
-                }
-
-                working.isSelected = true
-                // chart is just selected, don't call activate() here, let drawingPane 
-                // to decide if also activate it.
-
-            } else {
-                working.isSelected = false
-                // chart is just deselected, don't call passivate() here, let drawingPane
-                // to decide if also passivate it.
-            }
-        }
-    }
-
-    onDrawingMouseMove(e: React.MouseEvent) {
-        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
-        const [x, y] = this.translate(e)
-
-        const working = this.workingDrawing()
-
-        const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
-        if (hitIdx != -1) {
-            this.props.xc.hitDrawingIdx = hitIdx
-            this.showDrawingSelect(hitIdx)
-
-        } else {
-            if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
-                this.showDrawingDeselect(this.props.xc.hitDrawingIdx)
-                this.props.xc.hitDrawingIdx = undefined
-            }
-        }
-
-        if (working === undefined) {
-            return // TODO
-        }
-
-        if (working.isActivated) {
-            if (working.isCompleted) {
-                // completed, decide what kind of cursor will be used and if it's ready to be moved
-                const handle = working.getHandleAt(x, y)
-                // mouse points to this handle ? 
-                if (handle !== undefined) {
-                    const idx = working.handles.indexOf(handle)
-                    if (idx >= 0) {
-                        working.currHandleIdx = idx
-                    }
-
-                    this.cursor = HANDLE_CURSOR
-
-                } else {
-                    // else, mouse does not point to any handle 
-                    working.currHandleIdx = -1
-                    // mouse points to this chart ? 
-                    if (working.hits(x, y)) {
-                        working.isReadyToDrag = true
-                        this.cursor = MOVE_CURSOR
-
-                    } else {
-                        // else, mouse does not point to this chart 
-                        working.isReadyToDrag = false
-                        this.cursor = DEFAULT_CURSOR
-                    }
-                }
-
-            } else {
-                // not completed, strecth handle
-                if (working.isAnchored) {
-                    const sketching = working.stretchHandle(this.p(x, y))
-                    this.setState({ sketching })
-                }
-            }
-        }
-    }
-
-
-    onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
-            return;
-        }
-
-        console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        if (e.detail === 2) {
-            const [x, y] = this.translate(e)
-
-            const working = this.workingDrawing()
-            // double clicked, process chart whose nHandles is variable
-            if (!working.isCompleted) {
-                if (working.nHandles === undefined) {
-                    working.isAnchored = false;
-                    working.isCompleted = true;
-                    working.currHandleIdx = -1;
-                }
-            }
-        }
-    }
-
     onDrawingMouseDown(e: React.MouseEvent) {
-        console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        // console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        this.isDragging = true;
+
         const [x, y] = this.translate(e)
 
         const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
         if (hitIdx != -1) {
-            // this.props.xc.isReferCursorVisible = true
             this.props.xc.selectedDrawingIdx = hitIdx
             this.showDrawingSelect(hitIdx)
 
@@ -759,20 +634,26 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
-            return;
-        }
-
         const working = this.workingDrawing()
-        if (working.isReadyToDrag) {
+        const handle = working.getHandleAt(x, y)
+        if (handle !== undefined) {
+            const idx = working.handles.indexOf(handle)
+            if (idx >= 0) {
+                working.currHandleIdx = idx
+            }
+
+            this.setState({ cursor: HANDLE_CURSOR })
+
+        } else {
             working.mousePressedPoint = this.p(x, y)
-            // record handles when mouse pressed, for moveChart() 
-            const n = working.handles.length
+            // store handles when mouse pressed, for moveChart() 
             let i = 0
-            while (i < n) {
+            while (i < working.handles.length) {
                 working.currHandlesWhenMousePressed[i].point = working.handles[i].point
                 i++
             }
+
+            this.setState({ cursor: MOVE_CURSOR })
         }
 
         /** @TODO */
@@ -798,23 +679,145 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     }
 
-    drawingMouseDrag(e: React.MouseEvent) {
+    onDrawingMouseUp(e: React.MouseEvent) {
+        // console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        this.isDragging = false;
+
+        // sinlge-clicked ? if true go on drawing
+        if (e.detail >= 2) {
+            return;
+        }
+
+
+        const working = this.workingDrawing()
+        if (!working) {
+            return
+        }
+
+        const [x, y] = this.translate(e)
+
+        if (working.isCompleted) {
+            // all done. 
+            // if (working.hits(x, y)) {
+            //     if (working.isSelected) {
+            //         //   this.chart.lookupActionAt(classOf[EditAction], e.getPoint) foreach {
+            //         //     action =>
+            //         //       /** as the glassPane is always in the front, so add it there */
+            //         //       action.anchorEditor(drawingPane.view.glassPane)
+            //         //     action.execute
+            //         //   }
+            //     }
+
+            //     // chart is just selected, don't call activate() here, let drawingPane 
+            //     // to decide if also activate it.
+
+            // } else {
+            //     // chart is just deselected, don't call passivate() here, let drawingPane
+            //     // to decide if also passivate it.
+            // }
+
+        } else {
+            // go on drawing
+            const isCompleted = working.anchorHandle(this.p(x, y))
+            if (isCompleted) {
+                const drawingLine = working.renderDrawing()
+                const drawingLines = this.state.drawingLines
+                this.setState({ drawingLines: [...drawingLines, drawingLine], sketching: undefined })
+
+                this.drawings.push(working)
+                this.creatingDrawing = undefined
+                this.props.callbacksToContainer.updateSelectedDrawingIds(undefined)
+            }
+
+        }
+    }
+
+    onDrawingMouseMove(e: React.MouseEvent) {
+        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
+        const [x, y] = this.translate(e)
+
+        const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
+        if (hitIdx != -1) {
+            this.props.xc.hitDrawingIdx = hitIdx
+            this.showDrawingSelect(hitIdx)
+
+        } else {
+            if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
+                this.showDrawingDeselect(this.props.xc.hitDrawingIdx)
+                this.props.xc.hitDrawingIdx = undefined
+            }
+        }
+
+        const working = this.workingDrawing()
+
+        if (working) {
+            if (working.isCompleted) {
+
+                if (this.isDragging) {
+                    if (working.currHandleIdx >= 0) {
+                        working.stretchCurrentHandle(this.p(x, y))
+                        this.showDrawingSelect(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
+
+                    } else {
+                        working.moveDrawing(this.p(x, y))
+                        this.showDrawingSelect(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
+                    }
+
+                } else {
+                    // mouse points to any handle ? 
+                    const handle = working.getHandleAt(x, y)
+                    if (handle !== undefined) {
+                        const idx = working.handles.indexOf(handle)
+                        if (idx >= 0) {
+                            working.currHandleIdx = idx
+                        }
+
+                        this.setState({ cursor: HANDLE_CURSOR })
+
+                    } else {
+                        // mouse does not point to any handle 
+                        working.currHandleIdx = -1
+                        // mouse points to this drawing ? 
+                        if (working.hits(x, y)) {
+                            this.setState({ cursor: MOVE_CURSOR })
+
+                        } else {
+                            //  mouse does not point to this drawing 
+                            this.setState({ cursor: DEFAULT_CURSOR })
+                        }
+                    }
+                }
+
+            } else {
+                // not completed, strecth handle
+                if (working.isAnchored) {
+                    const sketching = working.stretchCurrentHandle(this.p(x, y))
+                    this.setState({ sketching, cursor: DEFAULT_CURSOR })
+                }
+            }
+
+        } else {
+            this.setState({ cursor: DEFAULT_CURSOR })
+        }
+    }
+
+
+    onDrawingMouseDoubleClick(e: React.MouseEvent) {
         if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
             return;
         }
 
-        console.log("mouse drag", e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        const [x, y] = this.translate(e)
+        console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        if (e.detail === 2) {
+            const [x, y] = this.translate(e)
 
-        const working = this.workingDrawing()
-        // only do something when isCompleted() 
-        if (working.isActivated && working.isCompleted) {
-            if (working.currHandleIdx != -1) {
-                working.stretchHandle(this.p(x, y))
-
-            } else {
-                if (working.isReadyToDrag) {
-                    working.moveDrawing(this.p(x, y))
+            const working = this.workingDrawing()
+            // double clicked, process chart whose nHandles is variable
+            if (!working.isCompleted) {
+                if (working.nHandles === undefined) {
+                    working.isAnchored = false;
+                    working.isCompleted = true;
+                    working.currHandleIdx = -1;
                 }
             }
         }
@@ -828,7 +831,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 onMouseDown={this.onDrawingMouseDown}
                 onMouseMove={this.onDrawingMouseMove}
                 onMouseUp={this.onDrawingMouseUp}
-                onDrag={this.drawingMouseDrag}
+                cursor={this.state.cursor}
             >
                 {/* Invisible background to capture clicks in empty space */}
                 <rect width="100%" height="100%" fill="transparent" pointerEvents="all" />

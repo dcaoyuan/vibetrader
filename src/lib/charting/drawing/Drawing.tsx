@@ -12,7 +12,6 @@ export abstract class Drawing {
 
     xc: ChartXControl
     yc: ChartYControl
-    isSelected: boolean
 
     constructor(xc: ChartXControl, yc: ChartYControl, points?: TPoint[]) {
         this.xc = xc;
@@ -53,7 +52,6 @@ export abstract class Drawing {
 
     isCompleted = false
     isAnchored = false
-    isActivated = false
     isReadyToDrag = false
 
     private readonly handlePointsBuf: TPoint[] = []
@@ -133,7 +131,7 @@ export abstract class Drawing {
         } else {
             // if only one handle, should let it be completed at once
             if (this.nHandles == 1) {
-                this.stretchHandle(point)
+                this.stretchCurrentHandle(point)
             }
 
             this.isAnchored = false
@@ -145,7 +143,7 @@ export abstract class Drawing {
     }
 
 
-    stretchHandle(point: TPoint) {
+    stretchCurrentHandle(point: TPoint) {
         this.handles[this.currHandleIdx].point = point
 
         if (!this.isCompleted) {
@@ -191,14 +189,6 @@ export abstract class Drawing {
         }
 
         return this.renderDrawingWithHandles()
-    }
-
-    activate() {
-        this.isActivated = true
-    }
-
-    passivate() {
-        this.isActivated = false
     }
 
 
