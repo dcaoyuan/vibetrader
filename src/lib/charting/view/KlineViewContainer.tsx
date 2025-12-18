@@ -352,7 +352,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        // this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
