@@ -79,7 +79,7 @@ type State = {
     referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
-    selectedIndTags?: 'all' | Set<Key>;
+    selectedIndicatorTags?: 'all' | Set<Key>;
     selectedDrawingIds?: Set<Key>;
 
     yKlineView?: number;
@@ -172,14 +172,14 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateCursor: { changed: 0 },
             shouldUpdateDrawing: {},
             stackedIndicators: [],
-            selectedIndTags: new Set(['ema', 'rsi', 'macd']),
+            selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
             selectedDrawingIds: new Set(),
             ...geometry,
         }
 
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)
-        this.setSelectedIndTags = this.setSelectedIndTags.bind(this)
+        this.setSelectedIndicatorTags = this.setSelectedIndicatorTags.bind(this)
         this.setSelectedDrawingIds = this.setSelectedDrawingIds.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
@@ -256,7 +256,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    fetchData_calcInds = (startTime?: number, selectedIndTags?: 'all' | Set<string | number>) => {
+    fetchData_calcInds = (startTime?: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
         this.fetchDataBinance(startTime)
             .catch(ex => {
                 console.error(ex);
@@ -265,21 +265,21 @@ class KlineViewContainer extends Component<Props, State> {
             .then((latestTime) => {
                 let start = performance.now()
 
-                let selectedIndFns = new Map<string, ((pinets: PineTS) => unknown)>();
-                const selectedIndTagsNow = selectedIndTags || this.state.selectedIndTags
-                if (selectedIndTagsNow === 'all') {
-                    selectedIndFns = this.loadedIndFns;
+                let selectedIndicatorFns = new Map<string, ((pinets: PineTS) => unknown)>();
+                const selectedIndicatorTagsNow = selectedIndicatorTags || this.state.selectedIndicatorTags
+                if (selectedIndicatorTagsNow === 'all') {
+                    selectedIndicatorFns = this.loadedIndFns;
 
                 } else {
-                    for (const indName of selectedIndTagsNow) {
-                        selectedIndFns.set(indName as string, this.loadedIndFns.get(indName as string))
+                    for (const indName of selectedIndicatorTagsNow) {
+                        selectedIndicatorFns.set(indName as string, this.loadedIndFns.get(indName as string))
                     }
                 }
 
                 const pinets = new PineTS(new TSerProvider(this.state.kvar), 'ETH', '1d');
 
                 const fnRuns: Promise<{ indName: string, result: Context }>[] = []
-                for (const [indName, fn] of selectedIndFns) {
+                for (const [indName, fn] of selectedIndicatorFns) {
                     const fnRun = pinets.run(fn).then(result => ({ indName, result }));
                     fnRuns.push(fnRun)
                 }
@@ -325,11 +325,11 @@ class KlineViewContainer extends Component<Props, State> {
 
                     if (this.state.isLoaded) {
                         // regular update
-                        if (selectedIndTags !== undefined) { // selectedIndTags changed
+                        if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
                             this.updateState({
                                 overlayIndicators,
                                 stackedIndicators,
-                                selectedIndTags
+                                selectedIndicatorTags
                             })
 
                         } else {
@@ -370,7 +370,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         const xc = this.state.xc;
-        xc.isMouseCursorVisible = false;
+        xc.isMouseCursorEnabled = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
 
@@ -416,16 +416,16 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "Escape":
                 if (xc.selectedDrawingIdx !== undefined) {
-                    xc.isReferCursorVisible = false;
+                    xc.isReferCursorEnabled = false;
                     this.setState({ shouldUpdateDrawing: { action: 'deselect' } })
                     break;
                 }
 
-                if (xc.isReferCursorVisible) {
-                    xc.isReferCursorVisible = false;
+                if (xc.isReferCursorEnabled) {
+                    xc.isReferCursorEnabled = false;
 
                 } else {
-                    xc.isDisableCrosshair = !xc.isDisableCrosshair
+                    xc.isCrosshairEnabled = !xc.isCrosshairEnabled
                 }
 
                 this.notify(UpdateEvent.Cursors)
@@ -449,7 +449,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
         }).then(() => {
-            this.fetchData_calcInds(undefined, this.state.selectedIndTags)
+            this.fetchData_calcInds(undefined, this.state.selectedIndicatorTags)
 
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
@@ -491,7 +491,7 @@ class KlineViewContainer extends Component<Props, State> {
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
         const referColor = '#00F0F0C0'; // 'orange'
-        if (xc.isReferCursorVisible) {
+        if (xc.isReferCursorEnabled) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
                 const cursorX = xc.xr(xc.referCursorRow)
@@ -499,7 +499,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
         }
 
-        if (xc.isMouseCursorVisible) {
+        if (xc.isMouseCursorEnabled) {
             const cursorX = xc.xr(xc.mouseCursorRow)
             mouseCursor = this.#plotCursor(cursorX, '#00F000')
         }
@@ -556,7 +556,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.isDisableCrosshair) {
+        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.isCrosshairEnabled) {
             return <></>
         }
 
@@ -580,7 +580,7 @@ class KlineViewContainer extends Component<Props, State> {
         const xc = this.state.xc;
 
         // clear mouse cursor
-        xc.isMouseCursorVisible = false;
+        xc.isMouseCursorEnabled = false;
 
         this.notify(UpdateEvent.Cursors);
     }
@@ -593,7 +593,7 @@ class KlineViewContainer extends Component<Props, State> {
             xc.selectedDrawingIdx !== undefined ||
             xc.hitDrawingIdx !== undefined
         ) {
-            xc.isMouseCursorVisible = false;
+            xc.isMouseCursorEnabled = false;
             this.notify(UpdateEvent.Cursors);
             return
         }
@@ -608,10 +608,10 @@ class KlineViewContainer extends Component<Props, State> {
             // draw mouse cursor only when not in the axis-y area
             const row = xc.rb(b)
             xc.setMouseCursorByRow(row)
-            xc.isMouseCursorVisible = true
+            xc.isMouseCursorEnabled = true
 
         } else {
-            xc.isMouseCursorVisible = false;
+            xc.isMouseCursorEnabled = false;
         }
 
         this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
@@ -627,7 +627,7 @@ class KlineViewContainer extends Component<Props, State> {
             return
         }
 
-        xc.isMouseCursorVisible = false;
+        xc.isMouseCursorEnabled = false;
 
         if (e.ctrlKey) {
             // will select chart on pane
@@ -654,13 +654,13 @@ class KlineViewContainer extends Component<Props, State> {
                 ) {
                     const row = xc.rb(b)
                     xc.setReferCursorByRow(row, true)
-                    xc.isReferCursorVisible = true;
+                    xc.isReferCursorEnabled = true;
 
                     this.notify(UpdateEvent.Cursors);
                 }
 
             } else {
-                xc.isReferCursorVisible = false;
+                xc.isReferCursorEnabled = false;
                 this.notify(UpdateEvent.Cursors)
             }
         }
@@ -669,7 +669,7 @@ class KlineViewContainer extends Component<Props, State> {
     onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
 
-        xc.isMouseCursorVisible = false;
+        xc.isMouseCursorEnabled = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
         const delta = Math.round(e.deltaY / xc.nBars);
@@ -748,12 +748,12 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-    setSelectedIndTags(selectedIndTags: 'all' | Set<Key>) {
+    setSelectedIndicatorTags(selectedTags: 'all' | Set<Key>) {
         if (this.refreshTimeoutId) {
             clearTimeout(this.refreshTimeoutId);
         }
 
-        this.fetchData_calcInds(this.latestTime, selectedIndTags)
+        this.fetchData_calcInds(this.latestTime, selectedTags)
     }
 
     setSelectedDrawingIds(ids?: Set<Key>) {
@@ -873,8 +873,8 @@ class KlineViewContainer extends Component<Props, State> {
                         <TagGroup
                             aria-label="ind-tags"
                             selectionMode="multiple"
-                            selectedKeys={this.state.selectedIndTags}
-                            onSelectionChange={this.setSelectedIndTags}
+                            selectedKeys={this.state.selectedIndicatorTags}
+                            onSelectionChange={this.setSelectedIndicatorTags}
                         >
                             <TagList>
                                 {allInds.map((tag, n) =>
@@ -1002,7 +1002,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
                                             <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
                                                 {
-                                                    this.state.xc.isReferCursorVisible && outputs.map(({ title, color }, n) =>
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
                                                         <span key={"ovarlay-indicator-lable-" + title} >
                                                             <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
@@ -1062,7 +1062,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
                                             <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
                                                 {
-                                                    this.state.xc.isReferCursorVisible && outputs.map(({ title, color }, k) =>
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
                                                             <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{

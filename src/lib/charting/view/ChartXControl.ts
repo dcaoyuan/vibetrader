@@ -59,10 +59,11 @@ export class ChartXControl {
 
     mouseCursorRow = 0;
 
-    isReferCursorVisible = false
-    isMouseCursorVisible = false
+    isReferCursorEnabled = false
+    isMouseCursorEnabled = false
 
-    isDisableCrosshair = false;
+    isCrosshairEnabled = false;
+
     isCursorAccelerated = false;
 
     fixedNBars?: number;
@@ -71,7 +72,6 @@ export class ChartXControl {
     // share across view and view container
     selectedDrawingIdx: number;
     hitDrawingIdx: number;
-
 
     readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
     private popupViews() { return this.#popupViewRefs.keys() };

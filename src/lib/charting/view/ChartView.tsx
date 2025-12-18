@@ -222,7 +222,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const latestTime = this.props.xc.lastOccurredTime();
 
         let referTime: number
-        if (xc.isReferCursorVisible) {
+        if (xc.isReferCursorEnabled) {
             referTime = xc.tr(xc.referCursorRow)
             const isOccurredTime = xc.occurred(referTime);
 
@@ -244,7 +244,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         let mouseTime: number
-        if (xc.isMouseCursorVisible) {
+        if (xc.isMouseCursorEnabled) {
             mouseTime = xc.tr(xc.mouseCursorRow)
             const isOccurredTime = xc.occurred(mouseTime);
             // try to align x to bar center
@@ -376,7 +376,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let crosshair: Path
         if (
             !(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.createDrawingId) &&
-            !this.props.xc.isDisableCrosshair
+            !this.props.xc.isCrosshairEnabled
         ) {
             crosshair = new Path();
 
