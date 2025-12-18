@@ -64,14 +64,11 @@ export interface ViewProps {
 }
 
 export interface ViewState {
-    isInteractive: true
-    isPinned: false
 
     chartLines: JSX.Element[];
     chartAxisy?: JSX.Element;
     overlayChartLines?: JSX.Element[];
     drawingLines?: JSX.Element[];
-
 
     mouseCursor?: JSX.Element
     referCursor?: JSX.Element
@@ -530,6 +527,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // --- drawing ---
 
+    selectedDrawing: Drawing
+
     protected plotDrawings() {
         return this.drawings.map((drawing, n) => this.props.xc.selectedDrawingIdx === n
             ? drawing.renderDrawingWithHandles("drawing-" + n)
@@ -587,11 +586,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         this.setState({ drawingLines })
     }
-
-
-
-
-    selectedDrawing: Drawing
 
     workingDrawing() {
         if (this.selectedDrawing === undefined) {

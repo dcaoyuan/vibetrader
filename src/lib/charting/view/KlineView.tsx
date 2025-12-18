@@ -49,9 +49,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const { chartLines, chartAxisy, overlayChartLines, drawingLines } = this.plot();
 
         this.state = {
-            isInteractive: true,
-            isPinned: false,
-
             chartLines,
             chartAxisy,
             overlayChartLines,

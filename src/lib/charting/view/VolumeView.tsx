@@ -16,9 +16,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const { chartLines, chartAxisy } = this.plot();
 
         this.state = {
-            isInteractive: true,
-            isPinned: false,
-
             chartLines,
             chartAxisy,
         };
