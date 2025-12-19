@@ -320,7 +320,7 @@ export class Handle {
     private plot() {
         const path = new Path()
 
-        const { x, y } = this.xyLocation()
+        const [x, y] = this.xyLocation()
 
         path.moveto(x - RADIUS, y - RADIUS)
         path.lineto(x - RADIUS, y + RADIUS)
@@ -335,25 +335,15 @@ export class Handle {
         const x = this.xc.xb(this.xc.bt(this.point.time))
         const y = this.yc.yv(this.point.value)
 
-        return { x, y };
+        return [x, y];
     }
 
     hits(x: number, y: number): boolean {
-        /**
-         * always recompute location as not only point could have been changed,
-         * but also the view's size could have been changed
-         */
-        const location = this.xyLocation()
+        const [x0, y0] = this.xyLocation()
 
-        const centerx = location.x
-        const centery = location.y
+        const distance = Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2))
 
-        return (
-            x >= centerx - RADIUS &&
-            x <= centerx + RADIUS &&
-            y >= centery - RADIUS &&
-            y <= centery + RADIUS
-        )
+        return distance <= 4
     }
 
     render(key: string) {
