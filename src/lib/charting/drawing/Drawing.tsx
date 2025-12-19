@@ -40,8 +40,8 @@ export abstract class Drawing {
      */
     readonly handles: Handle[] = [];
 
-    /** For moving drawing: the valuePoint and handls when mouse is pressed before drag */
-    readonly currHandlesWhenMousePressed: Handle[] = []
+    /** For moving drawing: the handles when mouse is pressed before drag */
+    readonly handlesWhenMousePressed: Handle[] = []
 
     /**
      * define mousePressedPoint as final to force using copy(..) to set its value
@@ -52,16 +52,13 @@ export abstract class Drawing {
 
     isCompleted = false
     isAnchored = false
-    isReadyToDrag = false
-
-    private readonly handlePointsBuf: TPoint[] = []
 
     protected newHandle(point?: TPoint) {
         return new Handle(this.xc, this.yc, point)
     }
 
     /**
-     * init with known points
+     * init by known points
      */
     initWithPoints(points: TPoint[]) {
         const n = points.length
@@ -71,7 +68,7 @@ export abstract class Drawing {
         let i = 0
         while (i < n) {
             this.handles.push(this.newHandle())
-            this.currHandlesWhenMousePressed.push(this.newHandle())
+            this.handlesWhenMousePressed.push(this.newHandle())
 
             // assign points to handles
             this.handles[i].point = points[i]
@@ -83,23 +80,22 @@ export abstract class Drawing {
 
     /**
      *
-     *
-     * @return <code>true</code> if accomplished after this anchor,
-     *         <code>false</code> if not yet.
+     * @return true  if accomplished after this anchor,
+     *         false if not yet.
      */
     anchorHandle(point: TPoint): boolean {
         if (this.handles.length === 0) {
             if (this.nHandles === undefined) {
                 // it is drawing with variable number of handles , create first handle 
                 this.handles.push(this.newHandle())
-                this.currHandlesWhenMousePressed.push(this.newHandle())
+                this.handlesWhenMousePressed.push(this.newHandle())
 
             } else {
                 // it is drawing with known number of handles, create all handles 
                 let i = 0
                 while (i < this.nHandles) {
                     this.handles.push(this.newHandle())
-                    this.currHandlesWhenMousePressed.push(this.newHandle())
+                    this.handlesWhenMousePressed.push(this.newHandle())
                     i++;
                 }
             }
@@ -125,7 +121,7 @@ export abstract class Drawing {
             /// create next handle if not created yet
             if (this.handles.length - 1 < this.currHandleIdx) {
                 this.handles.push(this.newHandle(point))
-                this.currHandlesWhenMousePressed.push(this.newHandle())
+                this.handlesWhenMousePressed.push(this.newHandle())
             }
 
         } else {
@@ -168,7 +164,7 @@ export abstract class Drawing {
 
         let i = 0
         while (i < this.handles.length) {
-            const oldPoint = this.currHandlesWhenMousePressed[i].point
+            const oldPoint = this.handlesWhenMousePressed[i].point
 
             // compute newTime, process bar fisrt, then transfer to time 
             const oldBar = this.xc.bt(oldPoint.time)
@@ -191,39 +187,16 @@ export abstract class Drawing {
         return this.renderDrawingWithHandles()
     }
 
-
-    getCurrentHandlesPoints(): TPoint[] {
-        return this.handlesPoints(this.handles)
-    }
-
-    protected handlesPoints(handles: Handle[]): TPoint[] {
-        this.handlePointsBuf.length = 0
+    getHandleIdxAt(x: number, y: number): number {
         let i = 0
-        while (i < handles.length) {
-            this.handlePointsBuf.push(handles[i].point)
+        while (i < this.handles.length) {
+            if (this.handles[i].hits(x, y)) {
+                return i;
+            }
             i++
         }
 
-        return this.handlePointsBuf
-    }
-
-    getAllCurrentHandlesPath(): Path[] {
-        const allCurrHandlesPathBuf = []
-        for (const handle of this.handles) {
-            allCurrHandlesPathBuf.push(handle.getPath())
-        }
-
-        return allCurrHandlesPathBuf;
-    }
-
-    getHandleAt(x: number, y: number): Handle {
-        for (const handle of this.handles) {
-            if (handle.hits(x, y)) {
-                return handle
-            }
-        }
-
-        return undefined
+        return -1
     }
 
     renderHandles() {

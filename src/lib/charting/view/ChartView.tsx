@@ -564,7 +564,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-
     protected deselectDrawing(cursor?: string) {
         if (this.props.xc.selectedDrawingIdx !== undefined) {
             this.showDrawingDeselect(this.props.xc.selectedDrawingIdx, cursor)
@@ -610,12 +609,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.props.xc.selectedDrawingIdx = hitIdx
             const selectedOne = this.drawings[hitIdx]
 
-            const handle = selectedOne.getHandleAt(x, y)
-            if (handle !== undefined) {
-                const idx = selectedOne.handles.indexOf(handle)
-                if (idx >= 0) {
-                    selectedOne.currHandleIdx = idx
-                }
+            const handleIdx = selectedOne.getHandleIdxAt(x, y)
+            if (handleIdx >= 0) {
+                selectedOne.currHandleIdx = handleIdx
                 this.showDrawingSelect(hitIdx, HANDLE_CURSOR)
 
             } else {
@@ -623,7 +619,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 // store handles when mouse pressed, for moveChart() 
                 let i = 0
                 while (i < selectedOne.handles.length) {
-                    selectedOne.currHandlesWhenMousePressed[i].point = selectedOne.handles[i].point
+                    selectedOne.handlesWhenMousePressed[i].point = selectedOne.handles[i].point
                     i++
                 }
 
@@ -690,8 +686,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.props.xc.hitDrawingIdx = hitIdx
                 const hitOne = this.drawings[hitIdx]
 
-                const handle = hitOne.getHandleAt(x, y)
-                if (handle !== undefined) {
+                const handle = hitOne.getHandleIdxAt(x, y)
+                if (handle >= 0) {
                     this.showDrawingSelect(hitIdx, HANDLE_CURSOR)
 
                 } else {
@@ -749,16 +745,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
 
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        if (this.props.shouldUpdateDrawing.createDrawingId === undefined) {
-            return;
-        }
-
         console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         if (e.detail === 2) {
+            if (this.creatingDrawing === undefined) {
+                return;
+            }
+
             const [x, y] = this.translate(e)
 
+            // double clicked, process drawing that whose nHandles is variable
             const working = this.creatingDrawing
-            // double clicked, process chart whose nHandles is variable
             if (working && !working.isCompleted) {
                 if (working.nHandles === undefined) {
                     working.isAnchored = false;
