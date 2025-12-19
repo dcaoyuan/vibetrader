@@ -48,7 +48,6 @@ export interface ViewProps {
     width: number;
     height: number;
     xc: ChartXControl;
-    baseSer: TSer;
     tvar: TVar<unknown>;
     shouldUpdateChart: number;
     shouldUpdateCursor: UpdateCursor;
@@ -91,19 +90,7 @@ const HANDLE_CURSOR = "pointer"
 const MOVE_CURSOR = "all-scroll" // 'move' doesn't work?
 
 /**
- * A ChartView's container can be any Component even without a ChartViewContainer,
- * but should reference back to a control. All ChartViews shares the same
- * control will have the same cursor behaves.
- *
- * Example: you can add a ChartView directly to a JFrame.
- *
- * baseSer: the ser instaceof TSer, with the calendar time feature,
- *            it's put in the masterView to control the cursor;
- * mainSer: vs overlappingSer, this view's main ser.
- *
- *       1..n           1..n
- * ser --------> chart ------> var
- *
+ * All ChartViews shares the same x-control, have the same cursor behaves.
  *
  * ChangeSubject cases:
  *   rightSideRow
@@ -119,13 +106,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     yc: ChartYControl;
 
-    drawings: Drawing[] = []
-
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
 
-        this.yc = new ChartYControl(props.baseSer, props.height);
+        this.yc = new ChartYControl(props.xc.baseSer, props.height);
 
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
         this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
@@ -136,13 +121,13 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     /**
-     * what may affect the geometry:
+     * What may affect the geometry:
      * 1. the size of this component changed;
-     * 3. the ser's value changed or its items added, which need computeMaxMin();
+     * 3. the ser's value changed or items added, which need computeMaxMin();
      *
      * The control only define wBar (the width of each bar), this component
-     * will compute number of bars according to its size. So, if you want to more
-     * bars displayed, such as an appointed newNBars, you should compute the size of
+     * will calculate number of bars according to its size. If you need more
+     * bars to display, such as an appointed newNBars, you should compute the size of
      * this's container, and call container.setBounds() to proper size, then, the
      * layout manager will layout the size of its ChartView instances automatically,
      * and if success, the newNBars computed here will equals the newNBars you want.
@@ -150,7 +135,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     protected computeGeometry() {
         const [maxValue, minValue] = this.computeMaxValueMinValue();
 
-        // compute y after compute maxmin
+        // compute y-geometry after compute maxmin
         this.yc.computeGeometry(maxValue, minValue)
     }
 
@@ -533,6 +518,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     // --- drawing ---
 
+    drawings: Drawing[] = []
     creatingDrawing: Drawing
     isDragging: boolean
 
@@ -543,16 +529,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected deleteSelectedDrawing() {
-        const selectedDrawingIdx = this.props.xc.selectedDrawingIdx;
-        if (selectedDrawingIdx !== undefined) {
+        const drawingIdx = this.props.xc.selectedDrawingIdx;
+        if (drawingIdx !== undefined) {
             const drawingLines = [
-                ...this.state.drawingLines.slice(0, selectedDrawingIdx),
-                ...this.state.drawingLines.slice(selectedDrawingIdx + 1)
+                ...this.state.drawingLines.slice(0, drawingIdx),
+                ...this.state.drawingLines.slice(drawingIdx + 1)
             ];
 
             const drawings = [
-                ...this.drawings.slice(0, selectedDrawingIdx),
-                ...this.drawings.slice(selectedDrawingIdx + 1)
+                ...this.drawings.slice(0, drawingIdx),
+                ...this.drawings.slice(drawingIdx + 1)
             ]
 
             // should also clear hitDrawingIdx

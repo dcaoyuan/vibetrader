@@ -4,15 +4,13 @@ import { ChartView, type ViewProps, type ViewState } from "./ChartView"
 /**
  * Each TSer can have more than one ChartXControl instances.
  *
- * A ChartControl instance keeps the 1-1 relation with:
+ * A ChartXControl instance keeps the 1-1 relation with:
  *   the TSer,
  *   the ChartViewContainer
- * Thus, ChartControl couples TSer-Descriptor-ChartViewContainer
- * together from outside.
  *
- * A ChartView's container can be any Component even without a ChartViewContainer,
- * but should reference back to a control. All ChartViews shares the same
- * ChartXControl will have the same cursor behaves.
+ * All ChartViews in the same view container share the same x-control.
+ *
+ * baseSer: the ser instaceof TSer, with the calendar time feature.
  *
  */
 export class ChartXControl {

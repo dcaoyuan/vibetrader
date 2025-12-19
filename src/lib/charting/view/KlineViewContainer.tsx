@@ -923,7 +923,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 height={this.hKlineView}
                                 name="ETH"
                                 xc={this.state.xc}
-                                baseSer={this.state.baseSer}
                                 tvar={this.state.kvar}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
                                 shouldUpdateCursor={this.state.shouldUpdateCursor}
@@ -942,7 +941,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 height={this.hVolumeView}
                                 name="Vol"
                                 xc={this.state.xc}
-                                baseSer={this.state.baseSer}
                                 tvar={this.state.kvar}
                                 shouldUpdateChart={this.state.shouldUpdateChart}
                                 shouldUpdateCursor={this.state.shouldUpdateCursor}
@@ -969,7 +967,6 @@ class KlineViewContainer extends Component<Props, State> {
                                         width={this.width}
                                         height={this.hIndicatorView}
                                         xc={this.state.xc}
-                                        baseSer={this.state.baseSer}
                                         tvar={tvar}
                                         mainIndicatorOutputs={outputs}
                                         shouldUpdateChart={this.state.shouldUpdateChart}
