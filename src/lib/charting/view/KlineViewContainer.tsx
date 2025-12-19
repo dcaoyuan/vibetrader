@@ -182,6 +182,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.setSelectedIndicatorTags = this.setSelectedIndicatorTags.bind(this)
         this.setSelectedDrawingIds = this.setSelectedDrawingIds.bind(this)
 
+        this.switchCrosshairVisiable = this.switchCrosshairVisiable.bind(this)
+
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
         this.onMouseLeave = this.onMouseLeave.bind(this);
@@ -439,6 +441,14 @@ class KlineViewContainer extends Component<Props, State> {
             default:
         }
 
+    }
+
+    private switchCrosshairVisiable() {
+        const xc = this.state.xc;
+
+        xc.isCrosshairEnabled = !xc.isCrosshairEnabled
+
+        this.notify(UpdateEvent.Cursors)
     }
 
     override componentDidMount() {
@@ -802,7 +812,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="parallel" aria-label="ParallelLine"><NotchesIcon fill="white" /></ToggleButton>
+                                <ToggleButton id="parallel" aria-label="Parallel"><NotchesIcon fill="white" /></ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw parallel
                                 </VTTooltip>
@@ -821,6 +831,7 @@ class KlineViewContainer extends Component<Props, State> {
                         <Separator orientation="horizontal" />
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="hidedrawing" aria-label="hidedrawing"
                                     isSelected={this.state.shouldUpdateDrawing.isHidingDrawing}
@@ -839,16 +850,15 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="crosshair" aria-label="crosshair">
+                                <Button id="crosshair" aria-label="crosshair"
+                                    onClick={this.switchCrosshairVisiable}
+                                >
                                     <PlusIcon fill="white" />
-                                </ToggleButton>
+                                </Button>
                                 <VTTooltip placement="end">
-                                    Show crosshair
+                                    Switch crosshair visible
                                 </VTTooltip>
                             </TooltipTrigger>
-
-
-                            <Button aria-label="Icon1"><EqualsIcon fill="white" /></Button>
 
                             <TooltipTrigger delay={0}>
                                 <Button aria-label="delete"
