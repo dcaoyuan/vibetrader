@@ -170,7 +170,7 @@ class KlineViewContainer extends Component<Props, State> {
             xc,
             shouldUpdateChart: 0,
             shouldUpdateCursor: { changed: 0 },
-            shouldUpdateDrawing: {},
+            shouldUpdateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
             selectedDrawingIds: new Set(),
@@ -418,7 +418,7 @@ class KlineViewContainer extends Component<Props, State> {
             case "Escape":
                 if (xc.selectedDrawingIdx !== undefined) {
                     xc.isReferCursorEnabled = false;
-                    this.setState({ shouldUpdateDrawing: { action: 'deselect' } })
+                    this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'deselect' } })
                     break;
                 }
 
@@ -433,7 +433,7 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case 'Delete':
-                this.setState({ shouldUpdateDrawing: { action: 'delete' } })
+                this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'delete' } })
                 break;
 
             default:
@@ -759,14 +759,21 @@ class KlineViewContainer extends Component<Props, State> {
     setSelectedDrawingIds(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
             this.setState({
-                shouldUpdateDrawing: { createDrawingId: undefined },
+                shouldUpdateDrawing: {
+                    ...(this.state.shouldUpdateDrawing),
+                    createDrawingId: undefined
+                },
                 selectedDrawingIds: new Set()
             })
 
         } else {
             const [drawingId] = ids
             this.setState({
-                shouldUpdateDrawing: { action: 'create', createDrawingId: drawingId as string },
+                shouldUpdateDrawing: {
+                    ...(this.state.shouldUpdateDrawing),
+                    action: 'create',
+                    createDrawingId: drawingId as string
+                },
                 selectedDrawingIds: ids
             })
         }
@@ -815,9 +822,15 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="showdrawing" aria-label="showdrawing"
+                                <ToggleButton id="hidedrawing" aria-label="hidedrawing"
                                     isSelected={this.state.shouldUpdateDrawing.isHidingDrawing}
-                                    onChange={() => this.setState({ shouldUpdateDrawing: { action: 'hide', isHidingDrawing: !this.state.shouldUpdateDrawing.isHidingDrawing } })}>
+                                    onChange={() => this.setState({
+                                        shouldUpdateDrawing: {
+                                            action: 'hide',
+                                            isHidingDrawing: !this.state.shouldUpdateDrawing.isHidingDrawing
+                                        }
+                                    })
+                                    }>
                                     <NotEqualsIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
@@ -839,7 +852,14 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <Button aria-label="delete"
-                                    onClick={() => this.setState({ shouldUpdateDrawing: { action: 'delete' } })}
+                                    onClick={() =>
+                                        this.setState({
+                                            shouldUpdateDrawing: {
+                                                ...(this.state.shouldUpdateDrawing),
+                                                action: 'delete'
+                                            }
+                                        })
+                                    }
                                 >
                                     <MinusCircleIcon fill="white" />
                                 </Button>
@@ -885,7 +905,10 @@ class KlineViewContainer extends Component<Props, State> {
                     </div>
 
                     <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
-                        <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`} width={this.width} height={this.state.svgHeight} vectorEffect="non-scaling-stroke"
+                        <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
+                            width={this.width}
+                            height={this.state.svgHeight}
+                            vectorEffect="non-scaling-stroke"
                             onMouseLeave={this.onMouseLeave}
                             onMouseMove={this.onMouseMove}
                             onMouseUp={this.onMouseUp}

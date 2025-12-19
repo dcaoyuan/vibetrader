@@ -37,7 +37,7 @@ export type Output = {
 export type UpdateDrawing = {
     action?: 'create' | 'delete' | 'hide' | 'deselect'
     createDrawingId?: string
-    isHidingDrawing?: boolean;
+    isHidingDrawing: boolean;
 }
 
 export interface ViewProps {
@@ -635,6 +635,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         const working = this.workingDrawing()
+        if (working === undefined) {
+            return;
+        }
+
         const handle = working.getHandleAt(x, y)
         if (handle !== undefined) {
             const idx = working.handles.indexOf(handle)
@@ -690,7 +694,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
 
         const working = this.workingDrawing()
-        if (!working) {
+        if (working === undefined) {
             return
         }
 
