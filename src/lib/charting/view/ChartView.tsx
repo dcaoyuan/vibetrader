@@ -426,7 +426,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     override componentDidMount(): void {
-        // call to update labels;
+        // call to update labels right now
         this.updateCursors(undefined, undefined);
     }
 
@@ -529,16 +529,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected deleteSelectedDrawing() {
-        const drawingIdx = this.props.xc.selectedDrawingIdx;
-        if (drawingIdx !== undefined) {
+        const idx = this.props.xc.selectedDrawingIdx;
+        if (idx !== undefined) {
             const drawingLines = [
-                ...this.state.drawingLines.slice(0, drawingIdx),
-                ...this.state.drawingLines.slice(drawingIdx + 1)
+                ...this.state.drawingLines.slice(0, idx),
+                ...this.state.drawingLines.slice(idx + 1)
             ];
 
             const drawings = [
-                ...this.drawings.slice(0, drawingIdx),
-                ...this.drawings.slice(drawingIdx + 1)
+                ...this.drawings.slice(0, idx),
+                ...this.drawings.slice(idx + 1)
             ]
 
             // should also clear hitDrawingIdx
@@ -645,7 +645,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, e.target)
         const [x, y] = this.translate(e)
 
-        if (this.creatingDrawing && !this.creatingDrawing.isCompleted) {
+        if (this.creatingDrawing?.isCompleted === false) {
             if (this.creatingDrawing.isAnchored) {
                 const sketching = this.creatingDrawing.stretchCurrentHandle(this.p(x, y))
                 this.setState({ sketching, cursor: DEFAULT_CURSOR })
@@ -713,7 +713,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (this.creatingDrawing !== undefined && !this.creatingDrawing.isCompleted) {
+        if (this.creatingDrawing?.isCompleted === false) {
             // completing new drawing
             const isCompleted = this.creatingDrawing.anchorHandle(this.p(x, y))
             if (isCompleted) {
@@ -733,15 +733,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
         console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         if (e.detail === 2) {
-            if (this.creatingDrawing === undefined) {
-                return;
-            }
-
             const [x, y] = this.translate(e)
 
             // double clicked, process drawing that whose nHandles is variable
             const working = this.creatingDrawing
-            if (working && !working.isCompleted) {
+            if (working?.isCompleted === false) {
                 if (working.nHandles === undefined) {
                     working.isAnchored = false;
                     working.isCompleted = true;
@@ -771,8 +767,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 {this.state.mouseCursor}
                 {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {
-                    !(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.isHidingDrawing) &&
-                    this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                    this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.isHidingDrawing
+                        ? <></>
+                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )
