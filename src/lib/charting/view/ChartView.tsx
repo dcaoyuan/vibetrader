@@ -558,7 +558,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     private updateDrawingsWithSelected(idx: number, cursor?: string) {
-        const drawingLine = this.drawings[idx].renderDrawingWithHandles()
+        const drawingLine = this.drawings[idx].renderDrawingWithHandles("drawing-" + idx)
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
             drawingLine,
@@ -569,7 +569,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     private updateDrawingsWithUnselect(idx: number, cursor?: string) {
-        const drawingLine = this.drawings[idx].renderDrawing()
+        const drawingLine = this.drawings[idx].renderDrawing("drawing-" + idx)
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
             drawingLine,
@@ -722,7 +722,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // completing new drawing
             const isCompleted = this.creatingDrawing.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawingLine = this.creatingDrawing.renderDrawing()
+                const drawingLine = this.creatingDrawing.renderDrawing("drawing-new")
                 const drawingLines = this.state.drawingLines
 
                 this.drawings.push(this.creatingDrawing)

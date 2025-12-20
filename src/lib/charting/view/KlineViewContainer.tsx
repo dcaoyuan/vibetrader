@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -804,25 +804,50 @@ class KlineViewContainer extends Component<Props, State> {
                             onSelectionChange={this.setSelectedDrawingIds}
                         >
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="line" aria-label="Line"><LineSegmentIcon fill="white" /></ToggleButton>
+                                <ToggleButton id="line" aria-label="Line">
+                                    <LineSegmentIcon fill="white" />
+                                </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw line
                                 </VTTooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="parallel" aria-label="Parallel"><NotchesIcon fill="white" /></ToggleButton>
+                                <ToggleButton id="parallel" aria-label="Parallel">
+                                    <NotchesIcon fill="white" />
+                                </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw parallel
                                 </VTTooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
-                                <ToggleButton id="ladder" aria-label="Icon3"><LadderSimpleIcon fill="white" /></ToggleButton>
+                                <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
+                                    <LadderSimpleIcon fill="white" />
+                                </ToggleButton>
                                 <VTTooltip placement="end">
-                                    TODO
+                                    Fibonacci retrace
                                 </VTTooltip>
                             </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="fibonacci_timezone" aria-label="fibtz">
+                                    <SquareSplitHorizontalIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Fibonacci time zone
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
+                                    <ColumnsIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Fibonacci time retrace
+                                </VTTooltip>
+                            </TooltipTrigger>
+
 
                         </ToggleButtonGroup>
 
@@ -839,8 +864,8 @@ class KlineViewContainer extends Component<Props, State> {
                                             action: 'hide',
                                             isHidingDrawing: !this.state.shouldUpdateDrawing.isHidingDrawing
                                         }
-                                    })
-                                    }>
+                                    })}
+                                >
                                     <NotEqualsIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">

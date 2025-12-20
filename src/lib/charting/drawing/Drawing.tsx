@@ -3,6 +3,8 @@ import { Path } from "../../svg/Path"
 import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
 import { Rect } from "../../svg/Rect"
+import type { Seg } from "../../svg/Seg"
+import { Fragment } from "react/jsx-runtime"
 
 export type TPoint = {
     time: number,
@@ -31,7 +33,7 @@ export abstract class Drawing {
 
     abstract init(): void
 
-    abstract plotDrawing(): Path[]
+    abstract plotDrawing(): Seg[]
     abstract hits(x: number, y: number): boolean
 
     /**
@@ -152,7 +154,7 @@ export abstract class Drawing {
             }
         }
 
-        return this.renderDrawingWithHandles()
+        return this.renderDrawingWithHandles("drawing-stretching")
     }
 
     moveDrawing(mouseDraggedPoint: TPoint) {
@@ -185,7 +187,7 @@ export abstract class Drawing {
             i++
         }
 
-        return this.renderDrawingWithHandles()
+        return this.renderDrawingWithHandles("drawing-moving")
     }
 
     getHandleIdxAt(x: number, y: number): number {
@@ -200,33 +202,31 @@ export abstract class Drawing {
         return -1
     }
 
-    renderHandles() {
-        <g>
-            {this.handles.map((handle, n) => handle.render("handle-" + n))}
-        </g>
-    }
-
-    renderDrawing(key?: Key) {
+    renderDrawing(key: Key) {
         return (
             <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
-                    style: { stroke: "#ffffff", strokeWidth: "0.7px" }
+                    style: { stroke: "#ffffff", fill: "#ffffff", strokeWidth: "0.7px" }
                 }))}
             </g>
         )
     }
 
-    renderDrawingWithHandles(key?: Key) {
+    renderDrawingWithHandles(key: Key) {
         return (
             <g key={key}>
                 {this.plotDrawing().map((seg, n) => seg.render({
                     key: "seg-" + n,
-                    style: { stroke: "#ffffff", strokeWidth: "1px" }
+                    style: { stroke: "#ffffff", fill: "#ffffff", strokeWidth: "1px" }
                 }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
         )
+    }
+
+    protected bt(handle: Handle) {
+        return this.xc.bt(handle.point.time)
     }
 
     protected xt(handle: Handle) {

@@ -5,15 +5,11 @@ import { Path } from "../../svg/Path";
 export class ParallelDrawing extends Drawing {
     isExtended: boolean = true;
 
-    init() {
+    override init() {
         this.nHandles = 3;
     }
 
-    hits(x: number, y: number): boolean {
-        if (this.handles.length < this.nHandles) {
-            return
-        }
-
+    override hits(x: number, y: number): boolean {
         const x0 = this.xt(this.handles[0])
         const x1 = this.xt(this.handles[1])
         const x2 = this.xt(this.handles[2])
@@ -32,7 +28,7 @@ export class ParallelDrawing extends Drawing {
         return distance1 <= 4 || distance2 <= 4
     }
 
-    plotDrawing() {
+    override plotDrawing() {
         const path = new Path()
 
         const x0 = this.xt(this.handles[0])

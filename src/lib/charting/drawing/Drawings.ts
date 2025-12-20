@@ -1,5 +1,8 @@
 import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
+import { FibonacciRetraceDrawing } from "./FibonacciRetraceDrawing"
+import { FibonacciRetraceVerticalDrawing } from "./FibonacciRetraceVerticalDrawing"
+import { FibonacciTimeZoneDrawing } from "./FibonacciTimeZoneDrawing"
 import { LineDrawing } from "./LineDrawing"
 import { ParallelDrawing } from "./ParallelDrawing"
 
@@ -10,6 +13,15 @@ export function createDrawing(id: string, xc: ChartXControl, yc: ChartYControl) 
 
         case 'parallel':
             return new ParallelDrawing(xc, yc)
+
+        case 'fibonacci_retrace':
+            return new FibonacciRetraceDrawing(xc, yc)
+
+        case 'fibonacci_retrace_v':
+            return new FibonacciRetraceVerticalDrawing(xc, yc)
+
+        case 'fibonacci_timezone':
+            return new FibonacciTimeZoneDrawing(xc, yc)
 
         default:
             return undefined
