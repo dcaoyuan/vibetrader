@@ -284,7 +284,8 @@ export class Handle {
     private plot() {
         const [x, y] = this.xyLocation()
 
-        const rect = new Rect(x, y, 8, 8)
+        const r = 4
+        const rect = new Rect(x - r, y - r, 2 * r, 2 * r)
 
         return rect;
     }
