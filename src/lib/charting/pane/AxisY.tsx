@@ -3,7 +3,7 @@ import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
-import { getNormPow, normMinTick, normTickUnit } from "../Normalize";
+import { normMinTick, normTickUnit } from "../Normalize";
 
 const MIN_TICK_SPACING = 40 // in pixels
 
@@ -18,13 +18,10 @@ type Props = {
 
 const AxisY = (props: Props) => {
     const { x, y, height, yc } = props;
-    const symmetricByMiddleValue = false;
 
     const color = Theme.now().axisColor;
 
     const chart = plot();
-
-    // const [symmetricByMiddleValue, setSymmetricByMiddleValue] = useState(false);
 
     function plot() {
         let nTicksMax = 6.0;
@@ -41,13 +38,6 @@ const AxisY = (props: Props) => {
         const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
 
         const vMinTick = normMinTick(minValueOnCanvas);
-
-        // if (!symmetricByMiddleValue) {
-        //     vTickUnit = roundTickUnit(vTickUnit)
-        //     vMinTick = Math.ceil(vMinTick / vTickUnit) * vTickUnit
-        // }
-
-        // 
         const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
 
         const vTicks = [];

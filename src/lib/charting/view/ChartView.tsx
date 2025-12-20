@@ -480,7 +480,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         break;
 
                     case 'deselect':
-                        this.deselectDrawing();
+                        this.unselectDrawing();
                         break;
                 }
             }
@@ -550,14 +550,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-    protected deselectDrawing(cursor?: string) {
+    protected unselectDrawing(cursor?: string) {
         if (this.props.xc.selectedDrawingIdx !== undefined) {
-            this.showDrawingDeselect(this.props.xc.selectedDrawingIdx, cursor)
+            this.updateDrawingsWithUnselect(this.props.xc.selectedDrawingIdx, cursor)
             this.props.xc.selectedDrawingIdx = undefined
         }
     }
 
-    private showDrawingSelect(idx: number, cursor?: string) {
+    private updateDrawingsWithSelected(idx: number, cursor?: string) {
         const drawingLine = this.drawings[idx].renderDrawingWithHandles()
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
@@ -568,7 +568,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.setState({ drawingLines, cursor })
     }
 
-    private showDrawingDeselect(idx: number, cursor?: string) {
+    private updateDrawingsWithUnselect(idx: number, cursor?: string) {
         const drawingLine = this.drawings[idx].renderDrawing()
         const drawingLines = [
             ...this.state.drawingLines.slice(0, idx),
@@ -589,16 +589,17 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const [x, y] = this.translate(e)
 
-        // select or deselect drawing
-        const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
-        if (hitIdx >= 0) {
-            this.props.xc.selectedDrawingIdx = hitIdx
-            const selectedOne = this.drawings[hitIdx]
+        // select or unselect drawing
+        const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
+        if (hitDrawingIdx >= 0) {
+            this.props.xc.selectedDrawingIdx = hitDrawingIdx
+            const selectedOne = this.drawings[hitDrawingIdx]
 
             const handleIdx = selectedOne.getHandleIdxAt(x, y)
             if (handleIdx >= 0) {
                 selectedOne.currHandleIdx = handleIdx
-                this.showDrawingSelect(hitIdx, HANDLE_CURSOR)
+
+                this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
 
             } else {
                 selectedOne.mousePressedPoint = this.p(x, y)
@@ -609,12 +610,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     i++
                 }
 
-                this.showDrawingSelect(hitIdx, MOVE_CURSOR)
+                this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
             }
 
         } else {
             if (this.props.xc.selectedDrawingIdx !== undefined) {
-                this.deselectDrawing(DEFAULT_CURSOR)
+                this.unselectDrawing(DEFAULT_CURSOR)
             }
         }
 
@@ -658,34 +659,38 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             const selectedOne = this.drawings[this.props.xc.selectedDrawingIdx]
             if (selectedOne.currHandleIdx >= 0) {
                 selectedOne.stretchCurrentHandle(this.p(x, y))
-                this.showDrawingSelect(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
+
+                this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
 
             } else {
                 selectedOne.moveDrawing(this.p(x, y))
-                this.showDrawingSelect(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
+
+                this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
             }
 
         } else {
             // process hit drawing
-            const hitIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
-            if (hitIdx >= 0) {
-                this.props.xc.hitDrawingIdx = hitIdx
-                const hitOne = this.drawings[hitIdx]
+            const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
+            if (hitDrawingIdx >= 0) {
+                this.props.xc.hitDrawingIdx = hitDrawingIdx
+                const hitOne = this.drawings[hitDrawingIdx]
 
                 const handle = hitOne.getHandleIdxAt(x, y)
                 if (handle >= 0) {
-                    this.showDrawingSelect(hitIdx, HANDLE_CURSOR)
+
+                    this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
 
                 } else {
                     hitOne.currHandleIdx = -1
-                    this.showDrawingSelect(hitIdx, MOVE_CURSOR)
+
+                    this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
                 }
 
             } else {
                 if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
                     const hitIdx = this.props.xc.hitDrawingIdx;
                     this.props.xc.hitDrawingIdx = undefined
-                    this.showDrawingDeselect(hitIdx, DEFAULT_CURSOR)
+                    this.updateDrawingsWithUnselect(hitIdx, DEFAULT_CURSOR)
 
                 } else {
                     this.setState({ cursor: DEFAULT_CURSOR })
@@ -700,7 +705,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.isDragging = false
 
         if (e.detail >= 2) {
-            return // double or more click 
+            return // pass double+ click 
         }
 
         // sinlge-clicked 
@@ -769,7 +774,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 {
                     this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.isHidingDrawing
                         ? <></>
-                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
+                }
                 {this.state.sketching}
             </g >
         )
