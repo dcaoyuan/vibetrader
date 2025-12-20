@@ -10,14 +10,13 @@ import { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
-import { TSerProvider } from "../../domain/TSerProvider";
 import { IndicatorView } from "./IndicatorView";
 import { Button, Group, Separator, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
 import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
 import { OverlayArrow, Tooltip, TooltipTrigger } from 'react-aria-components';
 import type { Key, TooltipProps } from 'react-aria-components';
-import { Context, PineTS } from "@vibetrader/pinets";
+import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
@@ -278,7 +277,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
                 }
 
-                const pinets = new PineTS(new TSerProvider(this.state.kvar), 'ETH', '1d');
+                const pinets = new PineTS(this.state.kvar.toArray(), 'ETH', '1d');
 
                 const fnRuns: Promise<{ indName: string, result: Context }>[] = []
                 for (const [indName, fn] of selectedIndicatorFns) {
