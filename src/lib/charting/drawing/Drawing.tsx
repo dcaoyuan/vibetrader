@@ -2,6 +2,7 @@ import type { Key } from "react-aria-components"
 import { Path } from "../../svg/Path"
 import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
+import { Rect } from "../../svg/Rect"
 
 export type TPoint = {
     time: number,
@@ -265,7 +266,6 @@ export abstract class Drawing {
     }
 }
 
-const RADIUS = 3
 export class Handle {
 
     point: TPoint
@@ -281,27 +281,12 @@ export class Handle {
         }
     }
 
-    getPath(): Path {
-        const path = new Path()
-
-        // always replot path as not only point could have changed but also the view's size could have changed
-        this.plot()
-
-        return path
-    }
-
     private plot() {
-        const path = new Path()
-
         const [x, y] = this.xyLocation()
 
-        path.moveto(x - RADIUS, y - RADIUS)
-        path.lineto(x - RADIUS, y + RADIUS)
-        path.lineto(x + RADIUS, y + RADIUS)
-        path.lineto(x + RADIUS, y - RADIUS)
-        path.closepath()
+        const rect = new Rect(x, y, 8, 8)
 
-        return path;
+        return rect;
     }
 
     private xyLocation() {
@@ -316,13 +301,13 @@ export class Handle {
 
         const distance = Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2))
 
-        return distance <= 4
+        return distance <= 8
     }
 
     render(key: string) {
-        const path = this.plot();
+        const seg = this.plot();
 
-        return path.render({ key, style: { stroke: "#ffffff", strokeWidth: "1px" } })
+        return seg.render({ key, style: { stroke: "#ffffff", strokeWidth: "1px" } })
     }
 
     equals(o: unknown): boolean {

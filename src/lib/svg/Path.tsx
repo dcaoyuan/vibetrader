@@ -103,11 +103,11 @@ export class Path implements Seg {
                 className={className}
                 key={key}
                 d={path}
-                fill={style && style.fill}
-                stroke={style && style.stroke}
-                strokeWidth={style && style.strokeWidth}
-                strokeDasharray={style && style.strokeDasharray}
-                opacity={style && style.opacity}
+                fill={style?.fill}
+                stroke={style?.stroke}
+                strokeWidth={style?.strokeWidth}
+                strokeDasharray={style?.strokeDasharray}
+                opacity={style?.opacity}
             />
         )
     }
