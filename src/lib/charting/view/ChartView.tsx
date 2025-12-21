@@ -602,13 +602,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
 
             } else {
-                selectedOne.mousePressedPoint = this.p(x, y)
-                // store handles when mouse pressed, for moveChart() 
-                let i = 0
-                while (i < selectedOne.handles.length) {
-                    selectedOne.handlesWhenMousePressed[i].point = selectedOne.handles[i].point
-                    i++
-                }
+                selectedOne.rememberHandlesWhenMousePressed(this.p(x, y))
 
                 this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
             }

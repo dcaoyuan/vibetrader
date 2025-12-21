@@ -614,22 +614,23 @@ class KlineViewContainer extends Component<Props, State> {
         const xc = this.state.xc;
         const [x, y] = this.translate(e)
 
-        if (this.isDragging) {
-            const xDelta = x - this.xStartDrag
-            const nBarDelta = Math.ceil(xDelta / xc.wBar)
+        // TODO conflict with chartview's drawing dragging.
+        // if (this.isDragging) {
+        //     const xDelta = x - this.xStartDrag
+        //     const nBarDelta = Math.ceil(xDelta / xc.wBar)
 
-            xc.isMouseCursorEnabled = false
-            xc.isReferCursorEnabled = false
-            xc.moveChartsInDirection(nBarDelta, -1, true)
+        //     xc.isMouseCursorEnabled = false
+        //     xc.isReferCursorEnabled = false
+        //     xc.moveChartsInDirection(nBarDelta, -1, true)
 
-            this.xStartDrag = x;
-            this.yStartDrag = y;
+        //     this.xStartDrag = x;
+        //     this.yStartDrag = y;
 
-            // TODO: this is overrided by chartview's cursor
-            this.notify(UpdateEvent.Chart, undefined, "pointer");
+        //     // TODO: this is overrided by chartview's cursor
+        //     this.notify(UpdateEvent.Chart, undefined, "pointer");
 
-            return
-        }
+        //     return
+        // }
 
         if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined || xc.hitDrawingIdx !== undefined) {
             xc.isMouseCursorEnabled = false;

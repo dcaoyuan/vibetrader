@@ -36,20 +36,11 @@ export abstract class Drawing {
     abstract plotDrawing(): Seg[]
     abstract hits(x: number, y: number): boolean
 
-    /**
-     * define final members, so we can be sure that they won't be pointed to
-     * another object, even in case of being got by others via public or
-     * protected method
-     */
     readonly handles: Handle[] = [];
 
-    /** For moving drawing: the handles when mouse is pressed before drag */
-    readonly handlesWhenMousePressed: Handle[] = []
-
-    /**
-     * define mousePressedPoint as final to force using copy(..) to set its value
-     */
-    mousePressedPoint: TPoint;
+    // For moving drawing: the handles when mouse is pressed before drag
+    #handlesWhenMousePressed: Handle[] = []
+    #mousePressedPoint: TPoint;
 
     currHandleIdx = 0
 
@@ -71,7 +62,6 @@ export abstract class Drawing {
         let i = 0
         while (i < n) {
             this.handles.push(this.newHandle())
-            this.handlesWhenMousePressed.push(this.newHandle())
 
             // assign points to handles
             this.handles[i].point = points[i]
@@ -91,14 +81,12 @@ export abstract class Drawing {
             if (this.nHandles === undefined) {
                 // it is drawing with variable number of handles , create first handle 
                 this.handles.push(this.newHandle())
-                this.handlesWhenMousePressed.push(this.newHandle())
 
             } else {
                 // it is drawing with known number of handles, create all handles 
                 let i = 0
                 while (i < this.nHandles) {
                     this.handles.push(this.newHandle())
-                    this.handlesWhenMousePressed.push(this.newHandle())
                     i++;
                 }
             }
@@ -124,7 +112,6 @@ export abstract class Drawing {
             /// create next handle if not created yet
             if (this.handles.length - 1 < this.currHandleIdx) {
                 this.handles.push(this.newHandle(point))
-                this.handlesWhenMousePressed.push(this.newHandle())
             }
 
         } else {
@@ -157,31 +144,36 @@ export abstract class Drawing {
         return this.renderDrawingWithHandles("drawing-stretching")
     }
 
-    moveDrawing(mouseDraggedPoint: TPoint) {
+    // Store handles when mouse pressed, for moveDrawing() 
+    rememberHandlesWhenMousePressed(point: TPoint) {
+        this.#mousePressedPoint = point
+        const handles: Handle[] = new Array(this.handles.length)
+        let i = 0
+        while (i < this.handles.length) {
+            handles[i] = this.newHandle(this.handles[i].point)
+            i++
+        }
+        this.#handlesWhenMousePressed = handles;
+    }
+
+    moveDrawing(point: TPoint) {
         /**
          * should compute bar moved instead of time moved, because when shows
          * in trading date mode, time moved may not be located at a trading day
          */
-        const barMoved = this.xc.bt(mouseDraggedPoint.time) - this.xc.bt(this.mousePressedPoint.time)
-        const vMoved = mouseDraggedPoint.value - this.mousePressedPoint.value
+        const bMoved = this.xc.bt(point.time) - this.xc.bt(this.#mousePressedPoint.time)
+        const vMoved = point.value - this.#mousePressedPoint.value
 
         let i = 0
         while (i < this.handles.length) {
-            const oldPoint = this.handlesWhenMousePressed[i].point
+            const oldP = this.#handlesWhenMousePressed[i].point
 
-            // compute newTime, process bar fisrt, then transfer to time 
-            const oldBar = this.xc.bt(oldPoint.time)
-            const newBar = oldBar + barMoved;
-            const newTime = this.xc.tb(newBar);
+            const oldB = this.xc.bt(oldP.time)
+            const newB = oldB + bMoved;
 
-            // compute newValue
-            const newValue = oldPoint.value + vMoved
+            const newTime = this.xc.tb(newB);
+            const newValue = oldP.value + vMoved
 
-            /**
-             * NOTE: 
-             * do not use getPoint().set(newTime, newValue) to change point member,
-             * because we need handle to recompute position. use copyPoint().
-             */
             this.handles[i].point = { time: newTime, value: newValue }
 
             i++
