@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -866,32 +866,18 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="polyline" aria-label="polyline">
-                                    <PulseIcon fill="white" />
+                                    <WaveTriangleIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw polyline
                                 </VTTooltip>
                             </TooltipTrigger>
 
-
-
                         </ToggleButtonGroup>
-
 
                         <Separator orientation="horizontal" />
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
-
-                            <TooltipTrigger delay={0}>
-                                <Button id="crosshair" aria-label="crosshair"
-                                    onClick={this.switchCrosshairVisiable}
-                                >
-                                    <PlusIcon fill="white" />
-                                </Button>
-                                <VTTooltip placement="end">
-                                    Switch crosshair visible
-                                </VTTooltip>
-                            </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="hidedrawing" aria-label="hidedrawing"
@@ -921,7 +907,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         })
                                     }
                                 >
-                                    <PlaceholderIcon fill="white" />
+                                    <XIcon fill="white" />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Delete selected drawing
@@ -929,7 +915,26 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                         </Group>
+
+                        <Separator orientation="horizontal" />
+
+                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+
+                            <TooltipTrigger delay={0}>
+                                <Button id="crosshair" aria-label="crosshair"
+                                    onClick={this.switchCrosshairVisiable}
+                                >
+                                    <PlusIcon fill="white" />
+                                </Button>
+                                <VTTooltip placement="end">
+                                    Switch crosshair visible
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                        </Group>
+
                     </Toolbar>
+
                 </div>
 
                 <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
