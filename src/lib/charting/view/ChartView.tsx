@@ -35,7 +35,7 @@ export type Output = {
 }
 
 export type UpdateDrawing = {
-    action?: 'create' | 'delete' | 'hide' | 'deselect'
+    action?: 'create' | 'delete' | 'hide' | 'unselect'
     createDrawingId?: string
     isHidingDrawing: boolean;
 }
@@ -479,7 +479,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         this.deleteSelectedDrawing()
                         break;
 
-                    case 'deselect':
+                    case 'unselect':
                         this.unselectDrawing();
                         break;
                 }
@@ -662,6 +662,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                     this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
                 }
+            } else {
+                this.setState({ cursor: HANDLE_CURSOR })
             }
 
         } else {
@@ -689,7 +691,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     const hitIdx = this.props.xc.hitDrawingIdx;
                     this.props.xc.hitDrawingIdx = undefined
                     this.updateDrawingsWithUnselect(hitIdx, DEFAULT_CURSOR)
+
+                } else {
+                    this.setState({ cursor: DEFAULT_CURSOR })
                 }
+
             }
         }
     }

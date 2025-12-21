@@ -16,11 +16,11 @@ export const Help = (props: Props) => {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
             <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                 <ListBoxItem textValue="A">
-                    <Text style={{ color: mColor }}>Click on chart: </Text>
+                    <Text style={{ color: mColor }}>Ctrl + Click on chart: </Text>
                     <Text style={{ color: rColor }}>Put a reference cursor</Text>
                 </ListBoxItem>
                 <ListBoxItem textValue="B">
-                    <Text style={{ color: mColor }}>Click on axis-y part: </Text>
+                    <Text style={{ color: mColor }}>Ctrl + Click on axis-y part: </Text>
                     <Text style={{ color: rColor }}>Remove reference cursor</Text>
                 </ListBoxItem>
                 <ListBoxItem textValue="C">

@@ -422,19 +422,13 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "Escape":
                 if (xc.selectedDrawingIdx !== undefined) {
-                    xc.isReferCursorEnabled = false;
-                    this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'deselect' } })
-                    break;
-                }
-
-                if (xc.isReferCursorEnabled) {
-                    xc.isReferCursorEnabled = false;
+                    this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'unselect' } })
 
                 } else {
-                    xc.isCrosshairEnabled = !xc.isCrosshairEnabled
-                }
+                    xc.isReferCursorEnabled = !xc.isReferCursorEnabled;
 
-                this.notify(UpdateEvent.Cursors)
+                    this.notify(UpdateEvent.Cursors)
+                }
                 break;
 
             case 'Delete':
@@ -625,8 +619,8 @@ class KlineViewContainer extends Component<Props, State> {
             this.xStartDrag = x;
             this.yStartDrag = y;
 
-            // also see ChartView's onDrawingMouseMove to avoid conflict cursor shape setting.
-            this.notify(UpdateEvent.Chart, undefined, "pointer");
+            // NOTE cursor shape will always be processed in ChartView's onDrawingMouseMove
+            this.notify(UpdateEvent.Chart);
 
             return
         }
@@ -653,15 +647,14 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseUp(e: React.MouseEvent) {
+        const xc = this.state.xc;
+
         if (this.isDragging) {
             this.isDragging = false
             this.xStartDrag = undefined
             this.yStartDrag = undefined
-
-            return;
         }
 
-        const xc = this.state.xc;
         const [x, y] = this.translate(e)
 
         if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined) {
@@ -671,9 +664,6 @@ class KlineViewContainer extends Component<Props, State> {
         xc.isMouseCursorEnabled = false;
 
         if (e.ctrlKey) {
-            // will select chart on pane
-
-        } else {
             // set refer cursor
             if (this.isNotInAxisYArea(x)) {
                 const time = xc.tx(x);
@@ -698,8 +688,10 @@ class KlineViewContainer extends Component<Props, State> {
 
             } else {
                 xc.isReferCursorEnabled = false;
+
                 this.notify(UpdateEvent.Cursors)
             }
+
         }
     }
 
