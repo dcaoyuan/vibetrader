@@ -186,12 +186,13 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.switchCrosshairVisiable = this.switchCrosshairVisiable.bind(this)
 
-        this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
-        this.onMouseUp = this.onMouseUp.bind(this);
-        this.onMouseDown = this.onMouseDown.bind(this);
-        this.onMouseMove = this.onMouseMove.bind(this);
-        this.onMouseLeave = this.onMouseLeave.bind(this);
-        this.onWheel = this.onWheel.bind(this);
+        this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
+        this.onMouseUp = this.onMouseUp.bind(this)
+        this.onMouseDown = this.onMouseDown.bind(this)
+        this.onMouseMove = this.onMouseMove.bind(this)
+        this.onMouseLeave = this.onMouseLeave.bind(this)
+        this.onDoubleClick = this.onDoubleClick.bind(this)
+        this.onWheel = this.onWheel.bind(this)
 
         this.callbacks = {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
@@ -648,71 +649,75 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseUp(e: React.MouseEvent) {
-        const xc = this.state.xc;
-
         if (this.isDragging) {
             this.isDragging = false
             this.xStartDrag = undefined
             this.yStartDrag = undefined
         }
+    }
 
+    onDoubleClick(e: React.MouseEvent) {
+        const xc = this.state.xc;
         const [x, y] = this.translate(e)
 
-        // if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined) {
-        //     return
-        // }
-
-        xc.isMouseCursorEnabled = false;
-
-        if (e.ctrlKey) {
-            // set refer cursor
-            if (this.isNotInAxisYArea(x)) {
-                const time = xc.tx(x);
-                if (!xc.occurred(time)) {
-                    return;
-                }
-
-                // align x to bar center
-                const b = xc.bx(x);
-
-                // draw refer cursor only when not in the axis-y area
-                if (
-                    y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
-                    b >= 1 && b <= xc.nBars
-                ) {
-                    const row = xc.rb(b)
-                    xc.setReferCursorByRow(row, true)
-                    xc.isReferCursorEnabled = true;
-
-                    this.notify(UpdateEvent.Cursors);
-                }
-
-            } else {
-                xc.isReferCursorEnabled = false;
-
-                this.notify(UpdateEvent.Cursors)
+        // set refer cursor
+        if (this.isNotInAxisYArea(x)) {
+            const time = xc.tx(x);
+            if (!xc.occurred(time)) {
+                return;
             }
 
+            // align x to bar center
+            const b = xc.bx(x);
+
+            // draw refer cursor only when not in the axis-y area
+            if (
+                y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
+                b >= 1 && b <= xc.nBars
+            ) {
+                const row = xc.rb(b)
+                xc.setReferCursorByRow(row, true)
+                xc.isReferCursorEnabled = true;
+
+                this.notify(UpdateEvent.Cursors);
+            }
+
+        } else {
+            xc.isReferCursorEnabled = false;
+
+            this.notify(UpdateEvent.Cursors)
         }
     }
 
     onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
 
-        const fastSteps = Math.floor(xc.nBars * 0.168)
-        const delta = Math.round(e.deltaY / xc.nBars);
-        console.log(e, delta)
+        const delta = Math.sign(e.deltaY)
+
+        // treating one event as 'one unit' is good enough and safer.
+        switch (e.deltaMode) {
+            case 0x00:  // The delta values are specified in pixels.
+                break;
+
+            case 0x01: // The delta values are specified in lines.
+                break;
+
+            case 0x02: // The delta values are specified in pages.
+                break;
+        }
 
         if (e.shiftKey) {
             // zoom in / zoom out 
-            xc.growWBar(delta)
+            xc.growWBar(-Math.sign(delta))
 
         } else if (e.ctrlKey) {
+            const fastSteps = Math.floor(xc.nBars * 0.168)
             const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // move refer cursor left / right 
             xc.scrollReferCursor(unitsToScroll, true)
 
         } else {
+            const fastSteps = Math.floor(xc.nBars * 0.168)
             const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // keep referCursor staying same x in screen, and move
             xc.scrollChartsHorizontallyByBar(unitsToScroll)
@@ -954,6 +959,7 @@ class KlineViewContainer extends Component<Props, State> {
                             width={this.width}
                             height={this.state.svgHeight}
                             vectorEffect="non-scaling-stroke"
+                            onDoubleClick={this.onDoubleClick}
                             onMouseLeave={this.onMouseLeave}
                             onMouseMove={this.onMouseMove}
                             onMouseDown={this.onMouseDown}
