@@ -87,6 +87,7 @@ export type CallbacksToContainer = {
 
 const DEFAULT_CURSOR = "default"
 const HANDLE_CURSOR = "pointer"
+const GRAB_CURSOR = "grab"
 const MOVE_CURSOR = "all-scroll" // 'move' doesn't work?
 
 /**
@@ -677,7 +678,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 }
 
             } else {
-                this.setState({ cursor: HANDLE_CURSOR })
+                this.setState({ cursor: GRAB_CURSOR })
             }
 
         } else {
