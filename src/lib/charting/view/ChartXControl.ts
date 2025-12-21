@@ -446,16 +446,20 @@ export class ChartXControl {
 
     // DIRECTION = -1: Left
     // DIRECTION = 1: Right 
-    moveCursorInDirection(fastSteps: number, DIRECTION: number) {
-        const steps = (this.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    moveCursorInDirection(nBarsToMove: number, DIRECTION: number, isDragging?: boolean) {
+        nBarsToMove = isDragging
+            ? nBarsToMove
+            : this.isCursorAccelerated ? Math.floor(this.nBars * 0.168) : 1
 
-        this.scrollReferCursor(steps, true)
+        this.scrollReferCursor(nBarsToMove * DIRECTION, true)
     }
 
-    moveChartsInDirection(fastSteps: number, DIRECTION: number) {
-        const steps = (this.isCursorAccelerated ? fastSteps : 1) * DIRECTION
+    moveChartsInDirection(nBarsToMove: number, DIRECTION: number, isDragging?: boolean) {
+        nBarsToMove = isDragging
+            ? nBarsToMove
+            : this.isCursorAccelerated ? Math.floor(this.nBars * 0.168) : 1
 
-        this.scrollChartsHorizontallyByBar(steps)
+        this.scrollChartsHorizontallyByBar(nBarsToMove * DIRECTION)
     }
 
 

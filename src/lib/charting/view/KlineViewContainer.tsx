@@ -91,6 +91,8 @@ type State = {
 
     isLoaded?: boolean;
 
+    cursor?: string;
+
 }
 
 
@@ -117,16 +119,17 @@ const allInds = ['ema', 'sma', 'rsi', 'macd']
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
-    isInteractive: boolean;
 
-    refreshTimeoutId = undefined;
-    globalKeyboardListener = undefined
+    reloadDataTimeoutId = undefined;
+    latestTime: number;
 
     loadedIndFns: Map<string, ((pinets: PineTS) => unknown)>;
 
-    latestTime: number;
-
     focusRef: React.RefObject<HTMLDivElement>;
+    globalKeyboardListener = undefined
+    isDragging: boolean;
+    xStartDrag: number;
+    yStartDrag: number;
 
     // geometry variables
     hTitle = 130;
@@ -185,8 +188,9 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this);
         this.onMouseUp = this.onMouseUp.bind(this);
-        this.onMouseLeave = this.onMouseLeave.bind(this);
+        this.onMouseDown = this.onMouseDown.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
+        this.onMouseLeave = this.onMouseLeave.bind(this);
         this.onWheel = this.onWheel.bind(this);
 
         this.callbacks = {
@@ -353,7 +357,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        this.refreshTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -471,8 +475,8 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     override componentWillUnmount() {
-        if (this.refreshTimeoutId) {
-            clearTimeout(this.refreshTimeoutId);
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
         }
 
         if (this.globalKeyboardListener) {
@@ -480,14 +484,14 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }) {
+    notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }, cursor?: string) {
         switch (event) {
             case UpdateEvent.Chart:
-                this.updateState({ shouldUpdateChart: this.state.shouldUpdateChart + 1 });
+                this.updateState({ shouldUpdateChart: this.state.shouldUpdateChart + 1, cursor });
                 break;
 
             case UpdateEvent.Cursors:
-                this.updateState({ shouldUpdateCursor: { changed: this.state.shouldUpdateCursor.changed + 1, xyMouse } })
+                this.updateState({ shouldUpdateCursor: { changed: this.state.shouldUpdateCursor.changed + 1, xyMouse }, cursor })
                 break;
 
             default:
@@ -585,6 +589,10 @@ class KlineViewContainer extends Component<Props, State> {
         return x < this.width - ChartView.AXISY_WIDTH
     }
 
+    translate(e: React.MouseEvent) {
+        return [e.nativeEvent.offsetX, e.nativeEvent.offsetY]
+    }
+
     onMouseLeave() {
         const xc = this.state.xc;
 
@@ -594,22 +602,40 @@ class KlineViewContainer extends Component<Props, State> {
         this.notify(UpdateEvent.Cursors);
     }
 
+    onMouseDown(e: React.MouseEvent) {
+        this.isDragging = true
+
+        const [x, y] = this.translate(e)
+        this.xStartDrag = x;
+        this.yStartDrag = y;
+    }
+
     onMouseMove(e: React.MouseEvent) {
         const xc = this.state.xc;
+        const [x, y] = this.translate(e)
 
-        if (
-            this.state.selectedDrawingIds.size > 0 ||
-            xc.selectedDrawingIdx !== undefined ||
-            xc.hitDrawingIdx !== undefined
-        ) {
+        if (this.isDragging) {
+            const xDelta = x - this.xStartDrag
+            const nBarDelta = Math.ceil(xDelta / xc.wBar)
+
+            xc.isMouseCursorEnabled = false
+            xc.isReferCursorEnabled = false
+            xc.moveChartsInDirection(nBarDelta, -1, true)
+
+            this.xStartDrag = x;
+            this.yStartDrag = y;
+
+            // TODO: this is overrided by chartview's cursor
+            this.notify(UpdateEvent.Chart, undefined, "pointer");
+
+            return
+        }
+
+        if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined || xc.hitDrawingIdx !== undefined) {
             xc.isMouseCursorEnabled = false;
             this.notify(UpdateEvent.Cursors);
             return
         }
-
-        const targetRect = e.currentTarget.getBoundingClientRect();
-        const x = e.pageX - targetRect.left;
-        const y = e.pageY - targetRect.top;
 
         const b = xc.bx(x);
 
@@ -627,12 +653,18 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseUp(e: React.MouseEvent) {
-        const xc = this.state.xc;
+        if (this.isDragging) {
+            this.isDragging = false
+            this.xStartDrag = undefined
+            this.yStartDrag = undefined
 
-        if (
-            this.state.selectedDrawingIds.size > 0 ||
-            xc.selectedDrawingIdx !== undefined
-        ) {
+            return;
+        }
+
+        const xc = this.state.xc;
+        const [x, y] = this.translate(e)
+
+        if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined) {
             return
         }
 
@@ -643,10 +675,6 @@ class KlineViewContainer extends Component<Props, State> {
 
         } else {
             // set refer cursor
-            const targetRect = e.currentTarget.getBoundingClientRect();
-            const x = e.pageX - targetRect.left;
-            const y = e.pageY - targetRect.top;
-
             if (this.isNotInAxisYArea(x)) {
                 const time = xc.tx(x);
                 if (!xc.occurred(time)) {
@@ -678,8 +706,6 @@ class KlineViewContainer extends Component<Props, State> {
     onWheel(e: React.WheelEvent) {
         const xc = this.state.xc;
 
-        xc.isMouseCursorEnabled = false;
-
         const fastSteps = Math.floor(xc.nBars * 0.168)
         const delta = Math.round(e.deltaY / xc.nBars);
         console.log(e, delta)
@@ -689,19 +715,11 @@ class KlineViewContainer extends Component<Props, State> {
             xc.growWBar(delta)
 
         } else if (e.ctrlKey) {
-            if (!this.isInteractive) {
-                return
-            }
-
             const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // move refer cursor left / right 
             xc.scrollReferCursor(unitsToScroll, true)
 
         } else {
-            if (!this.isInteractive) {
-                return
-            }
-
             const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
             // keep referCursor staying same x in screen, and move
             xc.scrollChartsHorizontallyByBar(unitsToScroll)
@@ -758,8 +776,8 @@ class KlineViewContainer extends Component<Props, State> {
 
 
     setSelectedIndicatorTags(selectedIndicatorTags: 'all' | Set<Key>) {
-        if (this.refreshTimeoutId) {
-            clearTimeout(this.refreshTimeoutId);
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
         }
 
         this.fetchData_calcInds(this.latestTime, selectedIndicatorTags)
@@ -945,8 +963,10 @@ class KlineViewContainer extends Component<Props, State> {
                             vectorEffect="non-scaling-stroke"
                             onMouseLeave={this.onMouseLeave}
                             onMouseMove={this.onMouseMove}
+                            onMouseDown={this.onMouseDown}
                             onMouseUp={this.onMouseUp}
                             onWheel={this.onWheel}
+                            cursor={this.state.cursor}
                             style={{ zIndex: 1 }}
                         >
                             <KlineView

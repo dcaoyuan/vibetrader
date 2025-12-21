@@ -295,7 +295,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 const tvar = indicator.tvar;
 
                 let mvs: string[]
-                if (mouseTime !== undefined && mouseTime > 0) {
+                if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
                     mvs = indicator.outputs.map(({ atIndex }, n) => {
                         const values = tvar.getByTime(mouseTime);
                         const v = values ? values[atIndex] : '';
@@ -311,7 +311,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 allmvs.push(mvs)
 
                 let rvs: string[]
-                if (referTime !== undefined && referTime > 0) {
+                if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
                     rvs = indicator.outputs.map(({ atIndex }, n) => {
                         const values = tvar.getByTime(referTime);
                         const v = values ? values[atIndex] : '';
@@ -334,7 +334,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.props.indexOfStackedIndicators !== undefined) {
             const tvar = this.props.tvar;
             let mvs: string[]
-            if (mouseTime !== undefined && mouseTime > 0) {
+            if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
                 const values = tvar.getByTime(mouseTime);
                 mvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
@@ -345,7 +345,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
             let rvs: string[]
-            if (referTime !== undefined && referTime > 0) {
+            if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
                 const values = tvar.getByTime(referTime);
                 rvs = values && (values as unknown[]).map((v) =>
                     typeof v === 'number'
@@ -655,17 +655,19 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             return
         }
 
-        if (this.props.xc.selectedDrawingIdx !== undefined && this.isDragging) {
-            const selectedOne = this.drawings[this.props.xc.selectedDrawingIdx]
-            if (selectedOne.currHandleIdx >= 0) {
-                selectedOne.stretchCurrentHandle(this.p(x, y))
+        if (this.isDragging) {
+            if (this.props.xc.selectedDrawingIdx !== undefined) {
+                const selectedOne = this.drawings[this.props.xc.selectedDrawingIdx]
+                if (selectedOne.currHandleIdx >= 0) {
+                    selectedOne.stretchCurrentHandle(this.p(x, y))
 
-                this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
+                    this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
 
-            } else {
-                selectedOne.moveDrawing(this.p(x, y))
+                } else {
+                    selectedOne.moveDrawing(this.p(x, y))
 
-                this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
+                    this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
+                }
             }
 
         } else {
