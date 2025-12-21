@@ -4,15 +4,11 @@ import { Drawing } from "./Drawing"
 export class LineDrawing extends Drawing {
     isExtended: boolean = true
 
-    init() {
+    override init() {
         this.nHandles = 2;
     }
 
-    hits(x: number, y: number): boolean {
-        if (this.handles.length < this.nHandles) {
-            return
-        }
-
+    override hits(x: number, y: number): boolean {
         const x0 = this.xt(this.handles[0])
         const x1 = this.xt(this.handles[1])
 
@@ -28,7 +24,7 @@ export class LineDrawing extends Drawing {
         return distance <= 4
     }
 
-    plotDrawing() {
+    override plotDrawing() {
         const path = new Path()
 
         const x0 = this.xt(this.handles[0])

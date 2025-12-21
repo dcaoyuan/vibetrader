@@ -722,12 +722,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // completing new drawing
             const isCompleted = this.creatingDrawing.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawingLine = this.creatingDrawing.renderDrawing("drawing-new")
                 const drawingLines = this.state.drawingLines
 
                 this.drawings.push(this.creatingDrawing)
-                this.creatingDrawing = undefined
+                this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
                 this.props.callbacksToContainer.updateSelectedDrawingIds(undefined)
+
+                const drawingLine = this.creatingDrawing.renderDrawingWithHandles("drawing-new")
+                this.creatingDrawing = undefined
 
                 this.setState({ drawingLines: [...drawingLines, drawingLine], sketching: undefined })
             }
