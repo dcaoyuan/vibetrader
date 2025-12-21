@@ -668,6 +668,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // process hit drawing
             const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
             if (hitDrawingIdx >= 0) {
+                // show as selected
                 this.props.xc.hitDrawingIdx = hitDrawingIdx
                 const hitOne = this.drawings[hitDrawingIdx]
 
@@ -684,12 +685,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             } else {
                 if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
+                    // show as unselected
                     const hitIdx = this.props.xc.hitDrawingIdx;
                     this.props.xc.hitDrawingIdx = undefined
                     this.updateDrawingsWithUnselect(hitIdx, DEFAULT_CURSOR)
-
-                } else {
-                    this.setState({ cursor: DEFAULT_CURSOR })
                 }
             }
         }
