@@ -37,7 +37,7 @@ export class FibonacciRetraceDrawing extends Drawing {
             const n = FN[i];
             const yn = y0 + interval * n
 
-            if (yn > this.yc.hCanvas) {
+            if (yn > this.yc.hCanvas + 10) { // add a little bit more span
                 break;
             }
 
@@ -66,7 +66,8 @@ export class FibonacciRetraceDrawing extends Drawing {
         while (i < FN.length) {
             const n = FN[i];
             const yn = y0 + interval * n
-            if (yn > this.yc.hCanvas) {
+
+            if (yn > this.yc.hCanvas + 10) { // add a little bit more span
                 break;
             }
 
