@@ -553,28 +553,55 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     protected unselectDrawing(cursor?: string) {
         if (this.props.xc.selectedDrawingIdx !== undefined) {
-            this.updateDrawingsWithUnselect(this.props.xc.selectedDrawingIdx, cursor)
+            this.updateDrawingsWithoutHandles(this.props.xc.selectedDrawingIdx, cursor)
             this.props.xc.selectedDrawingIdx = undefined
         }
     }
 
-    private updateDrawingsWithSelected(idx: number, cursor?: string) {
-        const drawingLine = this.drawings[idx].renderDrawingWithHandles("drawing-" + idx)
-        const drawingLines = [
-            ...this.state.drawingLines.slice(0, idx),
-            drawingLine,
-            ...this.state.drawingLines.slice(idx + 1)
+    private selectAndUpdateDrawings(idx: number, cursor?: string) {
+        let drawingLines = this.state.drawingLines
+        const prevSelectedIdx = this.props.xc.selectedDrawingIdx
+        if (prevSelectedIdx !== undefined && prevSelectedIdx !== idx) {
+            // there is a different prev selected, unselect at the same time 
+            const unselected = this.drawings[prevSelectedIdx].renderDrawing("drawing-" + prevSelectedIdx)
+
+            drawingLines = [
+                ...drawingLines.slice(0, prevSelectedIdx),
+                unselected,
+                ...drawingLines.slice(prevSelectedIdx + 1)
+            ];
+        }
+
+        const selected = this.drawings[idx].renderDrawingWithHandles("drawing-" + idx)
+        drawingLines = [
+            ...drawingLines.slice(0, idx),
+            selected,
+            ...drawingLines.slice(idx + 1)
+        ];
+
+        this.props.xc.selectedDrawingIdx = idx
+
+        this.setState({ drawingLines, cursor })
+    }
+
+    private updateDrawingsWithHandles(idxToAddHandles: number, cursor?: string) {
+        const selected = this.drawings[idxToAddHandles].renderDrawingWithHandles("drawing-" + idxToAddHandles)
+        let drawingLines = this.state.drawingLines
+        drawingLines = [
+            ...drawingLines.slice(0, idxToAddHandles),
+            selected,
+            ...drawingLines.slice(idxToAddHandles + 1)
         ];
 
         this.setState({ drawingLines, cursor })
     }
 
-    private updateDrawingsWithUnselect(idx: number, cursor?: string) {
-        const drawingLine = this.drawings[idx].renderDrawing("drawing-" + idx)
+    private updateDrawingsWithoutHandles(idxToRemoveHandles: number, cursor?: string) {
+        const unselected = this.drawings[idxToRemoveHandles].renderDrawing("drawing-" + idxToRemoveHandles)
         const drawingLines = [
-            ...this.state.drawingLines.slice(0, idx),
-            drawingLine,
-            ...this.state.drawingLines.slice(idx + 1)
+            ...this.state.drawingLines.slice(0, idxToRemoveHandles),
+            unselected,
+            ...this.state.drawingLines.slice(idxToRemoveHandles + 1)
         ];
 
         this.setState({ drawingLines, cursor })
@@ -596,22 +623,20 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // record the mouseDownHitDrawingIdx for dragging decision
             this.props.xc.mouseDownHitDrawingIdx = hitDrawingIdx
 
-            // selected drawing
-            this.props.xc.selectedDrawingIdx = hitDrawingIdx
             const selectedOne = this.drawings[hitDrawingIdx]
 
             const handleIdx = selectedOne.getHandleIdxAt(x, y)
             if (handleIdx >= 0) {
                 // ready to drag handle 
                 selectedOne.currHandleIdx = handleIdx
-                this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
+                this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
 
             } else {
                 // ready to drag whole drawing
                 selectedOne.rememberHandlesWhenMousePressed(this.p(x, y))
 
                 selectedOne.currHandleIdx = -1
-                this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
+                this.selectAndUpdateDrawings(hitDrawingIdx, MOVE_CURSOR)
             }
 
         } else {
@@ -653,7 +678,25 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.creatingDrawing?.isCompleted === false) {
             if (this.creatingDrawing.isAnchored) {
                 const sketching = this.creatingDrawing.stretchCurrentHandle(this.p(x, y))
-                this.setState({ sketching, cursor: DEFAULT_CURSOR })
+
+                const prevSelected = this.props.xc.selectedDrawingIdx
+                if (prevSelected !== undefined) {
+                    // unselect it at the same time 
+                    const toUnselect = this.drawings[prevSelected].renderDrawing("drawing-" + prevSelected)
+
+                    const drawingLines = [
+                        ...this.state.drawingLines.slice(0, prevSelected),
+                        toUnselect,
+                        ...this.state.drawingLines.slice(prevSelected + 1)
+                    ];
+
+                    this.props.xc.selectedDrawingIdx = undefined
+
+                    this.setState({ drawingLines, sketching, cursor: DEFAULT_CURSOR })
+
+                } else {
+                    this.setState({ sketching, cursor: DEFAULT_CURSOR })
+                }
             }
 
             return
@@ -668,14 +711,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     // drag handle
                     selectedOne.stretchCurrentHandle(this.p(x, y))
 
-                    this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
-
                 } else {
                     // drag whole drawing
                     selectedOne.dragDrawing(this.p(x, y))
-
-                    this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
                 }
+
+                const cursor = selectedOne.currHandleIdx >= 0
+                    ? HANDLE_CURSOR
+                    : MOVE_CURSOR
+
+                this.updateDrawingsWithHandles(this.props.xc.selectedDrawingIdx, cursor)
 
             } else {
                 this.setState({ cursor: GRAB_CURSOR })
@@ -690,12 +735,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 const hitOne = this.drawings[hitDrawingIdx]
 
                 const handleIdx = hitOne.getHandleIdxAt(x, y)
-                if (handleIdx >= 0) {
-                    this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
+                const cursor = handleIdx >= 0
+                    ? HANDLE_CURSOR
+                    : MOVE_CURSOR
 
-                } else {
-                    this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
-                }
+                this.updateDrawingsWithHandles(hitDrawingIdx, cursor)
 
             } else {
                 if (this.props.xc.mouseMoveHitDrawingIdx >= 0) {
@@ -703,7 +747,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         //  not the selecte one, show as unselected
                         const tobeUnselect = this.props.xc.mouseMoveHitDrawingIdx
                         this.props.xc.mouseMoveHitDrawingIdx = undefined
-                        this.updateDrawingsWithUnselect(tobeUnselect, DEFAULT_CURSOR)
+
+                        this.updateDrawingsWithoutHandles(tobeUnselect, DEFAULT_CURSOR)
 
                     } else {
                         this.setState({ cursor: DEFAULT_CURSOR })
@@ -740,16 +785,35 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // completing new drawing
             const isCompleted = this.creatingDrawing.anchorHandle(this.p(x, y))
             if (isCompleted) {
-                const drawingLines = this.state.drawingLines
 
                 this.drawings.push(this.creatingDrawing)
-                this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
                 this.props.callbacksToContainer.updateDrawingIdsToCreate(undefined)
 
                 const drawingLine = this.creatingDrawing.renderDrawingWithHandles("drawing-new")
                 this.creatingDrawing = undefined
 
-                this.setState({ drawingLines: [...drawingLines, drawingLine], sketching: undefined })
+                let drawingLines: JSX.Element[]
+                const prevSelected = this.props.xc.selectedDrawingIdx
+                if (prevSelected !== undefined) {
+                    // unselect it at the same time 
+                    const toUnselect = this.drawings[prevSelected].renderDrawing("drawing-" + prevSelected)
+
+                    drawingLines = [
+                        ...this.state.drawingLines.slice(0, prevSelected),
+                        toUnselect,
+                        ...this.state.drawingLines.slice(prevSelected + 1),
+                        drawingLine];
+
+                } else {
+                    drawingLines = [
+                        ...this.state.drawingLines,
+                        drawingLine];
+                }
+
+                // new selected one
+                this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
+
+                this.setState({ drawingLines, sketching: undefined })
             }
         }
     }
