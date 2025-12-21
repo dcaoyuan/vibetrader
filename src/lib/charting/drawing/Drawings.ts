@@ -5,6 +5,7 @@ import { FibonacciRetraceVerticalDrawing } from "./FibonacciRetraceVerticalDrawi
 import { FibonacciTimeZoneDrawing } from "./FibonacciTimeZoneDrawing"
 import { LineDrawing } from "./LineDrawing"
 import { ParallelDrawing } from "./ParallelDrawing"
+import { PolylineDrawing } from "./PloylineDrawing"
 
 export function createDrawing(id: string, xc: ChartXControl, yc: ChartYControl) {
     switch (id) {
@@ -13,6 +14,10 @@ export function createDrawing(id: string, xc: ChartXControl, yc: ChartYControl) 
 
         case 'parallel':
             return new ParallelDrawing(xc, yc)
+
+        case 'polyline':
+            return new PolylineDrawing(xc, yc)
+
 
         case 'fibonacci_retrace':
             return new FibonacciRetraceDrawing(xc, yc)

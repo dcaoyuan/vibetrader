@@ -633,7 +633,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             } else {
                 // ready to drag whole drawing
-                selectedOne.rememberHandlesWhenMousePressed(this.p(x, y))
+                selectedOne.recordHandlesWhenMousePressed(this.p(x, y))
 
                 selectedOne.currHandleIdx = -1
                 this.selectAndUpdateDrawings(hitDrawingIdx, MOVE_CURSOR)
@@ -648,26 +648,25 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        /** @TODO */
-        //            if (isAccomplished() && isActive()) {
-        //                if (nHandles == VARIABLE_NUMBER_OF_HANDLES) {
-        //                    /** edit(add/delete handle) chart whose nHandles is variable */
-        //                    if (e.isControlDown()) {
-        //                        Handle theHandle = handleAt(e.getX(), e.getY());
-        //                        if (theHandle != null) {
-        //                            /** delete handle */
-        //                            int idx = currentHandles.indexOf(theHandle);
-        //                            if (idx > 0) {
-        //                                currentHandles.remove(idx);
-        //                                previousHandles.remove(idx);
-        //                                currentHandlesWhenMousePressed.remove(idx);
-        //                            }
-        //                        } else {
-        //                            /** add handle */
-        //                        }
+        //    if (isAccomplished() ) {
+        //        if (nHandles == VARIABLE_NUMBER_OF_HANDLES) {
+        //            /** edit(add/delete handle) chart whose nHandles is variable */
+        //            if (e.isControlDown()) {
+        //                Handle theHandle = handleAt(e.getX(), e.getY());
+        //                if (theHandle != null) {
+        //                    /** delete handle */
+        //                    int idx = currentHandles.indexOf(theHandle);
+        //                    if (idx > 0) {
+        //                        currentHandles.remove(idx);
+        //                        previousHandles.remove(idx);
+        //                        currentHandlesWhenMousePressed.remove(idx);
         //                    }
+        //                } else {
+        //                    /** add handle */
         //                }
         //            }
+        //        }
+        //    }
 
     }
 
@@ -767,12 +766,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         // console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         this.isDragging = false
 
-        if (e.detail >= 2) {
-            return // pass double+ click 
-        }
-
-        // sinlge-clicked 
-
         const [x, y] = this.translate(e)
 
         if (this.creatingDrawing === undefined) {
@@ -784,7 +777,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.creatingDrawing?.isCompleted === false) {
             // completing new drawing
             const isCompleted = this.creatingDrawing.anchorHandle(this.p(x, y))
-            if (isCompleted) {
+
+            if (isCompleted || e.ctrlKey) {
+                // is it a variable-handle drawing and ctrl + clicked? complete it 
+                if (this.creatingDrawing.nHandles === undefined && e.ctrlKey) {
+                    this.creatingDrawing.isCompleted = true;
+                    this.creatingDrawing.isAnchored = false;
+                    this.creatingDrawing.currHandleIdx = -1;
+                    // drop pre-created next handle, see anchorHandle(...)
+                    this.creatingDrawing.handles.pop()
+                }
 
                 this.drawings.push(this.creatingDrawing)
                 this.props.callbacksToContainer.updateDrawingIdsToCreate(undefined)
@@ -810,7 +812,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         drawingLine];
                 }
 
-                // new selected one
+                // set it as new selected one
                 this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
 
                 this.setState({ drawingLines, sketching: undefined })
@@ -820,19 +822,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
 
     onDrawingMouseDoubleClick(e: React.MouseEvent) {
-        console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+        //console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         if (e.detail === 2) {
             const [x, y] = this.translate(e)
-
-            // double clicked, process drawing that whose nHandles is variable
-            const working = this.creatingDrawing
-            if (working?.isCompleted === false) {
-                if (working.nHandles === undefined) {
-                    working.isAnchored = false;
-                    working.isCompleted = true;
-                    working.currHandleIdx = -1;
-                }
-            }
         }
     }
 

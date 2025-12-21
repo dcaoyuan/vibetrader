@@ -73,17 +73,17 @@ export abstract class Drawing {
 
     /**
      *
-     * @return true  if accomplished after this anchor,
+     * @return true  if completed after this anchor,
      *         false if not yet.
      */
     anchorHandle(point: TPoint): boolean {
         if (this.handles.length === 0) {
             if (this.nHandles === undefined) {
-                // it is drawing with variable number of handles , create first handle 
+                // it is variable-handle drawing, create the first handle 
                 this.handles.push(this.newHandle())
 
             } else {
-                // it is drawing with known number of handles, create all handles 
+                // it is known-number-handle drawing, create all handles 
                 let i = 0
                 while (i < this.nHandles) {
                     this.handles.push(this.newHandle())
@@ -95,7 +95,7 @@ export abstract class Drawing {
         this.handles[this.currHandleIdx].point = point
 
         if (!this.isCompleted) {
-            // fill handles that not yet anchored with the same point as selectedHandle 
+            // fill handles that not yet anchored with the same point
             let i = this.currHandleIdx + 1
             while (i < this.handles.length) {
                 this.handles[i].point = point
@@ -103,20 +103,20 @@ export abstract class Drawing {
             }
         }
 
-        if (this.currHandleIdx < this.nHandles - 1) {
+        if (this.currHandleIdx < this.nHandles - 1 || this.nHandles === undefined) {
             this.isAnchored = true
 
-            // select next handle 
+            // go to next handle 
             this.currHandleIdx++
 
-            /// create next handle if not created yet
-            if (this.handles.length - 1 < this.currHandleIdx) {
+            if (this.nHandles === undefined) {
+                /// pre-create next handle for variable-handle drawing
                 this.handles.push(this.newHandle(point))
             }
 
         } else {
-            // if only one handle, should let it be completed at once
-            if (this.nHandles == 1) {
+            // if it's one-handle drawing, complete it right now 
+            if (this.nHandles === 1) {
                 this.stretchCurrentHandle(point)
             }
 
@@ -145,7 +145,7 @@ export abstract class Drawing {
     }
 
     // Store handles when mouse pressed, for moveDrawing() 
-    rememberHandlesWhenMousePressed(point: TPoint) {
+    recordHandlesWhenMousePressed(point: TPoint) {
         this.#mousePressedPoint = point
         const handles: Handle[] = new Array(this.handles.length)
         let i = 0

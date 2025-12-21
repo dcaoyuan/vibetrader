@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -864,6 +864,16 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
+                            <TooltipTrigger delay={0}>
+                                <ToggleButton id="polyline" aria-label="polyline">
+                                    <PulseIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Draw polyline
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+
 
                         </ToggleButtonGroup>
 
@@ -911,7 +921,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         })
                                     }
                                 >
-                                    <MinusIcon fill="white" />
+                                    <PlaceholderIcon fill="white" />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Delete selected drawing
