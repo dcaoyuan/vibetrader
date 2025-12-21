@@ -38,7 +38,7 @@ export abstract class Drawing {
 
     readonly handles: Handle[] = [];
 
-    // For moving drawing: the handles when mouse is pressed before drag
+    // For drag whole drawing: the handles when mouse is pressed before drag
     #handlesWhenMousePressed: Handle[] = []
     #mousePressedPoint: TPoint;
 
@@ -156,7 +156,7 @@ export abstract class Drawing {
         this.#handlesWhenMousePressed = handles;
     }
 
-    moveDrawing(point: TPoint) {
+    dragDrawing(point: TPoint) {
         /**
          * should compute bar moved instead of time moved, because when shows
          * in trading date mode, time moved may not be located at a trading day

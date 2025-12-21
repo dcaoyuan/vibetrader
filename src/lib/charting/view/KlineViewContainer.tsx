@@ -79,7 +79,7 @@ type State = {
     referStackedIndicatorLabels?: string[][];
 
     selectedIndicatorTags?: 'all' | Set<Key>;
-    selectedDrawingIds?: Set<Key>;
+    drawingIdsToCreate?: Set<Key>;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -175,14 +175,14 @@ class KlineViewContainer extends Component<Props, State> {
             shouldUpdateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
-            selectedDrawingIds: new Set(),
+            drawingIdsToCreate: new Set(),
             ...geometry,
         }
 
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)
         this.setSelectedIndicatorTags = this.setSelectedIndicatorTags.bind(this)
-        this.setSelectedDrawingIds = this.setSelectedDrawingIds.bind(this)
+        this.setDrawingIdsToCreate = this.setDrawingIdsToCreate.bind(this)
 
         this.switchCrosshairVisiable = this.switchCrosshairVisiable.bind(this)
 
@@ -196,7 +196,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.callbacks = {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
             updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
-            updateSelectedDrawingIds: this.setSelectedDrawingIds,
+            updateDrawingIdsToCreate: this.setDrawingIdsToCreate,
         }
     }
 
@@ -563,7 +563,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, color: string) {
-        if (this.state.selectedDrawingIds.size > 0 || this.state.xc.isCrosshairEnabled) {
+        if (this.state.drawingIdsToCreate.size > 0 || this.state.xc.isCrosshairEnabled) {
             return <></>
         }
 
@@ -608,7 +608,8 @@ class KlineViewContainer extends Component<Props, State> {
         const xc = this.state.xc;
         const [x, y] = this.translate(e)
 
-        if (this.isDragging && xc.selectedDrawingIdx === undefined) {
+        if (this.isDragging && xc.mouseDownHitDrawingIdx === undefined) {
+            // drag chart
             const xDelta = x - this.xStartDrag
             const nBarDelta = Math.ceil(xDelta / xc.wBar)
 
@@ -625,7 +626,7 @@ class KlineViewContainer extends Component<Props, State> {
             return
         }
 
-        if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined || xc.hitDrawingIdx !== undefined) {
+        if (this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
             xc.isMouseCursorEnabled = false;
             this.notify(UpdateEvent.Cursors);
             return
@@ -657,9 +658,9 @@ class KlineViewContainer extends Component<Props, State> {
 
         const [x, y] = this.translate(e)
 
-        if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined) {
-            return
-        }
+        // if (this.state.selectedDrawingIds.size > 0 || xc.selectedDrawingIdx !== undefined) {
+        //     return
+        // }
 
         xc.isMouseCursorEnabled = false;
 
@@ -775,14 +776,14 @@ class KlineViewContainer extends Component<Props, State> {
         this.fetchData_calcInds(this.latestTime, selectedIndicatorTags)
     }
 
-    setSelectedDrawingIds(ids?: Set<Key>) {
+    setDrawingIdsToCreate(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
             this.setState({
                 shouldUpdateDrawing: {
                     ...(this.state.shouldUpdateDrawing),
                     createDrawingId: undefined
                 },
-                selectedDrawingIds: new Set()
+                drawingIdsToCreate: new Set()
             })
 
         } else {
@@ -793,7 +794,7 @@ class KlineViewContainer extends Component<Props, State> {
                     action: 'create',
                     createDrawingId: drawingId as string
                 },
-                selectedDrawingIds: ids
+                drawingIdsToCreate: ids
             })
         }
     }
@@ -810,8 +811,8 @@ class KlineViewContainer extends Component<Props, State> {
                             selectionMode="single"
                             orientation="vertical"
                             style={{ flexDirection: "column" }}
-                            selectedKeys={this.state.selectedDrawingIds}
-                            onSelectionChange={this.setSelectedDrawingIds}
+                            selectedKeys={this.state.drawingIdsToCreate}
+                            onSelectionChange={this.setDrawingIdsToCreate}
                         >
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="line" aria-label="Line">

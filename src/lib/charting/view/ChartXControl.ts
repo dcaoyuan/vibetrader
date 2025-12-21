@@ -69,10 +69,9 @@ export class ChartXControl {
 
     // share across view and view container
     selectedDrawingIdx: number;
-    hitDrawingIdx: number;
+    mouseMoveHitDrawingIdx: number;
+    mouseDownHitDrawingIdx: number;
 
-    readonly #popupViewRefs = new Map<ChartView<ViewProps, ViewState>, unknown>();
-    private popupViews() { return this.#popupViewRefs.keys() };
     #lastOccurredRowOfBaseSer = 0;
     #isAutoScrollToNewData = true;
     #isMouseEnteredAnyChartPane = false;

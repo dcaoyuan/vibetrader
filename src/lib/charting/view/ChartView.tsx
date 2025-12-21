@@ -82,7 +82,7 @@ export interface ViewState {
 export type CallbacksToContainer = {
     updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
     updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
-    updateSelectedDrawingIds: (ids?: Set<Key>) => void;
+    updateDrawingIdsToCreate: (ids?: Set<Key>) => void;
 }
 
 const DEFAULT_CURSOR = "default"
@@ -523,7 +523,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     isDragging: boolean
 
     protected plotDrawings() {
-        return this.drawings.map((drawing, n) => this.props.xc.selectedDrawingIdx === n || this.props.xc.hitDrawingIdx === n
+        return this.drawings.map((drawing, n) => this.props.xc.selectedDrawingIdx === n || this.props.xc.mouseMoveHitDrawingIdx === n
             ? drawing.renderDrawingWithHandles("drawing-" + n)
             : drawing.renderDrawing("drawing-" + n))
     }
@@ -543,7 +543,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             // should also clear hitDrawingIdx
             this.props.xc.selectedDrawingIdx = undefined
-            this.props.xc.hitDrawingIdx = undefined
+            this.props.xc.mouseMoveHitDrawingIdx = undefined
 
             this.drawings = drawings
             this.setState({ drawingLines })
@@ -589,27 +589,36 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         const [x, y] = this.translate(e)
 
-        // select or unselect drawing
+        // select drawing ?
         const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
         if (hitDrawingIdx >= 0) {
+            // record the mouseDownHitDrawingIdx for dragging decision
+            this.props.xc.mouseDownHitDrawingIdx = hitDrawingIdx
+
+            // selected drawing
             this.props.xc.selectedDrawingIdx = hitDrawingIdx
             const selectedOne = this.drawings[hitDrawingIdx]
 
             const handleIdx = selectedOne.getHandleIdxAt(x, y)
             if (handleIdx >= 0) {
+                // ready to drag handle 
                 selectedOne.currHandleIdx = handleIdx
-
                 this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
 
             } else {
+                // ready to drag whole drawing
                 selectedOne.rememberHandlesWhenMousePressed(this.p(x, y))
 
+                selectedOne.currHandleIdx = -1
                 this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
             }
 
         } else {
+            // not going to drag drawing (and handle), it's ok to drag any other things if you want
+            this.props.xc.mouseDownHitDrawingIdx = undefined
+
             if (this.props.xc.selectedDrawingIdx !== undefined) {
-                this.unselectDrawing(DEFAULT_CURSOR)
+                this.drawings[this.props.xc.selectedDrawingIdx].currHandleIdx = -1
             }
         }
 
@@ -650,18 +659,23 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         if (this.isDragging) {
-            if (this.props.xc.selectedDrawingIdx !== undefined) {
+            if (this.props.xc.selectedDrawingIdx !== undefined &&
+                this.props.xc.selectedDrawingIdx === this.props.xc.mouseDownHitDrawingIdx
+            ) {
                 const selectedOne = this.drawings[this.props.xc.selectedDrawingIdx]
                 if (selectedOne.currHandleIdx >= 0) {
+                    // drag handle
                     selectedOne.stretchCurrentHandle(this.p(x, y))
 
                     this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, HANDLE_CURSOR)
 
                 } else {
-                    selectedOne.moveDrawing(this.p(x, y))
+                    // drag whole drawing
+                    selectedOne.dragDrawing(this.p(x, y))
 
                     this.updateDrawingsWithSelected(this.props.xc.selectedDrawingIdx, MOVE_CURSOR)
                 }
+
             } else {
                 this.setState({ cursor: HANDLE_CURSOR })
             }
@@ -671,26 +685,28 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
             if (hitDrawingIdx >= 0) {
                 // show as selected
-                this.props.xc.hitDrawingIdx = hitDrawingIdx
+                this.props.xc.mouseMoveHitDrawingIdx = hitDrawingIdx
                 const hitOne = this.drawings[hitDrawingIdx]
 
-                const handle = hitOne.getHandleIdxAt(x, y)
-                if (handle >= 0) {
-
+                const handleIdx = hitOne.getHandleIdxAt(x, y)
+                if (handleIdx >= 0) {
                     this.updateDrawingsWithSelected(hitDrawingIdx, HANDLE_CURSOR)
 
                 } else {
-                    hitOne.currHandleIdx = -1
-
                     this.updateDrawingsWithSelected(hitDrawingIdx, MOVE_CURSOR)
                 }
 
             } else {
-                if (this.props.xc.hitDrawingIdx >= 0 && this.props.xc.selectedDrawingIdx !== this.props.xc.hitDrawingIdx) {
-                    // show as unselected
-                    const hitIdx = this.props.xc.hitDrawingIdx;
-                    this.props.xc.hitDrawingIdx = undefined
-                    this.updateDrawingsWithUnselect(hitIdx, DEFAULT_CURSOR)
+                if (this.props.xc.mouseMoveHitDrawingIdx >= 0) {
+                    if (this.props.xc.mouseMoveHitDrawingIdx !== this.props.xc.selectedDrawingIdx) {
+                        //  not the selecte one, show as unselected
+                        const tobeUnselect = this.props.xc.mouseMoveHitDrawingIdx
+                        this.props.xc.mouseMoveHitDrawingIdx = undefined
+                        this.updateDrawingsWithUnselect(tobeUnselect, DEFAULT_CURSOR)
+
+                    } else {
+                        this.setState({ cursor: DEFAULT_CURSOR })
+                    }
 
                 } else {
                     this.setState({ cursor: DEFAULT_CURSOR })
@@ -727,7 +743,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                 this.drawings.push(this.creatingDrawing)
                 this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
-                this.props.callbacksToContainer.updateSelectedDrawingIds(undefined)
+                this.props.callbacksToContainer.updateDrawingIdsToCreate(undefined)
 
                 const drawingLine = this.creatingDrawing.renderDrawingWithHandles("drawing-new")
                 this.creatingDrawing = undefined
