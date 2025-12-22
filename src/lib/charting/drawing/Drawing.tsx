@@ -12,7 +12,6 @@ export type TPoint = {
 }
 
 export abstract class Drawing {
-
     xc: ChartXControl
     yc: ChartYControl
 
@@ -180,6 +179,11 @@ export abstract class Drawing {
         }
 
         return this.renderDrawingWithHandles("drawing-moving")
+    }
+
+    // used by variable-handle drawing to insert a handle
+    insertHandle(point: TPoint): number {
+        return -1
     }
 
     getHandleIdxAt(x: number, y: number): number {

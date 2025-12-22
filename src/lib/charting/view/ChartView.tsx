@@ -632,11 +632,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
 
             } else {
-                // ready to drag whole drawing
-                selectedOne.recordHandlesWhenMousePressed(this.p(x, y))
+                if (e.ctrlKey && selectedOne.nHandles === undefined) {
+                    // insert handle for variable-handle drawing
+                    const newHandleIdx = selectedOne.insertHandle(this.p(x, y))
+                    selectedOne.currHandleIdx = newHandleIdx;
 
-                selectedOne.currHandleIdx = -1
-                this.selectAndUpdateDrawings(hitDrawingIdx, MOVE_CURSOR)
+                    this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
+
+                } else {
+
+                    // ready to drag whole drawing
+                    selectedOne.recordHandlesWhenMousePressed(this.p(x, y))
+
+                    selectedOne.currHandleIdx = -1
+                    this.selectAndUpdateDrawings(hitDrawingIdx, MOVE_CURSOR)
+                }
             }
 
         } else {
@@ -680,7 +690,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                 const prevSelected = this.props.xc.selectedDrawingIdx
                 if (prevSelected !== undefined) {
-                    // unselect it at the same time 
+                    // unselect prevSelected at the same time 
                     const toUnselect = this.drawings[prevSelected].renderDrawing("drawing-" + prevSelected)
 
                     const drawingLines = [
