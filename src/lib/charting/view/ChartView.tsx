@@ -653,7 +653,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     selectedOne.recordHandlesWhenMousePressed(this.p(x, y))
 
                     selectedOne.currHandleIdx = -1
-                    this.selectAndUpdateDrawings(hitDrawingIdx, MOVE_CURSOR)
+                    this.selectAndUpdateDrawings(hitDrawingIdx, GRAB_CURSOR)
                 }
             }
 
@@ -739,12 +739,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                 const cursor = selectedOne.currHandleIdx >= 0
                     ? HANDLE_CURSOR
-                    : MOVE_CURSOR
+                    : GRAB_CURSOR
 
                 this.updateDrawingsWithHandles(this.props.xc.selectedDrawingIdx, cursor)
 
             } else {
-                this.setState({ cursor: GRAB_CURSOR })
+                this.setState({ cursor: MOVE_CURSOR })
             }
 
         } else {
@@ -758,7 +758,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 const handleIdx = hitOne.getHandleIdxAt(x, y)
                 const cursor = handleIdx >= 0
                     ? HANDLE_CURSOR
-                    : MOVE_CURSOR
+                    : GRAB_CURSOR
 
                 this.updateDrawingsWithHandles(hitDrawingIdx, cursor)
 
