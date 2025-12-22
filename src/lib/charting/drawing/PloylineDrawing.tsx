@@ -12,6 +12,7 @@ export class PolylineDrawing extends Drawing {
         const x = this.xc.xb(this.xc.bt(point.time))
         const y = this.yc.yv(point.value)
 
+        // find nearest segment to insert the handle
         let i = 0
         while (i < this.handles.length - 1) {
             const x0 = this.xt(this.handles[i])

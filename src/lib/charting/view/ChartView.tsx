@@ -627,16 +627,25 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
             const handleIdx = selectedOne.getHandleIdxAt(x, y)
             if (handleIdx >= 0) {
-                // ready to drag handle 
-                selectedOne.currHandleIdx = handleIdx
-                this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
+                if (selectedOne.nHandles === undefined && e.ctrlKey) {
+                    // delete handle for variable-handle drawing
+                    selectedOne.deleteHandleAt(handleIdx)
+
+                    selectedOne.currHandleIdx = -1
+                    this.selectAndUpdateDrawings(hitDrawingIdx, DEFAULT_CURSOR)
+
+                } else {
+                    // ready to drag handle 
+                    selectedOne.currHandleIdx = handleIdx
+                    this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
+                }
 
             } else {
-                if (e.ctrlKey && selectedOne.nHandles === undefined) {
+                if (selectedOne.nHandles === undefined && e.ctrlKey) {
                     // insert handle for variable-handle drawing
                     const newHandleIdx = selectedOne.insertHandle(this.p(x, y))
-                    selectedOne.currHandleIdx = newHandleIdx;
 
+                    selectedOne.currHandleIdx = newHandleIdx;
                     this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
 
                 } else {

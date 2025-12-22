@@ -186,6 +186,10 @@ export abstract class Drawing {
         return -1
     }
 
+    deleteHandleAt(handleIdx: number) {
+        this.handles.splice(handleIdx, 1);
+    }
+
     getHandleIdxAt(x: number, y: number): number {
         let i = 0
         while (i < this.handles.length) {
