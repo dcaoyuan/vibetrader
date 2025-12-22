@@ -188,8 +188,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     protected updateChart() {
-        const { chartLines, chartAxisy } = this.plot();
-        this.updateState({ chartLines, chartAxisy });
+        const { chartLines, chartAxisy, drawingLines } = this.plot();
+        this.updateState({ chartLines, chartAxisy, drawingLines });
     }
 
     protected updateCursors(xMouse: number, yMouse: number) {
@@ -640,7 +640,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     this.selectAndUpdateDrawings(hitDrawingIdx, HANDLE_CURSOR)
 
                 } else {
-
                     // ready to drag whole drawing
                     selectedOne.recordHandlesWhenMousePressed(this.p(x, y))
 
@@ -651,6 +650,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         } else {
             // not going to drag drawing (and handle), it's ok to drag any other things if you want
+
             this.props.xc.mouseDownHitDrawingIdx = undefined
 
             if (this.props.xc.selectedDrawingIdx !== undefined) {
@@ -687,6 +687,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (this.creatingDrawing?.isCompleted === false) {
             if (this.creatingDrawing.isAnchored) {
                 const sketching = this.creatingDrawing.stretchCurrentHandle(this.p(x, y))
+
+                // also reset mouseMoveHitDrawing to avoid render with handles during updateChart()
+                this.props.xc.mouseMoveHitDrawingIdx = undefined
 
                 const prevSelected = this.props.xc.selectedDrawingIdx
                 if (prevSelected !== undefined) {
@@ -751,17 +754,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.updateDrawingsWithHandles(hitDrawingIdx, cursor)
 
             } else {
-                if (this.props.xc.mouseMoveHitDrawingIdx >= 0) {
-                    if (this.props.xc.mouseMoveHitDrawingIdx !== this.props.xc.selectedDrawingIdx) {
-                        //  not the selecte one, show as unselected
-                        const tobeUnselect = this.props.xc.mouseMoveHitDrawingIdx
-                        this.props.xc.mouseMoveHitDrawingIdx = undefined
+                // previously hit drawing? show without handles if it's not the selected one
+                if (this.props.xc.mouseMoveHitDrawingIdx >= 0 &&
+                    this.props.xc.mouseMoveHitDrawingIdx !== this.props.xc.selectedDrawingIdx
+                ) {
+                    const tobeWithoutHandles = this.props.xc.mouseMoveHitDrawingIdx
+                    this.props.xc.mouseMoveHitDrawingIdx = undefined
 
-                        this.updateDrawingsWithoutHandles(tobeUnselect, DEFAULT_CURSOR)
-
-                    } else {
-                        this.setState({ cursor: DEFAULT_CURSOR })
-                    }
+                    this.updateDrawingsWithoutHandles(tobeWithoutHandles, DEFAULT_CURSOR)
 
                 } else {
                     this.setState({ cursor: DEFAULT_CURSOR })
