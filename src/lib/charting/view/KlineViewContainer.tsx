@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -848,7 +848,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
-                                    <LadderSimpleIcon fill="white" />
+                                    <ListIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw fibonacci retrace
@@ -866,7 +866,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
-                                    <ColumnsIcon fill="white" />
+                                    <WaveformIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw fibonacci time retrace
@@ -875,7 +875,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="polyline" aria-label="polyline">
-                                    <WaveTriangleIcon fill="white" />
+                                    <LineSegmentsIcon fill="white" />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw polyline
