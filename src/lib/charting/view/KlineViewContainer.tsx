@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -183,6 +183,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.setDrawingIdsToCreate = this.setDrawingIdsToCreate.bind(this)
 
         this.switchCrosshairVisiable = this.switchCrosshairVisiable.bind(this)
+        this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -439,14 +440,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    private switchCrosshairVisiable() {
-        const xc = this.state.xc;
-
-        xc.isCrosshairEnabled = !xc.isCrosshairEnabled
-
-        this.update({ type: 'cursors' })
-    }
-
     override componentDidMount() {
         this.fetchIndicatorFns(allInds).then(fns => {
             this.loadedIndFns = new Map();
@@ -608,11 +601,19 @@ class KlineViewContainer extends Component<Props, State> {
             xc.isReferCursorEnabled = false
             xc.moveChartsInDirection(nBarDelta, -1, true)
 
+            // reset to current position 
             this.xStartDrag = x;
             this.yStartDrag = y;
 
+            if (e.ctrlKey) {
+                // notice chart view to zoom in / out
+                this.update({ type: 'chart', deltaMouse: { dx, dy } });
+
+            } else {
+                this.update({ type: 'chart' });
+            }
+
             // NOTE cursor shape will always be processed in ChartView's onDrawingMouseMove
-            this.update({ type: 'chart' });
 
             return
         }
@@ -796,6 +797,18 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
+    private backToOriginalChartScale() {
+        this.update({ type: 'chart', deltaMouse: { dx: undefined, dy: undefined } });
+    }
+
+    private switchCrosshairVisiable() {
+        const xc = this.state.xc;
+
+        xc.isCrosshairEnabled = !xc.isCrosshairEnabled
+
+        this.update({ type: 'cursors' })
+    }
+
     render() {
         return this.state.isLoaded && (
             <div style={{ display: "flex" }} >
@@ -922,10 +935,21 @@ class KlineViewContainer extends Component<Props, State> {
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
                             <TooltipTrigger delay={0}>
+                                <Button id="chartscale" aria-label="chartscale"
+                                    onClick={this.backToOriginalChartScale}
+                                >
+                                    <CaretLineUpIcon fill="white" />
+                                </Button>
+                                <VTTooltip placement="end">
+                                    Original chart scale
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
                                 <Button id="crosshair" aria-label="crosshair"
                                     onClick={this.switchCrosshairVisiable}
                                 >
-                                    <PlusIcon fill="white" />
+                                    <PlusSquareIcon fill="white" />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Switch crosshair visible
@@ -989,7 +1013,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 y={this.state.yKlineView}
                                 width={this.width}
                                 height={this.hKlineView}
-                                name="ETH"
+                                name=""
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
                                 updateEvent={this.state.updateEvent}

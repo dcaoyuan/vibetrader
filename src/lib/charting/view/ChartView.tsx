@@ -446,6 +446,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             switch (this.props.updateEvent.type) {
                 case 'chart':
                     willUpdateChart = true;
+                    if (this.props.id === "kline" && this.props.updateEvent.deltaMouse) {
+                        // apply delta to yc chart scale
+                        const dy = this.props.updateEvent.deltaMouse.dy
+                        if (dy === undefined) {
+                            this.yc.yChartScale = 1 // back to 1
+
+                        } else {
+                            this.yc.yChartScale = this.yc.yChartScale * (1 - dy / this.yc.hChart)
+                        }
+                    }
                     break;
 
                 case 'cursors':
