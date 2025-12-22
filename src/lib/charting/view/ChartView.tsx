@@ -10,14 +10,11 @@ import type { Key } from "react-aria-components";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 
-export enum UpdateEvent {
-    Chart,
-    Cursors
-}
-
-export type UpdateCursor = {
-    changed: number,
+export type UpdateEvent = {
+    type: 'chart' | 'cursors' | 'drawing'
+    changed?: number,
     xyMouse?: { who: string, x: number, y: number }
+    deltaMouse?: { dx: number, dy: number }
 }
 
 export type Indicator = {
@@ -49,9 +46,9 @@ export interface ViewProps {
     height: number;
     xc: ChartXControl;
     tvar: TVar<unknown>;
-    shouldUpdateChart: number;
-    shouldUpdateCursor: UpdateCursor;
-    shouldUpdateDrawing?: UpdateDrawing;
+
+    updateEvent: UpdateEvent;
+    updateDrawing?: UpdateDrawing;
 
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
@@ -364,7 +361,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         let crosshair: Path
         if (
-            !(this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.createDrawingId) &&
+            !(this.props.updateDrawing && this.props.updateDrawing.createDrawingId) &&
             !this.props.xc.isCrosshairEnabled
         ) {
             crosshair = new Path();
@@ -443,8 +440,36 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let xMouse: number
         let yMouse: number
 
-        if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
-            willUpdateChart = true;
+        const xyMouse = this.props.updateEvent.xyMouse;
+        if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
+
+            switch (this.props.updateEvent.type) {
+                case 'chart':
+                    willUpdateChart = true;
+                    break;
+
+                case 'cursors':
+                    willUpdateCursor = true;
+                    if (xyMouse !== undefined) {
+                        if (xyMouse.who === this.props.id) {
+                            xMouse = xyMouse.x;
+                            yMouse = xyMouse.y;
+
+                        } else {
+                            xMouse = xyMouse.x;
+                            yMouse = undefined;
+                        }
+
+                    } else {
+                        xMouse = undefined;
+                        yMouse = undefined;
+                    }
+                    break;
+
+                case 'drawing':
+                    // TODO: handle drawing update here?
+                    break;
+            }
         }
 
         if (this.isOverlayIndicatorsChanged(this.props.overlayIndicators, prevProps.overlayIndicators)) {
@@ -452,30 +477,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             willUpdateOverlayCharts = true;
         }
 
-        if (this.props.shouldUpdateCursor.changed !== prevProps.shouldUpdateCursor.changed) {
-            const xyMouse = this.props.shouldUpdateCursor.xyMouse;
-            if (xyMouse !== undefined) {
-                if (xyMouse.who === this.props.id) {
-                    willUpdateCursor = true;
-                    xMouse = xyMouse.x;
-                    yMouse = xyMouse.y;
-
-                } else {
-                    willUpdateCursor = true;
-                    xMouse = xyMouse.x;
-                    yMouse = undefined;
-                }
-
-            } else {
-                willUpdateCursor = true;
-                xMouse = undefined;
-                yMouse = undefined;
-            }
-        }
-
-        if (this.props.shouldUpdateDrawing != prevProps.shouldUpdateDrawing) {
-            if (this.props.shouldUpdateDrawing) {
-                switch (this.props.shouldUpdateDrawing.action) {
+        if (this.props.updateDrawing != prevProps.updateDrawing) {
+            if (this.props.updateDrawing) {
+                switch (this.props.updateDrawing.action) {
                     case 'delete':
                         this.deleteSelectedDrawing()
                         break;
@@ -666,27 +670,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.drawings[this.props.xc.selectedDrawingIdx].currHandleIdx = -1
             }
         }
-
-        //    if (isAccomplished() ) {
-        //        if (nHandles == VARIABLE_NUMBER_OF_HANDLES) {
-        //            /** edit(add/delete handle) chart whose nHandles is variable */
-        //            if (e.isControlDown()) {
-        //                Handle theHandle = handleAt(e.getX(), e.getY());
-        //                if (theHandle != null) {
-        //                    /** delete handle */
-        //                    int idx = currentHandles.indexOf(theHandle);
-        //                    if (idx > 0) {
-        //                        currentHandles.remove(idx);
-        //                        previousHandles.remove(idx);
-        //                        currentHandlesWhenMousePressed.remove(idx);
-        //                    }
-        //                } else {
-        //                    /** add handle */
-        //                }
-        //            }
-        //        }
-        //    }
-
     }
 
     onDrawingMouseMove(e: React.MouseEvent) {
@@ -751,14 +734,15 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             // process hit drawing
             const hitDrawingIdx = this.drawings.findIndex(drawing => drawing.hits(x, y))
             if (hitDrawingIdx >= 0) {
-                // show as selected
+                // show with handles 
                 this.props.xc.mouseMoveHitDrawingIdx = hitDrawingIdx
                 const hitOne = this.drawings[hitDrawingIdx]
 
                 const handleIdx = hitOne.getHandleIdxAt(x, y)
                 const cursor = handleIdx >= 0
                     ? HANDLE_CURSOR
-                    : GRAB_CURSOR
+                    : e.ctrlKey ? HANDLE_CURSOR : GRAB_CURSOR
+                // ctrl + move means going to insert handle for variable-handle drawing, use HANDLE_CURSOR
 
                 this.updateDrawingsWithHandles(hitDrawingIdx, cursor)
 
@@ -792,8 +776,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const [x, y] = this.translate(e)
 
         if (this.creatingDrawing === undefined) {
-            if (this.props.shouldUpdateDrawing.createDrawingId) {
-                this.creatingDrawing = createDrawing(this.props.shouldUpdateDrawing.createDrawingId, this.props.xc, this.yc)
+            if (this.props.updateDrawing.createDrawingId) {
+                this.creatingDrawing = createDrawing(this.props.updateDrawing.createDrawingId, this.props.xc, this.yc)
             }
         }
 
@@ -871,7 +855,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 {this.state.mouseCursor}
                 {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {
-                    this.props.shouldUpdateDrawing && this.props.shouldUpdateDrawing.isHidingDrawing
+                    this.props.updateDrawing && this.props.updateDrawing.isHidingDrawing
                         ? <></>
                         : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
                 }

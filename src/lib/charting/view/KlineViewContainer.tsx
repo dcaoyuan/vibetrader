@@ -2,7 +2,7 @@ import React, { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, UpdateEvent, type CallbacksToContainer, type Indicator, type UpdateCursor, type UpdateDrawing } from "./ChartView";
+import { ChartView, type CallbacksToContainer, type Indicator, type UpdateDrawing, type UpdateEvent } from "./ChartView";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -62,9 +62,8 @@ type State = {
     kvar?: TVar<Kline>;
     xc?: ChartXControl;
 
-    shouldUpdateChart?: number;
-    shouldUpdateCursor?: UpdateCursor;
-    shouldUpdateDrawing?: UpdateDrawing;
+    updateEvent?: UpdateEvent;
+    updateDrawing?: UpdateDrawing;
 
     mouseCursor?: JSX.Element;
     referCursor?: JSX.Element;
@@ -170,9 +169,8 @@ class KlineViewContainer extends Component<Props, State> {
             baseSer,
             kvar,
             xc,
-            shouldUpdateChart: 0,
-            shouldUpdateCursor: { changed: 0 },
-            shouldUpdateDrawing: { isHidingDrawing: false },
+            updateEvent: { type: 'chart', changed: 0 },
+            updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
@@ -340,7 +338,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         } else {
                             this.updateState({
-                                shouldUpdateChart: this.state.shouldUpdateChart + 1,
+                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                                 overlayIndicators,
                                 stackedIndicators,
                             })
@@ -389,7 +387,7 @@ class KlineViewContainer extends Component<Props, State> {
                     xc.moveChartsInDirection(fastSteps, -1)
                 }
 
-                this.notify(UpdateEvent.Chart)
+                this.update({ type: 'chart' })
                 break;
 
             case "ArrowRight":
@@ -400,20 +398,20 @@ class KlineViewContainer extends Component<Props, State> {
                     xc.moveChartsInDirection(fastSteps, 1)
                 }
 
-                this.notify(UpdateEvent.Chart)
+                this.update({ type: 'chart' })
                 break;
 
             case "ArrowUp":
                 if (!e.ctrlKey) {
                     xc.growWBar(1)
-                    this.notify(UpdateEvent.Chart)
+                    this.update({ type: 'chart' })
                 }
                 break;
 
             case "ArrowDown":
                 if (!e.ctrlKey) {
                     xc.growWBar(-1);
-                    this.notify(UpdateEvent.Chart)
+                    this.update({ type: 'chart' })
                 }
                 break;
 
@@ -423,17 +421,17 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "Escape":
                 if (xc.selectedDrawingIdx !== undefined) {
-                    this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'unselect' } })
+                    this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'unselect' } })
 
                 } else {
                     xc.isReferCursorEnabled = !xc.isReferCursorEnabled;
 
-                    this.notify(UpdateEvent.Cursors)
+                    this.update({ type: 'cursors' })
                 }
                 break;
 
             case 'Delete':
-                this.setState({ shouldUpdateDrawing: { ...(this.state.shouldUpdateDrawing), action: 'delete' } })
+                this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'delete' } })
                 break;
 
             default:
@@ -446,7 +444,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         xc.isCrosshairEnabled = !xc.isCrosshairEnabled
 
-        this.notify(UpdateEvent.Cursors)
+        this.update({ type: 'cursors' })
     }
 
     override componentDidMount() {
@@ -479,18 +477,9 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    notify(event: UpdateEvent, xyMouse?: { who: string, x: number, y: number }, cursor?: string) {
-        switch (event) {
-            case UpdateEvent.Chart:
-                this.updateState({ shouldUpdateChart: this.state.shouldUpdateChart + 1, cursor });
-                break;
-
-            case UpdateEvent.Cursors:
-                this.updateState({ shouldUpdateCursor: { changed: this.state.shouldUpdateCursor.changed + 1, xyMouse }, cursor })
-                break;
-
-            default:
-        }
+    update(event: UpdateEvent) {
+        const changed = this.state.updateEvent.changed + 1;
+        this.updateState({ updateEvent: { ...event, changed } });
     }
 
     updateState(state: State) {
@@ -594,7 +583,7 @@ class KlineViewContainer extends Component<Props, State> {
         // clear mouse cursor
         xc.isMouseCursorEnabled = false;
 
-        this.notify(UpdateEvent.Cursors);
+        this.update({ type: 'cursors' });
     }
 
     onMouseDown(e: React.MouseEvent) {
@@ -611,8 +600,9 @@ class KlineViewContainer extends Component<Props, State> {
 
         if (this.isDragging && xc.mouseDownHitDrawingIdx === undefined) {
             // drag chart
-            const xDelta = x - this.xStartDrag
-            const nBarDelta = Math.ceil(xDelta / xc.wBar)
+            const dx = x - this.xStartDrag
+            const dy = y - this.yStartDrag
+            const nBarDelta = Math.ceil(dx / xc.wBar)
 
             xc.isMouseCursorEnabled = false
             xc.isReferCursorEnabled = false
@@ -622,14 +612,14 @@ class KlineViewContainer extends Component<Props, State> {
             this.yStartDrag = y;
 
             // NOTE cursor shape will always be processed in ChartView's onDrawingMouseMove
-            this.notify(UpdateEvent.Chart);
+            this.update({ type: 'chart' });
 
             return
         }
 
         if (this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
             xc.isMouseCursorEnabled = false;
-            this.notify(UpdateEvent.Cursors);
+            this.update({ type: 'cursors' });
             return
         }
 
@@ -645,7 +635,9 @@ class KlineViewContainer extends Component<Props, State> {
             xc.isMouseCursorEnabled = false;
         }
 
-        this.notify(UpdateEvent.Cursors, this.#calcXYMouses(x, y));
+        const xyMouse = this.#calcXYMouses(x, y);
+
+        this.update({ type: 'cursors', xyMouse });
     }
 
     onMouseUp(e: React.MouseEvent) {
@@ -679,13 +671,13 @@ class KlineViewContainer extends Component<Props, State> {
                 xc.setReferCursorByRow(row, true)
                 xc.isReferCursorEnabled = true;
 
-                this.notify(UpdateEvent.Cursors);
+                this.update({ type: 'cursors' });
             }
 
         } else {
             xc.isReferCursorEnabled = false;
 
-            this.notify(UpdateEvent.Cursors)
+            this.update({ type: 'cursors' });
         }
     }
 
@@ -723,7 +715,7 @@ class KlineViewContainer extends Component<Props, State> {
             xc.scrollChartsHorizontallyByBar(unitsToScroll)
         }
 
-        this.notify(UpdateEvent.Chart);
+        this.update({ type: 'chart' });
     }
 
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
@@ -784,8 +776,8 @@ class KlineViewContainer extends Component<Props, State> {
     setDrawingIdsToCreate(ids?: Set<Key>) {
         if (ids === undefined || ids.size === 0) {
             this.setState({
-                shouldUpdateDrawing: {
-                    ...(this.state.shouldUpdateDrawing),
+                updateDrawing: {
+                    ...(this.state.updateDrawing),
                     createDrawingId: undefined
                 },
                 drawingIdsToCreate: new Set()
@@ -794,8 +786,8 @@ class KlineViewContainer extends Component<Props, State> {
         } else {
             const [drawingId] = ids
             this.setState({
-                shouldUpdateDrawing: {
-                    ...(this.state.shouldUpdateDrawing),
+                updateDrawing: {
+                    ...(this.state.updateDrawing),
                     action: 'create',
                     createDrawingId: drawingId as string
                 },
@@ -890,11 +882,11 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="hidedrawing" aria-label="hidedrawing"
-                                    isSelected={this.state.shouldUpdateDrawing.isHidingDrawing}
+                                    isSelected={this.state.updateDrawing.isHidingDrawing}
                                     onChange={() => this.setState({
-                                        shouldUpdateDrawing: {
+                                        updateDrawing: {
                                             action: 'hide',
-                                            isHidingDrawing: !this.state.shouldUpdateDrawing.isHidingDrawing
+                                            isHidingDrawing: !this.state.updateDrawing.isHidingDrawing
                                         }
                                     })}
                                 >
@@ -909,8 +901,8 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Button aria-label="delete"
                                     onClick={() =>
                                         this.setState({
-                                            shouldUpdateDrawing: {
-                                                ...(this.state.shouldUpdateDrawing),
+                                            updateDrawing: {
+                                                ...(this.state.updateDrawing),
                                                 action: 'delete'
                                             }
                                         })
@@ -957,8 +949,7 @@ class KlineViewContainer extends Component<Props, State> {
                             xc={this.state.xc}
                             tvar={this.state.kvar}
                             symbol={this.state.symbol}
-                            shouldUpdateChart={this.state.shouldUpdateChart}
-                            shouldUpadteCursors={this.state.shouldUpdateCursor}
+                            updateEvent={this.state.updateEvent}
                         />
                         <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                     </div>
@@ -1001,9 +992,8 @@ class KlineViewContainer extends Component<Props, State> {
                                 name="ETH"
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
-                                shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursor={this.state.shouldUpdateCursor}
-                                shouldUpdateDrawing={this.state.shouldUpdateDrawing}
+                                updateEvent={this.state.updateEvent}
+                                updateDrawing={this.state.updateDrawing}
 
                                 overlayIndicators={this.state.overlayIndicators}
 
@@ -1019,8 +1009,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 name="Vol"
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
-                                shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursor={this.state.shouldUpdateCursor}
+                                updateEvent={this.state.updateEvent}
                             />
 
                             <AxisX
@@ -1030,8 +1019,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 width={this.width}
                                 height={this.hAxisx}
                                 xc={this.state.xc}
-                                shouldUpdateChart={this.state.shouldUpdateChart}
-                                shouldUpdateCursors={this.state.shouldUpdateCursor}
+                                updateEvent={this.state.updateEvent}
                             />
                             {
                                 this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
@@ -1046,8 +1034,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         xc={this.state.xc}
                                         tvar={tvar}
                                         mainIndicatorOutputs={outputs}
-                                        shouldUpdateChart={this.state.shouldUpdateChart}
-                                        shouldUpdateCursor={this.state.shouldUpdateCursor}
+                                        updateEvent={this.state.updateEvent}
                                         indexOfStackedIndicators={n}
                                         callbacksToContainer={this.callbacks}
                                     />

@@ -1,6 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Component, Fragment } from "react";
-import type { UpdateCursor } from "../view/ChartView";
+import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
 import '../view/chartview.css';
@@ -11,8 +11,7 @@ type Props = {
     xc: ChartXControl,
     width: number,
     height: number,
-    shouldUpdateChart: number,
-    shouldUpadteCursors: UpdateCursor,
+    updateEvent: UpdateEvent,
     tvar: TVar<Kline>,
     symbol: string,
 }
@@ -386,12 +385,18 @@ class Title extends Component<Props, State> {
         let willUpdateChart = false;
         let willUpdateCursor = false;
 
-        if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
-            willUpdateChart = true;
-        }
+        if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
+            switch (this.props.updateEvent.type) {
+                case 'chart':
+                    willUpdateChart = true;
+                    break;
 
-        if (this.props.shouldUpadteCursors.changed !== prevProps.shouldUpadteCursors.changed) {
-            willUpdateCursor = true;
+                case 'cursors':
+                    willUpdateCursor = true;
+                    break;
+
+                default:
+            }
         }
 
         if (willUpdateChart || willUpdateCursor) {

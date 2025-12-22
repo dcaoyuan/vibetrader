@@ -34,14 +34,11 @@ export class ChartYControl {
     #maxScalarValue = 0.0
     #minScalarValue = 0.0
 
-    /**
-     * the percent of hCanvas to be used to render charty, is can be used to scale the chart
-     */
+    // the percent of hCanvas to be used to render charty, is can be used to scale the chart
     #yChartScale = 1.0;
 
-    /** the pixels used to record the chart vertically moving */
+    // the pixels used to record the chart vertically moving
     #hChartScrolled: number = 0;
-
 
     // to normalize value as x 10^n
     normPow: number

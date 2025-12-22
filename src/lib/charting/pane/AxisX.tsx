@@ -5,7 +5,7 @@ import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Temporal } from "temporal-polyfill";
 import { Component, type JSX, type RefObject, } from "react";
-import type { UpdateCursor } from "../view/ChartView";
+import type { UpdateEvent } from "../view/ChartView";
 import { textMetrics } from "../view/Format";
 import React from "react";
 
@@ -18,8 +18,7 @@ type Props = {
 	xc: ChartXControl,
 	width: number,
 	height: number,
-	shouldUpdateChart: number,
-	shouldUpdateCursors: UpdateCursor,
+	updateEvent: UpdateEvent,
 	up?: boolean
 }
 
@@ -234,12 +233,18 @@ class AxisX extends Component<Props, State> {
 	// If setState is called unconditionally, it will trigger another update,
 	// potentially leading to a loop.
 	override componentDidUpdate(prevProps: Props, prevState: State) {
-		if (this.props.shouldUpdateChart !== prevProps.shouldUpdateChart) {
-			this.updateChart();
-		}
+		if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
+			switch (this.props.updateEvent.type) {
+				case 'chart':
+					this.updateChart();
+					break;
 
-		if (this.props.shouldUpdateCursors.changed !== prevProps.shouldUpdateCursors.changed) {
-			this.updateCursors();
+				case 'cursors':
+					this.updateCursors();
+					break;
+
+				default:
+			}
 		}
 
 		if (this.props.y !== prevProps.y) {

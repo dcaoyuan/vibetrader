@@ -197,24 +197,12 @@ export class ChartXControl {
         /**
          * baseSer may have finished computing at this time, to adjust
          * the cursor to proper row, update it here.
-         * @NOTICE
+         * NOTE
          * don't set row directly, instead, use setCursorByRow(row, row);
          */
         const row = this.baseSer.lastOccurredRow();
         this.setCursorByRow(row, row, true)
     }
-
-    // private addKeyMouseListenersTo(component: JComponent) {
-    //   component.setFocusable(true)
-    //   component.addKeyListener(new ChartViewKeyAdapter)
-    //   component.addMouseWheelListener(new ChartViewMouseWheelListener)
-    // }
-
-    // private removeKeyMouseListenersFrom(component: JComponent) {
-    //   /** copy to a list to avoid concurrent issue */
-    //   component.getKeyListeners.forEach(x => component.removeKeyListener(x))
-    //   component.getMouseWheelListeners.forEach(x => component.removeMouseWheelListener(x))
-    // }
 
     get isMouseEnteredAnyChartPane() {
         return this.#isMouseEnteredAnyChartPane;
@@ -253,7 +241,6 @@ export class ChartXControl {
         }
 
         this.#wBarIdx += Math.sign(increment)
-        console.log(this.#wBarIdx)
         if (this.#wBarIdx < 0) {
             this.#wBarIdx = 0
 
