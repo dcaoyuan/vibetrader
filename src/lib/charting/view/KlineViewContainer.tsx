@@ -838,6 +838,15 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={0}>
+                                <ToggleButton id="gann_angles" aria-label="fibretr">
+                                    <HashIcon fill="white" />
+                                </ToggleButton>
+                                <VTTooltip placement="end">
+                                    Draw gann angles
+                                </VTTooltip>
+                            </TooltipTrigger>
+
+                            <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
                                     <LadderSimpleIcon fill="white" />
                                 </ToggleButton>

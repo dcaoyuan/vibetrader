@@ -249,6 +249,10 @@ export abstract class Drawing {
     }
 
 
+    protected xOnLine(y: number, baseX: number, baseY: number, k: number) {
+        return (baseX + (y - baseY) / k)
+    }
+
     protected yOnLine(x: number, baseX: number, baseY: number, k: number) {
         return (baseY + (x - baseX) * k)
     }

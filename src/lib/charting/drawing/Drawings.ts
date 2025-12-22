@@ -3,6 +3,7 @@ import type { ChartYControl } from "../view/ChartYControl"
 import { FibonacciRetraceDrawing } from "./FibonacciRetraceDrawing"
 import { FibonacciRetraceVerticalDrawing } from "./FibonacciRetraceVerticalDrawing"
 import { FibonacciTimeZoneDrawing } from "./FibonacciTimeZoneDrawing"
+import { GannAnglesDrawing } from "./GannAnglesDrawing"
 import { LineDrawing } from "./LineDrawing"
 import { ParallelDrawing } from "./ParallelDrawing"
 import { PolylineDrawing } from "./PloylineDrawing"
@@ -18,6 +19,8 @@ export function createDrawing(id: string, xc: ChartXControl, yc: ChartYControl) 
         case 'polyline':
             return new PolylineDrawing(xc, yc)
 
+        case 'gann_angles':
+            return new GannAnglesDrawing(xc, yc)
 
         case 'fibonacci_retrace':
             return new FibonacciRetraceDrawing(xc, yc)
