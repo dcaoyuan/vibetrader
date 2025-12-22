@@ -599,6 +599,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             xc.isMouseCursorEnabled = false
             xc.isReferCursorEnabled = false
+            xc.moveChartsInDirection(nBarDelta, -1, true)
 
             // reset to current position 
             this.xStartDrag = x;
@@ -609,8 +610,6 @@ class KlineViewContainer extends Component<Props, State> {
                 this.update({ type: 'chart', deltaMouse: { dx, dy } });
 
             } else {
-                xc.moveChartsInDirection(nBarDelta, -1, true)
-
                 this.update({ type: 'chart' });
             }
 
