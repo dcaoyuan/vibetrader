@@ -766,6 +766,10 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         // console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         this.isDragging = false
 
+        if (e.detail === 2) {
+            return
+        }
+
         const [x, y] = this.translate(e)
 
         if (this.creatingDrawing === undefined) {
