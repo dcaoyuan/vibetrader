@@ -5,7 +5,6 @@ import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
-import './chartview.css';
 import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import { type JSX } from "react";

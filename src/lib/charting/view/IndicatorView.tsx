@@ -3,7 +3,6 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import AxisY from "../pane/AxisY";
-import './chartview.css';
 import LineChart from "../chart/LineChart";
 import HistogramChart from "../chart/HistogramChart";
 import { Fragment } from "react/jsx-runtime";

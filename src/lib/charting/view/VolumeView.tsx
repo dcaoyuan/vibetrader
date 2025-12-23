@@ -4,7 +4,6 @@ import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
-import './chartview.css';
 import VolmueChart from "../chart/VolumeChart";
 import { Fragment } from "react/jsx-runtime";
 

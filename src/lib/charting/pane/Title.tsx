@@ -3,7 +3,6 @@ import { Component, Fragment } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
-import '../view/chartview.css';
 import { ListBox, ListBoxItem } from 'react-aria-components';
 import { Text } from 'react-aria-components';
 

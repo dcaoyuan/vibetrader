@@ -1,34 +1,16 @@
 @import "aria-theme.css";
 
 .screen {
-    /* display: grid;
-  grid-template-areas:
-    "header header"
-    "content axisy"
-    "axisx axisx";
-  grid-template-columns: 1fr 3fr; */
-    /* gap: 1px; */
-    /* padding: 0px; */
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
-    /* cursor: crosshair; */
     cursor: default;
     display: flex;
 
 }
 
 .container {
-    /* display: grid;
-  grid-template-areas:
-    "header header"
-    "content axisy"
-    "axisx axisx";
-  grid-template-columns: 1fr 3fr; */
-    /* gap: 1px; */
-    /* padding: 0px; */
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
-    /* cursor: crosshair; */
     cursor: default;
 
     &:focus {
