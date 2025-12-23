@@ -11,7 +11,7 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Button, Group, Separator, Text, Toolbar } from 'react-aria-components';
+import { Button, DialogTrigger, Group, Popover, Separator, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
 import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
 import { OverlayArrow, Tooltip, TooltipTrigger } from 'react-aria-components';
@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon, QuestionIcon, QuestionMarkIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -127,13 +127,12 @@ class KlineViewContainer extends Component<Props, State> {
     focusRef: React.RefObject<HTMLDivElement>;
     globalKeyboardListener = undefined
     isDragging: boolean;
-    xStartDrag: number;
-    yStartDrag: number;
+    xDragStart: number;
+    yDragStart: number;
 
     // geometry variables
     hTitle = 130;
     hIndtags = 26;
-    hHelp = 80;
 
     hKlineView = 400;
     hVolumeView = 100;
@@ -510,7 +509,7 @@ class KlineViewContainer extends Component<Props, State> {
         const yAxisx = yIndicatorViews + stackedIndicators.length * (this.hIndicatorView + this.hSpacing);
 
         const svgHeight = yAxisx + this.hAxisx;
-        const containerHeight = svgHeight + this.hTitle + this.hHelp + this.hIndtags;
+        const containerHeight = svgHeight + this.hTitle + this.hIndtags;
         const yCursorRange = [0, yAxisx];
 
         return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
@@ -582,8 +581,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.isDragging = true
 
         const [x, y] = this.translate(e)
-        this.xStartDrag = x;
-        this.yStartDrag = y;
+        this.xDragStart = x;
+        this.yDragStart = y;
     }
 
     onMouseMove(e: React.MouseEvent) {
@@ -592,8 +591,8 @@ class KlineViewContainer extends Component<Props, State> {
 
         if (this.isDragging && xc.mouseDownHitDrawingIdx === undefined) {
             // drag chart
-            const dx = x - this.xStartDrag
-            const dy = y - this.yStartDrag
+            const dx = x - this.xDragStart
+            const dy = y - this.yDragStart
             const nBarDelta = Math.ceil(dx / xc.wBar)
 
             xc.isMouseCursorEnabled = false
@@ -601,8 +600,8 @@ class KlineViewContainer extends Component<Props, State> {
             xc.moveChartsInDirection(nBarDelta, -1, true)
 
             // reset to current position 
-            this.xStartDrag = x;
-            this.yStartDrag = y;
+            this.xDragStart = x;
+            this.yDragStart = y;
 
             if (e.ctrlKey) {
                 // notice chart view to zoom in / out
@@ -643,8 +642,8 @@ class KlineViewContainer extends Component<Props, State> {
     onMouseUp(e: React.MouseEvent) {
         if (this.isDragging) {
             this.isDragging = false
-            this.xStartDrag = undefined
-            this.yStartDrag = undefined
+            this.xDragStart = undefined
+            this.yDragStart = undefined
         }
     }
 
@@ -808,6 +807,15 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'cursors' })
     }
 
+    private popoverHelp() {
+        return (
+            <DialogTrigger>
+                <Popover>
+                    This is the content of the popover.
+                </Popover>
+            </DialogTrigger>)
+    }
+
     render() {
         return this.state.isLoaded && (
             <div style={{ display: "flex" }} >
@@ -953,6 +961,32 @@ class KlineViewContainer extends Component<Props, State> {
                                 <VTTooltip placement="end">
                                     Switch crosshair visible
                                 </VTTooltip>
+                            </TooltipTrigger>
+
+                        </Group>
+
+                        <Separator orientation="horizontal" />
+
+                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+
+                            <TooltipTrigger delay={0}>
+                                <DialogTrigger>
+                                    <Button id="chartscale" aria-label="chartscale"
+                                        onClick={this.backToOriginalChartScale}
+                                    >
+                                        <QuestionMarkIcon />
+                                    </Button>
+                                    <VTTooltip placement="end">
+                                        Help
+                                    </VTTooltip>
+
+                                    <Popover>
+                                        <div className="help" >
+                                            <Help />
+                                        </div>
+                                    </Popover>
+                                </DialogTrigger>
+
                             </TooltipTrigger>
 
                         </Group>
@@ -1189,10 +1223,6 @@ class KlineViewContainer extends Component<Props, State> {
                         }
                     </div>
 
-                    <div className="title" style={{ width: this.width, height: this.hHelp }}>
-                        <Help width={this.width} height={this.hHelp} />
-                        <div className="borderLeftUp" style={{ top: this.hHelp - 8 }} />
-                    </div>
                 </div >
             </div>
         )

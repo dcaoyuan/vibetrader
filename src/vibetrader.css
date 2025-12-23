@@ -73,17 +73,17 @@
     bottom: 0;
 }
 
-.container div.help {
-    position: relative;
-    border-top: 0.7px solid var(--gray-600);
-    color: #00F000;
-}
-
 .container div.borderLeftDown {
     border-left: 0.7px solid white;
     position: absolute;
     top: 0;
     bottom: 80%;
+}
+
+.help {
+    opacity: 0.90;
+    background-color: var(--background-color);
+    z-index: 2;
 }
 
 .klinechart {
