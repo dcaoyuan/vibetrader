@@ -1,11 +1,33 @@
 @import "aria-theme.css";
 
-.screen {
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    font-size: 12px;
-    cursor: default;
-    display: flex;
+:root {
+    --positive-color: #00AA00B4;
+    --negative-color: #FF0000B4;
+    --neutral-color: #00F0F0B4;
 
+    --annot-color-g: #009000;
+    --annot-color-r: #FF0000;
+    --annot-color-c: #00A0A0;
+    --annot-color-n: #ffa500;
+
+    --annot-text-color-1: #ffffff;
+    --annot-text-color-2: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --positive-color: #00AA00;
+        --negative-color: #FF0000;
+        --neutral-color: #00F0F0;
+
+        --annot-color-g: #00F000;
+        --annot-color-r: #FF0000;
+        --annot-color-c: #00F0F0;
+        --annot-color-n: #fdf6e3;
+
+        --annot-text-color-1: #000000;
+        --annot-text-color-2: #ffffff;
+    }
 }
 
 .container {
@@ -16,13 +38,6 @@
     &:focus {
         outline: none;
     }
-}
-
-.container div.chartview {
-    border-style: solid;
-    /* top, right, bottom, left */
-    border-width: 0px 0px 1px 1px;
-    border-color: black
 }
 
 .container div.header {
