@@ -153,45 +153,54 @@
     animation: blink 1s;
 }
 
-.value-label {
-    color: var(--label-color-r);
-    stroke: var(--label-color-r);
-    fill: var(--label-color-r);
+.label-title {
+    color: var(--annot-color-r);
+}
+
+.label-mouse {
+    color: var(--annot-color-g);
+}
+
+.label-refer {
+    color: var(--annot-color-c);
+}
+
+.annot-mouse path {
+    stroke: var(--annot-color-g);
+    fill: var(--annot-color-g);
     stroke-width: 0.7px;
 }
 
-.value-value {
-    color: var(--label-color-g);
-    stroke: var(--label-color-g);
-    fill: var(--label-color-g);
+.annot-mouse text {
+    fill: var(--annot-text-color-1);
+}
+
+.annot-refer path {
+    stroke: var(--annot-color-c);
+    fill: var(--annot-color-c);
     stroke-width: 0.7px;
 }
 
-.value-refer {
-    color: var(--label-color-c);
-    stroke: var(--label-color-c);
-    fill: var(--label-color-c);
-    stroke-width: 0.7px;
+.annot-refer text {
+    fill: var(--annot-text-color-1);
 }
 
-.value-latest {
-    stroke: var(--label-color-n);
-    fill: var(--label-color-n);
-    stroke-width: 0.7px;
-}
-
-.label-positive-bg {
+.annot-positive path {
     stroke: var(--positive-color);
     fill: var(--positive-color);
     stroke-width: 0.7px;
 }
 
-.label-negative-bg {
+.annot-positive text {
+    fill: var(--annot-text-color-1);
+}
+
+.annot-negative path {
     stroke: var(--negative-color);
     fill: var(--negative-color);
     stroke-width: 0.7px;
 }
 
-.label-value {
-    fill: var(--label-text-color);
+.annot-negative text {
+    fill: var(--annot-text-color-2);
 }

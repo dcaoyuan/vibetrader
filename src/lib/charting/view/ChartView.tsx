@@ -221,7 +221,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         value /= yc.normScale
                     }
 
-                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, "value-refer")
+                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, "annot-refer")
                 }
             }
         }
@@ -251,7 +251,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     value /= yc.normScale
                 }
 
-                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, "value-value")
+                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, "annot-mouse")
             }
 
         } else {
@@ -262,7 +262,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (latestTime !== undefined && latestTime > 0) {
             const kline = this.props.tvar.getByTime(latestTime)
             if (kline !== undefined && kline instanceof Kline) {
-                latestColor = kline.close > kline.open ? "label-positive-bg" : "label-negative-bg"
+                latestColor = kline.close > kline.open ? "annot-positive" : "annot-negative"
             }
 
             let value = this.valueAtTime(latestTime);
@@ -273,7 +273,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     value /= yc.normScale
                 }
 
-                latestValueLabel = this.plotYValueLabel(y, value, 'label-value', latestColor)
+                latestValueLabel = this.plotYValueLabel(y, value, latestColor)
             }
         }
 
@@ -368,17 +368,19 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             crosshair.lineto(this.props.width - wAxisY, y)
         }
 
-        const valueLabel = this.plotYValueLabel(y, value, 'label-value', className);
+        const valueLabel = this.plotYValueLabel(y, value, className);
 
         return (
             <>
-                {crosshair && crosshair.render({ key: 'axisy-cross', className })}
+                <g className={className}>
+                    {crosshair && crosshair.render()}
+                </g>
                 {valueLabel}
             </>
         )
     }
 
-    plotYValueLabel(y: number, value: number, valueClassName: string, labelClassName: string) {
+    plotYValueLabel(y: number, value: number, className: string) {
         const valueStr = value.toFixed(3);
 
         const wLabel = ChartView.AXISY_WIDTH; // label width
@@ -405,9 +407,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
         return (
             // pay attention to the order to avoid text being overlapped
-            <g transform={transformYAnnot}>
-                {axisyPath.render({ key: 'axisy-label', className: labelClassName })}
-                {axisyTexts.render({ key: 'axisy-value', className: valueClassName })}
+            <g transform={transformYAnnot} className={className}>
+                {axisyPath.render()}
+                {axisyTexts.render()}
             </g>
         )
     }

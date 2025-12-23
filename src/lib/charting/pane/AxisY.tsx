@@ -1,7 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
-import { Theme } from "../theme/Theme";
 import { ChartYControl } from "../view/ChartYControl";
 import { normMinTick, normTickUnit } from "../Normalize";
 

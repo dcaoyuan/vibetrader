@@ -153,14 +153,14 @@ class AxisX extends Component<Props, State> {
 			if (xc.occurred(time)) {
 				const cursorX = xc.xr(xc.referCursorRow)
 
-				referCursor = this.#plotCursor(cursorX, time, 'value-refer')
+				referCursor = this.#plotCursor(cursorX, time, 'annot-refer')
 			}
 		}
 
 		if (xc.isMouseCursorEnabled) {
 			const time = xc.tr(xc.mouseCursorRow)
 			const cursorX = xc.xr(xc.mouseCursorRow)
-			mouseCursor = this.#plotCursor(cursorX, time, 'value-value')
+			mouseCursor = this.#plotCursor(cursorX, time, 'annot-mouse')
 		}
 
 		this.setState({ ...state, referCursor, mouseCursor })
@@ -193,9 +193,9 @@ class AxisX extends Component<Props, State> {
 		axisxTexts.text(x0 + 1, this.props.up ? h - 1 : h + 4, dtStr);
 
 		return (
-			<g>
-				{axisxPath.render({ key: 'axisx-tick', className })}
-				{axisxTexts.render({ key: 'axisx-annot', className: 'label-value' })}
+			<g className={className}>
+				{axisxPath.render()}
+				{axisxTexts.render()}
 			</g>
 		)
 	}

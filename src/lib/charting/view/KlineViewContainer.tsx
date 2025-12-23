@@ -484,13 +484,13 @@ class KlineViewContainer extends Component<Props, State> {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
                 const cursorX = xc.xr(xc.referCursorRow)
-                referCursor = this.#plotCursor(cursorX, 'value-refer')
+                referCursor = this.#plotCursor(cursorX, 'annot-refer')
             }
         }
 
         if (xc.isMouseCursorEnabled) {
             const cursorX = xc.xr(xc.mouseCursorRow)
-            mouseCursor = this.#plotCursor(cursorX, 'value-value')
+            mouseCursor = this.#plotCursor(cursorX, 'annot-mouse')
         }
 
         // need to re-calculate geometry?
@@ -555,8 +555,8 @@ class KlineViewContainer extends Component<Props, State> {
         crosshair.lineto(x, this.state.yCursorRange[1])
 
         return (
-            <g>
-                {crosshair.render({ key: 'container-crosshair', className })}
+            <g className={className}>
+                {crosshair.render()}
             </g>
         )
     }
@@ -1084,7 +1084,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     outputs.map(({ title, color }, n) =>
                                                         <span key={"overlay-indicator-lable-" + title} >
-                                                            <Text className="value-value">{title}&nbsp;</Text>
+                                                            <Text className="label-mouse">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.overlayIndicatorLabels !== undefined &&
                                                                 this.state.overlayIndicatorLabels[m] !== undefined &&
@@ -1111,7 +1111,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
                                                         <span key={"ovarlay-indicator-lable-" + title} >
-                                                            <Text className="value-refer">{title}&nbsp;</Text>
+                                                            <Text className="label-refer">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.referOverlayIndicatorLabels &&
                                                                 this.state.referOverlayIndicatorLabels[m] &&
@@ -1143,7 +1143,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text className="value-value">{title}&nbsp;</Text>
+                                                            <Text className="label-mouse">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.stackedIndicatorLabels &&
                                                                 this.state.stackedIndicatorLabels[n] &&
@@ -1171,7 +1171,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text className="value-refer">{title}&nbsp;</Text>
+                                                            <Text className="label-refer">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.referStackedIndicatorLabels &&
                                                                 this.state.referStackedIndicatorLabels[n] &&

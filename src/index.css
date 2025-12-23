@@ -8,7 +8,8 @@
     color-scheme: light dark;
 
     color: #213547;
-    background-color: #f8f8f8;
+    /* background-color: #f8f8f8; */
+    background-color: #ffffff;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -19,12 +20,13 @@
     --negative-color: #FF0000B4;
     --neutral-color: #00F0F0B4;
 
-    --label-color-g: #009000;
-    --label-color-r: #FF0000;
-    --label-color-c: #00A0A0;
-    --label-color-n: #ffa500;
+    --annot-color-g: #009000;
+    --annot-color-r: #FF0000;
+    --annot-color-c: #00A0A0;
+    --annot-color-n: #ffa500;
 
-    --label-text-color: #ffffff;
+    --annot-text-color-1: #ffffff;
+    --annot-text-color-2: #ffffff;
 }
 
 @media (prefers-color-scheme: light) {
@@ -36,12 +38,13 @@
         --negative-color: #FF0000;
         --neutral-color: #00F0F0;
 
-        --label-color-g: #00F000;
-        --label-color-r: #FF0000;
-        --label-color-c: #00F0F0;
-        --label-color-n: #fdf6e3;
+        --annot-color-g: #00F000;
+        --annot-color-r: #FF0000;
+        --annot-color-c: #00F0F0;
+        --annot-color-n: #fdf6e3;
 
-        --label-text-color: #000000;
+        --annot-text-color-1: #000000;
+        --annot-text-color-2: #ffffff;
     }
 
     a:hover {
