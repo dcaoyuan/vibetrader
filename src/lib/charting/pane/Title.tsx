@@ -225,7 +225,7 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <Text >
+                    <Text>
                         {this.props.symbol} &middot; {this.tframeShortName} &middot; {this.tzoneShort}
                     </Text>
                 </div>
@@ -273,27 +273,24 @@ class Title extends Component<Props, State> {
                                     </Text>
                                 </>}
                             </ListBoxItem>
-                            <ListBoxItem textValue="C">
+                            <ListBoxItem
+                                className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
+                                key={pKline ? 'close-' + pKline.close.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
+                                textValue="C">
                                 {pKline && <>
                                     <Text className="value-label">C </Text>
-                                    <span
-                                        className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}>
-                                        <Text
-                                            key={"close-" + pKline.close.toPrecision(8)} // tell react to retrigger blinking when key i.e. the close price changes
-                                            className="value-value"
-                                        >
-                                            {delta
-                                                ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
-                                                    delta.period
-                                                        ? ` in ${delta.period} ${delta.period === 1
-                                                            ? this.tframeShowName
-                                                            : this.tframeShowName + 's'})`
-                                                        : ')'
-                                                )
-                                                : pKline.close
-                                            }
-                                        </Text>
-                                    </span>
+                                    <Text className="value-value">
+                                        {delta
+                                            ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                                delta.period
+                                                    ? ` in ${delta.period} ${delta.period === 1
+                                                        ? this.tframeShowName
+                                                        : this.tframeShowName + 's'})`
+                                                    : ')'
+                                            )
+                                            : pKline.close
+                                        }
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                         </ListBox>
@@ -301,20 +298,21 @@ class Title extends Component<Props, State> {
 
                     <div style={{ flex: 1, padding: '0px 0px' }}>
                         <ListBox aria-label="snapshots" style={{ textAlign: 'left' }}>
-                            {
-                                this.state.snapshots.map(({ time, price, volume }, n) =>
-                                    <ListBoxItem className="blinking-label" key={
-                                        n === L_SNAPSHOTS - 1
-                                            ? "snapshot-" + n + time // tell react to retrigger blinking when the key i.e. the time changes 
-                                            : "snapshot-" + n
-                                    } textValue="S">
-                                        <>
-                                            <Text className="value-label">{this.dtFormatS.format(new Date(time))} </Text>
-                                            <Text className="value-value">{price.toPrecision(8)} </Text>
-                                            <Text className="value-refer">{parseFloat(volume.toPrecision(8))}</Text>
-                                        </>
-                                    </ListBoxItem>
-                                )
+                            {this.state.snapshots.map(({ time, price, volume }, n) =>
+                                <ListBoxItem
+                                    className="blinking-label"
+                                    key={n === L_SNAPSHOTS - 1
+                                        ? "snapshot-" + n + time // tell react to retrigger blinking when the key i.e. the time changes 
+                                        : "snapshot-" + n
+                                    }
+                                    textValue="S">
+                                    <>
+                                        <Text className="value-label">{this.dtFormatS.format(new Date(time))} </Text>
+                                        <Text className="value-value">{price.toPrecision(8)} </Text>
+                                        <Text className="value-refer">{parseFloat(volume.toPrecision(8))}</Text>
+                                    </>
+                                </ListBoxItem>
+                            )
                             }
                         </ListBox>
                     </div>
