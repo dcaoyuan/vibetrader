@@ -56,7 +56,7 @@
 /* Semantic colors */
 :root {
     --focus-ring-color: var(--purple-400);
-    --text-color: var(--gray-50);
+    --text-color: var(--gray-600);
     --text-color-base: var(--gray-500);
     --text-color-hover: var(--gray-600);
     --text-color-disabled: var(--gray-200);
@@ -194,8 +194,8 @@
 }
 
 .react-aria-Button {
-    /* color: var(--text-color);
-    background: var(--button-background); */
+    color: var(--text-color);
+    background: var(--button-background);
     background-color: inherit;
     border: 1px solid var(--border-color);
     border-radius: 4px;
@@ -226,8 +226,8 @@
 }
 
 .react-aria-ToggleButton {
-    /* color: var(--text-color);
-    background: var(--button-background); */
+    color: var(--text-color);
+    background: var(--button-background);
     background-color: inherit;
     border: 1px solid var(--border-color);
     border-radius: 4px;

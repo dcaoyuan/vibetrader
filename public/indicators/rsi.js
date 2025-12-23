@@ -4,5 +4,5 @@ const ind = (context) => {
 
     const rsi = ta.rsi(close, 14);
 
-    plot(rsi, "RSI-14", { color: "white", style: "line", linewidth: 1 })
+    plot(rsi, "RSI-14", { color: "#ff7f0e", style: "line", linewidth: 1 })
 }

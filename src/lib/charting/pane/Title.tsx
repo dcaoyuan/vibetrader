@@ -219,9 +219,9 @@ class Title extends Component<Props, State> {
     }
 
     render() {
-        const lColor = '#F00000'; // Theme.now().axisColor
+        const lColor = '#F00000';
         const rColor = '#00F0F0'; // 'orange'
-        const pColor = '#00F000'; // Theme.now().axisColor 
+        const pColor = '#00F000';
         const rKline = this.state.referKline
         const pKline = this.state.pointKline
         const delta = this.state.delta;
@@ -229,7 +229,7 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <Text style={{ color: "white" }}>
+                    <Text >
                         {this.props.symbol} &middot; {this.tframeShortName} &middot; {this.tzoneShort}
                     </Text>
                 </div>

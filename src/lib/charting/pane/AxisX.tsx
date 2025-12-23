@@ -48,7 +48,6 @@ class AxisX extends Component<Props, State> {
 		const hFont = 16;
 		const nBars = this.props.xc.nBars
 
-		const color = Theme.now().axisColor;
 		const path = new Path;
 		const texts = new Texts;
 
@@ -129,9 +128,9 @@ class AxisX extends Component<Props, State> {
 		}
 
 		return (
-			<g>
-				{path.render({ key: 'axisx-tick', style: { stroke: color, strokeWidth: '0.7px' } })}
-				{texts.render({ key: 'axisx-text', style: { fill: color } })}
+			<g className="axis">
+				{path.render()}
+				{texts.render()}
 			</g>
 		);
 	}

@@ -87,8 +87,8 @@ export class Path implements Seg {
         this.pathDatas.push(c)
     }
 
-    render(options: Options) {
-        const { key, style, className } = options
+    render(options?: Options) {
+        const { key, style, className } = options ?? {}
 
         let path = '';
         for (const { type, values } of this.pathDatas) {

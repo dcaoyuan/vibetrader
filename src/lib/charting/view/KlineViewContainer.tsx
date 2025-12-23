@@ -826,7 +826,7 @@ class KlineViewContainer extends Component<Props, State> {
                         >
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="line" aria-label="Line">
-                                    <LineSegmentIcon fill="white" />
+                                    <LineSegmentIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw line
@@ -835,7 +835,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="parallel" aria-label="Parallel">
-                                    <NotchesIcon fill="white" />
+                                    <NotchesIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw parallel
@@ -844,7 +844,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="gann_angles" aria-label="fibretr">
-                                    <HashIcon fill="white" />
+                                    <HashIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw gann angles
@@ -853,7 +853,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
-                                    <ListIcon fill="white" />
+                                    <ListIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw fibonacci retrace
@@ -862,7 +862,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_timezone" aria-label="fibtz">
-                                    <SquareSplitHorizontalIcon fill="white" />
+                                    <SquareSplitHorizontalIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw fibonacci time zone
@@ -871,7 +871,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
-                                    <WaveformIcon fill="white" />
+                                    <WaveformIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw fibonacci time retrace
@@ -880,7 +880,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={0}>
                                 <ToggleButton id="polyline" aria-label="polyline">
-                                    <LineSegmentsIcon fill="white" />
+                                    <LineSegmentsIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Draw polyline
@@ -903,7 +903,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }
                                     })}
                                 >
-                                    <NotEqualsIcon fill="white" />
+                                    <NotEqualsIcon />
                                 </ToggleButton>
                                 <VTTooltip placement="end">
                                     Hide drawings
@@ -921,7 +921,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         })
                                     }
                                 >
-                                    <XIcon fill="white" />
+                                    <XIcon />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Delete selected drawing
@@ -938,7 +938,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Button id="chartscale" aria-label="chartscale"
                                     onClick={this.backToOriginalChartScale}
                                 >
-                                    <CaretLineUpIcon fill="white" />
+                                    <CaretLineUpIcon />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Original chart scale
@@ -949,7 +949,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Button id="crosshair" aria-label="crosshair"
                                     onClick={this.switchCrosshairVisiable}
                                 >
-                                    <PlusSquareIcon fill="white" />
+                                    <PlusSquareIcon />
                                 </Button>
                                 <VTTooltip placement="end">
                                     Switch crosshair visible

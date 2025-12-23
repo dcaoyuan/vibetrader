@@ -4,7 +4,6 @@ import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
 import { Rect } from "../../svg/Rect"
 import type { Seg } from "../../svg/Seg"
-import { Fragment } from "react/jsx-runtime"
 
 export type TPoint = {
     time: number,
@@ -204,22 +203,16 @@ export abstract class Drawing {
 
     renderDrawing(key: Key) {
         return (
-            <g key={key}>
-                {this.plotDrawing().map((seg, n) => seg.render({
-                    key: "seg-" + n,
-                    style: { stroke: "#ffffff", fill: "#ffffff", strokeWidth: "0.7px" }
-                }))}
+            <g key={key} className="drawing">
+                {this.plotDrawing().map((seg, n) => seg.render({ key: "seg-" + n }))}
             </g>
         )
     }
 
     renderDrawingWithHandles(key: Key) {
         return (
-            <g key={key}>
-                {this.plotDrawing().map((seg, n) => seg.render({
-                    key: "seg-" + n,
-                    style: { stroke: "#ffffff", fill: "#ffffff", strokeWidth: "1px" }
-                }))}
+            <g key={key} className="drawing-highlight">
+                {this.plotDrawing().map((seg, n) => seg.render({ key: "seg-" + n }))}
                 {this.handles.map((handle, n) => handle.render("handle-" + n))}
             </g>
         )
@@ -312,7 +305,7 @@ export class Handle {
     render(key: string) {
         const seg = this.plot();
 
-        return seg.render({ key, style: { stroke: "#ffffff", strokeWidth: "1px" } })
+        return seg.render({ key })
     }
 
     equals(o: unknown): boolean {

@@ -10,8 +10,8 @@ export class Texts implements Seg {
         this.texts.push({ x, y, text })
     }
 
-    render(options: Options) {
-        const { key, style, className } = options
+    render(options?: Options) {
+        const { key, style, className } = options ?? {}
 
         return (
             <Fragment key={key}>

@@ -8,10 +8,6 @@
     "axisx axisx";
   grid-template-columns: 1fr 3fr; */
     /* gap: 1px; */
-    /* background-color: dodgerblue; */
-    background-color: #333333;
-    /* background-color: #242424; */
-    /* background-color: white; */
     /* padding: 0px; */
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
@@ -29,10 +25,6 @@
     "axisx axisx";
   grid-template-columns: 1fr 3fr; */
     /* gap: 1px; */
-    /* background-color: dodgerblue; */
-    background-color: #333333;
-    /* background-color: #242424; */
-    /* background-color: white; */
     /* padding: 0px; */
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
@@ -42,11 +34,6 @@
     &:focus {
         outline: none;
     }
-}
-
-.container div {
-    /* background-color: #333333; */
-    /* background-color: white; */
 }
 
 .container div.chartview {
@@ -78,12 +65,12 @@
 
 .container div.title {
     position: relative;
-    border-bottom: 0.7px solid white;
-    /* background: #333333; */
+    border-bottom: 0.7px solid var(--gray-600);
+    color: var(--text-color);
 }
 
 .container div.borderLeftUp {
-    border-left: 0.7px solid white;
+    border-left: 0.7px solid var(--gray-600);
     position: absolute;
     top: 80%;
     bottom: 0;
@@ -91,9 +78,8 @@
 
 .container div.help {
     position: relative;
-    border-top: 0.7px solid white;
+    border-top: 0.7px solid var(--gray-600);
     color: #00F000;
-    background: #333333;
 }
 
 .container div.borderLeftDown {
@@ -129,6 +115,42 @@
 .volumechart path.negative {
     stroke: #FF0000;
     fill: #FF0000;
+}
+
+.axis path {
+    stroke: var(--gray-600);
+    fill: var(--gray-600);
+    stroke-width: 0.7px;
+}
+
+.axis text {
+    fill: var(--gray-600);
+}
+
+.drawing-highlight path {
+    stroke: var(--gray-600);
+    fill: var(--gray-600);
+    stroke-width: 1px;
+}
+
+.drawing-highlight rect {
+    stroke: var(--gray-600);
+    stroke-width: 1px;
+}
+
+.drawing path {
+    stroke: var(--gray-600);
+    fill: var(--gray-600);
+    stroke-width: 0.7px;
+}
+
+.drawing rect {
+    stroke: var(--gray-600);
+    stroke-width: 0.7px;
+}
+
+.drawing text {
+    fill: var(--gray-600);
 }
 
 @keyframes blink {

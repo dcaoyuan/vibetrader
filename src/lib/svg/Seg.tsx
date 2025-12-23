@@ -16,5 +16,5 @@ export type Options = {
 }
 
 export interface Seg {
-    render(options: Options): JSX.Element
+    render(options?: Options): JSX.Element
 }

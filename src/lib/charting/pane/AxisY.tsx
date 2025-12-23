@@ -19,8 +19,6 @@ type Props = {
 const AxisY = (props: Props) => {
     const { x, y, height, yc } = props;
 
-    const color = Theme.now().axisColor;
-
     const chart = plot();
 
     function plot() {
@@ -107,9 +105,9 @@ const AxisY = (props: Props) => {
 
     const transform = `translate(${x} ${y})`;
     return (
-        <g transform={transform} >
-            {chart.path.render({ style: { stroke: color, strokeWidth: '0.7px' } })}
-            {chart.texts.render({ style: { fill: color } })}
+        <g transform={transform} className="axis" >
+            {chart.path.render()}
+            {chart.texts.render()}
         </g>
     );
 }
