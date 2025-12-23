@@ -1,4 +1,3 @@
-@import "aria-theme.css";
 @import "vibetrader.css";
 
 :root {
@@ -7,6 +6,7 @@
     font-weight: 400;
 
     color-scheme: light dark;
+
     color: #213547;
     background-color: #f8f8f8;
 
@@ -14,6 +14,43 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    --positive-color: #00AA00B4;
+    --negative-color: #FF0000B4;
+    --neutral-color: #00F0F0B4;
+
+    --label-color-g: #009000;
+    --label-color-r: #FF0000;
+    --label-color-c: #00A0A0;
+    --label-color-n: #ffa500;
+
+    --label-text-color: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        color: rgba(255, 255, 255, 0.87);
+        background-color: #242424;
+
+        --positive-color: #00AA00;
+        --negative-color: #FF0000;
+        --neutral-color: #00F0F0;
+
+        --label-color-g: #00F000;
+        --label-color-r: #FF0000;
+        --label-color-c: #00F0F0;
+        --label-color-n: #fdf6e3;
+
+        --label-text-color: #000000;
+    }
+
+    a:hover {
+        color: #535bf2;
+    }
+
+    button {
+        background-color: #1a1a1a;
+    }
 }
 
 a {
@@ -58,20 +95,4 @@ button:hover {
 button:focus,
 button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        color: rgba(255, 255, 255, 0.87);
-        background-color: #333333;
-        /* background-color: #242424; */
-    }
-
-    a:hover {
-        color: #535bf2;
-    }
-
-    button {
-        background-color: #1a1a1a;
-    }
 }

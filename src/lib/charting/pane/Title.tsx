@@ -218,9 +218,6 @@ class Title extends Component<Props, State> {
     }
 
     render() {
-        const lColor = '#F00000';
-        const rColor = '#00F0F0'; // 'orange'
-        const pColor = '#00F000';
         const rKline = this.state.referKline
         const pKline = this.state.pointKline
         const delta = this.state.delta;
@@ -238,63 +235,65 @@ class Title extends Component<Props, State> {
                         <ListBox aria-label="Mouse kline" style={{ textAlign: 'left' }}>
                             <ListBoxItem textValue="O">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>T </Text>
-                                    <Text style={{ color: pColor }}>
+                                    <Text className="value-label">T </Text>
+                                    <Text className="value-value">
                                         {this.dtFormatL.format(new Date(pKline.closeTime))}
                                     </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="V">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>V </Text>
-                                    <Text style={{ color: pColor }} >
+                                    <Text className="value-label">V </Text>
+                                    <Text className="value-value">
                                         {pKline.volume}
                                     </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="O">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>O </Text>
-                                    <Text style={{ color: pColor }} >
+                                    <Text className="value-label">O </Text>
+                                    <Text className="value-value">
                                         {pKline.open.toPrecision(8)}
                                     </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="H">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>H </Text>
-                                    <Text style={{ color: pColor }} >
+                                    <Text className="value-label">H </Text>
+                                    <Text className="value-value">
                                         {pKline.high.toPrecision(8)}
                                     </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="L">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>L </Text>
-                                    <Text style={{ color: pColor }} >
+                                    <Text className="value-label">L </Text>
+                                    <Text className="value-value">
                                         {pKline.low.toPrecision(8)}
                                     </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="C">
                                 {pKline && <>
-                                    <Text style={{ color: lColor }}>C </Text>
-                                    <Text
-                                        key={"close-" + pKline.close.toPrecision(8)} // tell react to retrigger blinking when key i.e. the close price changes
-                                        className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
-                                        style={{ color: pColor }}
-                                    >
-                                        {delta
-                                            ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
-                                                delta.period
-                                                    ? ` in ${delta.period} ${delta.period === 1
-                                                        ? this.tframeShowName
-                                                        : this.tframeShowName + 's'})`
-                                                    : ')'
-                                            )
-                                            : pKline.close
-                                        }
-                                    </Text>
+                                    <Text className="value-label">C </Text>
+                                    <span
+                                        className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}>
+                                        <Text
+                                            key={"close-" + pKline.close.toPrecision(8)} // tell react to retrigger blinking when key i.e. the close price changes
+                                            className="value-value"
+                                        >
+                                            {delta
+                                                ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
+                                                    delta.period
+                                                        ? ` in ${delta.period} ${delta.period === 1
+                                                            ? this.tframeShowName
+                                                            : this.tframeShowName + 's'})`
+                                                        : ')'
+                                                )
+                                                : pKline.close
+                                            }
+                                        </Text>
+                                    </span>
                                 </>}
                             </ListBoxItem>
                         </ListBox>
@@ -310,9 +309,9 @@ class Title extends Component<Props, State> {
                                             : "snapshot-" + n
                                     } textValue="S">
                                         <>
-                                            <Text style={{ color: lColor }}>{this.dtFormatS.format(new Date(time))} </Text>
-                                            <Text style={{ color: pColor }}>{price.toPrecision(8)} </Text>
-                                            <Text style={{ color: rColor }}>{parseFloat(volume.toPrecision(8))}</Text>
+                                            <Text className="value-label">{this.dtFormatS.format(new Date(time))} </Text>
+                                            <Text className="value-value">{price.toPrecision(8)} </Text>
+                                            <Text className="value-refer">{parseFloat(volume.toPrecision(8))}</Text>
                                         </>
                                     </ListBoxItem>
                                 )
@@ -325,43 +324,57 @@ class Title extends Component<Props, State> {
                             <ListBoxItem textValue="T">
                                 {rKline
                                     ? <>
-                                        <Text style={{ color: lColor }}>T </Text>
-                                        <Text style={{ color: rColor }}>{this.dtFormatL.format(new Date(rKline.closeTime))}</Text>
+                                        <Text className="value-label">T </Text>
+                                        <Text className="value-refer">
+                                            {this.dtFormatL.format(new Date(rKline.closeTime))}
+                                        </Text>
                                     </>
                                     : <div style={{ visibility: "hidden" }}>
-                                        <Text style={{ color: lColor }}>T </Text>
-                                        <Text style={{ color: rColor }}>{this.dtFormatL.format(new Date())}</Text>
+                                        <Text className="value-label">T </Text>
+                                        <Text className="value-refer">
+                                            {this.dtFormatL.format(new Date())}
+                                        </Text>
                                     </div>
                                 }
                             </ListBoxItem>
                             <ListBoxItem textValue="V">
                                 {rKline && <>
-                                    <Text style={{ color: lColor }}>V </Text>
-                                    <Text style={{ color: rColor }}>{rKline.volume}</Text>
+                                    <Text className="value-label">V </Text>
+                                    <Text className="value-refer">
+                                        {rKline.volume}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="O">
                                 {rKline && <>
-                                    <Text style={{ color: lColor }}>O </Text>
-                                    <Text style={{ color: rColor }}>{rKline.open.toPrecision(8)}</Text>
+                                    <Text className="value-label">O </Text>
+                                    <Text className="value-refer">
+                                        {rKline.open.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="H">
                                 {rKline && <>
-                                    <Text style={{ color: lColor }}>H </Text>
-                                    <Text style={{ color: rColor }}>{rKline.high.toPrecision(8)}</Text>
+                                    <Text className="value-label">H </Text>
+                                    <Text className="value-refer">
+                                        {rKline.high.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="L">
                                 {rKline && <>
-                                    <Text style={{ color: lColor }}>L </Text>
-                                    <Text style={{ color: rColor }}>{rKline.low.toPrecision(8)}</Text>
+                                    <Text className="value-label">L </Text>
+                                    <Text className="value-refer">
+                                        {rKline.low.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                             <ListBoxItem textValue="C">
                                 {rKline && <>
-                                    <Text style={{ color: lColor }}>C </Text>
-                                    <Text style={{ color: rColor }}>{rKline.close.toPrecision(8)}</Text>
+                                    <Text className="value-label">C </Text>
+                                    <Text className="value-refer">
+                                        {rKline.close.toPrecision(8)}
+                                    </Text>
                                 </>}
                             </ListBoxItem>
                         </ListBox>

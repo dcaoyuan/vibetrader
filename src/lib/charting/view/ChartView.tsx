@@ -197,10 +197,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
         let latestValueLabel: JSX.Element
-
-        const referColor = '#00F0F0C0';
-        const mouseColor = '#00F000';
-        let latestColor = '#ffa500'; // orange
+        let latestColor: string
 
         const xc = this.props.xc;
         const yc = this.yc;
@@ -224,7 +221,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         value /= yc.normScale
                     }
 
-                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, referColor)
+                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, "value-refer")
                 }
             }
         }
@@ -254,7 +251,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     value /= yc.normScale
                 }
 
-                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, mouseColor)
+                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, "value-value")
             }
 
         } else {
@@ -265,7 +262,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         if (latestTime !== undefined && latestTime > 0) {
             const kline = this.props.tvar.getByTime(latestTime)
             if (kline !== undefined && kline instanceof Kline) {
-                latestColor = "#fdf6e3" // kline.close > kline.open ? "#BB0000" : "#00AA00"
+                latestColor = kline.close > kline.open ? "label-positive-bg" : "label-negative-bg"
             }
 
             let value = this.valueAtTime(latestTime);
@@ -276,7 +273,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     value /= yc.normScale
                 }
 
-                latestValueLabel = this.plotYValueLabel(y, value, "#000000", latestColor)
+                latestValueLabel = this.plotYValueLabel(y, value, 'label-value', latestColor)
             }
         }
 
@@ -356,7 +353,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-    #plotCursor(x: number, y: number, time: number, value: number, background: string) {
+    #plotCursor(x: number, y: number, time: number, value: number, className: string) {
         const wAxisY = ChartView.AXISY_WIDTH
 
         let crosshair: Path
@@ -371,17 +368,17 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             crosshair.lineto(this.props.width - wAxisY, y)
         }
 
-        const valueLabel = this.plotYValueLabel(y, value, "#000000", background);
+        const valueLabel = this.plotYValueLabel(y, value, 'label-value', className);
 
         return (
             <>
-                {crosshair && crosshair.render({ key: 'axisy-cross', style: { stroke: background, strokeWidth: "0.7px" } })}
+                {crosshair && crosshair.render({ key: 'axisy-cross', className })}
                 {valueLabel}
             </>
         )
     }
 
-    plotYValueLabel(y: number, value: number, textColor: string, backgroud: string) {
+    plotYValueLabel(y: number, value: number, valueClassName: string, labelClassName: string) {
         const valueStr = value.toFixed(3);
 
         const wLabel = ChartView.AXISY_WIDTH; // label width
@@ -409,8 +406,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         return (
             // pay attention to the order to avoid text being overlapped
             <g transform={transformYAnnot}>
-                {axisyPath.render({ key: 'axisy-tick', style: { stroke: backgroud, fill: backgroud, strokeWidth: "0.7px" } })}
-                {axisyTexts.render({ key: 'axisy-annot', style: { fill: textColor } })}
+                {axisyPath.render({ key: 'axisy-label', className: labelClassName })}
+                {axisyTexts.render({ key: 'axisy-value', className: valueClassName })}
             </g>
         )
     }

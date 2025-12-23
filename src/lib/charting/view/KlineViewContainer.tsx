@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, LadderSimpleIcon, PlusIcon, NotEqualsIcon, MinusCircleIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -480,18 +480,17 @@ class KlineViewContainer extends Component<Props, State> {
 
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
-        const referColor = '#00F0F0C0'; // 'orange'
         if (xc.isReferCursorEnabled) {
             const time = xc.tr(xc.referCursorRow)
             if (xc.occurred(time)) {
                 const cursorX = xc.xr(xc.referCursorRow)
-                referCursor = this.#plotCursor(cursorX, referColor)
+                referCursor = this.#plotCursor(cursorX, 'value-refer')
             }
         }
 
         if (xc.isMouseCursorEnabled) {
             const cursorX = xc.xr(xc.mouseCursorRow)
-            mouseCursor = this.#plotCursor(cursorX, '#00F000')
+            mouseCursor = this.#plotCursor(cursorX, 'value-value')
         }
 
         // need to re-calculate geometry?
@@ -545,7 +544,7 @@ class KlineViewContainer extends Component<Props, State> {
         return undefined;
     }
 
-    #plotCursor(x: number, color: string) {
+    #plotCursor(x: number, className: string) {
         if (this.state.drawingIdsToCreate.size > 0 || this.state.xc.isCrosshairEnabled) {
             return <></>
         }
@@ -557,7 +556,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         return (
             <g>
-                {crosshair.render({ key: 'container-cross', style: { stroke: color, strokeWidth: '0.7px' } })}
+                {crosshair.render({ key: 'container-crosshair', className })}
             </g>
         )
     }
@@ -1085,7 +1084,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     outputs.map(({ title, color }, n) =>
                                                         <span key={"overlay-indicator-lable-" + title} >
-                                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                            <Text className="value-value">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.overlayIndicatorLabels !== undefined &&
                                                                 this.state.overlayIndicatorLabels[m] !== undefined &&
@@ -1112,7 +1111,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
                                                         <span key={"ovarlay-indicator-lable-" + title} >
-                                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                            <Text className="value-refer">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.referOverlayIndicatorLabels &&
                                                                 this.state.referOverlayIndicatorLabels[m] &&
@@ -1144,7 +1143,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text style={{ color: '#00FF00' }}>{title}&nbsp;</Text>
+                                                            <Text className="value-value">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.stackedIndicatorLabels &&
                                                                 this.state.stackedIndicatorLabels[n] &&
@@ -1172,7 +1171,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                 {
                                                     this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
                                                         <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text style={{ color: '#00F0F0F0' }}>{title}&nbsp;</Text>
+                                                            <Text className="value-refer">{title}&nbsp;</Text>
                                                             <Text style={{ color }}>{
                                                                 this.state.referStackedIndicatorLabels &&
                                                                 this.state.referStackedIndicatorLabels[n] &&

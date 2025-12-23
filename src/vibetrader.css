@@ -72,31 +72,31 @@
 }
 
 .klinechart {
-    stroke: #FF0000;
+    stroke: var(--positive-color);
 }
 
 .klinechart path.positive {
-    stroke: #00AA00;
-    fill: #00AA00;
+    stroke: var(--positive-color);
+    fill: var(--positive-color);
 }
 
 .klinechart path.negative {
-    stroke: #FF0000;
-    fill: #FF0000;
+    stroke: var(--negative-color);
+    fill: var(--negative-color);
 }
 
 .volumechart {
-    stroke: #FF0000;
+    stroke: var(--positive-color);
 }
 
 .volumechart path.positive {
-    stroke: #00AA00;
-    fill: #00AA00;
+    stroke: var(--positive-color);
+    fill: var(--positive-color);
 }
 
 .volumechart path.negative {
-    stroke: #FF0000;
-    fill: #FF0000;
+    stroke: var(--negative-color);
+    fill: var(--negative-color);
 }
 
 .axis path {
@@ -151,4 +151,47 @@
 
 .blinking-label {
     animation: blink 1s;
+}
+
+.value-label {
+    color: var(--label-color-r);
+    stroke: var(--label-color-r);
+    fill: var(--label-color-r);
+    stroke-width: 0.7px;
+}
+
+.value-value {
+    color: var(--label-color-g);
+    stroke: var(--label-color-g);
+    fill: var(--label-color-g);
+    stroke-width: 0.7px;
+}
+
+.value-refer {
+    color: var(--label-color-c);
+    stroke: var(--label-color-c);
+    fill: var(--label-color-c);
+    stroke-width: 0.7px;
+}
+
+.value-latest {
+    stroke: var(--label-color-n);
+    fill: var(--label-color-n);
+    stroke-width: 0.7px;
+}
+
+.label-positive-bg {
+    stroke: var(--positive-color);
+    fill: var(--positive-color);
+    stroke-width: 0.7px;
+}
+
+.label-negative-bg {
+    stroke: var(--negative-color);
+    fill: var(--negative-color);
+    stroke-width: 0.7px;
+}
+
+.label-value {
+    fill: var(--label-text-color);
 }

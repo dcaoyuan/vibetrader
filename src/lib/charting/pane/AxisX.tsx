@@ -1,6 +1,5 @@
 import { TUnit } from "../../timeseris/TUnit";
 import { ChartXControl } from "../view/ChartXControl";
-import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Temporal } from "temporal-polyfill";
@@ -147,8 +146,6 @@ class AxisX extends Component<Props, State> {
 	protected updateState(state: object) {
 		let referCursor: JSX.Element
 		let mouseCursor: JSX.Element
-		const referColor = '#00F0F0'; // 'orange'
-		const mouseColor = '#00F000';
 		const xc = this.props.xc;
 
 		if (this.props.xc.isReferCursorEnabled) {
@@ -156,20 +153,20 @@ class AxisX extends Component<Props, State> {
 			if (xc.occurred(time)) {
 				const cursorX = xc.xr(xc.referCursorRow)
 
-				referCursor = this.#plotCursor(cursorX, time, referColor)
+				referCursor = this.#plotCursor(cursorX, time, 'value-refer')
 			}
 		}
 
 		if (xc.isMouseCursorEnabled) {
 			const time = xc.tr(xc.mouseCursorRow)
 			const cursorX = xc.xr(xc.mouseCursorRow)
-			mouseCursor = this.#plotCursor(cursorX, time, mouseColor)
+			mouseCursor = this.#plotCursor(cursorX, time, 'value-value')
 		}
 
 		this.setState({ ...state, referCursor, mouseCursor })
 	}
 
-	#plotCursor(x: number, time: number, color: string) {
+	#plotCursor(x: number, time: number, className: string) {
 		const w = 50; // annotation width
 		const h = 13; // annotation height
 
@@ -197,8 +194,8 @@ class AxisX extends Component<Props, State> {
 
 		return (
 			<g>
-				{axisxPath.render({ key: 'axisx-tick', style: { stroke: color, fill: color } })}
-				{axisxTexts.render({ key: 'axisx-annot', style: { fill: '#000000' } })}
+				{axisxPath.render({ key: 'axisx-tick', className })}
+				{axisxTexts.render({ key: 'axisx-annot', className: 'label-value' })}
 			</g>
 		)
 	}
