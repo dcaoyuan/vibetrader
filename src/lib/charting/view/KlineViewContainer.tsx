@@ -20,7 +20,7 @@ import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon, QuestionIcon, QuestionMarkIcon } from "@phosphor-icons/react";
+import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon, QuestionIcon, QuestionMarkIcon, MoonStarsIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
 
 type Props = {
     width: number,
@@ -92,6 +92,8 @@ type State = {
 
     cursor?: string;
 
+    colorTheme?: 'system' | 'light' | 'dark';
+
 }
 
 
@@ -144,6 +146,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     callbacks: CallbacksToContainer
 
+    systemScheme: string;
+
     constructor(props: Props) {
         super(props);
         this.width = props.width;
@@ -162,6 +166,9 @@ class KlineViewContainer extends Component<Props, State> {
 
         console.log("KlinerViewContainer render");
 
+        const getMatches = (query: string) => window.matchMedia(query).matches;
+        this.systemScheme = getMatches('(prefers-color-scheme: dark)') ? 'dark' : 'light';
+
         const geometry = this.#calcGeometry([]);
         this.state = {
             symbol,
@@ -175,6 +182,7 @@ class KlineViewContainer extends Component<Props, State> {
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
+            colorTheme: 'system',
             ...geometry,
         }
 
@@ -183,8 +191,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.setSelectedIndicatorTags = this.setSelectedIndicatorTags.bind(this)
         this.setDrawingIdsToCreate = this.setDrawingIdsToCreate.bind(this)
 
-        this.switchCrosshairVisiable = this.switchCrosshairVisiable.bind(this)
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
+        this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
+        this.toggleColorTheme = this.toggleColorTheme.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -801,7 +810,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart', deltaMouse: { dx: undefined, dy: undefined } });
     }
 
-    private switchCrosshairVisiable() {
+    private toggleCrosshairVisiable() {
         const xc = this.state.xc;
 
         xc.isCrosshairEnabled = !xc.isCrosshairEnabled
@@ -809,18 +818,34 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'cursors' })
     }
 
-    private popoverHelp() {
-        return (
-            <DialogTrigger>
-                <Popover>
-                    This is the content of the popover.
-                </Popover>
-            </DialogTrigger>)
+    private toggleColorTheme() {
+        switch (this.state.colorTheme) {
+            case 'system':
+                this.setState({ colorTheme: this.systemScheme === 'dark' ? 'light' : 'dark' })
+                break;
+
+            case 'light':
+                this.setState({ colorTheme: 'dark' })
+                break;
+
+            case 'dark':
+                this.setState({ colorTheme: 'light' })
+                break;
+        }
     }
 
     render() {
         return this.state.isLoaded && (
             <div style={{ display: "flex" }} >
+
+                {/* Color Theme Selector */}
+                <div>
+                    <select hidden id="color-scheme" value={this.state.colorTheme}>
+                        <option value="system">System</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
 
                 {/* Toolbar */}
                 <div style={{ display: "flex", paddingRight: "6px", paddingTop: '4px' }}>
@@ -944,9 +969,7 @@ class KlineViewContainer extends Component<Props, State> {
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="chartscale" aria-label="chartscale"
-                                    onClick={this.backToOriginalChartScale}
-                                >
+                                <Button id="chartscale" aria-label="chartscale" onClick={this.backToOriginalChartScale} >
                                     <CaretLineUpIcon />
                                 </Button>
                                 <VTTooltip placement="end">
@@ -955,13 +978,11 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="crosshair" aria-label="crosshair"
-                                    onClick={this.switchCrosshairVisiable}
-                                >
+                                <Button id="crosshair" aria-label="crosshair" onClick={this.toggleCrosshairVisiable} >
                                     <PlusSquareIcon />
                                 </Button>
                                 <VTTooltip placement="end">
-                                    Switch crosshair visible
+                                    Toggle crosshair visible
                                 </VTTooltip>
                             </TooltipTrigger>
 
@@ -971,11 +992,18 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
+                                <Button id="colortheme" aria-label="colortheme" onClick={this.toggleColorTheme} >
+                                    {this.state.colorTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                                </Button>
+                                <VTTooltip placement="end">
+                                    Toggle color theme
+                                </VTTooltip>
+                            </TooltipTrigger>
+
                             <TooltipTrigger delay={500}>
                                 <DialogTrigger>
-                                    <Button id="chartscale" aria-label="chartscale"
-                                        onClick={this.backToOriginalChartScale}
-                                    >
+                                    <Button id="help" aria-label="help" >
                                         <QuestionMarkIcon />
                                     </Button>
                                     <VTTooltip placement="end">
@@ -997,6 +1025,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                 </div>
 
+                {/* View Container */}
                 <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
                     key="klineviewcontainer"
                     ref={this.focusRef}
