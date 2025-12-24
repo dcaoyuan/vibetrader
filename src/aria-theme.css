@@ -291,7 +291,6 @@
         background: var(--highlight-background);
         color: var(--highlight-foreground);
     }
-
 }
 
 .react-aria-ToggleButtonGroup {
@@ -300,7 +299,7 @@
     background-color: inherit;
 
     >button {
-        border-radius: 0;
+        border-radius: 4;
         z-index: 1;
 
         &[data-disabled] {
