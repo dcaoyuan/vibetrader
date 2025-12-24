@@ -969,7 +969,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={500}>
                                 <DialogTrigger>
                                     <Button id="chartscale" aria-label="chartscale"
                                         onClick={this.backToOriginalChartScale}
