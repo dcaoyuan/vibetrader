@@ -116,6 +116,8 @@ const KVAR_NAME = "kline";
 
 const allInds = ['ema', 'sma', 'rsi', 'macd']
 
+const TOOPTIP_DELAY = 500; // ms
+
 class KlineViewContainer extends Component<Props, State> {
     width: number;
 
@@ -831,7 +833,7 @@ class KlineViewContainer extends Component<Props, State> {
                             selectedKeys={this.state.drawingIdsToCreate}
                             onSelectionChange={this.setDrawingIdsToCreate}
                         >
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="line" aria-label="Line">
                                     <LineSegmentIcon />
                                 </ToggleButton>
@@ -840,7 +842,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="parallel" aria-label="Parallel">
                                     <NotchesIcon />
                                 </ToggleButton>
@@ -849,7 +851,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="gann_angles" aria-label="fibretr">
                                     <HashIcon />
                                 </ToggleButton>
@@ -858,7 +860,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
                                     <ListIcon />
                                 </ToggleButton>
@@ -867,7 +869,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_timezone" aria-label="fibtz">
                                     <SquareSplitHorizontalIcon />
                                 </ToggleButton>
@@ -876,7 +878,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
                                     <WaveformIcon />
                                 </ToggleButton>
@@ -885,7 +887,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="polyline" aria-label="polyline">
                                     <LineSegmentsIcon />
                                 </ToggleButton>
@@ -900,7 +902,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="hidedrawing" aria-label="hidedrawing"
                                     isSelected={this.state.updateDrawing.isHidingDrawing}
                                     onChange={() => this.setState({
@@ -917,7 +919,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <Button aria-label="delete"
                                     onClick={() =>
                                         this.setState({
@@ -941,7 +943,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <Button id="chartscale" aria-label="chartscale"
                                     onClick={this.backToOriginalChartScale}
                                 >
@@ -952,7 +954,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </VTTooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={0}>
+                            <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <Button id="crosshair" aria-label="crosshair"
                                     onClick={this.switchCrosshairVisiable}
                                 >
