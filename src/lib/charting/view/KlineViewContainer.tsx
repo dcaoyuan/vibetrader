@@ -824,7 +824,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                 {/* Color Theme Selector */}
                 <div>
-                    <select hidden id="color-scheme" value={this.state.colorTheme}>
+                    <select hidden id="color-scheme" value={this.state.colorTheme} onChange={() => { }}>
                         <option value="system">System</option>
                         <option value="dark">Dark</option>
                         <option value="light">Light</option>
