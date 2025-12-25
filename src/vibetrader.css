@@ -1,4 +1,4 @@
-@import "aria-theme.css";
+@import "lib/components/theme.css";
 
 :root {
     --positive-color: #00AA00B4;

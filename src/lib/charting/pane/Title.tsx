@@ -1,10 +1,12 @@
 import { ChartXControl } from "../view/ChartXControl";
-import { Component, Fragment } from "react";
+import { Component, Fragment, useState } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
-import { ListBox, ListBoxItem } from 'react-aria-components';
+import { Autocomplete, Button, Label, ListBox, ListBoxItem, Menu, MenuItem, useAsyncList, useFilter } from 'react-aria-components';
 import { Text } from 'react-aria-components';
+import { MenuTrigger } from "../../components/Menu";
+import { SearchField } from "../../components/SearchField";
 
 type Props = {
     xc: ChartXControl,
@@ -30,6 +32,49 @@ type Snapshot = {
 }
 
 const L_SNAPSHOTS = 6;
+
+export function ChooseSymbol() {
+    const [isOpen, setOpen] = useState(false);
+
+    const { contains } = useFilter({ sensitivity: 'base' });
+
+    const list = useAsyncList<{ name: string }>({
+        async load({ signal, filterText }) {
+            const res = await fetch(
+                `https://swapi.py4e.com/api/people/?search=${filterText}`,
+                { signal }
+            );
+
+            const json = await res.json();
+            return {
+                items: json.results
+            };
+        }
+    });
+
+    return (
+        <MenuTrigger isOpen={isOpen} onOpenChange={setOpen}>
+            <Button style={{ fontSize: 12, padding: 0, border: 'none' }} >BTCUSDT</Button>
+            <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
+                <Autocomplete
+                    inputValue={list.filterText}
+                    onInputChange={list.setFilterText}
+                    filter={contains}
+                >
+                    <SearchField aria-label="Search tags" />
+                    <Menu
+                        items={list.items}
+                        selectionMode="single"
+                        renderEmptyState={() => 'No results found.'}
+                    // style={{ flex: 1 }}
+                    >
+                        {(item) => <MenuItem id={item.name}>{item.name}</MenuItem>}
+                    </Menu>
+                </Autocomplete>
+            </div>
+        </MenuTrigger>
+    );
+}
 
 class Title extends Component<Props, State> {
     tframeShowName: string;
@@ -224,11 +269,13 @@ class Title extends Component<Props, State> {
 
         return (
             <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <Text>
-                        {this.props.symbol} &middot; {this.tframeShortName} &middot; {this.tzoneShort}
-                    </Text>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <ChooseSymbol />
+                    &nbsp;&middot;&nbsp;
+                    <Text style={{ cursor: 'pointer' }}>{this.tframeShortName}</Text>
+                    &nbsp;&middot;&nbsp;{this.tzoneShort}
                 </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
                     <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>

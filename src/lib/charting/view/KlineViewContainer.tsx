@@ -14,13 +14,14 @@ import { IndicatorView } from "./IndicatorView";
 import { Button, DialogTrigger, Group, Popover, Separator, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
 import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
-import { OverlayArrow, Tooltip, TooltipTrigger } from 'react-aria-components';
-import type { Key, TooltipProps } from 'react-aria-components';
+import { TooltipTrigger } from 'react-aria-components';
+import type { Key } from 'react-aria-components';
 import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
 import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon, QuestionIcon, QuestionMarkIcon, MoonStarsIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { Tooltip } from "../../components/Tooltip";
 
 type Props = {
     width: number,
@@ -96,23 +97,6 @@ type State = {
 
 }
 
-
-interface VTTooltipProps extends Omit<TooltipProps, 'children'> {
-    children: React.ReactNode;
-}
-
-const VTTooltip = ({ children, ...props }: VTTooltipProps) => {
-    return (
-        <Tooltip {...props}>
-            <OverlayArrow>
-                <svg width={8} height={8} viewBox="0 0 8 8">
-                    <path d="M0 0 L4 4 L8 0" />
-                </svg>
-            </OverlayArrow>
-            {children}
-        </Tooltip>
-    );
-}
 
 const KVAR_NAME = "kline";
 
@@ -862,63 +846,63 @@ class KlineViewContainer extends Component<Props, State> {
                                 <ToggleButton id="line" aria-label="Line">
                                     <LineSegmentIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw line
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="parallel" aria-label="Parallel">
                                     <NotchesIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw parallel
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="gann_angles" aria-label="fibretr">
                                     <HashIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw gann angles
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
                                     <ListIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw fibonacci retrace
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_timezone" aria-label="fibtz">
                                     <SquareSplitHorizontalIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw fibonacci time zone
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
                                     <WaveformIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw fibonacci time retrace
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <ToggleButton id="polyline" aria-label="polyline">
                                     <LineSegmentsIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Draw polyline
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                         </ToggleButtonGroup>
@@ -939,9 +923,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 >
                                     <NotEqualsIcon />
                                 </ToggleButton>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Hide drawings
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
@@ -957,9 +941,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 >
                                     <XIcon />
                                 </Button>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Delete selected drawing
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                         </Group>
@@ -972,18 +956,18 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Button id="chartscale" aria-label="chartscale" onClick={this.backToOriginalChartScale} >
                                     <CaretLineUpIcon />
                                 </Button>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Original chart scale
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
                                 <Button id="crosshair" aria-label="crosshair" onClick={this.toggleCrosshairVisiable} >
                                     <PlusSquareIcon />
                                 </Button>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Toggle crosshair visible
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                         </Group>
@@ -996,9 +980,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 <Button id="colortheme" aria-label="colortheme" onClick={this.toggleColorTheme} >
                                     {this.state.colorTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
                                 </Button>
-                                <VTTooltip placement="end">
+                                <Tooltip placement="end">
                                     Toggle color theme
-                                </VTTooltip>
+                                </Tooltip>
                             </TooltipTrigger>
 
                             <TooltipTrigger delay={500}>
@@ -1006,9 +990,9 @@ class KlineViewContainer extends Component<Props, State> {
                                     <Button id="help" aria-label="help" >
                                         <QuestionMarkIcon />
                                     </Button>
-                                    <VTTooltip placement="end">
+                                    <Tooltip placement="end">
                                         Help
-                                    </VTTooltip>
+                                    </Tooltip>
 
                                     <Popover>
                                         <div className="help" >
