@@ -121,40 +121,40 @@
 
 /* typography and spacing scale */
 :root {
-    --font-size: 1.875rem;
-    /* 15px */
-    --font-size-sm: 1.75rem;
-    /* 13px */
-    --font-size-lg: 2rem;
-    /* 17px */
-    --radius: 9px;
-    --radius-sm: 7px;
-    --radius-lg: 11px;
-    --radius-xl: 17px;
-    --spacing: 1.25rem;
-    /* 5px */
-    --spacing0: var(--spacing);
-    --spacing-1: calc(2 * var(--spacing));
-    --spacing-2: calc(3 * var(--spacing));
-    --spacing-3: calc(4 * var(--spacing));
-    --spacing-4: calc(5 * var(--spacing));
-    --spacing-5: calc(6 * var(--spacing));
-    --spacing-6: calc(7 * var(--spacing));
-    --spacing-7: calc(8 * var(--spacing));
-    --spacing-8: calc(9 * var(--spacing));
-    --spacing-9: calc(10 * var(--spacing));
+    --font-size: 0.875rem;
+    /* 14px */
+    --font-size-sm: 0.75rem;
+    /* 12px */
+    --font-size-lg: 1rem;
+    /* 16px */
+    --radius: 8px;
+    --radius-sm: 6px;
+    --radius-lg: 10px;
+    --radius-xl: 16px;
+    --spacing: 0.25rem;
+    /* 4px */
+    --spacing-1: var(--spacing);
+    --spacing-2: calc(2 * var(--spacing));
+    --spacing-3: calc(3 * var(--spacing));
+    --spacing-4: calc(4 * var(--spacing));
+    --spacing-5: calc(5 * var(--spacing));
+    --spacing-6: calc(6 * var(--spacing));
+    --spacing-7: calc(7 * var(--spacing));
+    --spacing-8: calc(8 * var(--spacing));
+    --spacing-9: calc(9 * var(--spacing));
+    --spacing-10: calc(10 * var(--spacing));
 }
 
 /* Scale up hit targets on high resolution mobile devices. */
-@media (min-resolution: 201dpi) {
+@media (min-resolution: 200dpi) {
     :root {
-        --spacing: calc(1.25rem * 1.25);
-        --font-size: 2.0625rem;
-        /* 18px */
-        --font-size-sm: 1.9375rem;
-        /* 16px */
-        --font-size-lg: 2.25rem;
-        /* 21px */
+        --spacing: calc(0.25rem * 1.25);
+        --font-size: 1.0625rem;
+        /* 17px */
+        --font-size-sm: 0.9375rem;
+        /* 15px */
+        --font-size-lg: 1.25rem;
+        /* 20px */
     }
 }
 

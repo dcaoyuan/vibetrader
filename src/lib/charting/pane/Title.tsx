@@ -61,12 +61,17 @@ export function ChooseSymbol() {
                     onInputChange={list.setFilterText}
                     filter={contains}
                 >
-                    <SearchField aria-label="Search tags" />
+                    <SearchField
+                        autoFocus
+                        aria-label="Search symbols"
+                        placeholder="Search symbols..."
+                        style={{ margin: 4 }}
+                    />
                     <Menu
                         items={list.items}
                         selectionMode="single"
                         renderEmptyState={() => 'No results found.'}
-                    // style={{ flex: 1 }}
+                        style={{ flex: 1 }}
                     >
                         {(item) => <MenuItem id={item.name}>{item.name}</MenuItem>}
                     </Menu>

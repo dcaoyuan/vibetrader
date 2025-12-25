@@ -1,4 +1,6 @@
 'use client';
+import './Menu.css';
+
 import { Check, ChevronRight, Dot } from 'lucide-react';
 import {
     Menu as AriaMenu,
@@ -15,7 +17,6 @@ import {
 import { Popover } from './Popover';
 import { Text } from './Content';
 import React from 'react';
-import './Menu.css';
 
 export function MenuTrigger(props: MenuTriggerProps) {
     const [trigger, menu] = React.Children.toArray(props.children) as [React.ReactElement, React.ReactElement];
@@ -31,8 +32,7 @@ export function MenuTrigger(props: MenuTriggerProps) {
 
 export function Menu<T extends object>(props: MenuProps<T>) {
     return (
-        <AriaMenu
-            {...props} >
+        <AriaMenu {...props} >
             {props.children}
         </AriaMenu>
     );

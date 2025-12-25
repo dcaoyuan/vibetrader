@@ -1,4 +1,6 @@
 'use client';
+import './SearchField.css';
+
 import {
     Button,
     Input,
@@ -8,7 +10,6 @@ import {
 } from 'react-aria-components';
 import { Label, FieldError, Description } from './Form';
 import { Search, X } from 'lucide-react';
-import './SearchField.css';
 
 export interface SearchFieldProps extends AriaSearchFieldProps {
     label?: string;
