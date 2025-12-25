@@ -1,6 +1,6 @@
 import KlineViewContainer from '../charting/view/KlineViewContainer';
 
-const Screen = () => {
+const HomePage = () => {
     const width = 900;
 
     return (
@@ -8,5 +8,5 @@ const Screen = () => {
     )
 };
 
-export default Screen;
+export default HomePage;
 
