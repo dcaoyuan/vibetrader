@@ -55,6 +55,10 @@ import DistributeHorizontalCenter from '@react-spectrum/s2/icons/DistributeHoriz
 import MenuHamburger from '@react-spectrum/s2/icons/MenuHamburger';
 import Prototyping from '@react-spectrum/s2/icons/Prototyping';
 import Add from '@react-spectrum/s2/icons/Add';
+import DirectSelect from '@react-spectrum/s2/icons/DirectSelect';
+import DistributeSpaceVertically from '@react-spectrum/s2/icons/DistributeSpaceVertically';
+import Resize from '@react-spectrum/s2/icons/Resize';
+
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import type { KlineKind } from "../chart/KlineChart";
 
@@ -903,7 +907,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
                                 <ToggleButton id="fibonacci_retrace" >
-                                    <MenuHamburger />
+                                    <DistributeSpaceVertically />
                                 </ToggleButton>
                                 <Tooltip >
                                     Draw Fibonacci retrace
@@ -930,7 +934,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                             <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
                                 <ToggleButton id="polyline" >
-                                    <Prototyping />
+                                    <DirectSelect />
                                 </ToggleButton>
                                 <Tooltip >
                                     Draw polyline
@@ -984,7 +988,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
-                                <AlignTop />
+                                <Resize />
                             </ActionButton>
                             <Tooltip >
                                 Original chart scale
