@@ -10,7 +10,6 @@ import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 
 
-
 export class KlineView extends ChartView<ViewProps, ViewState> {
 
     constructor(props: ViewProps) {
@@ -36,7 +35,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
                 yc={this.yc}
-                kind={this.props.klineKind}
+                kind={this.props.xc.klineKind}
                 depth={0}
             />
         ]

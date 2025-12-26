@@ -9,7 +9,6 @@ import { Kline } from "../../domain/Kline";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 import { type Selection } from "@react-spectrum/s2"
-import type { KlineKind } from "../chart/KlineChart";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -47,8 +46,6 @@ export interface ViewProps {
     height: number;
     xc: ChartXControl;
     tvar: TVar<unknown>;
-
-    klineKind?: KlineKind;
 
     updateEvent: UpdateEvent;
     updateDrawing?: UpdateDrawing;

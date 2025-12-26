@@ -15,33 +15,6 @@ type Props = {
     depth: number;
 }
 
-function switchAllKlineChartKind(originalKind: KlineKind, targetKind: KlineKind): KlineKind {
-    let newKind: KlineKind
-    if (targetKind !== undefined) {
-        newKind = targetKind;
-
-    } else {
-        switch (originalKind) {
-            case 'candle':
-                newKind = 'bar'
-                break;
-
-            case 'bar':
-                newKind = 'line'
-                break;
-
-            case 'line':
-                newKind = 'candle'
-                break;
-
-            default:
-                newKind = 'candle'
-        }
-    }
-
-    return newKind;
-}
-
 const KlineChart = (props: Props) => {
     const { xc, yc, kvar, kind, depth } = props;
 

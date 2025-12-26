@@ -1,5 +1,5 @@
 import type { TSer } from "../../timeseris/TSer"
-import { ChartView, type ViewProps, type ViewState } from "./ChartView"
+import type { KlineKind } from "../chart/KlineChart"
 
 /**
  * Each TSer can have more than one ChartXControl instances.
@@ -77,6 +77,8 @@ export class ChartXControl {
     #isMouseEnteredAnyChartPane = false;
 
     isCursorCrossVisible = true;
+
+    klineKind: KlineKind = 'candle'
 
     #updateGeometry() {
         /**

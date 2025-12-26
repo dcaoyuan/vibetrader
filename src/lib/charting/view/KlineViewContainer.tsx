@@ -130,8 +130,6 @@ type State = {
     isLoaded?: boolean;
 
     cursor?: string;
-
-    klineKind?: KlineKind
 }
 
 
@@ -140,7 +138,6 @@ const KVAR_NAME = "kline";
 const allInds = ['ema', 'sma', 'rsi', 'macd']
 
 const TOOPTIP_DELAY = 500; // ms
-
 
 
 class KlineViewContainer extends Component<Props, State> {
@@ -839,7 +836,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     private toggleKlineKind() {
         let kind: KlineKind
-        switch (this.state.klineKind) {
+        switch (this.state.xc.klineKind) {
             case 'candle':
                 kind = 'bar'
                 break;
@@ -856,8 +853,8 @@ class KlineViewContainer extends Component<Props, State> {
                 kind = 'bar'
         }
 
-        this.setState({ klineKind: kind })
-        this.update({ type: 'chart', })
+        this.state.xc.klineKind = kind;
+        this.update({ type: 'chart' })
     }
 
 
@@ -1093,7 +1090,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 name=""
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
-                                klineKind={this.state.klineKind}
                                 updateEvent={this.state.updateEvent}
                                 updateDrawing={this.state.updateDrawing}
 

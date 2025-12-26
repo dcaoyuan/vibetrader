@@ -1,6 +1,6 @@
 import './App.css'
 import { Provider, } from '@react-spectrum/s2';
-import { BrowserRouter, useNavigate, useHref, type NavigateOptions, Routes, Route } from 'react-router';
+import { useNavigate, useHref, type NavigateOptions, Routes, Route } from 'react-router';
 import '@react-spectrum/s2/page.css';
 
 import HomePage from './lib/layouts/HomePage'
@@ -46,6 +46,9 @@ function App() {
             </div>
 
             <Routes>
+                <Route path="/" element={
+                    <HomePage toggleColorTheme={toggleColorTheme} colorTheme={colorTheme as 'light' | 'dark'} />
+                } />
                 <Route path="/vibetrader" element={
                     <HomePage toggleColorTheme={toggleColorTheme} colorTheme={colorTheme as 'light' | 'dark'} />
                 } />
