@@ -1,10 +1,10 @@
 import { ChartXControl } from "../view/ChartXControl";
-import { Component, Fragment, useState } from "react";
+import { Component, useState } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
-import { Button, ListBox, ListBoxItem, useFilter } from 'react-aria-components';
-import { ActionButton, ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField } from "@react-spectrum/s2";
+import { Button, useFilter } from 'react-aria-components';
+import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 
 type Props = {
@@ -284,51 +284,51 @@ class Title extends Component<Props, State> {
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px 0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
                     <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>
-                        <ListBox aria-label="Mouse kline" style={{ textAlign: 'left' }}>
-                            <ListBoxItem textValue="O">
+                        <div style={{ textAlign: 'left' }}>
+                            <div>
                                 {pKline && <>
                                     <span className="label-title">T </span>
                                     <span className="label-mouse">
                                         {this.dtFormatL.format(new Date(pKline.closeTime))}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="V">
+                            </div>
+                            <div>
                                 {pKline && <>
                                     <span className="label-title">V </span>
                                     <span className="label-mouse">
                                         {pKline.volume}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="O">
+                            </div>
+                            <div>
                                 {pKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-mouse">
                                         {pKline.open.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="H">
+                            </div>
+                            <div>
                                 {pKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-mouse">
                                         {pKline.high.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="L">
+                            </div>
+                            <div>
                                 {pKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-mouse">
                                         {pKline.low.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem
+                            </div>
+                            <div
                                 className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
                                 key={pKline ? 'close-' + pKline.close.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
-                                textValue="C">
+                            >
                                 {pKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-mouse">
@@ -344,34 +344,34 @@ class Title extends Component<Props, State> {
                                         }
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                        </ListBox>
+                            </div>
+                        </div>
                     </div>
 
                     <div style={{ flex: 1, padding: '0px 0px' }}>
-                        <ListBox aria-label="snapshots" style={{ textAlign: 'left' }}>
+                        <div style={{ textAlign: 'left' }}>
                             {this.state.snapshots.map(({ time, price, volume }, n) =>
-                                <ListBoxItem
+                                <div
                                     className="blinking-label"
                                     key={n === L_SNAPSHOTS - 1
                                         ? "snapshot-" + n + time // tell react to retrigger blinking when the key i.e. the time changes 
                                         : "snapshot-" + n
                                     }
-                                    textValue="S">
+                                >
                                     <>
                                         <span className="label-title">{this.dtFormatS.format(new Date(time))} </span>
                                         <span className="label-mouse">{price.toPrecision(8)} </span>
                                         <span className="label-refer">{parseFloat(volume.toPrecision(8))}</span>
                                     </>
-                                </ListBoxItem>
+                                </div>
                             )
                             }
-                        </ListBox>
+                        </div>
                     </div>
 
                     <div style={{ justifyContent: "flex-end", padding: '0px 0px' }}>
-                        <ListBox aria-label="Refer kline" style={{ textAlign: 'left' }}>
-                            <ListBoxItem textValue="T">
+                        <div style={{ textAlign: 'left' }}>
+                            <div>
                                 {rKline
                                     ? <>
                                         <span className="label-title">T </span>
@@ -386,48 +386,48 @@ class Title extends Component<Props, State> {
                                         </span>
                                     </div>
                                 }
-                            </ListBoxItem>
-                            <ListBoxItem textValue="V">
+                            </div>
+                            <div>
                                 {rKline && <>
                                     <span className="label-title">V </span>
                                     <span className="label-refer">
                                         {rKline.volume}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="O">
+                            </div>
+                            <div>
                                 {rKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-refer">
                                         {rKline.open.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="H">
+                            </div>
+                            <div>
                                 {rKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-refer">
                                         {rKline.high.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="L">
+                            </div>
+                            <div>
                                 {rKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-refer">
                                         {rKline.low.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                            <ListBoxItem textValue="C">
+                            </div>
+                            <div>
                                 {rKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-refer">
                                         {rKline.close.toPrecision(8)}
                                     </span>
                                 </>}
-                            </ListBoxItem>
-                        </ListBox>
+                            </div>
+                        </div>
                     </div>
                 </div >
             </>

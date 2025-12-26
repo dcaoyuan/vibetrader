@@ -1029,7 +1029,7 @@ class KlineViewContainer extends Component<Props, State> {
                         paddingTop: "0px"
                     }}>
                         <TagGroup
-                            aria-label="why need this? spetrum not remove it?"
+                            aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
                             size="S"
                             selectionMode="multiple"
                             selectedKeys={this.state.selectedIndicatorTags}
