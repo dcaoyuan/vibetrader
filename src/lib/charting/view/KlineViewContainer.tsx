@@ -1154,19 +1154,22 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                             {
                                                 outputs.map(({ title, color }, n) =>
-                                                    <span key={"overlay-indicator-lable-" + title} >
+                                                    <Fragment key={"overlay-indicator-lable-" + title} >
                                                         <span className="label-mouse">{title}&nbsp;</span>
                                                         <span style={{ color }}>{
                                                             this.state.overlayIndicatorLabels !== undefined &&
                                                             this.state.overlayIndicatorLabels[m] !== undefined &&
                                                             this.state.overlayIndicatorLabels[m][n]
                                                         }
-                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    </span>
+                                                        {n === outputs.length - 1
+                                                            ? <span></span>
+                                                            : <span>&nbsp;&middot;&nbsp;</span>
+                                                        }
+                                                    </Fragment>
                                                 )
                                             }
                                         </div>
@@ -1179,19 +1182,22 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                             {
                                                 this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
-                                                    <span key={"ovarlay-indicator-lable-" + title} >
+                                                    <Fragment key={"ovarlay-indicator-lable-" + title} >
                                                         <span className="label-refer">{title}&nbsp;</span>
                                                         <span style={{ color }}>{
                                                             this.state.referOverlayIndicatorLabels &&
                                                             this.state.referOverlayIndicatorLabels[m] &&
                                                             this.state.referOverlayIndicatorLabels[m][n]
                                                         }
-                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    </span>
+                                                        {n === outputs.length - 1
+                                                            ? <span></span>
+                                                            : <span>&nbsp;&middot;&nbsp;</span>
+                                                        }
+                                                    </Fragment>
                                                 )
                                             }
                                         </div>
@@ -1210,19 +1216,22 @@ class KlineViewContainer extends Component<Props, State> {
                                         backgroundColor: 'transparent',
                                     }}>
 
-                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                             {
                                                 outputs.map(({ title, color }, k) =>
-                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                    <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
                                                         <span className="label-mouse">{title}&nbsp;</span>
                                                         <span style={{ color }}>{
                                                             this.state.stackedIndicatorLabels &&
                                                             this.state.stackedIndicatorLabels[n] &&
                                                             this.state.stackedIndicatorLabels[n][k]
                                                         }
-                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    </span>
+                                                        {k === outputs.length - 1
+                                                            ? <span></span>
+                                                            : <span>&nbsp;&middot;&nbsp;</span>
+                                                        }
+                                                    </Fragment>
                                                 )
                                             }
                                         </div>
@@ -1236,18 +1245,21 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                        <div style={{ display: "inline-block", paddingRight: "0px", paddingTop: '0px' }}>
                                             {
                                                 this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
-                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                    <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
                                                         <span className="label-refer">{title}&nbsp;</span>
                                                         <span style={{ color }}>{
                                                             this.state.referStackedIndicatorLabels &&
                                                             this.state.referStackedIndicatorLabels[n] &&
                                                             this.state.referStackedIndicatorLabels[n][k]}
-                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    </span>
+                                                        {k === outputs.length - 1
+                                                            ? <span></span>
+                                                            : <span>&nbsp;&middot;&nbsp;</span>
+                                                        }
+                                                    </Fragment>
                                                 )
                                             }
                                         </div>
