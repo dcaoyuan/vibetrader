@@ -1,4 +1,4 @@
-@import "lib/components/theme.css";
+@import "theme.css";
 
 :root {
     --positive-color: #00AA00B4;
@@ -155,7 +155,7 @@
 
 
 .drawing path {
-    stroke: var(--gray-600);
+    stroke: var(--gray-601);
     fill: var(--gray-600);
     stroke-width: 0.7px;
 }
