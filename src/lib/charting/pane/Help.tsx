@@ -1,4 +1,4 @@
-import { Text, ListBox, ListBoxItem, Separator } from 'react-aria-components';
+import { ListBox, ListBoxItem, Separator } from 'react-aria-components';
 
 export const Help = () => {
 
@@ -6,82 +6,82 @@ export const Help = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
             <ListBox layout="grid" aria-label="Mouse kline" style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                 <ListBoxItem textValue="DRAG">
-                    <Text className='label-mouse'>Drag: </Text>
-                    <Text className='label-refer'>Move chart</Text>
+                    <span className='label-mouse'>Drag: </span>
+                    <span className='label-refer'>Move chart</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="CDRAG">
-                    <Text className='label-mouse'>CTRL + Drag: </Text>
-                    <Text className='label-refer'>Scale chart</Text>
+                    <span className='label-mouse'>CTRL + Drag: </span>
+                    <span className='label-refer'>Scale chart</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="DCLICK">
-                    <Text className='label-mouse'>DoubleClick on chart: </Text>
-                    <Text className='label-refer'>Put a reference cursor</Text>
+                    <span className='label-mouse'>DoubleClick on chart: </span>
+                    <span className='label-refer'>Put a reference cursor</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="DCLICK2">
-                    <Text className='label-mouse'>DoubleClick on axis-y: </Text>
-                    <Text className='label-refer'>Remove reference cursor</Text>
+                    <span className='label-mouse'>DoubleClick on axis-y: </span>
+                    <span className='label-refer'>Remove reference cursor</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="WHEEL">
-                    <Text className='label-mouse'>Wheel: </Text>
-                    <Text className='label-refer'>Move chart</Text>
+                    <span className='label-mouse'>Wheel: </span>
+                    <span className='label-refer'>Move chart</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="SWHEEL">
-                    <Text className='label-mouse'>SHIFT + Wheel: </Text>
-                    <Text className='label-refer'>Zoom in/out Chart</Text>
+                    <span className='label-mouse'>SHIFT + Wheel: </span>
+                    <span className='label-refer'>Zoom in/out Chart</span>
                 </ListBoxItem>
 
                 <Separator orientation="horizontal" />
 
                 <ListBoxItem textValue="LRARROW">
-                    <Text className='label-mouse'>LEFT/RIGHT arrow: </Text>
-                    <Text className='label-refer'>Move chart</Text>
+                    <span className='label-mouse'>LEFT/RIGHT arrow: </span>
+                    <span className='label-refer'>Move chart</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="CLRARROW">
-                    <Text className='label-mouse'>CTRL + LEFT/RIGHT arrow: </Text>
-                    <Text className='label-refer'>Move reference cursor</Text>
+                    <span className='label-mouse'>CTRL + LEFT/RIGHT arrow: </span>
+                    <span className='label-refer'>Move reference cursor</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="ESC">
-                    <Text className='label-mouse'>ESC: </Text>
-                    <Text className='label-refer'>Remove reference cursor / Hide crosshair</Text>
+                    <span className='label-mouse'>ESC: </span>
+                    <span className='label-refer'>Remove reference cursor / Hide crosshair</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="UDARROW">
-                    <Text className='label-mouse'>UP/DOWN arrow: </Text>
-                    <Text className='label-refer'>Zoom in/out chart</Text>
+                    <span className='label-mouse'>UP/DOWN arrow: </span>
+                    <span className='label-refer'>Zoom in/out chart</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="SPACE">
-                    <Text className='label-mouse'>SPACE: </Text>
-                    <Text className='label-refer'>Switch fast moving speed</Text>
+                    <span className='label-mouse'>SPACE: </span>
+                    <span className='label-refer'>Switch fast moving speed</span>
                 </ListBoxItem>
 
                 <Separator orientation="horizontal" />
 
                 <ListBoxItem textValue="CDRAWING">
-                    <Text className='label-mouse'>Click on drawing: </Text>
-                    <Text className='label-refer'>Select it</Text>
+                    <span className='label-mouse'>Click on drawing: </span>
+                    <span className='label-refer'>Select it</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="CCDRAWING">
-                    <Text className='label-mouse'>CTRL + Click: </Text>
-                    <Text className='label-refer'>Complete variable-handle drawing</Text>
+                    <span className='label-mouse'>CTRL + Click: </span>
+                    <span className='label-refer'>Complete variable-handle drawing</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="CCDRAWINGH">
-                    <Text className='label-mouse'>CTRL + Click on variable-handle drawing's handle: </Text>
-                    <Text className='label-refer'>Remove this handle</Text>
+                    <span className='label-mouse'>CTRL + Click on variable-handle drawing's handle: </span>
+                    <span className='label-refer'>Remove this handle</span>
                 </ListBoxItem>
                 <ListBoxItem textValue="CCDRAWINGS">
-                    <Text className='label-mouse'>CTRL + Drag on variable-handle drawing's segment: </Text>
-                    <Text className='label-refer'>Insert a handle</Text>
+                    <span className='label-mouse'>CTRL + Drag on variable-handle drawing's segment: </span>
+                    <span className='label-refer'>Insert a handle</span>
                 </ListBoxItem>
 
                 <Separator orientation="horizontal" />
 
                 <ListBoxItem textValue="ESC2">
-                    <Text className='label-mouse'>ESC: </Text>
-                    <Text className='label-refer'>Unselect drawing</Text>
+                    <span className='label-mouse'>ESC: </span>
+                    <span className='label-refer'>Unselect drawing</span>
                 </ListBoxItem>
 
                 <ListBoxItem textValue="DEL">
-                    <Text className='label-mouse'>DELETE: </Text>
-                    <Text className='label-refer'>Delete selected drawing</Text>
+                    <span className='label-mouse'>DELETE: </span>
+                    <span className='label-refer'>Delete selected drawing</span>
                 </ListBoxItem>
             </ListBox>
         </div>

@@ -11,15 +11,24 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Group, Text, Toolbar } from 'react-aria-components';
 import { TagGroup, TagList, Tag, } from 'react-aria-components';
 import type { Key } from 'react-aria-components';
 import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { ActionButton, ActionButtonGroup, DialogTrigger, Divider, Popover, Tooltip, TooltipTrigger } from "@react-spectrum/s2";
-import { ToggleButtonGroup, ToggleButton, } from '@react-spectrum/s2';
+import {
+    ActionButton,
+    ActionButtonGroup,
+    DialogTrigger,
+    Divider,
+    Popover,
+    ToggleButtonGroup,
+    ToggleButton,
+    Tooltip,
+    TooltipTrigger
+
+} from "@react-spectrum/s2";
 
 import Line from '@react-spectrum/s2/icons/Line';
 import Edit from '@react-spectrum/s2/icons/Edit';
@@ -1118,24 +1127,22 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                            <Group aria-label="overlay" style={{ backgroundColor: 'inherit' }}>
-                                                {
-                                                    outputs.map(({ title, color }, n) =>
-                                                        <span key={"overlay-indicator-lable-" + title} >
-                                                            <Text className="label-mouse">{title}&nbsp;</Text>
-                                                            <Text style={{ color }}>{
-                                                                this.state.overlayIndicatorLabels !== undefined &&
-                                                                this.state.overlayIndicatorLabels[m] !== undefined &&
-                                                                this.state.overlayIndicatorLabels[m][n]
-                                                            }
-                                                                &nbsp;&nbsp;
-                                                            </Text>
+                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                            {
+                                                outputs.map(({ title, color }, n) =>
+                                                    <span key={"overlay-indicator-lable-" + title} >
+                                                        <span className="label-mouse">{title}&nbsp;</span>
+                                                        <span style={{ color }}>{
+                                                            this.state.overlayIndicatorLabels !== undefined &&
+                                                            this.state.overlayIndicatorLabels[m] !== undefined &&
+                                                            this.state.overlayIndicatorLabels[m][n]
+                                                        }
+                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    )
-                                                }
-                                            </Group>
-                                        </Toolbar>
+                                                    </span>
+                                                )
+                                            }
+                                        </div>
                                     </div>
 
                                     <div style={{
@@ -1145,24 +1152,22 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }} >
-                                            <Group aria-label="overlay-refer" style={{ backgroundColor: 'inherit' }}>
-                                                {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
-                                                        <span key={"ovarlay-indicator-lable-" + title} >
-                                                            <Text className="label-refer">{title}&nbsp;</Text>
-                                                            <Text style={{ color }}>{
-                                                                this.state.referOverlayIndicatorLabels &&
-                                                                this.state.referOverlayIndicatorLabels[m] &&
-                                                                this.state.referOverlayIndicatorLabels[m][n]
-                                                            }
-                                                                &nbsp;&nbsp;
-                                                            </Text>
+                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                            {
+                                                this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
+                                                    <span key={"ovarlay-indicator-lable-" + title} >
+                                                        <span className="label-refer">{title}&nbsp;</span>
+                                                        <span style={{ color }}>{
+                                                            this.state.referOverlayIndicatorLabels &&
+                                                            this.state.referOverlayIndicatorLabels[m] &&
+                                                            this.state.referOverlayIndicatorLabels[m][n]
+                                                        }
+                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    )
-                                                }
-                                            </Group>
-                                        </Toolbar>
+                                                    </span>
+                                                )
+                                            }
+                                        </div>
                                     </div>
                                 </Fragment>)
                         }
@@ -1177,24 +1182,23 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                            <Group aria-label="stacked-mouse" style={{ backgroundColor: 'inherit' }}>
-                                                {
-                                                    outputs.map(({ title, color }, k) =>
-                                                        <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text className="label-mouse">{title}&nbsp;</Text>
-                                                            <Text style={{ color }}>{
-                                                                this.state.stackedIndicatorLabels &&
-                                                                this.state.stackedIndicatorLabels[n] &&
-                                                                this.state.stackedIndicatorLabels[n][k]
-                                                            }
-                                                                &nbsp;&nbsp;
-                                                            </Text>
+
+                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                            {
+                                                outputs.map(({ title, color }, k) =>
+                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                        <span className="label-mouse">{title}&nbsp;</span>
+                                                        <span style={{ color }}>{
+                                                            this.state.stackedIndicatorLabels &&
+                                                            this.state.stackedIndicatorLabels[n] &&
+                                                            this.state.stackedIndicatorLabels[n][k]
+                                                        }
+                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    )
-                                                }
-                                            </Group>
-                                        </Toolbar>
+                                                    </span>
+                                                )
+                                            }
+                                        </div>
 
                                     </div>
 
@@ -1205,23 +1209,21 @@ class KlineViewContainer extends Component<Props, State> {
                                         zIndex: 2, // ensure it's above the SVG
                                         backgroundColor: 'transparent',
                                     }}>
-                                        <Toolbar style={{ backgroundColor: 'inherit', color: 'white' }}>
-                                            <Group aria-label="stacked-refer" style={{ backgroundColor: 'inherit' }}>
-                                                {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
-                                                        <span key={"stacked-indicator-label-" + n + '-' + k} >
-                                                            <Text className="label-refer">{title}&nbsp;</Text>
-                                                            <Text style={{ color }}>{
-                                                                this.state.referStackedIndicatorLabels &&
-                                                                this.state.referStackedIndicatorLabels[n] &&
-                                                                this.state.referStackedIndicatorLabels[n][k]}
-                                                                &nbsp;&nbsp;
-                                                            </Text>
+                                        <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '0px' }}>
+                                            {
+                                                this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
+                                                    <span key={"stacked-indicator-label-" + n + '-' + k} >
+                                                        <span className="label-refer">{title}&nbsp;</span>
+                                                        <span style={{ color }}>{
+                                                            this.state.referStackedIndicatorLabels &&
+                                                            this.state.referStackedIndicatorLabels[n] &&
+                                                            this.state.referStackedIndicatorLabels[n][k]}
+                                                            &nbsp;&nbsp;
                                                         </span>
-                                                    )
-                                                }
-                                            </Group>
-                                        </Toolbar>
+                                                    </span>
+                                                )
+                                            }
+                                        </div>
                                     </div>
                                 </Fragment>
                             )
