@@ -4,14 +4,42 @@ import { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
-import { KlineChartKind } from "./Kinds";
+
+export type KlineKind = 'candle' | 'bar' | 'line'
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
     kvar: TVar<Kline>,
-    kind: KlineChartKind,
+    kind: KlineKind,
     depth: number;
+}
+
+function switchAllKlineChartKind(originalKind: KlineKind, targetKind: KlineKind): KlineKind {
+    let newKind: KlineKind
+    if (targetKind !== undefined) {
+        newKind = targetKind;
+
+    } else {
+        switch (originalKind) {
+            case 'candle':
+                newKind = 'bar'
+                break;
+
+            case 'bar':
+                newKind = 'line'
+                break;
+
+            case 'line':
+                newKind = 'candle'
+                break;
+
+            default:
+                newKind = 'candle'
+        }
+    }
+
+    return newKind;
 }
 
 const KlineChart = (props: Props) => {
@@ -21,7 +49,7 @@ const KlineChart = (props: Props) => {
     const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
     const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
 
-    const isFill = kind === KlineChartKind.Candle && Theme.now().isFillBar;
+    const isFill = kind === 'candle' && Theme.now().isFillBar;
 
     function plotChart() {
 
@@ -29,12 +57,12 @@ const KlineChart = (props: Props) => {
         const negPath = posColor === negColor ? undefined : new Path;
 
         switch (kind) {
-            case KlineChartKind.Candle:
-            case KlineChartKind.Bar:
+            case 'candle':
+            case 'bar':
                 plotCandleOrBarChart(kind, posPath, negPath);
                 break
 
-            case KlineChartKind.Line:
+            case 'line':
                 plotLineChart(posPath, negPath);
                 break;
 
@@ -45,7 +73,7 @@ const KlineChart = (props: Props) => {
         return { posPath, negPath }
     }
 
-    function plotCandleOrBarChart(kind: KlineChartKind, posPath: Path, negPath: Path) {
+    function plotCandleOrBarChart(kind: KlineKind, posPath: Path, negPath: Path) {
         let bar = 1
         while (bar <= xc.nBars) {
             /**
@@ -85,15 +113,16 @@ const KlineChart = (props: Props) => {
                 const yClose = yc.yv(close)
 
                 switch (kind) {
-                    case KlineChartKind.Candle:
+                    case 'candle':
                         plotCandle(yOpen, yHigh, yLow, yClose, xCenter, path);
                         break;
 
-                    case KlineChartKind.Bar:
+                    case 'bar':
                         plotBar(yOpen, yHigh, yLow, yClose, xCenter, path);
                         break
 
                     default:
+                        plotCandle(yOpen, yHigh, yLow, yClose, xCenter, path);
                 }
             }
 

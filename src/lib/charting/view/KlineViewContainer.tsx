@@ -56,6 +56,7 @@ import MenuHamburger from '@react-spectrum/s2/icons/MenuHamburger';
 import Prototyping from '@react-spectrum/s2/icons/Prototyping';
 import Add from '@react-spectrum/s2/icons/Add';
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
+import type { KlineKind } from "../chart/KlineChart";
 
 type Props = {
     width: number,
@@ -129,6 +130,8 @@ type State = {
     isLoaded?: boolean;
 
     cursor?: string;
+
+    klineKind?: KlineKind
 }
 
 
@@ -209,6 +212,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
         this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
+        this.toggleKlineKind = this.toggleKlineKind.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -833,6 +837,31 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'cursors' })
     }
 
+    private toggleKlineKind() {
+        let kind: KlineKind
+        switch (this.state.klineKind) {
+            case 'candle':
+                kind = 'bar'
+                break;
+
+            case 'bar':
+                kind = 'line'
+                break;
+
+            case 'line':
+                kind = 'candle'
+                break;
+
+            default:
+                kind = 'bar'
+        }
+
+        this.setState({ klineKind: kind })
+        this.update({ type: 'chart', })
+    }
+
+
+
     render() {
         return this.state.isLoaded && (
             <div style={{ display: "flex" }} >
@@ -948,7 +977,7 @@ class KlineViewContainer extends Component<Props, State> {
                         <Divider staticColor='auto' />
 
                         <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
-                            <ActionButton onPress={() => { }} >
+                            <ActionButton onPress={this.toggleKlineKind} >
                                 <DistributeHorizontalCenter />
                             </ActionButton>
                             <Tooltip >
@@ -1064,6 +1093,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 name=""
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
+                                klineKind={this.state.klineKind}
                                 updateEvent={this.state.updateEvent}
                                 updateDrawing={this.state.updateDrawing}
 

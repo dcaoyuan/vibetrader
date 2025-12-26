@@ -1,4 +1,3 @@
-import { KlineChartKind } from "../chart/Kinds";
 
 export class Theme {
     private static current: Theme
@@ -27,7 +26,6 @@ export class Theme {
     }
 
     isPositiveNegativeColorReversed = false;
-    klineChartType: KlineChartKind = KlineChartKind.Bar;
     isThinVolumeBar = false;
     isAutoHideScroll = false;
     isAllowMultipleIndicatorOnKlineChartView = false;

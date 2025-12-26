@@ -5,40 +5,13 @@ import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
-import { KlineChartKind } from "../chart/Kinds";
 import LineChart from "../chart/LineChart";
 import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 
 
+
 export class KlineView extends ChartView<ViewProps, ViewState> {
-
-    static switchAllKlineChartKind(originalKind: KlineChartKind, targetKind: KlineChartKind): KlineChartKind {
-        let newKind: KlineChartKind
-        if (targetKind !== undefined) {
-            newKind = targetKind;
-
-        } else {
-            switch (originalKind) {
-                case KlineChartKind.Candle:
-                    newKind = KlineChartKind.Bar
-                    break;
-
-                case KlineChartKind.Bar:
-                    newKind = KlineChartKind.Line
-                    break;
-
-                case KlineChartKind.Line:
-                    newKind = KlineChartKind.Candle
-                    break;
-
-                default:
-                    newKind = KlineChartKind.Candle
-            }
-        }
-
-        return newKind;
-    }
 
     constructor(props: ViewProps) {
         super(props);
@@ -63,7 +36,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
                 yc={this.yc}
-                kind={KlineChartKind.Candle}
+                kind={this.props.klineKind}
                 depth={0}
             />
         ]
