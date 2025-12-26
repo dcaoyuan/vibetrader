@@ -1,9 +1,8 @@
 @import "vibetrader.css";
 
 :root {
-    /* --color-light: #f8f8f8; */
     --color-light: #ffffff;
-    --color-dark: #242424;
+    --color-dark: #111111;
 
     background-color: var(--background-color, var(--color-light));
     color: var(--color, var(--color-dark));

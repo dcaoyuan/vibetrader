@@ -1,4 +1,4 @@
-import React, { Component, Fragment, type JSX } from "react";
+import React, { Component, Fragment, useContext, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -25,6 +25,9 @@ import { Tooltip } from "../../components/Tooltip";
 
 type Props = {
     width: number,
+
+    toggleColorTheme?: () => void
+    colorTheme?: 'light' | 'dark'
 }
 
 type PlotData = {
@@ -92,9 +95,6 @@ type State = {
     isLoaded?: boolean;
 
     cursor?: string;
-
-    colorTheme?: 'system' | 'light' | 'dark';
-
 }
 
 
@@ -103,6 +103,8 @@ const KVAR_NAME = "kline";
 const allInds = ['ema', 'sma', 'rsi', 'macd']
 
 const TOOPTIP_DELAY = 500; // ms
+
+
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
@@ -150,9 +152,6 @@ class KlineViewContainer extends Component<Props, State> {
 
         console.log("KlinerViewContainer render");
 
-        const getMatches = (query: string) => window.matchMedia(query).matches;
-        this.systemScheme = getMatches('(prefers-color-scheme: dark)') ? 'dark' : 'light';
-
         const geometry = this.#calcGeometry([]);
         this.state = {
             symbol,
@@ -166,7 +165,6 @@ class KlineViewContainer extends Component<Props, State> {
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
-            colorTheme: 'system',
             ...geometry,
         }
 
@@ -177,7 +175,6 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
         this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
-        this.toggleColorTheme = this.toggleColorTheme.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -802,34 +799,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'cursors' })
     }
 
-    private toggleColorTheme() {
-        switch (this.state.colorTheme) {
-            case 'system':
-                this.setState({ colorTheme: this.systemScheme === 'dark' ? 'light' : 'dark' })
-                break;
-
-            case 'light':
-                this.setState({ colorTheme: 'dark' })
-                break;
-
-            case 'dark':
-                this.setState({ colorTheme: 'light' })
-                break;
-        }
-    }
-
     render() {
         return this.state.isLoaded && (
             <div style={{ display: "flex" }} >
-
-                {/* Color Theme Selector */}
-                <div>
-                    <select hidden id="color-scheme" value={this.state.colorTheme} onChange={() => { }}>
-                        <option value="system">System</option>
-                        <option value="dark">Dark</option>
-                        <option value="light">Light</option>
-                    </select>
-                </div>
 
                 {/* Toolbar */}
                 <div style={{ display: "flex", paddingRight: "6px", paddingTop: '4px' }}>
@@ -977,8 +949,8 @@ class KlineViewContainer extends Component<Props, State> {
                         <Group aria-label="Tools" style={{ flexDirection: "column" }}>
 
                             <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="colortheme" aria-label="colortheme" onClick={this.toggleColorTheme} >
-                                    {this.state.colorTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                                <Button id="colortheme" aria-label="colortheme" onClick={this.props.toggleColorTheme} >
+                                    {this.props.colorTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
                                 </Button>
                                 <Tooltip placement="end">
                                     Toggle color theme
