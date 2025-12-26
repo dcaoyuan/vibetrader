@@ -1,9 +1,9 @@
-import type { Key } from "react-aria-components"
 import { Path } from "../../svg/Path"
 import type { ChartXControl } from "../view/ChartXControl"
 import type { ChartYControl } from "../view/ChartYControl"
 import { Rect } from "../../svg/Rect"
 import type { Seg } from "../../svg/Seg"
+import type { Key } from "react"
 
 export type TPoint = {
     time: number,

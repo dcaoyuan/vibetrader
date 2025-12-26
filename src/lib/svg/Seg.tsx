@@ -1,5 +1,4 @@
-import type { JSX } from "react";
-import type { Key } from "react-aria-components";
+import type { JSX, Key } from "react";
 
 export type Style = {
     fill?: string,

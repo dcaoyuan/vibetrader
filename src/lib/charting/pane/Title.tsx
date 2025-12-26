@@ -33,8 +33,6 @@ type Snapshot = {
 const L_SNAPSHOTS = 6;
 
 export function ChooseSymbol() {
-    const [isOpen, setOpen] = useState(false);
-
     const { contains } = useFilter({ sensitivity: 'base' });
 
     const list = useAsyncList<{ name: string }>({
@@ -52,8 +50,8 @@ export function ChooseSymbol() {
     });
 
     return (
-        <MenuTrigger isOpen={isOpen} onOpenChange={setOpen}>
-            <Button aria-label="symbol" style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
+        <MenuTrigger>
+            <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
                     <Autocomplete

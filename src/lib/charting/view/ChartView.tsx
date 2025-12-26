@@ -6,9 +6,9 @@ import { Component, Fragment, type JSX } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
-import type { Key } from "react-aria-components";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
+import { type Selection } from "@react-spectrum/s2"
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -79,7 +79,7 @@ export interface ViewState {
 export type CallbacksToContainer = {
     updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
     updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
-    updateDrawingIdsToCreate: (ids?: Set<Key>) => void;
+    updateDrawingIdsToCreate: (ids?: Selection) => void;
 }
 
 const DEFAULT_CURSOR = "default"
