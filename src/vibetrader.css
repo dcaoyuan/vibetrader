@@ -149,6 +149,11 @@
     stroke-width: 1px;
 }
 
+.drawing-highlight text {
+    fill: var(--gray-600);
+}
+
+
 .drawing path {
     stroke: var(--gray-600);
     fill: var(--gray-600);
