@@ -1,4 +1,4 @@
-import React, { Component, Fragment, useContext, type JSX } from "react";
+import React, { Component, Fragment, type JSX } from "react";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -11,17 +11,41 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Button, DialogTrigger, Group, Popover, Separator, Text, Toolbar } from 'react-aria-components';
-import { TagGroup, TagList, Tag, Label } from 'react-aria-components';
-import { ToggleButtonGroup, ToggleButton } from 'react-aria-components';
-import { TooltipTrigger } from 'react-aria-components';
+import { Group, Text, Toolbar } from 'react-aria-components';
+import { TagGroup, TagList, Tag, } from 'react-aria-components';
 import type { Key } from 'react-aria-components';
 import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
-import { EqualsIcon, HashIcon, LineSegmentIcon, NotchesIcon, NotEqualsIcon, SquareSplitHorizontalIcon, ColumnsIcon, MinusIcon, MinusSquareIcon, PlusSquareIcon, PlaceholderIcon, PulseIcon, WaveTriangleIcon, XIcon, LineSegmentsIcon, ListIcon, WaveformIcon, CaretLineUpIcon, QuestionIcon, QuestionMarkIcon, MoonStarsIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
-import { Tooltip } from "../../components/Tooltip";
+import { ActionButton, ActionButtonGroup, DialogTrigger, Divider, Popover, Tooltip, TooltipTrigger } from "@react-spectrum/s2";
+import { ToggleButtonGroup, ToggleButton, } from '@react-spectrum/s2';
+
+import Line from '@react-spectrum/s2/icons/Line';
+import Edit from '@react-spectrum/s2/icons/Edit';
+import Copy from '@react-spectrum/s2/icons/Copy';
+import Delete from '@react-spectrum/s2/icons/Delete';
+import Properties from '@react-spectrum/s2/icons/Properties';
+import AudioWave from '@react-spectrum/s2/icons/AudioWave';
+import GridTypeLines from '@react-spectrum/s2/icons/GridTypeLines';
+import LineHeight from '@react-spectrum/s2/icons/LineHeight';
+import ChartTrend from '@react-spectrum/s2/icons/ChartTrend';
+import Collection from '@react-spectrum/s2/icons/Collection';
+import DistributeSpaceHorizontally from '@react-spectrum/s2/icons/DistributeSpaceHorizontally';
+import EditNo from '@react-spectrum/s2/icons/EditNo';
+import Erase from '@react-spectrum/s2/icons/Erase';
+import SelectNo from '@react-spectrum/s2/icons/SelectNo';
+import SelectNone from '@react-spectrum/s2/icons/SelectNone';
+import New from '@react-spectrum/s2/icons/New';
+import Maximize from '@react-spectrum/s2/icons/Maximize';
+import BrightnessContrast from '@react-spectrum/s2/icons/BrightnessContrast';
+import Background from '@react-spectrum/s2/icons/Background';
+import HelpCircle from '@react-spectrum/s2/icons/HelpCircle';
+import AlignTop from '@react-spectrum/s2/icons/AlignTop';
+import DistributeHorizontalCenter from '@react-spectrum/s2/icons/DistributeHorizontalCenter';
+import MenuHamburger from '@react-spectrum/s2/icons/MenuHamburger';
+import Prototyping from '@react-spectrum/s2/icons/Prototyping';
+import Add from '@react-spectrum/s2/icons/Add';
 
 type Props = {
     width: number,
@@ -804,180 +828,174 @@ class KlineViewContainer extends Component<Props, State> {
             <div style={{ display: "flex" }} >
 
                 {/* Toolbar */}
-                <div style={{ display: "flex", paddingRight: "6px", paddingTop: '4px' }}>
-                    <Toolbar aria-label="Tools" orientation="vertical" >
+                <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '4px' }}>
+
+                    <ActionButtonGroup orientation="vertical" >
+
                         <ToggleButtonGroup
-                            aria-label="Drawing"
-                            selectionMode="single"
                             orientation="vertical"
-                            style={{ flexDirection: "column" }}
+                            selectionMode="multiple"
                             selectedKeys={this.state.drawingIdsToCreate}
                             onSelectionChange={this.setDrawingIdsToCreate}
                         >
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="line" aria-label="Line">
-                                    <LineSegmentIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="line">
+                                    <Line />
                                 </ToggleButton>
-                                <Tooltip placement="end">
+                                <Tooltip >
                                     Draw line
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="parallel" aria-label="Parallel">
-                                    <NotchesIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="parallel">
+                                    <Properties />
                                 </ToggleButton>
-                                <Tooltip placement="end">
+                                <Tooltip >
                                     Draw parallel
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="gann_angles" aria-label="fibretr">
-                                    <HashIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="gann_angles">
+                                    <Collection />
                                 </ToggleButton>
-                                <Tooltip placement="end">
-                                    Draw gann angles
+                                <Tooltip >
+                                    Draw Gann angles
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="fibonacci_retrace" aria-label="fibretr">
-                                    <ListIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="fibonacci_retrace" >
+                                    <MenuHamburger />
                                 </ToggleButton>
-                                <Tooltip placement="end">
-                                    Draw fibonacci retrace
+                                <Tooltip >
+                                    Draw Fibonacci retrace
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="fibonacci_timezone" aria-label="fibtz">
-                                    <SquareSplitHorizontalIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="fibonacci_timezone">
+                                    <DistributeSpaceHorizontally />
                                 </ToggleButton>
-                                <Tooltip placement="end">
-                                    Draw fibonacci time zone
+                                <Tooltip >
+                                    Draw Fibonacci time zone
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="fibonacci_retrace_v" aria-label="fibretrc">
-                                    <WaveformIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="fibonacci_retrace_v">
+                                    <AudioWave />
                                 </ToggleButton>
-                                <Tooltip placement="end">
-                                    Draw fibonacci time retrace
+                                <Tooltip >
+                                    Draw Fibonacci time retrace
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="polyline" aria-label="polyline">
-                                    <LineSegmentsIcon />
+                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                                <ToggleButton id="polyline" >
+                                    <Prototyping />
                                 </ToggleButton>
-                                <Tooltip placement="end">
+                                <Tooltip >
                                     Draw polyline
                                 </Tooltip>
                             </TooltipTrigger>
 
                         </ToggleButtonGroup>
 
-                        <Separator orientation="horizontal" />
+                        <Divider staticColor='auto' />
 
-                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={() => this.setState({
+                                updateDrawing: {
+                                    action: 'hide',
+                                    isHidingDrawing: !this.state.updateDrawing.isHidingDrawing
+                                }
+                            })}
+                            >
+                                <SelectNo />
+                            </ActionButton>
+                            <Tooltip >
+                                Hide drawings
+                            </Tooltip>
+                        </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <ToggleButton id="hidedrawing" aria-label="hidedrawing"
-                                    isSelected={this.state.updateDrawing.isHidingDrawing}
-                                    onChange={() => this.setState({
-                                        updateDrawing: {
-                                            action: 'hide',
-                                            isHidingDrawing: !this.state.updateDrawing.isHidingDrawing
-                                        }
-                                    })}
-                                >
-                                    <NotEqualsIcon />
-                                </ToggleButton>
-                                <Tooltip placement="end">
-                                    Hide drawings
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={() => this.setState({
+                                updateDrawing: {
+                                    ...(this.state.updateDrawing),
+                                    action: 'delete'
+                                }
+                            })}
+                            >
+                                <SelectNone />
+                            </ActionButton>
+                            <Tooltip>
+                                Delete selected drawing
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <Divider staticColor='auto' />
+
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={() => { }} >
+                                <DistributeHorizontalCenter />
+                            </ActionButton>
+                            <Tooltip >
+                                Toggle candle/bar chart
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={this.backToOriginalChartScale} >
+                                <AlignTop />
+                            </ActionButton>
+                            <Tooltip >
+                                Original chart scale
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={this.toggleCrosshairVisiable} >
+                                <Add />
+                            </ActionButton>
+                            <Tooltip >
+                                Toggle crosshair visible
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <Divider staticColor='auto' />
+
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={this.props.toggleColorTheme} >
+                                <BrightnessContrast />
+                            </ActionButton>
+                            <Tooltip>
+                                Toggle color theme
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <TooltipTrigger delay={500} placement="end">
+                            <DialogTrigger>
+                                <ActionButton >
+                                    <HelpCircle />
+                                </ActionButton>
+                                <Tooltip>
+                                    Help
                                 </Tooltip>
-                            </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button aria-label="delete"
-                                    onClick={() =>
-                                        this.setState({
-                                            updateDrawing: {
-                                                ...(this.state.updateDrawing),
-                                                action: 'delete'
-                                            }
-                                        })
-                                    }
-                                >
-                                    <XIcon />
-                                </Button>
-                                <Tooltip placement="end">
-                                    Delete selected drawing
-                                </Tooltip>
-                            </TooltipTrigger>
+                                <Popover>
+                                    <div className="help" >
+                                        <Help />
+                                    </div>
+                                </Popover>
+                            </DialogTrigger>
 
-                        </Group>
+                        </TooltipTrigger>
 
-                        <Separator orientation="horizontal" />
 
-                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
+                    </ActionButtonGroup>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="chartscale" aria-label="chartscale" onClick={this.backToOriginalChartScale} >
-                                    <CaretLineUpIcon />
-                                </Button>
-                                <Tooltip placement="end">
-                                    Original chart scale
-                                </Tooltip>
-                            </TooltipTrigger>
-
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="crosshair" aria-label="crosshair" onClick={this.toggleCrosshairVisiable} >
-                                    <PlusSquareIcon />
-                                </Button>
-                                <Tooltip placement="end">
-                                    Toggle crosshair visible
-                                </Tooltip>
-                            </TooltipTrigger>
-
-                        </Group>
-
-                        <Separator orientation="horizontal" />
-
-                        <Group aria-label="Tools" style={{ flexDirection: "column" }}>
-
-                            <TooltipTrigger delay={TOOPTIP_DELAY}>
-                                <Button id="colortheme" aria-label="colortheme" onClick={this.props.toggleColorTheme} >
-                                    {this.props.colorTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
-                                </Button>
-                                <Tooltip placement="end">
-                                    Toggle color theme
-                                </Tooltip>
-                            </TooltipTrigger>
-
-                            <TooltipTrigger delay={500}>
-                                <DialogTrigger>
-                                    <Button id="help" aria-label="help" >
-                                        <QuestionMarkIcon />
-                                    </Button>
-                                    <Tooltip placement="end">
-                                        Help
-                                    </Tooltip>
-
-                                    <Popover>
-                                        <div className="help" >
-                                            <Help />
-                                        </div>
-                                    </Popover>
-                                </DialogTrigger>
-
-                            </TooltipTrigger>
-
-                        </Group>
-
-                    </Toolbar>
 
                 </div>
 
@@ -1211,7 +1229,7 @@ class KlineViewContainer extends Component<Props, State> {
                     </div>
 
                 </div >
-            </div>
+            </div >
         )
     }
 }
