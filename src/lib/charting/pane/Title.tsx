@@ -53,7 +53,7 @@ export function ChooseSymbol() {
 
     return (
         <MenuTrigger isOpen={isOpen} onOpenChange={setOpen}>
-            <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
+            <Button aria-label="symbol" style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
                     <Autocomplete

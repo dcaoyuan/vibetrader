@@ -11,8 +11,6 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { TagGroup, TagList, Tag, } from 'react-aria-components';
-import type { Key } from 'react-aria-components';
 import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
@@ -23,11 +21,13 @@ import {
     DialogTrigger,
     Divider,
     Popover,
+    type Selection,
     ToggleButtonGroup,
     ToggleButton,
     Tooltip,
-    TooltipTrigger
-
+    TooltipTrigger,
+    TagGroup,
+    Tag
 } from "@react-spectrum/s2";
 
 import Line from '@react-spectrum/s2/icons/Line';
@@ -55,6 +55,7 @@ import DistributeHorizontalCenter from '@react-spectrum/s2/icons/DistributeHoriz
 import MenuHamburger from '@react-spectrum/s2/icons/MenuHamburger';
 import Prototyping from '@react-spectrum/s2/icons/Prototyping';
 import Add from '@react-spectrum/s2/icons/Add';
+import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 
 type Props = {
     width: number,
@@ -114,8 +115,8 @@ type State = {
     referOverlayIndicatorLabels?: string[][];
     referStackedIndicatorLabels?: string[][];
 
-    selectedIndicatorTags?: 'all' | Set<Key>;
-    drawingIdsToCreate?: Set<Key>;
+    selectedIndicatorTags?: Selection;
+    drawingIdsToCreate?: Selection;
 
     yKlineView?: number;
     yVolumeView?: number;
@@ -155,7 +156,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     // geometry variables
     hTitle = 130;
-    hIndtags = 26;
+    hIndtags = 28;
 
     hKlineView = 400;
     hVolumeView = 100;
@@ -569,7 +570,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, className: string) {
-        if (this.state.drawingIdsToCreate.size > 0 || this.state.xc.isCrosshairEnabled) {
+        if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || this.state.xc.isCrosshairEnabled) {
             return <></>
         }
 
@@ -641,7 +642,7 @@ class KlineViewContainer extends Component<Props, State> {
             return
         }
 
-        if (this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
+        if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
             xc.isMouseCursorEnabled = false;
             this.update({ type: 'cursors' });
             return
@@ -789,7 +790,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-    setSelectedIndicatorTags(selectedIndicatorTags: 'all' | Set<Key>) {
+    setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
@@ -797,8 +798,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.fetchData_calcInds(this.latestTime, selectedIndicatorTags)
     }
 
-    setDrawingIdsToCreate(ids?: Set<Key>) {
-        if (ids === undefined || ids.size === 0) {
+    setDrawingIdsToCreate(ids?: Selection) {
+        if (ids === undefined || ids !== 'all' && ids.size === 0) {
             this.setState({
                 updateDrawing: {
                     ...(this.state.updateDrawing),
@@ -999,12 +1000,9 @@ class KlineViewContainer extends Component<Props, State> {
                                     </div>
                                 </Popover>
                             </DialogTrigger>
-
                         </TooltipTrigger>
 
-
                     </ActionButtonGroup>
-
 
                 </div>
 
@@ -1025,18 +1023,21 @@ class KlineViewContainer extends Component<Props, State> {
                         <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                     </div>
 
-                    <div className="" style={{ width: this.width, height: this.hIndtags, paddingTop: "6px" }}>
+                    <div className="" style={{
+                        display: 'flex', justifyContent: 'flex-start',
+                        width: this.width, height: this.hIndtags,
+                        paddingTop: "0px"
+                    }}>
                         <TagGroup
-                            aria-label="ind-tags"
+                            aria-label="why need this? spetrum not remove it?"
+                            size="S"
                             selectionMode="multiple"
                             selectedKeys={this.state.selectedIndicatorTags}
                             onSelectionChange={this.setSelectedIndicatorTags}
                         >
-                            <TagList>
-                                {allInds.map((tag, n) =>
-                                    <Tag aria-label={tag} key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
-                                )}
-                            </TagList>
+                            {allInds.map((tag, n) =>
+                                <Tag key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
+                            )}
                         </TagGroup>
                     </div>
 
