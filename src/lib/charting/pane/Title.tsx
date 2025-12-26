@@ -3,9 +3,9 @@ import { Component, Fragment, useState } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
-import { Autocomplete, Button, ListBox, ListBoxItem, Menu, MenuItem, useAsyncList, useFilter } from 'react-aria-components';
-import { MenuTrigger } from "../../components/Menu";
-import { SearchField } from "../../components/SearchField";
+import { Button, ListBox, ListBoxItem, useFilter } from 'react-aria-components';
+import { ActionButton, ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField } from "@react-spectrum/s2";
+import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 
 type Props = {
     xc: ChartXControl,
@@ -53,29 +53,27 @@ export function ChooseSymbol() {
 
     return (
         <MenuTrigger isOpen={isOpen} onOpenChange={setOpen}>
-            <Button style={{ fontSize: 12, padding: 0, border: 'none' }} >BTCUSDT</Button>
-            <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
-                <Autocomplete
-                    inputValue={list.filterText}
-                    onInputChange={list.setFilterText}
-                    filter={contains}
-                >
-                    <SearchField
-                        autoFocus
-                        aria-label="Search symbols"
-                        placeholder="Search symbols..."
-                        style={{ margin: 4 }}
-                    />
-                    <Menu
-                        items={list.items}
-                        selectionMode="single"
-                        renderEmptyState={() => 'No results found.'}
-                        style={{ flex: 1 }}
+            <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
+            <Popover>
+                <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
+                    <Autocomplete
+                        inputValue={list.filterText}
+                        onInputChange={list.setFilterText}
+                        filter={contains}
                     >
-                        {(item) => <MenuItem id={item.name}>{item.name}</MenuItem>}
-                    </Menu>
-                </Autocomplete>
-            </div>
+                        <SearchField
+                            autoFocus
+                            placeholder="Search symbols..."
+                        />
+                        <Menu
+                            items={list.items}
+                            selectionMode="single"
+                        >
+                            {(item) => <MenuItem id={item.name}>{item.name}</MenuItem>}
+                        </Menu>
+                    </Autocomplete>
+                </div>
+            </Popover>
         </MenuTrigger>
     );
 }
@@ -274,13 +272,16 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <ChooseSymbol />
-                    &nbsp;&middot;&nbsp;
-                    <span style={{ cursor: 'pointer' }}>{this.tframeShortName}</span>
-                    &nbsp;&middot;&nbsp;{this.tzoneShort}
+                    <ActionButtonGroup>
+                        <ChooseSymbol />
+                        &nbsp;&middot;&nbsp;
+                        <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>{this.tframeShortName}</Button>
+                        &nbsp;&middot;&nbsp;
+                        <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>{this.tzoneShort}</Button>
+                    </ActionButtonGroup>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px 0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
                     <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>
                         <ListBox aria-label="Mouse kline" style={{ textAlign: 'left' }}>

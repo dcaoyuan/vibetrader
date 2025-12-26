@@ -837,7 +837,7 @@ class KlineViewContainer extends Component<Props, State> {
             <div style={{ display: "flex" }} >
 
                 {/* Toolbar */}
-                <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '4px' }}>
+                <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '3px' }}>
 
                     <ActionButtonGroup orientation="vertical" >
 
