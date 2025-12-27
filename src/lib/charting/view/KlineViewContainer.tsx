@@ -238,13 +238,7 @@ class KlineViewContainer extends Component<Props, State> {
     fetchIndicatorFn = (indName: string) =>
         fetch("./indicators/" + indName + ".pine")
             .then(r => r.text())
-            .then(fs => {
-                // js = js + "\n return ind;"
-                // const indicatorsFunction = new Function(js);
-                // const fn = indicatorsFunction();
-
-                return { indName, fs };
-            })
+            .then(pine => ({ indName, pine }))
 
     fetchDataLocal = (startTime?: number) => fetch("./klines.json")
         .then(r => r.json())
@@ -333,19 +327,20 @@ class KlineViewContainer extends Component<Props, State> {
                         const tvar = this.state.baseSer.varOf(indName) as TVar<unknown[]>;
                         const size = this.state.baseSer.size();
                         const indicator = result.indicator;
-                        const plotValues = Object.values(result.plots) as Plot[];
-                        const dataValues = plotValues.map(({ data }) => data);
+                        const plots = Object.values(result.plots) as Plot[];
+                        const dataValues = plots.map(({ data }) => data);
                         for (let i = 0; i < size; i++) {
                             const vs = dataValues.map(v => v[i].value);
                             tvar.setByIndex(i, vs);
                         }
 
-                        const overlay = indicator !== undefined && indicator.overlay
+                        // console.log(plots.map(x => x.options))
 
-                        const outputs = plotValues.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
+                        const outputs = plots.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
                             return ({ atIndex, title, style, color, force_overlay })
                         })
 
+                        const overlay = indicator !== undefined && indicator.overlay
                         if (overlay) {
                             overlayIndicators.push({ indName, tvar, outputs })
 
@@ -471,10 +466,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     override componentDidMount() {
-        this.fetchIndicatorFns(allInds).then(fns => {
+        this.fetchIndicatorFns(allInds).then(pines => {
             this.loadedIndFns = new Map();
-            for (const { indName, fs } of fns) {
-                this.loadedIndFns.set(indName, fs);
+            for (const { indName, pine } of pines) {
+                this.loadedIndFns.set(indName, pine);
             }
 
         }).then(() => {

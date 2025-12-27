@@ -17,7 +17,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             chartLines,
             chartAxisy,
         };
-
     }
 
     override plot() {
@@ -25,17 +24,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
         const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, color, title: name, style: plot }) => {
             switch (plot) {
-                case 'line':
-                    return <LineChart
-                        tvar={this.props.tvar as TVar<unknown[]>}
-                        xc={this.props.xc}
-                        yc={this.yc}
-                        depth={0}
-                        color={color}
-                        name={name}
-                        atIndex={atIndex}
-                    />
-
                 case 'style_histogram':
                 case 'style_columns':
                     return <HistogramChart
@@ -48,6 +36,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         atIndex={atIndex}
                     />
 
+                case 'line':
                 default:
                     return <LineChart
                         tvar={this.props.tvar as TVar<unknown[]>}

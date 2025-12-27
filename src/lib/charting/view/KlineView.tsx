@@ -65,17 +65,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     let ovchart: JSX.Element;
                     switch (plot) {
                         case "line":
-                            ovchart = <LineChart
-                                tvar={tvar}
-                                name={name}
-                                color={color}
-                                atIndex={atIndex}
-                                xc={this.props.xc}
-                                yc={this.yc}
-                                depth={depth++}
-                            />
-                            break;
-
                         default:
                             ovchart = <LineChart
                                 tvar={tvar}
