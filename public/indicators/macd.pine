@@ -18,7 +18,7 @@ alertcondition(hist[1] >= 0 and hist < 0, title = 'Rising to falling', message =
 alertcondition(hist[1] <= 0 and hist > 0, title = 'Falling to rising', message = 'The MACD histogram switched from a falling to rising state')
 
 hline(0, "Zero Line", color = color.new(#787B86, 50))
-plot(hist, title = "Histogram", style = 'style_columns', color = (hist >= 0 ? (hist[1] < hist ? #26A69A : #B2DFDB) : (hist[1] < hist ? #FFCDD2 : #FF5252)))
+plot(hist, title = "Histogram", style = plot.style_columns, color = (hist >= 0 ? (hist[1] < hist ? #26A69A : #B2DFDB) : (hist[1] < hist ? #FFCDD2 : #FF5252)))
 plot(macd,   title = "MACD",   color = #2962FF)
 plot(signal, title = "Signal", color = #FF6D00)
 plotchar(hist >= 0 and hist[1] < hist, title = "Bullish", style = shape.triangleup, location = location.belowbar, color = #26A69A)
