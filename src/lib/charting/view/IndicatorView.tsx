@@ -35,7 +35,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         name={name}
                         atIndex={atIndex}
                     />
-                case 'histogram':
+
+                case 'style_histogram':
+                case 'style_columns':
                     return <HistogramChart
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
@@ -47,8 +49,15 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     />
 
                 default:
-                    return <></>
-
+                    return <LineChart
+                        tvar={this.props.tvar as TVar<unknown[]>}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
+                        color={color}
+                        name={name}
+                        atIndex={atIndex}
+                    />
             }
         })
 

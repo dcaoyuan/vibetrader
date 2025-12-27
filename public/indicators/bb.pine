@@ -1,0 +1,21 @@
+//@version=6
+indicator("Bollinger Bands", overlay=true)
+
+// 1. Inputs
+length = input.int(20, "SMA Length", minval=1)
+mult   = input.float(2.0, "StdDev Multiplier", minval=0.001, maxval=50)
+src    = input.source(close, "Source")
+
+// 2. Calculations
+basis = ta.sma(src, length)
+dev   = mult * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+// 3. Visuals
+p1 = plot(upper, "Upper Band", color = #2962FF)
+p2 = plot(lower, "Lower Band", color = #2962FF)
+plot(basis, "Basis (SMA)", color = #FF6D00)
+
+// Fill the background between the bands
+// fill(p1, p2, color=color.rgb(33, 150, 243, 90), title="Background")

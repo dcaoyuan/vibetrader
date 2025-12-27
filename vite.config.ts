@@ -8,8 +8,10 @@ export default defineConfig({
         macros.vite(), // Must be first!
         react()
     ],
+
     base: '/vibetrader/',
     //base: '/',
+
     build: {
         target: ['es2022'],
         // Lightning CSS produces a much smaller CSS bundle than the default minifier.

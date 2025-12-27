@@ -1,0 +1,17 @@
+//@version=6
+indicator("Simple RSI", overlay = false)
+
+// 0. Get User Input
+rsiLength = input.int(13, "RSI Length", minval = 1)
+rsiSource = input.source(close, "Source")
+
+// 1. Calculate RSI
+rsiValue = ta.rsi(rsiSource, rsiLength)
+
+// 2. Visuals
+plot(rsiValue, "RSI", color = #FF6D00, linewidth = 2)
+
+// Horizontal lines for Overbought/Oversold levels
+h0 = hline(70, "Upper Band", color = color.gray, linestyle = hline.style_dashed)
+h1 = hline(30, "Lower Band", color = color.gray, linestyle = hline.style_dashed)
+// fill(h0, h1, color = color.rgb(126, 87, 194, 90), title = "Background")

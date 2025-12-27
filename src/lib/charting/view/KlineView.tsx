@@ -77,6 +77,15 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             break;
 
                         default:
+                            ovchart = <LineChart
+                                tvar={tvar}
+                                name={name}
+                                color={color}
+                                atIndex={atIndex}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                depth={depth++}
+                            />
                     }
 
                     if (ovchart !== undefined) {

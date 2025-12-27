@@ -1,0 +1,18 @@
+//@version=6
+indicator("EMA", overlay = true)
+
+// Inputs
+input9 = input.int(9, "Fast MA")
+input21 = input.int(21, "Slow MA")
+input36 = input.int(36, "Slowest MA")
+
+// Calculations
+ma9 = ta.ema(close, input9)
+ma21 = ta.ema(close, input21)
+ma36 = ta.ema(close, input36)
+
+// Plotting
+plot(ma9, color = #FF6D00, title="EMA-9")
+plot(ma21, color = #2962FF, title="EMA-21")
+plot(ma36, color = #aec7e8, title="EMA-36")
+
