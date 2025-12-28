@@ -73,10 +73,13 @@ const AxisY = (props: Props) => {
 
         const wTick = 4;
         for (let i = 0; i < vTicks.length; i++) {
-            if (i !== 0 || !yc.shouldNormScale) {
-                let vTick = vTicks[i];
-                const yTick = Math.round(yc.yv(vTick))
+            let vTick = vTicks[i];
+            const yTick = Math.round(yc.yv(vTick))
 
+            if (yc.shouldNormScale && yTick > yc.hCanvas - 10) {
+                // skip to leave space for normMultiple text 
+
+            } else {
                 path.moveto(0, yTick)
                 path.lineto(wTick, yTick)
 

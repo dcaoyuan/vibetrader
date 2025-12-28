@@ -8,7 +8,7 @@ import type { UpdateEvent } from "../view/ChartView";
 import { textMetrics } from "../view/Format";
 import React from "react";
 
-const MIN_TICK_SPACING = 60 // in pixels
+const MIN_TICK_SPACING = 100 // in pixels
 
 type Props = {
 	id: string,
@@ -28,14 +28,203 @@ type State = {
 	mouseCursor: JSX.Element,
 }
 
+const locatorDict = {
+	year: [
+		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		[0, 2, 4, 6, 8],
+		[0, 5, 10],
+		[0, 5],
+	],
+	month: [
+		[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+		[4, 7, 10],
+		[6],
+	],
+	week: [
+		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+		[0, 2, 4, 6, 8],
+		[0, 5, 10],
+		[0, 5],
+	],
+	day: [
+		[5, 10, 15, 20, 25],
+		[10, 20],
+		[15],
+	],
+	hour: [
+		[3, 6, 9, 12, 15, 18, 21],
+		[6, 12, 18],
+		[12],
+	],
+	minute: [
+		[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+		[10, 20, 30, 40, 50, 60],
+		[15, 30, 45, 60],
+		[30, 60],
+	],
+}
+
+type Tick = {
+	dt: Temporal.ZonedDateTime,
+	x: number,
+	kind: "year" | "month" | "week" | "day" | "hour" | "minute"
+}
+
+// Merge ticks around existed tick
+function mergeTicks_(existedTicks: Tick[], newTicks: Tick[], level: string): Tick[] {
+	const mergeTicks: Tick[] = []
+	let prevExisted: Tick
+	let prevTick: Tick
+	let m = 0 // index of existed ticks
+	let processed = -1;
+	while (m < existedTicks.length) {
+		const existed = existedTicks[m]
+		// find one in the new ticks that just passes existed
+		let n = processed + 1
+		while (n < newTicks.length) {
+			const tick = newTicks[n]
+			if (tick.x > existed.x) {
+				break
+			}
+			n++;
+		}
+
+		mergeTicks.push(existed)
+		prevTick = existed
+
+		// push ticks before existed till prevExisted
+		let i = n - 1
+		while (i >= 0) {
+			const tick = newTicks[i]
+			console.log(prevExisted?.x, tick.x, existed.x)
+			if (tick.x < existed.x - MIN_TICK_SPACING && tick.x > (prevExisted?.x ?? 0) + MIN_TICK_SPACING) {
+				if (prevTick.x - tick.x > MIN_TICK_SPACING) {
+					console.log(tick.x - prevTick?.x, tick.x - existed.x)
+					mergeTicks.push(tick)
+					prevTick = tick
+				}
+			}
+
+			i--
+		}
+
+		processed = n - 1
+		prevExisted = existed
+		prevTick = existed
+		m++
+	}
+
+	for (let i = processed + 1; i < newTicks.length; i++) {
+		const tick = newTicks[i]
+		if (prevTick === undefined || tick.x - prevTick.x > MIN_TICK_SPACING) {
+			mergeTicks.push(tick)
+			prevTick = tick
+		}
+	}
+
+	return mergeTicks.sort((a, b) => a.x - b.x);
+}
+
+function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart: number): Tick[] {
+	const nTicks = Math.round(wChart / MIN_TICK_SPACING);
+
+	// 1. find the lowest suitable level of the data
+	if (existedTicks.length < 2) {
+		const locators = locatorDict[level]
+		let i = 0;
+		while (i < locators.length) {
+			const locator = locators[i]
+			let count = 0
+			for (const tick of newTicks) {
+				const value = level === "year" || level === "week"
+					? tick.dt[level] % 10
+					: tick.dt[level]
+
+				if (locator.includes(value)) {
+					count++
+				}
+			}
+
+			if (count < nTicks) {
+				// console.log(level, locator, count)
+				for (const tick of newTicks) {
+					const value = level === "year" || level === "week"
+						? tick.dt[level] % 10
+						: tick.dt[level]
+
+					if (locator.includes(value)) {
+						existedTicks.push(tick)
+					}
+
+				}
+				break
+			}
+
+			i++
+		}
+
+	} else {
+		existedTicks = existedTicks.concat(newTicks)
+	}
+
+	// console.log(level, existedTicks)
+	return existedTicks.sort((a, b) => a.x - b.x);
+}
+
+
 class AxisX extends Component<Props, State> {
 	ref: RefObject<SVGAElement>;
 	font: string;
+
+	dfY: Intl.DateTimeFormat
+	dfYM: Intl.DateTimeFormat
+	dfMD: Intl.DateTimeFormat
+	dfD: Intl.DateTimeFormat
+	dfH: Intl.DateTimeFormat
+	dfm: Intl.DateTimeFormat
 
 	constructor(props: Props) {
 		super(props);
 
 		this.ref = React.createRef();
+
+		const tzone = props.xc.baseSer.timezone
+
+		this.dfY = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			year: "numeric",
+		});
+
+		this.dfYM = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			year: "numeric",
+			month: "short",
+		});
+
+		this.dfMD = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			month: "short",
+			day: "numeric",
+		});
+
+		this.dfD = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			day: "numeric",
+		});
+
+		this.dfH = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+
+		this.dfm = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
 
 		const chart = this.plot();
 		this.state = { chart, referCursor: <></>, mouseCursor: <></> };
@@ -43,9 +232,62 @@ class AxisX extends Component<Props, State> {
 		console.log("AxisX render");
 	}
 
+
 	plot() {
-		const hFont = 16;
 		const nBars = this.props.xc.nBars
+
+		const tzone = this.props.xc.baseSer.timezone;
+		let prevDt: Temporal.ZonedDateTime;
+
+		const yTicks: Tick[] = []
+		const MTicks: Tick[] = []
+		const WTicks: Tick[] = []
+		const dTicks: Tick[] = []
+		const hTicks: Tick[] = []
+		const mTicks: Tick[] = []
+
+		const minute_locator = locatorDict['minute'][0]
+		for (let i = 1; i <= nBars; i++) {
+			const time = this.props.xc.tb(i)
+			const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
+			const x = this.props.xc.xb(i);
+
+			if (prevDt !== undefined) {
+				if (dt.year !== prevDt.year) {
+					yTicks.push({ dt, x, kind: "year" })
+
+				} else if (dt.month !== prevDt.month) {
+					MTicks.push({ dt, x, kind: "month" })
+
+				} else if (dt.weekOfYear !== prevDt.weekOfYear) {
+					dTicks.push({ dt, x, kind: "week" })
+
+				} else if (dt.day !== prevDt.day) {
+					dTicks.push({ dt, x, kind: "day" })
+
+				} else if (dt.hour !== prevDt.hour) {
+					hTicks.push({ dt, x, kind: "hour" })
+
+				} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
+					mTicks.push({ dt, x, kind: "minute" })
+				}
+			}
+
+			prevDt = dt;
+		}
+
+		let ticks: Tick[] = []
+		if (this.props.xc.baseSer.timeframe.shortName !== "1W") {
+			ticks = fillTicks(ticks, mTicks, "minute", this.props.xc.wChart);
+			ticks = fillTicks(ticks, hTicks, "hour", this.props.xc.wChart);
+			ticks = fillTicks(ticks, dTicks, "day", this.props.xc.wChart);
+		}
+		ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
+		ticks = fillTicks(ticks, MTicks, "month", this.props.xc.wChart);
+		ticks = fillTicks(ticks, yTicks, "year", this.props.xc.wChart);
+
+		// --- path and texts
+		const hFont = 16;
 
 		const path = new Path;
 		const texts = new Texts;
@@ -60,60 +302,58 @@ class AxisX extends Component<Props, State> {
 			path.lineto(this.props.width, 0)
 		}
 
-		const tzone = this.props.xc.baseSer.timezone;
-		let prevDt: Temporal.ZonedDateTime;
-		let currDt: Temporal.ZonedDateTime;
-		let prevXTick: number;
-		let currXTick: number;
-
-		const dfYM = new Intl.DateTimeFormat("en-US", {
-			timeZone: tzone,
-			year: "numeric",
-			month: "short",
-		});
-
-		const dfY = new Intl.DateTimeFormat("en-US", {
-			timeZone: tzone,
-			year: "numeric",
-		});
-
-
 		const hTick = 4;
-		for (let i = 1; i <= nBars; i++) {
-			const time = this.props.xc.tb(i)
-			currDt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
-			if (prevDt !== undefined && (currDt.month !== prevDt.month || currDt.year !== prevDt.year)) {
-				// new month begins
-				const xTick = this.props.xc.xb(i);
-				currXTick = xTick;
+		prevDt = undefined
+		for (let i = 0; i < ticks.length; i++) {
+			const { dt, x, kind } = ticks[i]
+			if (this.props.up) {
+				path.moveto(x, hFont - 1)
+				path.lineto(x, hFont - hTick)
 
-				if (prevXTick === undefined || currXTick - prevXTick > MIN_TICK_SPACING) {
-					if (this.props.up) {
-						path.moveto(xTick, hFont - 1)
-						path.lineto(xTick, hFont - hTick)
-
-					} else {
-						path.moveto(xTick, 1)
-						path.lineto(xTick, hTick)
-					}
-
-					const date = new Date(currDt.epochMilliseconds);
-					const tickStr = (currDt.year !== prevDt.year) ? dfY.format(date) : dfYM.format(date);
-					const wTickStr = textMetrics(tickStr, this.font).width;
-					const xText = xTick - Math.round(wTickStr / 2);
-
-					if (this.props.up) {
-						texts.text(xText, hFont - hTick, tickStr);
-
-					} else {
-						texts.text(xText, hFont + 1, tickStr);
-					}
-
-					prevXTick = currXTick;
-				}
+			} else {
+				path.moveto(x, 1)
+				path.lineto(x, hTick)
 			}
 
-			prevDt = currDt;
+			const date = new Date(dt.epochMilliseconds);
+			let tickStr: string
+			switch (kind) {
+				case "year":
+					tickStr = this.dfY.format(date);
+					break;
+
+				case "month":
+					tickStr = this.dfYM.format(date);
+					break;
+
+				case "week":
+				case "day":
+					tickStr = this.dfD.format(date);
+					break
+
+				case "hour":
+					tickStr = this.dfH.format(date);
+					break
+
+				case "minute":
+					tickStr = this.dfm.format(date);
+					break
+
+				default:
+					tickStr = this.dfm.format(date);
+			}
+
+			const wTickStr = textMetrics(tickStr, this.font).width;
+			const xText = x - Math.round(wTickStr / 2);
+
+			if (this.props.up) {
+				texts.text(xText, hFont - hTick, tickStr);
+
+			} else {
+				texts.text(xText, hFont + 1, tickStr);
+			}
+
+			prevDt = dt
 		}
 
 		// draw end line

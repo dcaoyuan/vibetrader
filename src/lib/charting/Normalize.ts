@@ -43,13 +43,13 @@ export function normMinTick(minValue: number, unit: number): number {
 
     let candicate = tillValue
     while (candicate >= minValue) {
-        // 1. Check the full magnitude (e.g., 100, 10, 1)
+        // The number divisible by the full magnitude (e.g., 100, 10, 1) ?
         candicate = Math.ceil(minValue / scale) * scale;
         if (candicate <= tillValue) {
             return cleanup(candicate) - unit;
         }
 
-        // 2. Check the half magnitude (e.g., 50, 5, 0.5)
+        // The number divisible by the half magnitude (e.g., 50, 5, 0.5) ?
         const halfScale = scale / 2;
         candicate = Math.ceil(minValue / halfScale) * halfScale;
         if (candicate <= tillValue) {
