@@ -25,6 +25,8 @@ export class TFrame {
 	static readonly FIFTEEN_MINS = new TFrame(TUnit.Minute, 15);
 	static readonly THIRTY_MINS = new TFrame(TUnit.Minute, 30);
 	static readonly ONE_HOUR = new TFrame(TUnit.Hour, 1);
+	static readonly TWO_HOUR = new TFrame(TUnit.Hour, 2);
+	static readonly FOUR_HOUR = new TFrame(TUnit.Hour, 4);
 	static readonly DAILY = new TFrame(TUnit.Day, 1);
 	static readonly TWO_DAYS = new TFrame(TUnit.Day, 2);
 	static readonly THREE_DAYS = new TFrame(TUnit.Day, 3);
@@ -37,17 +39,14 @@ export class TFrame {
 
 	static readonly PREDEFINED = [
 		TFrame.ONE_MIN,
-		TFrame.TWO_MINS,
 		TFrame.THREE_MINS,
-		TFrame.FOUR_MINS,
 		TFrame.FIVE_MINS,
 		TFrame.FIFTEEN_MINS,
 		TFrame.THIRTY_MINS,
+		TFrame.ONE_HOUR,
+		TFrame.TWO_HOUR,
+		TFrame.FOUR_HOUR,
 		TFrame.DAILY,
-		TFrame.TWO_DAYS,
-		TFrame.THREE_DAYS,
-		TFrame.FOUR_DAYS,
-		TFrame.FIVE_DAYS,
 		TFrame.WEEKLY,
 		TFrame.MONTHLY,
 	];

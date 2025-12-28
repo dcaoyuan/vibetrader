@@ -178,7 +178,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         //const tzone = "America/Vancouver"
-        const tframe = TFrame.DAILY
+        const tframe = TFrame.ONE_HOUR
         const symbol = "BTCUSDC"
 
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
@@ -214,6 +214,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
         this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
         this.toggleKlineKind = this.toggleKlineKind.bind(this)
+
+        this.handleSymbolTimeframeChanged = this.handleSymbolTimeframeChanged.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -252,13 +254,13 @@ class KlineViewContainer extends Component<Props, State> {
             return undefined; // latestTime
         })
 
-    fetchDataBinance = async (startTime?: number) => {
+    fetchDataBinance = async (symbol: string, timeframe: string, startTime?: number, limit?: number) => {
         const endTime = new Date().getTime();
         startTime = startTime
             ? startTime :
             endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-        return Binance.fetchAllKlines(this.state.symbol, this.state.tframe.shortName.toLowerCase(), startTime, endTime)
+        return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
             .then(binanceKline => {
                 // console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
@@ -285,8 +287,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    fetchData_calcInds = (startTime?: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
-        this.fetchDataBinance(startTime)
+    fetchData_calcInds = (symbol: string, timeframe: string, startTime?: number, limit?: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
+        this.fetchDataBinance(symbol, timeframe, startTime, limit)
             .catch(ex => {
                 console.error(ex);
                 return this.fetchDataLocal()
@@ -305,7 +307,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
                 }
 
-                const pinets = new PineTS(this.state.kvar.toArray(), 'ETH', '1d');
+                const pinets = new PineTS(this.state.kvar.toArray(), symbol, '1d');
 
                 const fnRuns: Promise<{ indName: string, result: Context }>[] = []
                 for (const [indName, fn] of selectedIndicatorFns) {
@@ -357,6 +359,7 @@ class KlineViewContainer extends Component<Props, State> {
                         // regular update
                         if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
                             this.updateState({
+                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                                 overlayIndicators,
                                 stackedIndicators,
                                 selectedIndicatorTags
@@ -376,13 +379,14 @@ class KlineViewContainer extends Component<Props, State> {
 
                         this.updateState({
                             isLoaded: true,
+                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                             overlayIndicators,
                             stackedIndicators,
                         })
                     }
 
                     if (latestTime !== undefined) {
-                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        // this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
                     }
 
                 })
@@ -473,7 +477,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
         }).then(() => {
-            this.fetchData_calcInds(undefined, this.state.selectedIndicatorTags)
+            this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName.toLowerCase(), undefined, 1000, this.state.selectedIndicatorTags)
 
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
@@ -789,13 +793,22 @@ class KlineViewContainer extends Component<Props, State> {
         this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
     }
 
+    handleSymbolTimeframeChanged(symbol: string, timeframe?: string) {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
+        this.setState({ symbol })
+
+        this.fetchData_calcInds(symbol, timeframe || this.state.xc.baseSer.timeframe.shortName.toLowerCase(), undefined, 1000, this.state.selectedIndicatorTags)
+    }
 
     setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.fetchData_calcInds(this.latestTime, selectedIndicatorTags)
+        this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName.toLowerCase(), this.latestTime, 1000, selectedIndicatorTags)
     }
 
     setDrawingIdsToCreate(ids?: Selection) {
@@ -1044,6 +1057,7 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar={this.state.kvar}
                             symbol={this.state.symbol}
                             updateEvent={this.state.updateEvent}
+                            handleSymbolTimeframeChanged={this.handleSymbolTimeframeChanged}
                         />
                         <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                     </div>

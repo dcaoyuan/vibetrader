@@ -6,6 +6,8 @@ import type { Kline } from "../../domain/Kline";
 import { Button, useFilter } from 'react-aria-components';
 import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
+import { TFrame } from "../../timeseris/TFrame";
+import { fetchSymbolList } from "../../domain/BinanaceData";
 
 type Props = {
     xc: ChartXControl,
@@ -14,6 +16,8 @@ type Props = {
     updateEvent: UpdateEvent,
     tvar: TVar<Kline>,
     symbol: string,
+
+    handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void
 }
 
 type State = {
@@ -32,42 +36,62 @@ type Snapshot = {
 
 const L_SNAPSHOTS = 6;
 
-export function ChooseSymbol() {
-    const { contains } = useFilter({ sensitivity: 'base' });
+export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void }) {
+    const { startsWith } = useFilter({ sensitivity: 'base' });
 
-    const list = useAsyncList<{ name: string }>({
+    const list = useAsyncList<{ symbol: string }>({
         async load({ signal, filterText }) {
-            const res = await fetch(
-                `https://swapi.py4e.com/api/people/?search=${filterText}`,
-                { signal }
-            );
-
-            const json = await res.json();
-            return {
-                items: json.results
-            };
+            const items = await fetchSymbolList(filterText, { signal });
+            return { items };
         }
     });
 
     return (
         <MenuTrigger>
-            <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }} >BTCUSDT</Button>
+            <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                {props.symbol}
+            </Button>
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
                     <Autocomplete
                         inputValue={list.filterText}
                         onInputChange={list.setFilterText}
-                        filter={contains}
                     >
                         <SearchField
+                            label="Symbol"
                             autoFocus
-                            placeholder="Search symbols..."
+                            placeholder="Search for more ..."
                         />
-                        <Menu
-                            items={list.items}
-                            selectionMode="single"
-                        >
-                            {(item) => <MenuItem id={item.name}>{item.name}</MenuItem>}
+                        <Menu items={list.items} selectionMode="single" onSelectionChange={(keys) => props.handleSymbolTimeframeChanged((keys as Set<string>).values().next().value)}>
+                            {(item) => <MenuItem id={item.symbol}>{item.symbol}</MenuItem>}
+                        </Menu>
+                    </Autocomplete>
+                </div>
+            </Popover>
+        </MenuTrigger>
+    );
+}
+
+export function ChooseTimeframe(props: { timeframe: TFrame }) {
+    const { contains } = useFilter({ sensitivity: 'base' });
+
+    const list = TFrame.PREDEFINED;
+
+    return (
+        <MenuTrigger>
+            <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                {props.timeframe.shortName}
+            </Button>
+            <Popover>
+                <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
+                    <Autocomplete filter={contains}>
+                        <SearchField
+                            label="Timeframe"
+                            autoFocus
+                            placeholder=""
+                        />
+                        <Menu items={list} selectionMode="single" >
+                            {(item) => <MenuItem id={item.shortName}>{item.shortName}</MenuItem>}
                         </Menu>
                     </Autocomplete>
                 </div>
@@ -78,7 +102,6 @@ export function ChooseSymbol() {
 
 class Title extends Component<Props, State> {
     tframeShowName: string;
-    tframeShortName: string;
     tzone: string;
     tzoneShort: string;
     dtFormatL: Intl.DateTimeFormat
@@ -98,8 +121,6 @@ class Title extends Component<Props, State> {
         };
 
         const tframe = this.props.xc.baseSer.timeframe;
-
-        this.tframeShortName = tframe.shortName;
 
         let tframeName = tframe.compactName.toLowerCase();
         const matchLeadingNumbers = tframeName.match(/^\d+/);
@@ -271,11 +292,13 @@ class Title extends Component<Props, State> {
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
                     <ActionButtonGroup>
-                        <ChooseSymbol />
+                        <ChooseSymbol symbol={this.props.symbol} handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
                         &nbsp;&middot;&nbsp;
-                        <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>{this.tframeShortName}</Button>
+                        <ChooseTimeframe timeframe={this.props.xc.baseSer.timeframe} />
                         &nbsp;&middot;&nbsp;
-                        <Button style={{ fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>{this.tzoneShort}</Button>
+                        <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                            {this.tzoneShort}
+                        </Button>
                     </ActionButtonGroup>
                 </div>
 
