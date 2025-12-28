@@ -6,6 +6,17 @@ export const Help = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
             <div style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                 <div>
+                    <span className='label-mouse'>Click on symbol: </span>
+                    <span className='label-refer'>Select symbol</span>
+                </div>
+                <div>
+                    <span className='label-mouse'>Clock on timeframe: </span>
+                    <span className='label-refer'>Select timeframe</span>
+                </div>
+
+                <Divider orientation="horizontal" />
+
+                <div>
                     <span className='label-mouse'>Drag: </span>
                     <span className='label-refer'>Move chart</span>
                 </div>

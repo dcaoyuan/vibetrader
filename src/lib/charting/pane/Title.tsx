@@ -60,7 +60,7 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
                         <SearchField
                             label="Symbol"
                             autoFocus
-                            placeholder="Search for more ..."
+                            placeholder="Type for more ..."
                         />
                         <Menu
                             items={list.items}

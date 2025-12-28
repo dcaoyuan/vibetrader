@@ -6,6 +6,10 @@ Toward an Open Source AI-Friendly Trading Platform
 
 ### Shortcuts
 
+#### Select symbol, timeframe
+* Click on symbol: Select symbol
+* Click on timeframe: Select timeframe
+
 #### Move, Zoom
 * Mouse:
   * Drag: Move chart
