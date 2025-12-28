@@ -34,7 +34,7 @@ const AxisY = (props: Props) => {
         const potentialUnit = vRange / nTicksMax;
         const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
 
-        const vMinTick = normMinTick(minValueOnCanvas);
+        const vMinTick = normMinTick(minValueOnCanvas, vTickUnit);
         const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
 
         const vTicks = [];
