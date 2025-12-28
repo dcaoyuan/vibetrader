@@ -179,7 +179,7 @@ export class TUnit {
                 return this.#timeAfterNMonths(fromTime, nUnits, tzone);
 
             default:
-                return fromTime + nUnits * this.interval;
+                return Math.max(0, fromTime + nUnits * this.interval);
         }
     }
 
@@ -188,7 +188,8 @@ export class TUnit {
         const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
 
         /** set the time to first day of this week first */
-        return dt.subtract({ days: dt.dayOfWeek - 1 }).add({ weeks: nWeeks }).epochMilliseconds;
+        const time = dt.subtract({ days: dt.dayOfWeek - 1 }).add({ weeks: nWeeks }).epochMilliseconds;
+        return Math.max(0, time);
     }
 
     /** snapped to 1st day of the month */
@@ -196,7 +197,39 @@ export class TUnit {
         const dt = new Temporal.ZonedDateTime(BigInt(fromTime) * TUnit.NANO_PER_MILLI, tzone);
 
         /** set the time to this month's 1st day */
-        return dt.subtract({ days: dt.day - 1 }).add({ months: nMonths }).epochMilliseconds;
+        const time = dt.subtract({ days: dt.day - 1 }).add({ months: nMonths }).epochMilliseconds;
+        return Math.max(0, time);
+    }
+
+    timeBeforeNUnits(fromTime: number, nUnits: number, tzone: string): number {
+        switch (this) {
+            case TUnit.Week:
+                return this.#timeBeforeNWeeks(fromTime, nUnits, tzone);
+
+            case TUnit.Month:
+                return this.#timeBeforeNMonths(fromTime, nUnits, tzone);
+
+            default:
+                return Math.max(0, fromTime - nUnits * this.interval);
+        }
+    }
+
+    /** snapped to first day of the week */
+    #timeBeforeNWeeks(toTime: number, nWeeks: number, tzone: string): number {
+        const dt = new Temporal.ZonedDateTime(BigInt(toTime) * TUnit.NANO_PER_MILLI, tzone);
+
+        /** set the time to first day of this week first */
+        const time = dt.subtract({ days: dt.dayOfWeek - 1 }).subtract({ weeks: nWeeks }).epochMilliseconds;
+        return Math.max(0, time)
+    }
+
+    /** snapped to 1st day of the month */
+    #timeBeforeNMonths(toTime: number, nMonths: number, tzone: string): number {
+        const dt = new Temporal.ZonedDateTime(BigInt(toTime) * TUnit.NANO_PER_MILLI, tzone);
+
+        /** set the time to this month's 1st day */
+        const time = dt.subtract({ days: dt.day - 1 }).subtract({ months: nMonths }).epochMilliseconds
+        return Math.max(0, time);
     }
 
     beginTimeOfUnitThatIncludes(time: number, tzone: string): number {

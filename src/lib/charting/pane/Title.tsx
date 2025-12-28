@@ -62,7 +62,11 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
                             autoFocus
                             placeholder="Search for more ..."
                         />
-                        <Menu items={list.items} selectionMode="single" onSelectionChange={(keys) => props.handleSymbolTimeframeChanged((keys as Set<string>).values().next().value)}>
+                        <Menu
+                            items={list.items}
+                            selectionMode="single"
+                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged((keys as Set<string>).values().next().value)}
+                        >
                             {(item) => <MenuItem id={item.symbol}>{item.symbol}</MenuItem>}
                         </Menu>
                     </Autocomplete>
@@ -72,10 +76,23 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
     );
 }
 
-export function ChooseTimeframe(props: { timeframe: TFrame }) {
+export function ChooseTimeframe(props: { symbol: string, timeframe: TFrame, handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void }) {
     const { contains } = useFilter({ sensitivity: 'base' });
 
-    const list = TFrame.PREDEFINED;
+    const list = [
+        TFrame.DAILY,
+        TFrame.ONE_HOUR,
+        TFrame.ONE_MIN,
+        TFrame.THREE_MINS,
+        TFrame.FIVE_MINS,
+        TFrame.FIFTEEN_MINS,
+        TFrame.THIRTY_MINS,
+        TFrame.TWO_HOUR,
+        TFrame.FOUR_HOUR,
+        TFrame.WEEKLY,
+        TFrame.MONTHLY,
+    ];
+
 
     return (
         <MenuTrigger>
@@ -90,7 +107,11 @@ export function ChooseTimeframe(props: { timeframe: TFrame }) {
                             autoFocus
                             placeholder=""
                         />
-                        <Menu items={list} selectionMode="single" >
+                        <Menu
+                            items={list}
+                            selectionMode="single"
+                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged(props.symbol, (keys as Set<string>).values().next().value)}
+                        >
                             {(item) => <MenuItem id={item.shortName}>{item.shortName}</MenuItem>}
                         </Menu>
                     </Autocomplete>
@@ -292,9 +313,14 @@ class Title extends Component<Props, State> {
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
                     <ActionButtonGroup>
-                        <ChooseSymbol symbol={this.props.symbol} handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
+                        <ChooseSymbol
+                            symbol={this.props.symbol}
+                            handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
                         &nbsp;&middot;&nbsp;
-                        <ChooseTimeframe timeframe={this.props.xc.baseSer.timeframe} />
+                        <ChooseTimeframe
+                            symbol={this.props.symbol}
+                            timeframe={this.props.xc.baseSer.timeframe}
+                            handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
                         &nbsp;&middot;&nbsp;
                         <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
                             {this.tzoneShort}

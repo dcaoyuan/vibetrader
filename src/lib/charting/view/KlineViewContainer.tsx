@@ -178,7 +178,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         //const tzone = "America/Vancouver"
-        const tframe = TFrame.ONE_HOUR
+        const tframe = TFrame.DAILY
         const symbol = "BTCUSDC"
 
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
@@ -256,9 +256,11 @@ class KlineViewContainer extends Component<Props, State> {
 
     fetchDataBinance = async (symbol: string, timeframe: string, startTime?: number, limit?: number) => {
         const endTime = new Date().getTime();
+        const tframe = TFrame.ofName(timeframe)
+        const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, this.state.tzone)
         startTime = startTime
-            ? startTime :
-            endTime - 300 * 3600 * 1000 * 24; // back 300 days
+            ? startTime
+            : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
         return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
             .then(binanceKline => {
@@ -268,9 +270,7 @@ class KlineViewContainer extends Component<Props, State> {
                 binanceKline.sort((a, b) => a.openTime - b.openTime);
 
                 // Remove duplicates (in case of any overlap)
-                const uniqueKlines = binanceKline.filter((kline, index, self) =>
-                    index === self.findIndex((k) => k.openTime === kline.openTime)
-                );
+                const uniqueKlines = binanceKline//.filter((kline, index, self) => index === self.findIndex((k) => k.openTime === kline.openTime));
 
                 // console.log(`After deduplication: ${uniqueKlines.length} klines`);
 
@@ -287,7 +287,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    fetchData_calcInds = (symbol: string, timeframe: string, startTime?: number, limit?: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
+    fetchData_calcInds = (symbol: string, timeframe: string, startTime: number, limit: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
         this.fetchDataBinance(symbol, timeframe, startTime, limit)
             .catch(ex => {
                 console.error(ex);
@@ -359,7 +359,6 @@ class KlineViewContainer extends Component<Props, State> {
                         // regular update
                         if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
                             this.updateState({
-                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                                 overlayIndicators,
                                 stackedIndicators,
                                 selectedIndicatorTags
@@ -386,7 +385,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        // this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(latestTime), 5000)
+                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
                     }
 
                 })
@@ -477,7 +476,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
         }).then(() => {
-            this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName.toLowerCase(), undefined, 1000, this.state.selectedIndicatorTags)
+            this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
 
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
@@ -798,9 +797,15 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.setState({ symbol })
+        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
 
-        this.fetchData_calcInds(symbol, timeframe || this.state.xc.baseSer.timeframe.shortName.toLowerCase(), undefined, 1000, this.state.selectedIndicatorTags)
+        const baseSer = new DefaultTSer(tframe, this.state.tzone, 1000);
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        this.setState({ isLoaded: false, symbol, tframe, baseSer, kvar, xc })
+
+        this.fetchData_calcInds(symbol, tframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
     }
 
     setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
@@ -870,9 +875,8 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
 
-
     render() {
-        return this.state.isLoaded && (
+        return (
             <div style={{ display: "flex" }} >
 
                 {/* Toolbar */}
@@ -1049,238 +1053,240 @@ class KlineViewContainer extends Component<Props, State> {
                     key="klineviewcontainer"
                     ref={this.focusRef}
                 >
-                    <div className="title" style={{ width: this.width, height: this.hTitle }}>
-                        <Title
-                            width={this.width}
-                            height={this.hTitle}
-                            xc={this.state.xc}
-                            tvar={this.state.kvar}
-                            symbol={this.state.symbol}
-                            updateEvent={this.state.updateEvent}
-                            handleSymbolTimeframeChanged={this.handleSymbolTimeframeChanged}
-                        />
-                        <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
-                    </div>
-
-                    <div className="" style={{
-                        display: 'flex', justifyContent: 'flex-start',
-                        width: this.width, height: this.hIndtags,
-                        paddingTop: "0px"
-                    }}>
-                        <TagGroup
-                            aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
-                            size="S"
-                            selectionMode="multiple"
-                            selectedKeys={this.state.selectedIndicatorTags}
-                            onSelectionChange={this.setSelectedIndicatorTags}
-                        >
-                            {allInds.map((tag, n) =>
-                                <Tag key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
-                            )}
-                        </TagGroup>
-                    </div>
-
-                    <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
-                        <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
-                            width={this.width}
-                            height={this.state.svgHeight}
-                            vectorEffect="non-scaling-stroke"
-                            onDoubleClick={this.onDoubleClick}
-                            onMouseLeave={this.onMouseLeave}
-                            onMouseMove={this.onMouseMove}
-                            onMouseDown={this.onMouseDown}
-                            onMouseUp={this.onMouseUp}
-                            onWheel={this.onWheel}
-                            cursor={this.state.cursor}
-                            style={{ zIndex: 1 }}
-                        >
-                            <KlineView
-                                id={"kline"}
-                                x={0}
-                                y={this.state.yKlineView}
+                    {this.state.isLoaded && (<>
+                        <div className="title" style={{ width: this.width, height: this.hTitle }}>
+                            <Title
                                 width={this.width}
-                                height={this.hKlineView}
-                                name=""
+                                height={this.hTitle}
                                 xc={this.state.xc}
                                 tvar={this.state.kvar}
+                                symbol={this.state.symbol}
                                 updateEvent={this.state.updateEvent}
-                                updateDrawing={this.state.updateDrawing}
-
-                                overlayIndicators={this.state.overlayIndicators}
-
-                                callbacksToContainer={this.callbacks}
+                                handleSymbolTimeframeChanged={this.handleSymbolTimeframeChanged}
                             />
+                            <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
+                        </div>
 
-                            <VolumeView
-                                id={"volume"}
-                                x={0}
-                                y={this.state.yVolumeView}
+                        <div className="" style={{
+                            display: 'flex', justifyContent: 'flex-start',
+                            width: this.width, height: this.hIndtags,
+                            paddingTop: "0px"
+                        }}>
+                            <TagGroup
+                                aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
+                                size="S"
+                                selectionMode="multiple"
+                                selectedKeys={this.state.selectedIndicatorTags}
+                                onSelectionChange={this.setSelectedIndicatorTags}
+                            >
+                                {allInds.map((tag, n) =>
+                                    <Tag key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
+                                )}
+                            </TagGroup>
+                        </div>
+
+                        <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
+                            <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
                                 width={this.width}
-                                height={this.hVolumeView}
-                                name="Vol"
-                                xc={this.state.xc}
-                                tvar={this.state.kvar}
-                                updateEvent={this.state.updateEvent}
-                            />
+                                height={this.state.svgHeight}
+                                vectorEffect="non-scaling-stroke"
+                                onDoubleClick={this.onDoubleClick}
+                                onMouseLeave={this.onMouseLeave}
+                                onMouseMove={this.onMouseMove}
+                                onMouseDown={this.onMouseDown}
+                                onMouseUp={this.onMouseUp}
+                                onWheel={this.onWheel}
+                                cursor={this.state.cursor}
+                                style={{ zIndex: 1 }}
+                            >
+                                <KlineView
+                                    id={"kline"}
+                                    x={0}
+                                    y={this.state.yKlineView}
+                                    width={this.width}
+                                    height={this.hKlineView}
+                                    name=""
+                                    xc={this.state.xc}
+                                    tvar={this.state.kvar}
+                                    updateEvent={this.state.updateEvent}
+                                    updateDrawing={this.state.updateDrawing}
 
-                            <AxisX
-                                id={"axisx"}
-                                x={0}
-                                y={this.state.yAxisx}
-                                width={this.width}
-                                height={this.hAxisx}
-                                xc={this.state.xc}
-                                updateEvent={this.state.updateEvent}
-                            />
+                                    overlayIndicators={this.state.overlayIndicators}
+
+                                    callbacksToContainer={this.callbacks}
+                                />
+
+                                <VolumeView
+                                    id={"volume"}
+                                    x={0}
+                                    y={this.state.yVolumeView}
+                                    width={this.width}
+                                    height={this.hVolumeView}
+                                    name="Vol"
+                                    xc={this.state.xc}
+                                    tvar={this.state.kvar}
+                                    updateEvent={this.state.updateEvent}
+                                />
+
+                                <AxisX
+                                    id={"axisx"}
+                                    x={0}
+                                    y={this.state.yAxisx}
+                                    width={this.width}
+                                    height={this.hAxisx}
+                                    xc={this.state.xc}
+                                    updateEvent={this.state.updateEvent}
+                                />
+                                {
+                                    this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
+                                        <IndicatorView
+                                            key={"stacked-indicator-view-" + indName}
+                                            id={this.#indicatorViewId(n)}
+                                            name={"Indicator-" + n}
+                                            x={0}
+                                            y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
+                                            width={this.width}
+                                            height={this.hIndicatorView}
+                                            xc={this.state.xc}
+                                            tvar={tvar}
+                                            mainIndicatorOutputs={outputs}
+                                            updateEvent={this.state.updateEvent}
+                                            indexOfStackedIndicators={n}
+                                            callbacksToContainer={this.callbacks}
+                                        />
+                                    )
+                                }
+
+                                {this.state.referCursor}
+                                {this.state.mouseCursor}
+
+                            </svg>
+
                             {
-                                this.state.stackedIndicators.map(({ indName, tvar, outputs }, n) =>
-                                    <IndicatorView
-                                        key={"stacked-indicator-view-" + indName}
-                                        id={this.#indicatorViewId(n)}
-                                        name={"Indicator-" + n}
-                                        x={0}
-                                        y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
-                                        width={this.width}
-                                        height={this.hIndicatorView}
-                                        xc={this.state.xc}
-                                        tvar={tvar}
-                                        mainIndicatorOutputs={outputs}
-                                        updateEvent={this.state.updateEvent}
-                                        indexOfStackedIndicators={n}
-                                        callbacksToContainer={this.callbacks}
-                                    />
-                                )
+                                // labels for overlay indicators
+                                this.state.overlayIndicators.map(({ outputs }, m) =>
+                                    <Fragment key={"indicator-values-" + m}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                            zIndex: 2, // ensure it's above the SVG
+                                            backgroundColor: 'transparent',
+                                        }}>
+                                            <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
+                                                {
+                                                    outputs.map(({ title, color }, n) =>
+                                                        <Fragment key={"overlay-indicator-lable-" + title} >
+                                                            <span className="label-mouse">{title}&nbsp;</span>
+                                                            <span style={{ color }}>{
+                                                                this.state.overlayIndicatorLabels !== undefined &&
+                                                                this.state.overlayIndicatorLabels[m] !== undefined &&
+                                                                this.state.overlayIndicatorLabels[m][n]
+                                                            }
+                                                            </span>
+                                                            {n === outputs.length - 1
+                                                                ? <span></span>
+                                                                : <span>&nbsp;&middot;&nbsp;</span>
+                                                            }
+                                                        </Fragment>
+                                                    )
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                            right: ChartView.AXISY_WIDTH,
+                                            zIndex: 2, // ensure it's above the SVG
+                                            backgroundColor: 'transparent',
+                                        }}>
+                                            <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
+                                                {
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
+                                                        <Fragment key={"ovarlay-indicator-lable-" + title} >
+                                                            <span className="label-refer">{title}&nbsp;</span>
+                                                            <span style={{ color }}>{
+                                                                this.state.referOverlayIndicatorLabels &&
+                                                                this.state.referOverlayIndicatorLabels[m] &&
+                                                                this.state.referOverlayIndicatorLabels[m][n]
+                                                            }
+                                                            </span>
+                                                            {n === outputs.length - 1
+                                                                ? <span></span>
+                                                                : <span>&nbsp;&middot;&nbsp;</span>
+                                                            }
+                                                        </Fragment>
+                                                    )
+                                                }
+                                            </div>
+                                        </div>
+                                    </Fragment>)
                             }
 
-                            {this.state.referCursor}
-                            {this.state.mouseCursor}
+                            {
+                                // labels for stacked indicators
+                                this.state.stackedIndicators.map(({ outputs }, n) =>
+                                    <Fragment key={"indicator-values-" + n}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                            zIndex: 2, // ensure it's above the SVG
+                                            backgroundColor: 'transparent',
+                                        }}>
 
-                        </svg>
+                                            <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
+                                                {
+                                                    outputs.map(({ title, color }, k) =>
+                                                        <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
+                                                            <span className="label-mouse">{title}&nbsp;</span>
+                                                            <span style={{ color }}>{
+                                                                this.state.stackedIndicatorLabels &&
+                                                                this.state.stackedIndicatorLabels[n] &&
+                                                                this.state.stackedIndicatorLabels[n][k]
+                                                            }
+                                                            </span>
+                                                            {k === outputs.length - 1
+                                                                ? <span></span>
+                                                                : <span>&nbsp;&middot;&nbsp;</span>
+                                                            }
+                                                        </Fragment>
+                                                    )
+                                                }
+                                            </div>
 
-                        {
-                            // labels for overlay indicators
-                            this.state.overlayIndicators.map(({ outputs }, m) =>
-                                <Fragment key={"indicator-values-" + m}>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
-                                        zIndex: 2, // ensure it's above the SVG
-                                        backgroundColor: 'transparent',
-                                    }}>
-                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
-                                            {
-                                                outputs.map(({ title, color }, n) =>
-                                                    <Fragment key={"overlay-indicator-lable-" + title} >
-                                                        <span className="label-mouse">{title}&nbsp;</span>
-                                                        <span style={{ color }}>{
-                                                            this.state.overlayIndicatorLabels !== undefined &&
-                                                            this.state.overlayIndicatorLabels[m] !== undefined &&
-                                                            this.state.overlayIndicatorLabels[m][n]
-                                                        }
-                                                        </span>
-                                                        {n === outputs.length - 1
-                                                            ? <span></span>
-                                                            : <span>&nbsp;&middot;&nbsp;</span>
-                                                        }
-                                                    </Fragment>
-                                                )
-                                            }
-                                        </div>
-                                    </div>
-
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
-                                        right: ChartView.AXISY_WIDTH,
-                                        zIndex: 2, // ensure it's above the SVG
-                                        backgroundColor: 'transparent',
-                                    }}>
-                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
-                                            {
-                                                this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
-                                                    <Fragment key={"ovarlay-indicator-lable-" + title} >
-                                                        <span className="label-refer">{title}&nbsp;</span>
-                                                        <span style={{ color }}>{
-                                                            this.state.referOverlayIndicatorLabels &&
-                                                            this.state.referOverlayIndicatorLabels[m] &&
-                                                            this.state.referOverlayIndicatorLabels[m][n]
-                                                        }
-                                                        </span>
-                                                        {n === outputs.length - 1
-                                                            ? <span></span>
-                                                            : <span>&nbsp;&middot;&nbsp;</span>
-                                                        }
-                                                    </Fragment>
-                                                )
-                                            }
-                                        </div>
-                                    </div>
-                                </Fragment>)
-                        }
-
-                        {
-                            // labels for stacked indicators
-                            this.state.stackedIndicators.map(({ outputs }, n) =>
-                                <Fragment key={"indicator-values-" + n}>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
-                                        zIndex: 2, // ensure it's above the SVG
-                                        backgroundColor: 'transparent',
-                                    }}>
-
-                                        <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
-                                            {
-                                                outputs.map(({ title, color }, k) =>
-                                                    <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
-                                                        <span className="label-mouse">{title}&nbsp;</span>
-                                                        <span style={{ color }}>{
-                                                            this.state.stackedIndicatorLabels &&
-                                                            this.state.stackedIndicatorLabels[n] &&
-                                                            this.state.stackedIndicatorLabels[n][k]
-                                                        }
-                                                        </span>
-                                                        {k === outputs.length - 1
-                                                            ? <span></span>
-                                                            : <span>&nbsp;&middot;&nbsp;</span>
-                                                        }
-                                                    </Fragment>
-                                                )
-                                            }
                                         </div>
 
-                                    </div>
-
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
-                                        right: ChartView.AXISY_WIDTH,
-                                        zIndex: 2, // ensure it's above the SVG
-                                        backgroundColor: 'transparent',
-                                    }}>
-                                        <div style={{ display: "inline-block", paddingRight: "0px", paddingTop: '0px' }}>
-                                            {
-                                                this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
-                                                    <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
-                                                        <span className="label-refer">{title}&nbsp;</span>
-                                                        <span style={{ color }}>{
-                                                            this.state.referStackedIndicatorLabels &&
-                                                            this.state.referStackedIndicatorLabels[n] &&
-                                                            this.state.referStackedIndicatorLabels[n][k]}
-                                                        </span>
-                                                        {k === outputs.length - 1
-                                                            ? <span></span>
-                                                            : <span>&nbsp;&middot;&nbsp;</span>
-                                                        }
-                                                    </Fragment>
-                                                )
-                                            }
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                            right: ChartView.AXISY_WIDTH,
+                                            zIndex: 2, // ensure it's above the SVG
+                                            backgroundColor: 'transparent',
+                                        }}>
+                                            <div style={{ display: "inline-block", paddingRight: "0px", paddingTop: '0px' }}>
+                                                {
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
+                                                        <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
+                                                            <span className="label-refer">{title}&nbsp;</span>
+                                                            <span style={{ color }}>{
+                                                                this.state.referStackedIndicatorLabels &&
+                                                                this.state.referStackedIndicatorLabels[n] &&
+                                                                this.state.referStackedIndicatorLabels[n][k]}
+                                                            </span>
+                                                            {k === outputs.length - 1
+                                                                ? <span></span>
+                                                                : <span>&nbsp;&middot;&nbsp;</span>
+                                                            }
+                                                        </Fragment>
+                                                    )
+                                                }
+                                            </div>
                                         </div>
-                                    </div>
-                                </Fragment>
-                            )
-                        }
-                    </div>
+                                    </Fragment>
+                                )
+                            }
+                        </div>
+                    </>)}
 
                 </div >
             </div >

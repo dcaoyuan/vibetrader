@@ -51,7 +51,7 @@ export class TFrame {
 		TFrame.MONTHLY,
 	];
 
-	static readonly #shortNamePattern = /([0-9]+)([smhDWMY])/g;
+	static readonly #shortNamePattern = /([0-9]+)([smhDWMY])/;
 
 	static ofName(shortName: string): TFrame | undefined {
 		const match = shortName.match(TFrame.#shortNamePattern);
@@ -114,6 +114,10 @@ export class TFrame {
 
 	timeAfterNTimeframes(fromTime: number, nTFrames: number, tzone: string): number {
 		return this.unit.timeAfterNUnits(fromTime, this.nUnits * nTFrames, tzone);
+	}
+
+	timeBeforeNTimeframes(toTime: number, nTFrames: number, tzone: string): number {
+		return this.unit.timeBeforeNUnits(toTime, this.nUnits * nTFrames, tzone);
 	}
 
 	nTimeframesBetween(fromTime: number, toTime: number, tzone: string): number {
