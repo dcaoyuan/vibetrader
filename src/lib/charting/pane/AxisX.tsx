@@ -36,7 +36,8 @@ const locatorDict = {
 		[0, 5],
 	],
 	month: [
-		[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+		[2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+		[2, 4, 6, 8, 10],
 		[4, 7, 10],
 		[6],
 	],
@@ -47,13 +48,19 @@ const locatorDict = {
 		[0, 5],
 	],
 	day: [
+		[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28],
+		[3, 6, 9, 12, 15, 18, 21, 24, 26, 28],
+		[4, 8, 12, 16, 20, 24, 28],
 		[5, 10, 15, 20, 25],
 		[10, 20],
 		[15],
 	],
 	hour: [
+		[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
 		[3, 6, 9, 12, 15, 18, 21],
+		[4, 8, 12, 16, 20],
 		[6, 12, 18],
+		[8, 16],
 		[12],
 	],
 	minute: [
@@ -89,6 +96,7 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicks
 				}
 			}
 
+			// console.log(level, locator, count)
 			if (count < nTicksMax) {
 				for (const tick of newTicks) {
 					const value = level === "year" || level === "week"
