@@ -70,61 +70,6 @@ type Tick = {
 	kind: "year" | "month" | "week" | "day" | "hour" | "minute"
 }
 
-// Merge ticks around existed tick
-function mergeTicks_(existedTicks: Tick[], newTicks: Tick[], level: string): Tick[] {
-	const mergeTicks: Tick[] = []
-	let prevExisted: Tick
-	let prevTick: Tick
-	let m = 0 // index of existed ticks
-	let processed = -1;
-	while (m < existedTicks.length) {
-		const existed = existedTicks[m]
-		// find one in the new ticks that just passes existed
-		let n = processed + 1
-		while (n < newTicks.length) {
-			const tick = newTicks[n]
-			if (tick.x > existed.x) {
-				break
-			}
-			n++;
-		}
-
-		mergeTicks.push(existed)
-		prevTick = existed
-
-		// push ticks before existed till prevExisted
-		let i = n - 1
-		while (i >= 0) {
-			const tick = newTicks[i]
-			console.log(prevExisted?.x, tick.x, existed.x)
-			if (tick.x < existed.x - MIN_TICK_SPACING && tick.x > (prevExisted?.x ?? 0) + MIN_TICK_SPACING) {
-				if (prevTick.x - tick.x > MIN_TICK_SPACING) {
-					console.log(tick.x - prevTick?.x, tick.x - existed.x)
-					mergeTicks.push(tick)
-					prevTick = tick
-				}
-			}
-
-			i--
-		}
-
-		processed = n - 1
-		prevExisted = existed
-		prevTick = existed
-		m++
-	}
-
-	for (let i = processed + 1; i < newTicks.length; i++) {
-		const tick = newTicks[i]
-		if (prevTick === undefined || tick.x - prevTick.x > MIN_TICK_SPACING) {
-			mergeTicks.push(tick)
-			prevTick = tick
-		}
-	}
-
-	return mergeTicks.sort((a, b) => a.x - b.x);
-}
-
 function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart: number): Tick[] {
 	const nTicks = Math.round(wChart / MIN_TICK_SPACING);
 
