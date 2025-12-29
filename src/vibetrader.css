@@ -155,7 +155,7 @@
 
 
 .drawing path {
-    stroke: var(--gray-601);
+    stroke: var(--gray-600);
     fill: var(--gray-600);
     stroke-width: 0.7px;
 }
