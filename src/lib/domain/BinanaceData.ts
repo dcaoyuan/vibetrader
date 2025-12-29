@@ -1,6 +1,9 @@
 
-const BINANCE_API_URL = 'https://api.binance.com/api/v3';
 const MAX_LIMIT = 1000; // Binance API max limit per request
+
+const BINANCE_API_URL_DEFAULT = 'https://api.binance.com/api/v3';
+const BINANCE_API_URL_US = 'https://api.binance.us/api/v3';
+const BINANCE_API_URL = BINANCE_API_URL_US
 
 interface Kline {
     openTime: number;
