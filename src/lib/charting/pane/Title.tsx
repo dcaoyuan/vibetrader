@@ -4,7 +4,7 @@ import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
 import { Button, useFilter } from 'react-aria-components';
-import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField } from "@react-spectrum/s2";
+import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField, TooltipTrigger, Tooltip } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { TFrame } from "../../timeseris/TFrame";
 import { fetchSymbolList } from "../../domain/BinanaceData";
@@ -48,9 +48,15 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
 
     return (
         <MenuTrigger>
-            <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
-                {props.symbol}
-            </Button>
+            <TooltipTrigger delay={500} placement="top">
+                <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                    {props.symbol}
+                </Button>
+                <Tooltip>
+                    Change symbol
+                </Tooltip>
+            </TooltipTrigger>
+
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
                     <Autocomplete
@@ -96,9 +102,15 @@ export function ChooseTimeframe(props: { symbol: string, timeframe: TFrame, hand
 
     return (
         <MenuTrigger>
-            <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
-                {props.timeframe.shortName}
-            </Button>
+            <TooltipTrigger delay={500} placement="top">
+                <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                    {props.timeframe.shortName}
+                </Button>
+                <Tooltip>
+                    Change timeframe
+                </Tooltip>
+            </TooltipTrigger>
+
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
                     <Autocomplete filter={contains}>
