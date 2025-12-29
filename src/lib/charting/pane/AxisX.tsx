@@ -67,7 +67,7 @@ const locatorDict = {
 type Tick = {
 	dt: Temporal.ZonedDateTime,
 	x: number,
-	kind: "year" | "month" | "week" | "day" | "hour" | "minute"
+	level: "year" | "month" | "week" | "day" | "hour" | "minute"
 }
 
 function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart: number): Tick[] {
@@ -228,24 +228,24 @@ class AxisX extends Component<Props, State> {
 
 			if (prevDt !== undefined) {
 				if (dt.year !== prevDt.year) {
-					yTicks.push({ dt, x, kind: "year" })
+					yTicks.push({ dt, x, level: "year" })
 
 				} else if (dt.month !== prevDt.month) {
-					MTicks.push({ dt, x, kind: "month" })
+					MTicks.push({ dt, x, level: "month" })
 
 				} else if (dt.day !== prevDt.day) {
-					dTicks.push({ dt, x, kind: "day" })
+					dTicks.push({ dt, x, level: "day" })
 
 				} else if (dt.hour !== prevDt.hour) {
-					hTicks.push({ dt, x, kind: "hour" })
+					hTicks.push({ dt, x, level: "hour" })
 
 				} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
-					mTicks.push({ dt, x, kind: "minute" })
+					mTicks.push({ dt, x, level: "minute" })
 				}
 
 				if (tframe === '1W') {
 					if (dt.weekOfYear !== prevDt.weekOfYear) {
-						WTicks.push({ dt, x, kind: "week" })
+						WTicks.push({ dt, x, level: "week" })
 					}
 				}
 			}
@@ -254,13 +254,13 @@ class AxisX extends Component<Props, State> {
 		}
 
 		let ticks: Tick[] = []
-		if (tframe !== "1W") {
+		if (tframe === "1W") { // 'week' is special case
+			ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
+
+		} else {
 			ticks = fillTicks(ticks, mTicks, "minute", this.props.xc.wChart);
 			ticks = fillTicks(ticks, hTicks, "hour", this.props.xc.wChart);
 			ticks = fillTicks(ticks, dTicks, "day", this.props.xc.wChart);
-
-		} else {
-			ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
 		}
 
 		ticks = fillTicks(ticks, MTicks, "month", this.props.xc.wChart);
@@ -285,7 +285,7 @@ class AxisX extends Component<Props, State> {
 		const hTick = 4;
 		prevDt = undefined
 		for (let i = 0; i < ticks.length; i++) {
-			const { dt, x, kind } = ticks[i]
+			const { dt, x, level } = ticks[i]
 			if (this.props.up) {
 				path.moveto(x, hFont - 1)
 				path.lineto(x, hFont - hTick)
@@ -297,7 +297,7 @@ class AxisX extends Component<Props, State> {
 
 			const date = new Date(dt.epochMilliseconds);
 			let tickStr: string
-			switch (kind) {
+			switch (level) {
 				case "year":
 					tickStr = this.dfY.format(date);
 					break;
