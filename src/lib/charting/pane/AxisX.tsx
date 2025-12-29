@@ -73,7 +73,7 @@ type Tick = {
 function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart: number): Tick[] {
 	const nTicks = Math.round(wChart / MIN_TICK_SPACING);
 
-	// 1. find the lowest suitable level of the data
+	// Find the lowest level ticks first 
 	if (existedTicks.length < 2) {
 		const locators = locatorDict[level]
 		let i = 0;
@@ -91,7 +91,6 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart
 			}
 
 			if (count < nTicks) {
-				// console.log(level, locator, count)
 				for (const tick of newTicks) {
 					const value = level === "year" || level === "week"
 						? tick.dt[level] % 10
@@ -109,13 +108,12 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart
 		}
 
 	} else {
+		// just dump upper level ticks after lowest found.
 		existedTicks = existedTicks.concat(newTicks)
 	}
 
-	// console.log(level, existedTicks)
 	return existedTicks.sort((a, b) => a.x - b.x);
 }
-
 
 class AxisX extends Component<Props, State> {
 	ref: RefObject<SVGAElement>;
