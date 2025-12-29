@@ -70,8 +70,7 @@ type Tick = {
 	level: "year" | "month" | "week" | "day" | "hour" | "minute"
 }
 
-function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart: number): Tick[] {
-	const nTicks = Math.round(wChart / MIN_TICK_SPACING);
+function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicksMax: number): Tick[] {
 
 	// Find the lowest level ticks first 
 	if (existedTicks.length < 2) {
@@ -90,7 +89,7 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, wChart
 				}
 			}
 
-			if (count < nTicks) {
+			if (count < nTicksMax) {
 				for (const tick of newTicks) {
 					const value = level === "year" || level === "week"
 						? tick.dt[level] % 10
@@ -209,16 +208,17 @@ class AxisX extends Component<Props, State> {
 	plot() {
 		const nBars = this.props.xc.nBars
 
+		const nTicksMax = Math.round(this.props.xc.wChart / MIN_TICK_SPACING);
 		const tzone = this.props.xc.baseSer.timezone;
 		const tframe = this.props.xc.baseSer.timeframe.shortName;
 		let prevDt: Temporal.ZonedDateTime;
 
-		const yTicks: Tick[] = []
-		const MTicks: Tick[] = []
-		const WTicks: Tick[] = []
-		const dTicks: Tick[] = []
-		const hTicks: Tick[] = []
-		const mTicks: Tick[] = []
+		const yearTicks: Tick[] = []
+		const monthTicks: Tick[] = []
+		const weekTicks: Tick[] = []
+		const dayTicks: Tick[] = []
+		const hourTicks: Tick[] = []
+		const minuteTicks: Tick[] = []
 
 		const minute_locator = locatorDict['minute'][0]
 		for (let i = 1; i <= nBars; i++) {
@@ -228,24 +228,24 @@ class AxisX extends Component<Props, State> {
 
 			if (prevDt !== undefined) {
 				if (dt.year !== prevDt.year) {
-					yTicks.push({ dt, x, level: "year" })
+					yearTicks.push({ dt, x, level: "year" })
 
 				} else if (dt.month !== prevDt.month) {
-					MTicks.push({ dt, x, level: "month" })
+					monthTicks.push({ dt, x, level: "month" })
 
 				} else if (dt.day !== prevDt.day) {
-					dTicks.push({ dt, x, level: "day" })
+					dayTicks.push({ dt, x, level: "day" })
 
 				} else if (dt.hour !== prevDt.hour) {
-					hTicks.push({ dt, x, level: "hour" })
+					hourTicks.push({ dt, x, level: "hour" })
 
 				} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
-					mTicks.push({ dt, x, level: "minute" })
+					minuteTicks.push({ dt, x, level: "minute" })
 				}
 
 				if (tframe === '1W') {
 					if (dt.weekOfYear !== prevDt.weekOfYear) {
-						WTicks.push({ dt, x, level: "week" })
+						weekTicks.push({ dt, x, level: "week" })
 					}
 				}
 			}
@@ -254,17 +254,17 @@ class AxisX extends Component<Props, State> {
 		}
 
 		let ticks: Tick[] = []
-		if (tframe === "1W") { // 'week' is special case
-			ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
+		if (tframe === "1W") { // 'week' is a special case
+			ticks = fillTicks(ticks, weekTicks, "week", nTicksMax);
 
 		} else {
-			ticks = fillTicks(ticks, mTicks, "minute", this.props.xc.wChart);
-			ticks = fillTicks(ticks, hTicks, "hour", this.props.xc.wChart);
-			ticks = fillTicks(ticks, dTicks, "day", this.props.xc.wChart);
+			ticks = fillTicks(ticks, minuteTicks, "minute", nTicksMax);
+			ticks = fillTicks(ticks, hourTicks, "hour", nTicksMax);
+			ticks = fillTicks(ticks, dayTicks, "day", nTicksMax);
 		}
 
-		ticks = fillTicks(ticks, MTicks, "month", this.props.xc.wChart);
-		ticks = fillTicks(ticks, yTicks, "year", this.props.xc.wChart);
+		ticks = fillTicks(ticks, monthTicks, "month", nTicksMax);
+		ticks = fillTicks(ticks, yearTicks, "year", nTicksMax);
 
 		// --- path and texts
 		const hFont = 16;
