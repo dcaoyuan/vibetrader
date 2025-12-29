@@ -180,7 +180,7 @@ class KlineViewContainer extends Component<Props, State> {
         const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         //const tzone = "America/Vancouver"
         const tframe = TFrame.DAILY
-        const symbol = "BTCUSDC"
+        const symbol = "BTCUSDT"
 
         const baseSer = new DefaultTSer(tframe, tzone, 1000);
         const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
