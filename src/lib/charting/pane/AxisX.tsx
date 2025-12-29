@@ -120,6 +120,7 @@ class AxisX extends Component<Props, State> {
 
 	dfY: Intl.DateTimeFormat
 	dfYM: Intl.DateTimeFormat
+	dfM: Intl.DateTimeFormat
 	dfMD: Intl.DateTimeFormat
 	dfD: Intl.DateTimeFormat
 	dfH: Intl.DateTimeFormat
@@ -143,6 +144,11 @@ class AxisX extends Component<Props, State> {
 		this.dfYM = new Intl.DateTimeFormat("en-US", {
 			timeZone: tzone,
 			year: "numeric",
+			month: "short",
+		});
+
+		this.dfM = new Intl.DateTimeFormat("en-US", {
+			timeZone: tzone,
 			month: "short",
 		});
 
@@ -303,7 +309,7 @@ class AxisX extends Component<Props, State> {
 					break;
 
 				case "month":
-					tickStr = this.dfYM.format(date);
+					tickStr = this.dfM.format(date);
 					break;
 
 				case "week":
