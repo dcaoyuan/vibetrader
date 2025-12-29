@@ -34,6 +34,20 @@ const timeframe_to_binance = {
     '1M': '1M', // 1 month
 };
 
+
+export const timeframe_to_pinetsProvider = {
+    '1m': '1',
+    '3m': '3',
+    '5m': '5', // 5 minutes
+    '15m': '15', // 15 minutes
+    '30m': '30', // 30 minutes
+    '1h': '60', // 1 hour
+    '2h': '120', // 2 hours
+    '4h': '240', // 4 hours
+    '1d': '1D', // 1 day
+    '1w': '1W', // 1 week
+    '1M': '1M', // 1 month
+};
 /**
  * Fetches a batch of klines from Binance API
  */

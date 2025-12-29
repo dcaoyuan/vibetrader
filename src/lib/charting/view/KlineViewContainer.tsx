@@ -11,10 +11,11 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Context, PineTS } from "pinets";
+import { Context, PineTS, Provider } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import * as Binance from "../../domain/BinanaceData";
+
 import {
     ActionButton,
     ActionButtonGroup,
@@ -262,7 +263,10 @@ class KlineViewContainer extends Component<Props, State> {
             ? startTime
             : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-        return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
+        const provider = Provider.Binance
+        const pinets_tframe = Binance.timeframe_to_pinetsProvider[timeframe] || timeframe
+        return provider.getMarketData(symbol, pinets_tframe, limit, startTime, endTime)
+            //return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
             .then(binanceKline => {
                 // console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
