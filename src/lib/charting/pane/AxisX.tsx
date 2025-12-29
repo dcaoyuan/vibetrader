@@ -183,12 +183,15 @@ class AxisX extends Component<Props, State> {
 	dfH: Intl.DateTimeFormat
 	dfm: Intl.DateTimeFormat
 
+	dfCursor: Intl.DateTimeFormat
+
 	constructor(props: Props) {
 		super(props);
 
 		this.ref = React.createRef();
 
 		const tzone = props.xc.baseSer.timezone
+		const tframe = props.xc.baseSer.timeframe
 
 		this.dfY = new Intl.DateTimeFormat("en-US", {
 			timeZone: tzone,
@@ -226,6 +229,33 @@ class AxisX extends Component<Props, State> {
 			hour12: false,
 		});
 
+		switch (tframe.unit.shortName) {
+			case "m":
+			case "h":
+				this.dfCursor = new Intl.DateTimeFormat("en-US", {
+					timeZone: tzone,
+					month: "short",
+					day: "numeric",
+					hour: "2-digit",
+					minute: "2-digit",
+					hour12: false,
+				});
+
+				break
+
+			case "D":
+			case "W":
+			case "M":
+			case "Y":
+				this.dfCursor = new Intl.DateTimeFormat("en-US", {
+					timeZone: tzone,
+					year: "numeric",
+					month: "short",
+					day: "numeric",
+				});
+
+		}
+
 		const chart = this.plot();
 		this.state = { chart, referCursor: <></>, mouseCursor: <></> };
 
@@ -237,6 +267,7 @@ class AxisX extends Component<Props, State> {
 		const nBars = this.props.xc.nBars
 
 		const tzone = this.props.xc.baseSer.timezone;
+		const tframe = this.props.xc.baseSer.timeframe.shortName;
 		let prevDt: Temporal.ZonedDateTime;
 
 		const yTicks: Tick[] = []
@@ -259,9 +290,6 @@ class AxisX extends Component<Props, State> {
 				} else if (dt.month !== prevDt.month) {
 					MTicks.push({ dt, x, kind: "month" })
 
-				} else if (dt.weekOfYear !== prevDt.weekOfYear) {
-					dTicks.push({ dt, x, kind: "week" })
-
 				} else if (dt.day !== prevDt.day) {
 					dTicks.push({ dt, x, kind: "day" })
 
@@ -271,18 +299,27 @@ class AxisX extends Component<Props, State> {
 				} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
 					mTicks.push({ dt, x, kind: "minute" })
 				}
+
+				if (tframe === '1W') {
+					if (dt.weekOfYear !== prevDt.weekOfYear) {
+						WTicks.push({ dt, x, kind: "week" })
+					}
+				}
 			}
 
 			prevDt = dt;
 		}
 
 		let ticks: Tick[] = []
-		if (this.props.xc.baseSer.timeframe.shortName !== "1W") {
+		if (tframe !== "1W") {
 			ticks = fillTicks(ticks, mTicks, "minute", this.props.xc.wChart);
 			ticks = fillTicks(ticks, hTicks, "hour", this.props.xc.wChart);
 			ticks = fillTicks(ticks, dTicks, "day", this.props.xc.wChart);
+
+		} else {
+			ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
 		}
-		ticks = fillTicks(ticks, WTicks, "week", this.props.xc.wChart);
+
 		ticks = fillTicks(ticks, MTicks, "month", this.props.xc.wChart);
 		ticks = fillTicks(ticks, yTicks, "year", this.props.xc.wChart);
 
@@ -407,15 +444,16 @@ class AxisX extends Component<Props, State> {
 	}
 
 	#plotCursor(x: number, time: number, className: string) {
-		const w = 50; // annotation width
 		const h = 13; // annotation height
 
-		const x0 = x - 24;
+		const dtStr = this.dfCursor.format(new Date(time))
 
-		const tzone = this.props.xc.baseSer.timezone;
-		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
-		const dtStr = this.props.xc.baseSer.timeframe.unit.formatNormalDate(dt, tzone)
-
+		const canvas = document.createElement("canvas");
+		const ctx = canvas.getContext("2d");
+		ctx.font = this.font;
+		const metrics = ctx.measureText(dtStr);
+		const w = metrics.width + 3
+		const x0 = x - w / 2;
 
 		const axisxPath = new Path;
 		const axisxTexts = new Texts
@@ -430,7 +468,7 @@ class AxisX extends Component<Props, State> {
 		axisxPath.lineto(x0 + w, y0 + h);
 		axisxPath.lineto(x0, y0 + h);
 		axisxPath.closepath();
-		axisxTexts.text(x0 + 1, this.props.up ? h - 1 : h + 4, dtStr);
+		axisxTexts.text(x0 + 2, this.props.up ? h - 1 : h + 4, dtStr);
 
 		return (
 			<g className={className}>

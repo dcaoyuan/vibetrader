@@ -2,13 +2,14 @@ import { type TSer } from "../../timeseris/TSer";
 import { TVar } from "../../timeseris/TVar";
 import { ChartXControl } from "./ChartXControl";
 import { ChartYControl } from "./ChartYControl";
-import { Component, Fragment, type JSX } from "react";
+import { Component, Fragment, type JSX, type RefObject } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Kline } from "../../domain/Kline";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 import { type Selection } from "@react-spectrum/s2"
+import React from "react";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -104,11 +105,16 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     yc: ChartYControl;
 
+    ref: RefObject<SVGAElement>;
+    font: string;
+
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
 
         this.yc = new ChartYControl(props.xc.baseSer, props.height);
+
+        this.ref = React.createRef();
 
         this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
         this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
@@ -383,8 +389,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     plotYValueLabel(y: number, value: number, className: string) {
         const valueStr = value.toFixed(3);
 
-        const wLabel = ChartView.AXISY_WIDTH; // label width
-        const hLabel = 12; // label height
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.font = this.font;
+        const metrics = ctx.measureText(valueStr);
+        const wLabel = metrics.width + 5
+        const hLabel = 13;
 
         const wAxisY = ChartView.AXISY_WIDTH
 
@@ -402,7 +412,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         axisyPath.lineto(x0 + wLabel, y0 - hLabel);
         axisyPath.lineto(x0, y0 - hLabel);
         axisyPath.closepath();
-        axisyTexts.text(8, y0 - 1, valueStr);
+        axisyTexts.text(8, y0 - 2, valueStr);
 
         const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
         return (
@@ -423,6 +433,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     override componentDidMount(): void {
+        if (this.ref.current) {
+            const computedStyle = window.getComputedStyle(this.ref.current);
+            const fontSize = computedStyle.getPropertyValue('font-size');
+            const fontFamily = computedStyle.getPropertyValue('font-family');
+
+            this.font = fontSize + ' ' + fontFamily;
+        }
+
         // call to update labels right now
         this.updateCursors(undefined, undefined);
     }
@@ -853,6 +871,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 onMouseMove={this.onDrawingMouseMove}
                 onMouseUp={this.onDrawingMouseUp}
                 cursor={this.state.cursor}
+                ref={this.ref}
             >
                 {/* Invisible background to capture clicks in empty space */}
                 <rect width="100%" height="100%" fill="transparent" pointerEvents="all" />
