@@ -307,7 +307,7 @@ export class ChartXControl {
     get isOnCalendarMode() {
         return this.baseSer.isOnCalendarMode
     }
-    set isOnCalendarMode(b: boolean) {
+    setOnCalendarMode(b: boolean) {
         if (this.isOnCalendarMode !== b) {
             const referCursorTime1 = this.referCursorTime()
             const rightCursorTime1 = this.rightSideTime()

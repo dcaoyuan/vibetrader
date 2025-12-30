@@ -61,6 +61,8 @@ import DistributeSpaceVertically from '@react-spectrum/s2/icons/DistributeSpaceV
 import Resize from '@react-spectrum/s2/icons/Resize';
 import StrokeWidth from '@react-spectrum/s2/icons/StrokeWidth';
 import Percentage from '@react-spectrum/s2/icons/Percentage';
+import StarFilled from '@react-spectrum/s2/icons/StarFilled';
+import Star from '@react-spectrum/s2/icons/Star';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import type { KlineKind } from "../plot/KlineChart";
@@ -221,6 +223,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
         this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
+        this.toggleOnCalendarMode = this.toggleOnCalendarMode.bind(this)
         this.toggleKlineKind = this.toggleKlineKind.bind(this)
         this.toggleScalar = this.toggleScalar.bind(this)
 
@@ -891,6 +894,12 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart', yScalar: true })
     }
 
+    private toggleOnCalendarMode() {
+        this.state.xc.setOnCalendarMode(!this.state.xc.isOnCalendarMode)
+        this.update({ type: 'chart' })
+    }
+
+
     render() {
         return (
             <div style={{ display: "flex" }} >
@@ -1022,6 +1031,15 @@ class KlineViewContainer extends Component<Props, State> {
                                 Toggle Linear/Lg scale
                             </Tooltip>
                         </TooltipTrigger>
+
+                        {/* <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={this.toggleOnCalendarMode} >
+                                {this.state.xc.isOnCalendarMode ? <StarFilled /> : <Star />}
+                            </ActionButton>
+                            <Tooltip >
+                                Toggle Calendar/Occurred mode
+                            </Tooltip>
+                        </TooltipTrigger> */}
 
                         <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
