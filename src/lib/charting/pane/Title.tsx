@@ -437,7 +437,6 @@ class Title extends Component<Props, State> {
                                         </span>
                                     </>
                                     : <div style={{ visibility: "hidden" }}>
-                                        <span className="label-title">T </span>
                                         <span className="label-refer">
                                             {this.dtFormatL.format(new Date())}
                                         </span>
