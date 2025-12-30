@@ -164,3 +164,57 @@ export function brightenHex(hex: string, percent: number) {
     // Convert back to Hex
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
+
+// const monthColors = [ 
+//   Color.cyan.darker.darker.darker,
+//   Color.cyan.darker.darker,
+//   Color.yellow.darker.darker.darker,
+//   Color.red.darker.darker.darker,
+//   Color.red.darker.darker,
+//   Color.yellow.darker.darker.darker,
+//   Color.white.darker.darker.darker,
+//   Color.white.darker.darker,
+//   Color.yellow.darker.darker.darker,
+//   Color.magenta.darker.darker.darker,
+//   Color.magenta.darker.darker,
+//   Color.yellow.darker.darker.darker
+// ]
+
+// val planetColors = Array(
+//   Color.magenta.darker,
+//   Color.white,
+//   Color.blue,
+//   Color.red,
+//   Color.cyan,
+//   Color.yellow,
+//   Color.orange.darker.darker,
+//   Color.green.darker.darker,
+//   Color.gray.darker.darker,
+//   Color.blue
+// )
+
+//        chartColors = new Color[] {
+//            Color.BLUE,
+//                    Color.YELLOW,
+//                    Color.CYAN,
+//                    Color.MAGENTA,
+//                    Color.PINK,
+//                    Color.ORANGE,
+//                    Color.WHITE,
+//                    Color.RED.darker,
+//                    Color.GREEN.darker,
+//        };
+export const chartColors = [
+    '#FFFFFF', // .darker // white Venus
+    "#FFFF00", // yellow Sun
+    "#FF00FF", // Magenta Pluto
+    "#00FF00", // Green Earth
+    "#0000FF", // Blue Mercury
+    "#FF0000", // Red Mars
+    "#00FFFF", // Cyan, Jupiter
+    "#FFC0CB", // Pink, Uranus
+    "#FFFF00", // .darker, // yellow Saturn
+    "#D2D3D3", // lightgray Neptune
+    "#A9A9A9"  // darkgray MOON
+]
+

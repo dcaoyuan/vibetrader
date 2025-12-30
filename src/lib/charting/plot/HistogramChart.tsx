@@ -1,6 +1,5 @@
 import { Path } from "../../svg/Path";
 import type { TVar } from "../../timeseris/TVar";
-import { Theme } from "../theme/Theme"
 import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
 
@@ -17,14 +16,11 @@ type Props = {
 const HistogramChart = (props: Props) => {
     const { xc, yc, tvar, atIndex } = props;
 
-    const posColor = Theme.now().getPositiveColor();
-    const negColor = Theme.now().getNegativeColor();
-
     function plotChart() {
-        const thin = false// Theme.now().isThinVolumeBar; //|| m.thin
+        const thin = false
 
-        const posPath = new Path;
-        const negPath = posColor === negColor ? undefined : new Path;
+        const posPath = new Path()
+        const negPath = new Path()
 
         const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
 

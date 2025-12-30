@@ -1,5 +1,4 @@
 import { TVar } from "../../timeseris/TVar";
-import { Theme } from "../theme/Theme";
 import { Kline } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
@@ -19,15 +18,11 @@ const KlineChart = (props: Props) => {
     const { xc, yc, kvar, kind, depth } = props;
 
     /** depth !== 0 is for comparing klines charts */
-    const posColor = depth === 0 ? Theme.now().getPositiveColor() : Theme.now().getChartColor(depth);
-    const negColor = depth === 0 ? Theme.now().getNegativeColor() : posColor;
-
-    const isFill = kind === 'candle' && Theme.now().isFillBar;
 
     function plotChart() {
 
-        const posPath = new Path;
-        const negPath = posColor === negColor ? undefined : new Path;
+        const posPath = new Path()
+        const negPath = new Path()
 
         switch (kind) {
             case 'candle':

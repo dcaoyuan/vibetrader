@@ -1,6 +1,5 @@
 import { Component, type JSX } from "react";
 import { Path } from "../../svg/Path";
-import { Theme } from "../theme/Theme";
 
 type Props = {
     id: number,
@@ -61,13 +60,13 @@ class Spacing extends Component<Props, State> {
                 path.lineto(0, 8);
         }
 
-        return path.render({ key: 'spacing-' + this.props.id, style: { stroke: Theme.now().axisColor } })
+        return path.render()
     }
 
     render() {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
-            <g transform={transform}  >
+            <g transform={transform} className="axis">
                 {this.chart}
             </g>
         )

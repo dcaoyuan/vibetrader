@@ -1,5 +1,4 @@
 import { TVar } from "../../timeseris/TVar";
-import { Theme } from "../theme/Theme";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
@@ -18,7 +17,7 @@ const LineChart = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plotChart() {
-        const path = new Path;
+        const path = new Path()
 
         plotLineChart(path);
 
