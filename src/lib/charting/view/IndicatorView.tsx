@@ -74,7 +74,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 const values = this.props.tvar.getByTime(time);
                 for (const { atIndex } of this.props.mainIndicatorOutputs) {
                     const v = values[atIndex];
-                    if (v !== undefined && isNaN(v) === false) {
+                    if (v !== undefined && typeof v === 'number' && !isNaN(v)) {
                         max = Math.max(max, v)
                         min = Math.min(min, v)
                     }

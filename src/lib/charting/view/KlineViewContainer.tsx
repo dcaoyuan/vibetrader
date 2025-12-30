@@ -140,6 +140,7 @@ type State = {
 
 const KVAR_NAME = "kline";
 
+// const allInds = ['macd']
 const allInds = ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOPTIP_DELAY = 500; // ms
@@ -340,6 +341,7 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar.setByIndex(i, vs);
                         }
 
+                        // console.log(plots.map(x => x.data))
                         // console.log(plots.map(x => x.options))
 
                         const outputs = plots.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
