@@ -169,8 +169,8 @@ class Title extends Component<Props, State> {
 
         this.dtFormatL = new Intl.DateTimeFormat("en-US", {
             timeZone: this.tzone,
-            year: "2-digit",
-            month: "2-digit",
+            year: "numeric",
+            month: "short",
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
@@ -346,7 +346,6 @@ class Title extends Component<Props, State> {
                         <div style={{ textAlign: 'left' }}>
                             <div>
                                 {pKline && <>
-                                    <span className="label-title">T </span>
                                     <span className="label-mouse">
                                         {this.dtFormatL.format(new Date(pKline.closeTime))}
                                     </span>
@@ -433,7 +432,6 @@ class Title extends Component<Props, State> {
                             <div>
                                 {rKline
                                     ? <>
-                                        <span className="label-title">T </span>
                                         <span className="label-refer">
                                             {this.dtFormatL.format(new Date(rKline.closeTime))}
                                         </span>
