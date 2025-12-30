@@ -480,7 +480,7 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
         }).then(() => {
-            this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
+            this.fetchData_calcInds(this.state.symbol, this.state.tframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
 
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
@@ -817,7 +817,7 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.fetchData_calcInds(this.state.symbol, this.state.xc.baseSer.timeframe.shortName.toLowerCase(), this.latestTime, 1000, selectedIndicatorTags)
+        this.fetchData_calcInds(this.state.symbol, this.state.tframe.shortName, this.latestTime, 1000, selectedIndicatorTags)
     }
 
     setDrawingIdsToCreate(ids?: Selection) {
