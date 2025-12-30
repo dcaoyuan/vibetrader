@@ -1,5 +1,5 @@
 import type { TSer } from "../../timeseris/TSer"
-import type { KlineKind } from "../chart/KlineChart"
+import type { KlineKind } from "../plot/KlineChart"
 
 /**
  * Each TSer can have more than one ChartXControl instances.

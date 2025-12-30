@@ -61,7 +61,7 @@ import DistributeSpaceVertically from '@react-spectrum/s2/icons/DistributeSpaceV
 import Resize from '@react-spectrum/s2/icons/Resize';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
-import type { KlineKind } from "../chart/KlineChart";
+import type { KlineKind } from "../plot/KlineChart";
 
 type Props = {
     width: number,
