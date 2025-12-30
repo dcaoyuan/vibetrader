@@ -241,27 +241,84 @@ class AxisX extends Component<Props, State> {
 			const x = this.props.xc.xb(i);
 
 			if (prevDt !== undefined) {
-				if (dt.year !== prevDt.year) {
-					yearTicks.push({ dt, x, level: "year" })
+				switch (tframe.unit.shortName) {
+					case 'm':
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
 
-				} else if (dt.month !== prevDt.month) {
-					monthTicks.push({ dt, x, level: "month" })
+						} else if (dt.month !== prevDt.month) {
+							monthTicks.push({ dt, x, level: "month" })
 
-				} else if (dt.day !== prevDt.day) {
-					dayTicks.push({ dt, x, level: "day" })
+						} else if (dt.day !== prevDt.day) {
+							dayTicks.push({ dt, x, level: "day" })
 
-				} else if (dt.hour !== prevDt.hour) {
-					hourTicks.push({ dt, x, level: "hour" })
+						} else if (dt.hour !== prevDt.hour) {
+							hourTicks.push({ dt, x, level: "hour" })
 
-				} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
-					minuteTicks.push({ dt, x, level: "minute" })
+						} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
+							minuteTicks.push({ dt, x, level: "minute" })
+						}
+
+						break;
+
+					case "h":
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
+
+						} else if (dt.month !== prevDt.month) {
+							monthTicks.push({ dt, x, level: "month" })
+
+						} else if (dt.day !== prevDt.day) {
+							dayTicks.push({ dt, x, level: "day" })
+
+						} else if (dt.hour !== prevDt.hour) {
+							hourTicks.push({ dt, x, level: "hour" })
+						}
+
+						break
+
+					case "D":
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
+
+						} else if (dt.month !== prevDt.month) {
+							monthTicks.push({ dt, x, level: "month" })
+
+						} else if (dt.day !== prevDt.day) {
+							dayTicks.push({ dt, x, level: "day" })
+						}
+
+						break;
+
+					case "W":
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
+
+						} else if (dt.month !== prevDt.month) {
+							monthTicks.push({ dt, x, level: "month" })
+
+						} else if (dt.weekOfYear !== prevDt.weekOfYear) {
+							weekTicks.push({ dt, x, level: "week" })
+						}
+
+						break
+
+					case "M":
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
+
+						} else if (dt.month !== prevDt.month) {
+							monthTicks.push({ dt, x, level: "month" })
+						}
+
+						break;
+
+					case "Y":
+						if (dt.year !== prevDt.year) {
+							yearTicks.push({ dt, x, level: "year" })
+						}
 				}
 
-				if (tframe.unit.shortName === 'W') {
-					if (dt.weekOfYear !== prevDt.weekOfYear) {
-						weekTicks.push({ dt, x, level: "week" })
-					}
-				}
 			}
 
 			prevDt = dt;
