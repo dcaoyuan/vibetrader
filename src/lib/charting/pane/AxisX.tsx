@@ -114,7 +114,8 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicks
 		}
 
 	} else {
-		// just dump upper level ticks after lowest found.
+		// just dump upper level ticks after lowest found, 
+		// whose number is less than 1/12 (year to month) of lowest ticks 
 		existedTicks = existedTicks.concat(newTicks)
 	}
 
@@ -223,7 +224,7 @@ class AxisX extends Component<Props, State> {
 
 		const nTicksAround = Math.round(this.props.xc.wChart / MIN_TICK_SPACING);
 		const tzone = this.props.xc.baseSer.timezone;
-		const tframe = this.props.xc.baseSer.timeframe.shortName;
+		const tframe = this.props.xc.baseSer.timeframe;
 		let prevDt: Temporal.ZonedDateTime;
 
 		const yearTicks: Tick[] = []
@@ -256,7 +257,7 @@ class AxisX extends Component<Props, State> {
 					minuteTicks.push({ dt, x, level: "minute" })
 				}
 
-				if (tframe === '1W') {
+				if (tframe.unit.shortName === 'W') {
 					if (dt.weekOfYear !== prevDt.weekOfYear) {
 						weekTicks.push({ dt, x, level: "week" })
 					}
@@ -267,17 +268,47 @@ class AxisX extends Component<Props, State> {
 		}
 
 		let ticks: Tick[] = []
-		if (tframe === "1W") { // 'week' is a special case
-			ticks = fillTicks(ticks, weekTicks, "week", nTicksAround);
+		switch (tframe.unit.shortName) {
+			case "m":
+				ticks = fillTicks(ticks, minuteTicks, "minute", nTicksAround);
+				ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
+				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
+				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
 
-		} else {
-			ticks = fillTicks(ticks, minuteTicks, "minute", nTicksAround);
-			ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
-			ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
+				break;
+
+			case "h":
+				ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
+				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
+				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
+
+				break
+
+			case "D":
+				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
+				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
+
+				break;
+
+			case "W":
+				ticks = fillTicks(ticks, weekTicks, "week", nTicksAround);
+				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
+
+				break
+
+			case "M":
+				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
+
+				break;
+
+			case "Y":
+				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
 		}
-
-		ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-		ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
 
 		// --- path and texts
 
