@@ -140,7 +140,7 @@ type State = {
 
 const KVAR_NAME = "kline";
 
-const allInds = ['ema', 'sma', 'bb', 'rsi', 'macd']
+const allInds = ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOPTIP_DELAY = 500; // ms
 
@@ -202,7 +202,7 @@ class KlineViewContainer extends Component<Props, State> {
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
-            selectedIndicatorTags: new Set(['ema', 'rsi', 'macd']),
+            selectedIndicatorTags: new Set(['sma', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
             ...geometry,
         }
