@@ -49,7 +49,6 @@ const locatorDict = {
 	],
 	day: [
 		[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28],
-		[3, 6, 9, 12, 15, 18, 21, 24, 26, 28],
 		[4, 8, 12, 16, 20, 24, 28],
 		[5, 10, 15, 20, 25],
 		[10, 20],
@@ -77,7 +76,7 @@ type Tick = {
 	level: "year" | "month" | "week" | "day" | "hour" | "minute"
 }
 
-function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicksMax: number): Tick[] {
+function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicksAround: number): Tick[] {
 
 	// Find the lowest level ticks first 
 	if (existedTicks.length < 2) {
@@ -97,7 +96,7 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicks
 			}
 
 			// console.log(level, locator, count)
-			if (count < nTicksMax) {
+			if (count < nTicksAround) { // may add upper level ticks later, so nTicksAround, not nTicksMax
 				for (const tick of newTicks) {
 					const value = level === "year" || level === "week"
 						? tick.dt[level] % 10
@@ -222,7 +221,7 @@ class AxisX extends Component<Props, State> {
 	plot() {
 		const nBars = this.props.xc.nBars
 
-		const nTicksMax = Math.round(this.props.xc.wChart / MIN_TICK_SPACING);
+		const nTicksAround = Math.round(this.props.xc.wChart / MIN_TICK_SPACING);
 		const tzone = this.props.xc.baseSer.timezone;
 		const tframe = this.props.xc.baseSer.timeframe.shortName;
 		let prevDt: Temporal.ZonedDateTime;
@@ -269,18 +268,19 @@ class AxisX extends Component<Props, State> {
 
 		let ticks: Tick[] = []
 		if (tframe === "1W") { // 'week' is a special case
-			ticks = fillTicks(ticks, weekTicks, "week", nTicksMax);
+			ticks = fillTicks(ticks, weekTicks, "week", nTicksAround);
 
 		} else {
-			ticks = fillTicks(ticks, minuteTicks, "minute", nTicksMax);
-			ticks = fillTicks(ticks, hourTicks, "hour", nTicksMax);
-			ticks = fillTicks(ticks, dayTicks, "day", nTicksMax);
+			ticks = fillTicks(ticks, minuteTicks, "minute", nTicksAround);
+			ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
+			ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
 		}
 
-		ticks = fillTicks(ticks, monthTicks, "month", nTicksMax);
-		ticks = fillTicks(ticks, yearTicks, "year", nTicksMax);
+		ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
+		ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
 
 		// --- path and texts
+
 		const hFont = 16;
 
 		const path = new Path;
