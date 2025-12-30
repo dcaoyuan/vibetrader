@@ -137,6 +137,52 @@ export async function fetchAllKlines(
     return allKlines;
 }
 
+let activeApiUrl: string | null = null; // Persist the working endpoint
+
+/**
+  * Resolves the working Binance API endpoint.
+  * Tries default first, then falls back to US endpoint.
+  * Caches the working endpoint for future calls.
+  */
+async function getBaseUrl(): Promise<string> {
+    if (activeApiUrl) {
+        return activeApiUrl;
+    }
+
+    // Try default endpoint
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        const response = await fetch(`${BINANCE_API_URL_DEFAULT}/ping`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            activeApiUrl = BINANCE_API_URL_DEFAULT;
+            return activeApiUrl;
+        }
+    } catch (e) {
+        // Default failed, try US endpoint
+        // console.warn('Binance default API unreachable, trying US endpoint...');
+    }
+
+    // Try US endpoint
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(`${BINANCE_API_URL_US}/ping`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            this.activeApiUrl = BINANCE_API_URL_US;
+            return this.activeApiUrl;
+        }
+    } catch (e) {
+        // Both failed
+    }
+
+    // Fallback to default if check fails entirely (let actual request fail)
+    return BINANCE_API_URL_DEFAULT;
+}
+
+
 const defaultSymbols = [
     { symbol: 'BTCUSDT' },
     { symbol: 'ETHUSDT' },
@@ -149,7 +195,8 @@ let symbolLoaded = false
 let symbols: { symbol: string }[]
 export async function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ symbol: string }[]> {
     if (!symbolLoaded) {
-        const url = `${BINANCE_API_URL}/exchangeInfo`;
+        const baseUrl = await getBaseUrl();
+        const url = `${baseUrl}/exchangeInfo`;
 
         return fetch(url, init)
             .then(r => r.json())
