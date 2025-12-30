@@ -1,7 +1,7 @@
 import type { Scalar } from "./Scalar"
 
 class LgScalar implements Scalar {
-	readonly kind = "lg";
+	readonly kind = "Lg";
 
 	doScale(v: number): number {
 		return v <= 0 ? v : Math.log10(v);

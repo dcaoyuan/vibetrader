@@ -1,7 +1,7 @@
 import type { Scalar } from "./Scalar"
 
 class LinearScalar implements Scalar {
-    readonly kind = "linear";
+    readonly kind = "Linear";
 
     doScale(v: number): number {
         return v;

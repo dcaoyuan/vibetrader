@@ -102,6 +102,10 @@ const AxisY = (props: Props) => {
         path.moveto(0, 0);
         path.lineto(8, 0);
 
+        if (yc.valueScalar.kind !== 'Linear') {
+            texts.text(-1, -8, yc.valueScalar.kind)
+        }
+
         return { path, texts };
     }
 

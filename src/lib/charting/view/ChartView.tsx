@@ -10,12 +10,16 @@ import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 import { type Selection } from "@react-spectrum/s2"
 import React from "react";
+import type { Scalar } from "../scalar/Scalar";
+import { LG_SCALAR } from "../scalar/LgScalar";
+import { LINEAR_SCALAR } from "../scalar/LinearScala";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
     changed?: number,
     xyMouse?: { who: string, x: number, y: number }
     deltaMouse?: { dx: number, dy: number }
+    yScalar?: boolean
 }
 
 export type Indicator = {
@@ -463,16 +467,33 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             switch (this.props.updateEvent.type) {
                 case 'chart':
                     willUpdateChart = true;
-                    if (this.props.id === "kline" && this.props.updateEvent.deltaMouse) {
-                        // apply delta to yc chart scale
-                        const dy = this.props.updateEvent.deltaMouse.dy
-                        if (dy === undefined) {
-                            this.yc.yChartScale = 1 // back to 1
+                    if (this.props.id === "kline") {
+                        if (this.props.updateEvent.deltaMouse) {
+                            // apply delta to yc chart scale
+                            const dy = this.props.updateEvent.deltaMouse.dy
+                            if (dy === undefined) {
+                                this.yc.yChartScale = 1 // back to 1
 
-                        } else {
-                            this.yc.yChartScale = this.yc.yChartScale * (1 - dy / this.yc.hChart)
+                            } else {
+                                this.yc.yChartScale = this.yc.yChartScale * (1 - dy / this.yc.hChart)
+                            }
+
+                        } else if (this.props.updateEvent.yScalar) {
+                            let scalar: Scalar
+                            switch (this.yc.valueScalar.kind) {
+                                case "Linear":
+                                    scalar = LG_SCALAR
+                                    break;
+
+                                case "Lg":
+                                    scalar = LINEAR_SCALAR
+                                    break;
+                            }
+
+                            this.yc.valueScalar = scalar
                         }
                     }
+
                     break;
 
                 case 'cursors':
@@ -491,6 +512,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                         xMouse = undefined;
                         yMouse = undefined;
                     }
+
                     break;
 
                 case 'drawing':

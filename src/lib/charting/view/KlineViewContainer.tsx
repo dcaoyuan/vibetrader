@@ -59,9 +59,15 @@ import Add from '@react-spectrum/s2/icons/Add';
 import DirectSelect from '@react-spectrum/s2/icons/DirectSelect';
 import DistributeSpaceVertically from '@react-spectrum/s2/icons/DistributeSpaceVertically';
 import Resize from '@react-spectrum/s2/icons/Resize';
+import StrokeWidth from '@react-spectrum/s2/icons/StrokeWidth';
+import Percentage from '@react-spectrum/s2/icons/Percentage';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import type { KlineKind } from "../plot/KlineChart";
+import type { Scalar } from "../scalar/Scalar";
+import { LINEAR_SCALAR } from "../scalar/LinearScala";
+import { LN_SCALAR } from "../scalar/LnScalar";
+import { LG_SCALAR } from "../scalar/LgScalar";
 
 type Props = {
     width: number,
@@ -216,6 +222,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.backToOriginalChartScale = this.backToOriginalChartScale.bind(this)
         this.toggleCrosshairVisiable = this.toggleCrosshairVisiable.bind(this)
         this.toggleKlineKind = this.toggleKlineKind.bind(this)
+        this.toggleScalar = this.toggleScalar.bind(this)
 
         this.handleSymbolTimeframeChanged = this.handleSymbolTimeframeChanged.bind(this)
 
@@ -880,6 +887,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' })
     }
 
+    private toggleScalar() {
+        this.update({ type: 'chart', yScalar: true })
+    }
 
     render() {
         return (
@@ -1005,11 +1015,20 @@ class KlineViewContainer extends Component<Props, State> {
                         </TooltipTrigger>
 
                         <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <ActionButton onPress={this.toggleScalar} >
+                                <Percentage />
+                            </ActionButton>
+                            <Tooltip >
+                                Toggle Linear/Lg scale
+                            </Tooltip>
+                        </TooltipTrigger>
+
+                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
                                 <Resize />
                             </ActionButton>
                             <Tooltip >
-                                Original chart scale
+                                Original chart height
                             </Tooltip>
                         </TooltipTrigger>
 
