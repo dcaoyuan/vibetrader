@@ -7,6 +7,7 @@ import PlotLine from "../plot/PlotLine";
 import PlotHistogram from "../plot/PlotHistogram";
 import { Fragment } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
+import type { PlotShapeOptions } from "../plot/Plot";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -43,10 +44,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        location={options.location}
-                        color={options.color}
+                        options={options as PlotShapeOptions}  // todo, back to PlotCharOption
                         name={title}
-                        atIndex={atIndex} shape={"square"} />
+                        atIndex={atIndex} />
 
                 case 'line':
                 default:

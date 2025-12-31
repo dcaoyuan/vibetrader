@@ -4,8 +4,10 @@ import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { Kline } from "../../domain/Kline";
 import { KVAR_NAME } from "../view/KlineViewContainer";
-import type { Location } from "./Plot";
+import type { Location, PlotOptions, PlotShapeOptions } from "./Plot";
 import type { Shape } from "./Plot";
+import type { Seg } from "../../svg/Seg";
+import { Circle } from "../../svg/Circle";
 
 type Props = {
     xc: ChartXControl,
@@ -13,29 +15,28 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
-    shape: Shape
-    location: Location
-    color: string;
+    options: PlotShapeOptions
     depth?: number;
 }
 
 const PlotShape = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, color } = props;
+    const { xc, yc, tvar, name, atIndex, depth, options: { color, style, location } } = props;
 
     const kvar = xc.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
 
 
     function plot() {
-        const path = new Path()
+        const segs = plotShape();
 
-        plotShape(path);
-
-        return { path }
+        return { segs }
     }
 
-    function plotShape(path: Path) {
-        const d = xc.wBar;
-        const r = d / 2;
+    function plotShape(): Seg[] {
+        const r = Math.floor(xc.wBar / 2);
+        const d = r * 2
+
+        const path = new Path()
+        const segs: Seg[] = [path]
 
         for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             // use `undefiend` to test if value has been set at least one time
@@ -62,7 +63,7 @@ const PlotShape = (props: Props) => {
             const x = xc.xb(bar)
 
             let y: number
-            switch (props.location) {
+            switch (location) {
                 case 'abovebar':
                     y = yc.yv(high)
                     y = yc.hCanvas
@@ -75,19 +76,111 @@ const PlotShape = (props: Props) => {
                     break;
             }
 
+            const style: string = 'triangleup'
             if (v) {
-                path.moveto(x, y - d)
-                path.lineto(x + r, y)
-                path.lineto(x - r, y)
-                path.lineto(x, y - d)
+                switch (style) {
+                    case 'xcross':
+                        path.moveto(x - r, y - d)
+                        path.lineto(x + r, y)
+                        path.moveto(x - r, y)
+                        path.lineto(x + r, y - d)
+
+                        break
+
+                    case 'cross':
+                        path.moveto(x, y - d)
+                        path.lineto(x, y)
+                        path.moveto(x - r, y - r)
+                        path.lineto(x + r, y - r)
+
+                        break
+
+                    case 'circle':
+                        segs.push(new Circle(x + r, y - r, r))
+                        break
+
+                    case 'triangleup':
+                        path.moveto(x, y - d)
+                        path.lineto(x + r, y)
+                        path.lineto(x - r, y)
+                        path.lineto(x, y - d)
+
+                        break;
+
+                    case 'triangledown':
+                        path.moveto(x, y)
+                        path.lineto(x + r, y - d)
+                        path.lineto(x - r, y - d)
+                        path.lineto(x, y)
+
+                        break;
+
+                    case 'flag':
+                        path.moveto(x - r + 1, y)
+                        path.lineto(x - r + 1, y - d)
+                        path.lineto(x + r - 1, y - d)
+                        path.lineto(x + r - 1, y - r)
+                        path.lineto(x - r + 1, y - r)
+
+                        break;
+
+                    case 'arrowup':
+                        path.moveto(x, y - d)
+                        path.lineto(x + r, y - r)
+                        path.lineto(x + r / 2, y - r)
+                        path.lineto(x + r / 2, y)
+                        path.lineto(x - r / 2, y)
+                        path.lineto(x - r / 2, y - r)
+                        path.lineto(x - r, y - r)
+                        path.closepath()
+
+                        break
+
+                    case 'arrowdown':
+                        path.moveto(x, y)
+                        path.lineto(x - r, y - r)
+                        path.lineto(x - r / 2, y - r)
+                        path.lineto(x - r / 2, y - d)
+                        path.lineto(x + r / 2, y - d)
+                        path.lineto(x + r / 2, y - r)
+                        path.lineto(x + r, y - r)
+                        path.closepath()
+
+                        break
+
+                    case 'square':
+                        path.moveto(x - r, y - d)
+                        path.lineto(x - r, y)
+                        path.lineto(x + r, y)
+                        path.lineto(x + r, y - d)
+                        path.closepath()
+
+                        break
+
+                    case 'diamond':
+                        path.moveto(x, y - d)
+                        path.lineto(x + r, y - r)
+                        path.lineto(x, y)
+                        path.lineto(x - r, y - r)
+                        path.closepath()
+
+                        break;
+
+                    case 'labelup':
+                    case 'labeldown':
+
+                }
+
             }
         }
+
+        return segs
     }
 
-    const { path } = plot();
+    const { segs } = plot();
 
     return (
-        path.render({ style: { stroke: color, fill: 'none' } })
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color } }))
     )
 }
 
