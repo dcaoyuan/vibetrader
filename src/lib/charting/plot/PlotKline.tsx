@@ -27,21 +27,21 @@ const PlotKline = (props: Props) => {
         switch (kind) {
             case 'candle':
             case 'bar':
-                plotCandleOrBarChart(kind, posPath, negPath);
+                plotCandleOrBar(kind, posPath, negPath);
                 break
 
             case 'line':
-                plotLineChart(posPath, negPath);
+                plotLine(posPath, negPath);
                 break;
 
             default:
-                plotCandleOrBarChart(kind, posPath, negPath);
+                plotCandleOrBar(kind, posPath, negPath);
         }
 
         return { posPath, negPath }
     }
 
-    function plotCandleOrBarChart(kind: KlineKind, posPath: Path, negPath: Path) {
+    function plotCandleOrBar(kind: KlineKind, posPath: Path, negPath: Path) {
 
         for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             // use `undefiend` to test if value has been set at least one time
@@ -165,7 +165,7 @@ const PlotKline = (props: Props) => {
 
     }
 
-    function plotLineChart(posPath: Path, negPath: Path) {
+    function plotLine(posPath: Path, negPath: Path) {
         let y1: number = undefined as number // for prev
         let y2: number = undefined as number // for curr
         let bar = 1

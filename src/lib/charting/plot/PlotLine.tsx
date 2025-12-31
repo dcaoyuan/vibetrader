@@ -17,14 +17,14 @@ const PlotLine = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plot() {
-        const path = new Path()
-
-        plotLineChart(path);
+        const path = plotLine();
 
         return { path }
     }
 
-    function plotLineChart(path: Path) {
+    function plotLine(): Path {
+        const path = new Path()
+
         let y1: number // for prev
         let y2: number // for curr
 
@@ -75,6 +75,8 @@ const PlotLine = (props: Props) => {
 
             }
         }
+
+        return path
     }
 
     const { path } = plot();

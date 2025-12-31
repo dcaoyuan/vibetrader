@@ -20,7 +20,9 @@ const PlotVolmue = (props: Props) => {
         const posPath = new Path()
         const negPath = new Path()
 
-        const r = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
+        const r = xc.wBar < 2
+            ? 0
+            : Math.floor((xc.wBar - 2) / 2);
 
         const y1 = yc.yv(0)
 

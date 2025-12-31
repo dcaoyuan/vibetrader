@@ -22,7 +22,9 @@ const PlotHistogram = (props: Props) => {
         const posPath = new Path()
         const negPath = new Path()
 
-        const r = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
+        const r = xc.wBar < 2
+            ? 0
+            : Math.floor((xc.wBar - 2) / 2);
 
         for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             let max = Number.NEGATIVE_INFINITY;
