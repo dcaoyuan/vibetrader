@@ -153,6 +153,28 @@
     fill: var(--gray-600);
 }
 
+.drawing-handle path {
+    stroke: var(--gray-600);
+    stroke-width: 1px;
+    fill: none;
+}
+
+.drawing-handle rect {
+    stroke: var(--gray-600);
+    stroke-width: 1px;
+    fill: none;
+}
+
+.drawing-handle circle {
+    stroke: var(--gray-600);
+    stroke-width: 1px;
+    fill: none;
+}
+
+.drawing-handle text {
+    fill: none;
+}
+
 
 .drawing path {
     stroke: var(--gray-600);

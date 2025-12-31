@@ -4,6 +4,7 @@ import type { ChartYControl } from "../view/ChartYControl"
 import { Rect } from "../../svg/Rect"
 import type { Seg } from "../../svg/Seg"
 import type { Key } from "react"
+import { Circle } from "../../svg/Circle"
 
 export type TPoint = {
     time: number,
@@ -211,9 +212,13 @@ export abstract class Drawing {
 
     renderDrawingWithHandles(key: Key) {
         return (
-            <g key={key} className="drawing-highlight">
-                {this.plotDrawing().map((seg, n) => seg.render({ key: "seg-" + n }))}
-                {this.handles.map((handle, n) => handle.render("handle-" + n))}
+            <g key={key}>
+                <g className="drawing-highlight">
+                    {this.plotDrawing().map((seg, n) => seg.render({ key: "seg-" + n }))}
+                </g>
+                <g className="drawing-handle">
+                    {this.handles.map((handle, n) => handle.render("handle-" + n))}
+                </g>
             </g>
         )
     }
@@ -281,10 +286,9 @@ export class Handle {
     private plot() {
         const [x, y] = this.xyLocation()
 
-        const r = 4
-        const rect = new Rect(x - r, y - r, 2 * r, 2 * r)
+        const seg = new Circle(x, y, 5)
 
-        return rect;
+        return seg;
     }
 
     private xyLocation() {
