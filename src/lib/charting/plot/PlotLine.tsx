@@ -73,14 +73,14 @@ const PlotLine = (props: Props) => {
 
             }
 
-            bar++;
+            bar += xc.nBarsCompressed;
         }
     }
 
     const { path } = plot();
 
     return (
-        path && path.render({ key: 'line-' + depth, style: { stroke: color } })
+        path && path.render({ style: { stroke: color, fill: color } })
     )
 }
 
