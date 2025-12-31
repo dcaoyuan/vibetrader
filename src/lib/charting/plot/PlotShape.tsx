@@ -37,8 +37,7 @@ const PlotShape = (props: Props) => {
         const d = xc.wBar;
         const r = d / 2;
 
-        let bar = 1
-        while (bar <= xc.nBars) {
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             // use `undefiend` to test if value has been set at least one time
             let high = Number.NEGATIVE_INFINITY;
             let low = Number.POSITIVE_INFINITY
@@ -82,8 +81,6 @@ const PlotShape = (props: Props) => {
                 path.lineto(x - r, y)
                 path.lineto(x, y - d)
             }
-
-            bar += xc.nBarsCompressed
         }
     }
 

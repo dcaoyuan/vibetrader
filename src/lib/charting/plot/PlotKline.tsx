@@ -42,8 +42,8 @@ const PlotKline = (props: Props) => {
     }
 
     function plotCandleOrBarChart(kind: KlineKind, posPath: Path, negPath: Path) {
-        let bar = 1
-        while (bar <= xc.nBars) {
+
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             // use `undefiend` to test if value has been set at least one time
             let open: number = undefined
             let close: number = undefined
@@ -68,7 +68,7 @@ const PlotKline = (props: Props) => {
             if (close !== undefined && close != 0) {
                 const path = close >= open ? posPath : negPath || posPath;
 
-                const xCenter = xc.xb(bar);
+                const x = xc.xb(bar);
 
                 const yOpen = yc.yv(open)
                 const yHigh = yc.yv(high)
@@ -77,19 +77,17 @@ const PlotKline = (props: Props) => {
 
                 switch (kind) {
                     case 'candle':
-                        plotCandle(yOpen, yHigh, yLow, yClose, xCenter, path);
+                        plotCandle(yOpen, yHigh, yLow, yClose, x, path);
                         break;
 
                     case 'bar':
-                        plotBar(yOpen, yHigh, yLow, yClose, xCenter, path);
+                        plotBar(yOpen, yHigh, yLow, yClose, x, path);
                         break
 
                     default:
-                        plotCandle(yOpen, yHigh, yLow, yClose, xCenter, path);
+                        plotCandle(yOpen, yHigh, yLow, yClose, x, path);
                 }
             }
-
-            bar += xc.nBarsCompressed
         }
     }
 
@@ -107,29 +105,29 @@ const PlotKline = (props: Props) => {
      *          ^   ^
      *          |___|___ barCenter
      */
-    function plotCandle(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+    function plotCandle(yOpen: number, yHigh: number, yLow: number, yClose: number, x: number, path: Path) {
         /** why - 2 ? 1 for centre, 1 for space */
-        const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
+        const r = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
         /** upper and lower of candle's rectangle */
         const yUpper = Math.min(yOpen, yClose)
         const yLower = Math.max(yOpen, yClose)
 
         if (xc.wBar <= 2) {
-            path.moveto(xCenter, yHigh)
-            path.lineto(xCenter, yLow)
+            path.moveto(x, yHigh)
+            path.lineto(x, yLow)
 
         } else {
-            path.moveto(xCenter - xRadius, yUpper)
-            path.lineto(xCenter + xRadius, yUpper)
-            path.lineto(xCenter + xRadius, yLower)
-            path.lineto(xCenter - xRadius, yLower)
+            path.moveto(x - r, yUpper)
+            path.lineto(x + r, yUpper)
+            path.lineto(x + r, yLower)
+            path.lineto(x - r, yLower)
             path.closepath()
 
-            path.moveto(xCenter, yUpper)
-            path.lineto(xCenter, yHigh)
+            path.moveto(x, yUpper)
+            path.lineto(x, yHigh)
 
-            path.moveto(xCenter, yLower)
-            path.lineto(xCenter, yLow)
+            path.moveto(x, yLower)
+            path.lineto(x, yLow)
         }
     }
 
@@ -144,25 +142,25 @@ const PlotKline = (props: Props) => {
      *          ^   ^
      *          |___|___ barCenter
      */
-    function plotBar(yOpen: number, yHigh: number, yLow: number, yClose: number, xCenter: number, path: Path) {
+    function plotBar(yOpen: number, yHigh: number, yLow: number, yClose: number, x: number, path: Path) {
         const width = xc.wBar;
 
         /** why - 2 ? 1 for centre, 1 for space */
-        const xRadius = width < 2 ? 0 : Math.floor((width - 2) / 2);
+        const r = width < 2 ? 0 : Math.floor((width - 2) / 2);
 
         if (width <= 2) {
-            path.moveto(xCenter, yHigh)
-            path.lineto(xCenter, yLow)
+            path.moveto(x, yHigh)
+            path.lineto(x, yLow)
 
         } else {
-            path.moveto(xCenter, yHigh)
-            path.lineto(xCenter, yLow)
+            path.moveto(x, yHigh)
+            path.lineto(x, yLow)
 
-            path.moveto(xCenter - xRadius, yOpen)
-            path.lineto(xCenter, yOpen)
+            path.moveto(x - r, yOpen)
+            path.lineto(x, yOpen)
 
-            path.moveto(xCenter, yClose)
-            path.lineto(xCenter + xRadius, yClose)
+            path.moveto(x, yClose)
+            path.lineto(x + r, yClose)
         }
 
     }

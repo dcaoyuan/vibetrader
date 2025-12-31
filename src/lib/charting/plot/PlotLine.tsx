@@ -27,8 +27,10 @@ const PlotLine = (props: Props) => {
     function plotLineChart(path: Path) {
         let y1: number // for prev
         let y2: number // for curr
-        let bar = 1
-        while (bar <= xc.nBars) {
+
+        // For those need connect from one bar to the next, use bar++ instead of 
+        // bar += xc.nBarsCompressed to avoid uncontinuted line.
+        for (let bar = 1; bar <= xc.nBars; bar++) {
             // use `undefiend` to test if value has been set at least one time
             let open: number
             let close: number
@@ -72,8 +74,6 @@ const PlotLine = (props: Props) => {
                 y1 = y2;
 
             }
-
-            bar += xc.nBarsCompressed;
         }
     }
 

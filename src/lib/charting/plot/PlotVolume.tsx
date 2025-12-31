@@ -20,11 +20,11 @@ const PlotVolmue = (props: Props) => {
         const posPath = new Path()
         const negPath = new Path()
 
-        const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
+        const r = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
 
         const y1 = yc.yv(0)
-        let bar = 1
-        while (bar <= xc.nBars) {
+
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             let open: number
             let close: number
             let volume = Number.NEGATIVE_INFINITY; // we are going to get max of volume during nBarsCompressed
@@ -46,22 +46,20 @@ const PlotVolmue = (props: Props) => {
             if (volume >= 0 /* means we've got volume value */) {
                 const path = close >= open ? posPath : negPath || posPath;
 
-                const xCenter = xc.xb(bar)
+                const x = xc.xb(bar)
 
                 const y2 = yc.yv(volume)
                 if (thin || xc.wBar <= 2) {
-                    path.moveto(xCenter, y1);
-                    path.lineto(xCenter, y2);
+                    path.moveto(x, y1);
+                    path.lineto(x, y2);
 
                 } else {
-                    path.moveto(xCenter - xRadius, y1)
-                    path.lineto(xCenter - xRadius, y2)
-                    path.lineto(xCenter + xRadius, y2)
-                    path.lineto(xCenter + xRadius, y1)
+                    path.moveto(x - r, y1)
+                    path.lineto(x - r, y2)
+                    path.lineto(x + r, y2)
+                    path.lineto(x + r, y1)
                 }
             }
-
-            bar += xc.nBarsCompressed
         }
 
         return { posPath, negPath }

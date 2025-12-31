@@ -22,11 +22,9 @@ const PlotHistogram = (props: Props) => {
         const posPath = new Path()
         const negPath = new Path()
 
-        const xRadius = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
+        const r = xc.wBar < 2 ? 0 : Math.floor((xc.wBar - 2) / 2);
 
-        const y1 = yc.yv(0)
-        let bar = 1
-        while (bar <= xc.nBars) {
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
             let max = Number.NEGATIVE_INFINITY;
             let min = Number.POSITIVE_INFINITY;
             for (let i = 0; i < xc.nBarsCompressed; i++) {
@@ -58,21 +56,20 @@ const PlotHistogram = (props: Props) => {
                     yDatum = yc.yv(max)
                 }
 
-                const xCenter = xc.xb(bar)
+                const x = xc.xb(bar)
 
                 if (thin || xc.wBar <= 2) {
-                    path.moveto(xCenter, yDatum);
-                    path.lineto(xCenter, yValue);
+                    path.moveto(x, yDatum);
+                    path.lineto(x, yValue);
 
                 } else {
-                    path.moveto(xCenter - xRadius, yDatum)
-                    path.lineto(xCenter - xRadius, yValue)
-                    path.lineto(xCenter + xRadius, yValue)
-                    path.lineto(xCenter + xRadius, yDatum)
+                    path.moveto(x - r, yDatum)
+                    path.lineto(x - r, yValue)
+                    path.lineto(x + r, yValue)
+                    path.lineto(x + r, yDatum)
                 }
             }
 
-            bar += xc.nBarsCompressed
         }
 
         return { posPath, negPath }
