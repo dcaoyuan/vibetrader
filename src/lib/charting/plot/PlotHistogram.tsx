@@ -79,8 +79,8 @@ const PlotHistogram = (props: Props) => {
 
     return (
         <g className="volumechart">
-            {posPath && posPath.render({ key: 'histogram-pos', className: 'positive' })}
-            {negPath && negPath.render({ key: 'histogram-neg', className: 'negative' })}
+            {posPath.render({ className: 'positive' })}
+            {negPath.render({ className: 'negative' })}
         </g>
     )
 }

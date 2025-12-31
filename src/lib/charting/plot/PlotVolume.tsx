@@ -69,8 +69,8 @@ const PlotVolmue = (props: Props) => {
 
     return (
         <g className="volumechart">
-            {posPath && posPath.render({ key: 'volume-pos', className: 'positive' })}
-            {negPath && negPath.render({ key: 'volume-neg', className: 'negative' })}
+            {posPath.render({ className: 'positive' })}
+            {negPath.render({ className: 'negative' })}
         </g>
     )
 }

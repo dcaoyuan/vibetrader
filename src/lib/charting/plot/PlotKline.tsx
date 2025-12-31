@@ -226,8 +226,8 @@ const PlotKline = (props: Props) => {
 
     return (
         <g className="klinechart" >
-            {posPath && posPath.render({ key: 'kline-pos-' + depth, className: 'positive' })}
-            {negPath && negPath.render({ key: 'kline-neg-' + depth, className: 'negative' })}
+            {posPath.render({ className: 'positive' })}
+            {negPath.render({ className: 'negative' })}
         </g>
     )
 }
