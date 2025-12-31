@@ -13,7 +13,7 @@ type Props = {
     depth?: number;
 }
 
-const HistogramChart = (props: Props) => {
+const PlotHistogram = (props: Props) => {
     const { xc, yc, tvar, atIndex } = props;
 
     function plot() {
@@ -88,4 +88,4 @@ const HistogramChart = (props: Props) => {
     )
 }
 
-export default HistogramChart;
+export default PlotHistogram;

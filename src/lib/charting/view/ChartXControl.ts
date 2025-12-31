@@ -1,5 +1,5 @@
 import type { TSer } from "../../timeseris/TSer"
-import type { KlineKind } from "../plot/KlineChart"
+import type { KlineKind } from "../plot/PlotKline"
 import { LINEAR_SCALAR } from "../scalar/LinearScala"
 import type { Scalar } from "../scalar/Scalar"
 

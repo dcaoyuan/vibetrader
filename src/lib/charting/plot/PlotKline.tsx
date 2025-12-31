@@ -14,7 +14,7 @@ type Props = {
     depth: number;
 }
 
-const KlineChart = (props: Props) => {
+const PlotKline = (props: Props) => {
     const { xc, yc, kvar, kind, depth } = props;
 
     // depth !== 0 is for comparing klines charts
@@ -234,4 +234,4 @@ const KlineChart = (props: Props) => {
     )
 }
 
-export default KlineChart;
+export default PlotKline;

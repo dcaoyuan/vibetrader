@@ -13,7 +13,7 @@ type Props = {
     depth?: number;
 }
 
-const LineChart = (props: Props) => {
+const PlotLine = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plot() {
@@ -84,4 +84,4 @@ const LineChart = (props: Props) => {
     )
 }
 
-export default LineChart;
+export default PlotLine;

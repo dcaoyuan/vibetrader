@@ -3,8 +3,8 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import AxisY from "../pane/AxisY";
-import LineChart from "../plot/LineChart";
-import HistogramChart from "../plot/HistogramChart";
+import PlotLine from "../plot/PlotLine";
+import PlotHistogram from "../plot/PlotHistogram";
 import { Fragment } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
 
@@ -27,7 +27,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             switch (options.style) {
                 case 'style_histogram':
                 case 'style_columns':
-                    return <HistogramChart
+                    return <PlotHistogram
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
@@ -50,7 +50,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
                 case 'line':
                 default:
-                    return <LineChart
+                    return <PlotLine
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}

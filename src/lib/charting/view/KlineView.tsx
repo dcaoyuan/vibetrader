@@ -1,11 +1,11 @@
-import KlineChart from "../plot/KlineChart"
+import PlotKline from "../plot/PlotKline"
 import { ChartView, type ViewProps, type ViewState } from "./ChartView";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
-import LineChart from "../plot/LineChart";
+import PlotLine from "../plot/PlotLine";
 import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 
@@ -31,7 +31,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         this.computeGeometry();
 
         const chartLines = [
-            <KlineChart
+            <PlotKline
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
                 yc={this.yc}
@@ -66,7 +66,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     switch (style) {
                         case "line":
                         default:
-                            ovchart = <LineChart
+                            ovchart = <PlotLine
                                 tvar={tvar}
                                 name={title}
                                 color={color}

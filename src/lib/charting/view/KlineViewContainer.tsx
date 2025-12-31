@@ -65,7 +65,7 @@ import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
-import type { KlineKind } from "../plot/KlineChart";
+import type { KlineKind } from "../plot/PlotKline";
 import type { Scalar } from "../scalar/Scalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LN_SCALAR } from "../scalar/LnScalar";
@@ -327,7 +327,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         // console.log(result)
                         // console.log(plots.map(x => x.data))
-                        console.log(plots.map(x => x.options))
+                        // console.log(plots.map(x => x.options))
 
                         const outputs = plots.map(({ title, options }, atIndex) => {
                             return ({ atIndex, title, options })
@@ -376,7 +376,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        // this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
+                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
                     }
 
                 })

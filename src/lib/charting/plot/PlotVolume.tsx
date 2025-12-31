@@ -11,7 +11,7 @@ type Props = {
     depth: number;
 }
 
-const VolmueChart = (props: Props) => {
+const PlotVolmue = (props: Props) => {
     const { xc, yc, kvar } = props;
 
     function plot() {
@@ -77,4 +77,4 @@ const VolmueChart = (props: Props) => {
     )
 }
 
-export default VolmueChart;
+export default PlotVolmue;

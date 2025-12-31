@@ -4,7 +4,7 @@ import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
-import VolmueChart from "../plot/VolumeChart";
+import PlotVolmue from "../plot/PlotVolume";
 import { Fragment } from "react/jsx-runtime";
 
 export class VolumeView extends ChartView<ViewProps, ViewState> {
@@ -25,7 +25,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         this.computeGeometry();
 
         const chartLines = [
-            <VolmueChart
+            <PlotVolmue
                 kvar={this.props.tvar as TVar<Kline>}
                 xc={this.props.xc}
                 yc={this.yc}
