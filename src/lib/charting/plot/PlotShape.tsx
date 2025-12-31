@@ -87,7 +87,7 @@ const PlotShape = (props: Props) => {
     const { path } = plot();
 
     return (
-        path && path.render({ style: { stroke: color } })
+        path && path.render({ style: { stroke: color, fill: color } })
     )
 }
 
