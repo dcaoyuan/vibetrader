@@ -61,14 +61,14 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             let depth = 1;
             this.props.overlayIndicators.map((indicator, n) => {
                 const tvar = indicator.tvar;
-                for (const { style: plot, title: name, color, atIndex } of indicator.outputs) {
+                for (const { title, atIndex, options: { style, color } } of indicator.outputs) {
                     let ovchart: JSX.Element;
-                    switch (plot) {
+                    switch (style) {
                         case "line":
                         default:
                             ovchart = <LineChart
                                 tvar={tvar}
-                                name={name}
+                                name={title}
                                 color={color}
                                 atIndex={atIndex}
                                 xc={this.props.xc}

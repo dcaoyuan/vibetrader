@@ -13,6 +13,7 @@ import React from "react";
 import type { Scalar } from "../scalar/Scalar";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
+import type { PlotCharOptions, PlotOptions, PlotShapeOptions } from "./KlineViewContainer";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -32,8 +33,8 @@ export type Indicator = {
 export type Output = {
     atIndex: number,
     title: string,
-    style: string,
-    color: string,
+    options: PlotOptions | PlotCharOptions | PlotShapeOptions
+
 }
 
 export type UpdateDrawing = {

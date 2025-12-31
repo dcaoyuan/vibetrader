@@ -16,7 +16,7 @@ type Props = {
 const HistogramChart = (props: Props) => {
     const { xc, yc, tvar, atIndex } = props;
 
-    function plotChart() {
+    function plot() {
         const thin = false
 
         const posPath = new Path()
@@ -78,7 +78,7 @@ const HistogramChart = (props: Props) => {
         return { posPath, negPath }
     }
 
-    const { posPath, negPath } = plotChart();
+    const { posPath, negPath } = plot();
 
     return (
         <g className="volumechart">

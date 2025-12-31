@@ -16,7 +16,7 @@ type Props = {
 const LineChart = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
-    function plotChart() {
+    function plot() {
         const path = new Path()
 
         plotLineChart(path);
@@ -32,8 +32,8 @@ const LineChart = (props: Props) => {
             // use `undefiend` to test if value has been set at least one time
             let open: number
             let close: number
-            let max = Number.NEGATIVE_INFINITY;
-            let min = Number.POSITIVE_INFINITY;
+            let high = Number.NEGATIVE_INFINITY;
+            let low = Number.POSITIVE_INFINITY;
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
@@ -45,8 +45,8 @@ const LineChart = (props: Props) => {
                             open = v;
                         }
                         close = v;
-                        max = Math.max(max, close);
-                        min = Math.min(min, close);
+                        high = Math.max(high, close);
+                        low = Math.min(low, close);
                     }
                 }
             }
@@ -56,8 +56,8 @@ const LineChart = (props: Props) => {
                 if (xc.nBarsCompressed > 1) {
                     // draw a vertical line to cover the min to max
                     const x = xc.xb(bar)
-                    path.moveto(x, yc.yv(min));
-                    path.lineto(x, yc.yv(max));
+                    path.moveto(x, yc.yv(low));
+                    path.lineto(x, yc.yv(high));
 
                 } else {
                     if (y1 !== undefined && isNaN(y1) === false) {
@@ -77,7 +77,7 @@ const LineChart = (props: Props) => {
         }
     }
 
-    const { path } = plotChart();
+    const { path } = plot();
 
     return (
         path && path.render({ key: 'line-' + depth, style: { stroke: color } })

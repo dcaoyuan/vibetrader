@@ -70,6 +70,7 @@ import type { Scalar } from "../scalar/Scalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import { LG_SCALAR } from "../scalar/LgScalar";
+import type { Plot } from "../plot/Plot";
 
 type Props = {
     width: number,
@@ -77,33 +78,6 @@ type Props = {
     toggleColorTheme?: () => void
     colorTheme?: 'light' | 'dark'
 }
-
-type PlotData = {
-    time?: number,
-    value: unknown
-}
-
-type Plot = {
-    data: PlotData[],
-    options: PlotOptions,
-    title: string,
-}
-
-type PlotOptions = {
-    color?: string;
-    linewidth?: number;
-    style?: string;
-    trackprice?: boolean;
-    histbase?: boolean;
-    offset?: number;
-    join?: boolean;
-    editable?: boolean;
-    show_last?: boolean;
-    display?: boolean;
-    format?: string;
-    precision?: number;
-    force_overlay?: boolean;
-};
 
 type State = {
     tzone?: string;
@@ -146,7 +120,7 @@ type State = {
 }
 
 
-const KVAR_NAME = "kline";
+export const KVAR_NAME = "kline";
 
 // const allInds = ['macd']
 const allInds = ['sma', 'ema', 'bb', 'rsi', 'macd']
@@ -351,11 +325,12 @@ class KlineViewContainer extends Component<Props, State> {
                             tvar.setByIndex(i, vs);
                         }
 
+                        // console.log(result)
                         // console.log(plots.map(x => x.data))
-                        // console.log(plots.map(x => x.options))
+                        console.log(plots.map(x => x.options))
 
-                        const outputs = plots.map(({ title, options: { style, color, force_overlay } }, atIndex) => {
-                            return ({ atIndex, title, style, color, force_overlay })
+                        const outputs = plots.map(({ title, options }, atIndex) => {
+                            return ({ atIndex, title, options })
                         })
 
                         const overlay = indicator !== undefined && indicator.overlay
@@ -401,7 +376,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
+                        // this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
                     }
 
                 })
@@ -1217,7 +1192,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }}>
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    outputs.map(({ title, color }, n) =>
+                                                    outputs.map(({ title, options: { color } }, n) =>
                                                         <Fragment key={"overlay-indicator-lable-" + title} >
                                                             <span className="label-mouse">{title}&nbsp;</span>
                                                             <span style={{ color }}>{
@@ -1245,7 +1220,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }}>
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, n) =>
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, n) =>
                                                         <Fragment key={"ovarlay-indicator-lable-" + title} >
                                                             <span className="label-refer">{title}&nbsp;</span>
                                                             <span style={{ color }}>{
@@ -1279,7 +1254,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    outputs.map(({ title, color }, k) =>
+                                                    outputs.map(({ title, options: { color } }, k) =>
                                                         <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
                                                             <span className="label-mouse">{title}&nbsp;</span>
                                                             <span style={{ color }}>{
@@ -1308,7 +1283,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }}>
                                             <div style={{ display: "inline-block", paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, color }, k) =>
+                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, k) =>
                                                         <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
                                                             <span className="label-refer">{title}&nbsp;</span>
                                                             <span style={{ color }}>{

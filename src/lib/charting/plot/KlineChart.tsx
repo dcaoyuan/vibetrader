@@ -17,9 +17,9 @@ type Props = {
 const KlineChart = (props: Props) => {
     const { xc, yc, kvar, kind, depth } = props;
 
-    /** depth !== 0 is for comparing klines charts */
+    // depth !== 0 is for comparing klines charts
 
-    function plotChart() {
+    function plot() {
 
         const posPath = new Path()
         const negPath = new Path()
@@ -44,21 +44,18 @@ const KlineChart = (props: Props) => {
     function plotCandleOrBarChart(kind: KlineKind, posPath: Path, negPath: Path) {
         let bar = 1
         while (bar <= xc.nBars) {
-            /**
-             * use `undefiend` to test if value has been set at least one time
-             */
+            // use `undefiend` to test if value has been set at least one time
             let open: number = undefined
             let close: number = undefined
             let high = Number.NEGATIVE_INFINITY;
             let low = Number.POSITIVE_INFINITY
-            let i = 0
-            while (i < xc.nBarsCompressed) {
+            for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (xc.occurred(time)) {
                     const kline = kvar.getByTime(time);
                     if (kline && kline.open != 0) {
                         if (open === undefined) {
-                            /** only get the first open as compressing period's open */
+                            // only get the first open as compressing period's open
                             open = kline.open;
                         }
                         high = Math.max(high, kline.high)
@@ -66,8 +63,6 @@ const KlineChart = (props: Props) => {
                         close = kline.close;
                     }
                 }
-
-                i++;
             }
 
             if (close !== undefined && close != 0) {
@@ -229,7 +224,7 @@ const KlineChart = (props: Props) => {
         }
     }
 
-    const { posPath, negPath } = plotChart();
+    const { posPath, negPath } = plot();
 
     return (
         <g className="klinechart" >

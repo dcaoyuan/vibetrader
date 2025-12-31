@@ -6,6 +6,7 @@ import AxisY from "../pane/AxisY";
 import LineChart from "../plot/LineChart";
 import HistogramChart from "../plot/HistogramChart";
 import { Fragment } from "react/jsx-runtime";
+import PlotShape from "../plot/PlotShape";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -22,8 +23,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, color, title: name, style: plot }) => {
-            switch (plot) {
+        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, options }) => {
+            switch (options.style) {
                 case 'style_histogram':
                 case 'style_columns':
                     return <HistogramChart
@@ -31,10 +32,21 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        color={color}
-                        name={name}
+                        color={options.color}
+                        name={title}
                         atIndex={atIndex}
                     />
+
+                case 'char':
+                    return <PlotShape
+                        tvar={this.props.tvar as TVar<unknown[]>}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
+                        location={options.location}
+                        color={options.color}
+                        name={title}
+                        atIndex={atIndex} shape={"square"} />
 
                 case 'line':
                 default:
@@ -43,8 +55,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        color={color}
-                        name={name}
+                        color={options.color}
+                        name={title}
                         atIndex={atIndex}
                     />
             }

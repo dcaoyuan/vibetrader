@@ -14,7 +14,7 @@ type Props = {
 const VolmueChart = (props: Props) => {
     const { xc, yc, kvar } = props;
 
-    function plotChart() {
+    function plot() {
         const thin = false;
 
         const posPath = new Path()
@@ -67,7 +67,7 @@ const VolmueChart = (props: Props) => {
         return { posPath, negPath }
     }
 
-    const { posPath, negPath } = plotChart();
+    const { posPath, negPath } = plot();
 
     return (
         <g className="volumechart">

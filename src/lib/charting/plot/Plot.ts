@@ -1,0 +1,82 @@
+export type PlotData = {
+    time?: number,
+    value: unknown
+}
+
+
+export type Plot = {
+    data: PlotData[],
+    options: PlotOptions | PlotCharOptions | PlotShapeOptions
+    title: string,
+}
+
+export type PlotCharOptions = {
+    title?: string;
+    char?: string;
+    location?: Location;
+    color?: string;
+    offset?: number;
+    text?: string;
+    textcolor?: string;
+    editable?: boolean;
+    size?: number;
+    show_last?: boolean;
+    display?: boolean;
+    format?: string;
+    precision?: number;
+    force_overlay?: boolean;
+    style?: string // added by me, may need to remove
+};
+
+export type PlotOptions = {
+    series?: number;
+    title?: string;
+    color?: string;
+    linewidth?: number;
+    style?: string;
+    trackprice?: boolean;
+    histbase?: boolean;
+    offset?: number;
+    join?: boolean;
+    editable?: boolean;
+    show_last?: boolean;
+    display?: boolean;
+    format?: string;
+    precision?: number;
+    force_overlay?: boolean;
+    location?: Location; // added by me, may need to remove
+};
+
+export type PlotShapeOptions = {
+    series?: number;
+    title?: string;
+    style?: string;
+    location?: Location;
+    color?: string;
+    offset?: number;
+    text?: string;
+    textcolor?: string;
+    editable?: boolean;
+    size?: string;
+    show_last?: number;
+    display?: string;
+    format?: string;
+    precision?: number;
+    force_overlay?: boolean;
+}
+
+export type Location = 'abovebar' | 'belowbar' | 'top' | 'bottom' | 'absolute'
+
+export type Shape =
+    'xcross' |
+    'cross' |
+    'circle' |
+    'triangleup' |
+    'triangledown' |
+    'flag' |
+    'arrowup' |
+    'arrowdown' |
+    'square' |
+    'diamond' |
+    'labelup' |
+    'labeldown'
