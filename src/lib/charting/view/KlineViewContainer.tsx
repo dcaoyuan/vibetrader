@@ -750,6 +750,22 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' });
     }
 
+    handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
+        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
+        tzone = tzone === undefined ? this.state.tzone : tzone
+
+        const selectedIndicatorTags = this.state.selectedIndicatorTags
+
+        // force related components re-render
+        this.setState({ isLoaded: false })
+
+        this.fetchData_calcInds(true, symbol, tframe, tzone, undefined, 1000, selectedIndicatorTags)
+    }
+
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
         let overlayIndicatorLabels = this.state.overlayIndicatorLabels
         let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
@@ -794,17 +810,6 @@ class KlineViewContainer extends Component<Props, State> {
         referStackedIndicatorLabels[n] = refVs;
 
         this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
-    }
-
-    handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
-        if (this.reloadDataTimeoutId) {
-            clearTimeout(this.reloadDataTimeoutId);
-        }
-
-        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
-        tzone = tzone === undefined ? this.state.tzone : tzone
-
-        this.fetchData_calcInds(true, symbol, tframe, tzone, undefined, 1000, this.state.selectedIndicatorTags)
     }
 
     setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
