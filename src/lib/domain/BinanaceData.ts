@@ -48,6 +48,7 @@ export const timeframe_to_pinetsProvider = {
     '1w': '1W', // 1 week
     '1M': '1M', // 1 month
 };
+
 /**
  * Fetches a batch of klines from Binance API
  */

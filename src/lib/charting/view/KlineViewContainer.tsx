@@ -160,28 +160,10 @@ class KlineViewContainer extends Component<Props, State> {
         super(props);
         this.width = props.width;
 
-        const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        //const tzone = "America/Vancouver"
-        const tframe = TFrame.DAILY
-        const symbol = "BTCUSDT"
-
-        const baseSer = new DefaultTSer(tframe, tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-
         this.focusRef = React.createRef();
-
-        console.log("KlinerViewContainer render");
 
         const geometry = this.#calcGeometry([]);
         this.state = {
-            symbol,
-            tzone,
-            tframe,
-            baseSer,
-            kvar,
-            xc,
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
@@ -189,6 +171,8 @@ class KlineViewContainer extends Component<Props, State> {
             drawingIdsToCreate: new Set(),
             ...geometry,
         }
+
+        console.log("KlinerViewContainer render");
 
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)
@@ -218,6 +202,14 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
+    createBaseSer(tframe: TFrame, tzone: string) {
+        const baseSer = new DefaultTSer(tframe, tzone, 1000);
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        return ({ baseSer, kvar, xc })
+    }
+
     fetchIndicatorFns = (indNames: string[]) =>
         Promise.all(
             indNames.map(indName => this.fetchIndicatorFn(indName))
@@ -240,16 +232,15 @@ class KlineViewContainer extends Component<Props, State> {
             return undefined; // latestTime
         })
 
-    fetchDataBinance = async (symbol: string, timeframe: string, startTime?: number, limit?: number) => {
+    fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, startTime?: number, limit?: number) => {
         const endTime = new Date().getTime();
-        const tframe = TFrame.ofName(timeframe)
         const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, this.state.tzone)
         startTime = startTime
             ? startTime
             : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
         const provider = Provider.Binance
-        const pinets_tframe = Binance.timeframe_to_pinetsProvider[timeframe] || timeframe
+        const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
         return provider.getMarketData(symbol, pinets_tframe, limit, startTime, endTime)
             //return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
             .then(binanceKline => {
@@ -268,7 +259,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                 for (const k of uniqueKlines) {
                     const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                    this.state.baseSer.addToVar(KVAR_NAME, kline);
+                    baseSer.addToVar(KVAR_NAME, kline);
                 }
 
                 return latestKline ? latestKline.openTime : undefined;
@@ -276,8 +267,20 @@ class KlineViewContainer extends Component<Props, State> {
 
     }
 
-    fetchData_calcInds = (symbol: string, timeframe: string, startTime: number, limit: number, selectedIndicatorTags?: 'all' | Set<string | number>) => {
-        this.fetchDataBinance(symbol, timeframe, startTime, limit)
+    fetchData_calcInds = (
+        willRecreateBaseSer: boolean,
+        symbol: string,
+        tframe: TFrame,
+        tzone: string,
+        startTime: number,
+        limit: number,
+        selectedIndicatorTags?: Selection) => {
+
+        const { baseSer, kvar, xc } = willRecreateBaseSer
+            ? this.createBaseSer(tframe, tzone)
+            : { baseSer: this.state.baseSer, kvar: this.state.kvar, xc: this.state.xc };
+
+        this.fetchDataBinance(baseSer, symbol, tframe, startTime, limit)
             .catch(ex => {
                 console.error(ex);
                 return this.fetchDataLocal()
@@ -296,7 +299,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
                 }
 
-                const pinets = new PineTS(this.state.kvar.toArray(), symbol, '1d');
+                const pinets = new PineTS(kvar.toArray(), symbol, '1d');
 
                 const fnRuns: Promise<{ indName: string, result: Context }>[] = []
                 for (const [indName, fn] of selectedIndicatorFns) {
@@ -315,8 +318,8 @@ class KlineViewContainer extends Component<Props, State> {
                     const stackedIndicators = [];
 
                     results.map(({ indName, result }, n) => {
-                        const tvar = this.state.baseSer.varOf(indName) as TVar<unknown[]>;
-                        const size = this.state.baseSer.size();
+                        const tvar = baseSer.varOf(indName) as TVar<unknown[]>;
+                        const size = baseSer.size();
                         const indicator = result.indicator;
                         const plots = Object.values(result.plots) as Plot[];
                         const dataValues = plots.map(({ data }) => data);
@@ -346,7 +349,24 @@ class KlineViewContainer extends Component<Props, State> {
 
                     this.latestTime = latestTime;
 
-                    if (this.state.isLoaded) {
+                    if (willRecreateBaseSer) {
+                        // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
+                        xc.reinit()
+
+                        this.updateState({
+                            symbol,
+                            tframe,
+                            tzone,
+                            baseSer,
+                            kvar,
+                            xc,
+                            isLoaded: true,
+                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                            overlayIndicators,
+                            stackedIndicators,
+                        })
+
+                    } else {
                         // regular update
                         if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
                             this.updateState({
@@ -362,21 +382,10 @@ class KlineViewContainer extends Component<Props, State> {
                                 stackedIndicators,
                             })
                         }
-
-                    } else {
-                        // reinit it to get correct last occured time/row 
-                        this.state.xc.reinit()
-
-                        this.updateState({
-                            isLoaded: true,
-                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                            overlayIndicators,
-                            stackedIndicators,
-                        })
                     }
 
                     if (latestTime !== undefined) {
-                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, timeframe, latestTime, 1000), 5000)
+                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(false, symbol, tframe, tzone, latestTime, 1000), 5000)
                     }
 
                 })
@@ -467,7 +476,12 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
         }).then(() => {
-            this.fetchData_calcInds(this.state.symbol, this.state.tframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
+            const symbol = 'BTCUSDT'
+            const tframe = TFrame.DAILY
+            const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //const tzone = "America/Vancouver" 
+
+            this.fetchData_calcInds(true, symbol, tframe, tzone, undefined, 1000, this.state.selectedIndicatorTags)
 
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
@@ -476,7 +490,6 @@ class KlineViewContainer extends Component<Props, State> {
                 this.focusRef.current.focus()
             }
         })
-
     }
 
     override componentWillUnmount() {
@@ -783,20 +796,15 @@ class KlineViewContainer extends Component<Props, State> {
         this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
     }
 
-    handleSymbolTimeframeChanged(symbol: string, timeframe?: string) {
+    handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
         const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
+        tzone = tzone === undefined ? this.state.tzone : tzone
 
-        const baseSer = new DefaultTSer(tframe, this.state.tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-
-        this.setState({ isLoaded: false, symbol, tframe, baseSer, kvar, xc })
-
-        this.fetchData_calcInds(symbol, tframe.shortName, undefined, 1000, this.state.selectedIndicatorTags)
+        this.fetchData_calcInds(true, symbol, tframe, tzone, undefined, 1000, this.state.selectedIndicatorTags)
     }
 
     setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
@@ -804,7 +812,7 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.fetchData_calcInds(this.state.symbol, this.state.tframe.shortName, this.latestTime, 1000, selectedIndicatorTags)
+        this.fetchData_calcInds(false, this.state.symbol, this.state.tframe, this.state.tzone, this.latestTime, 1000, selectedIndicatorTags)
     }
 
     setDrawingIdsToCreate(ids?: Selection) {
