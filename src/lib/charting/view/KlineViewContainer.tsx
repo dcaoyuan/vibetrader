@@ -66,10 +66,6 @@ import Star from '@react-spectrum/s2/icons/Star';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import type { KlineKind } from "../plot/PlotKline";
-import type { Scalar } from "../scalar/Scalar";
-import { LINEAR_SCALAR } from "../scalar/LinearScala";
-import { LN_SCALAR } from "../scalar/LnScalar";
-import { LG_SCALAR } from "../scalar/LgScalar";
 import type { Plot } from "../plot/Plot";
 
 type Props = {
@@ -268,7 +264,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     fetchData_calcInds = (
-        willRecreateBaseSer: boolean,
+        willCreateNewBaseSer: boolean,
         symbol: string,
         tframe: TFrame,
         tzone: string,
@@ -276,7 +272,7 @@ class KlineViewContainer extends Component<Props, State> {
         limit: number,
         selectedIndicatorTags?: Selection) => {
 
-        const { baseSer, kvar, xc } = willRecreateBaseSer
+        const { baseSer, kvar, xc } = willCreateNewBaseSer
             ? this.createBaseSer(tframe, tzone)
             : { baseSer: this.state.baseSer, kvar: this.state.kvar, xc: this.state.xc };
 
@@ -310,7 +306,7 @@ class KlineViewContainer extends Component<Props, State> {
                 }
 
                 Promise.all(fnRuns).then(results => {
-                    console.log(`indicators calclated in ${performance.now() - start} ms`);
+                    console.log(`indicators calculated in ${performance.now() - start} ms`);
 
                     start = performance.now();
 
@@ -349,7 +345,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                     this.latestTime = latestTime;
 
-                    if (willRecreateBaseSer) {
+                    if (willCreateNewBaseSer) {
                         // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
                         xc.reinit()
 
@@ -760,7 +756,10 @@ class KlineViewContainer extends Component<Props, State> {
 
         const selectedIndicatorTags = this.state.selectedIndicatorTags
 
-        // force related components re-render
+        // Force related components re-render later.
+        // NOTE When you call setState multiple times within the same synchronous block of code, 
+        // React batches these calls into a single update for performance reasons.
+        // So we set isLoaded to false here, then will set to true in asycn fetchData_calcInds.
         this.setState({ isLoaded: false })
 
         this.fetchData_calcInds(true, symbol, tframe, tzone, undefined, 1000, selectedIndicatorTags)

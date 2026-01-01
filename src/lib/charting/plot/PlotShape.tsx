@@ -66,13 +66,13 @@ const PlotShape = (props: Props) => {
             switch (location) {
                 case 'abovebar':
                     y = yc.yv(high)
-                    y = yc.hCanvas
+                    y = yc.hCanvas + d
                     break;
 
                 case 'belowbar':
                 default:
                     y = yc.yv(low)
-                    y = yc.hCanvas
+                    y = yc.hCanvas + d
                     break;
             }
 
