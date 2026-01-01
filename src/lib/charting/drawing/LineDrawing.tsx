@@ -1,4 +1,5 @@
 import { Path } from "../../svg/Path"
+import { ChartView } from "../view/ChartView";
 import { Drawing } from "./Drawing"
 
 export class LineDrawing extends Drawing {
@@ -9,6 +10,10 @@ export class LineDrawing extends Drawing {
     }
 
     override hits(x: number, y: number): boolean {
+        if (x > this.xc.wChart) {
+            return false
+        }
+
         const x0 = this.xt(this.handles[0])
         const x1 = this.xt(this.handles[1])
 
