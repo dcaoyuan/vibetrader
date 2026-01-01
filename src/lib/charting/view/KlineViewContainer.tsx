@@ -198,14 +198,12 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    // put these code in async block to make sure this.state.isLoaded already be set in another async block before.
-    // see handleSymbolTimeframeChanged(...)
-    async getBaseSer(tframe: TFrame, tzone: string) {
+    getBaseSer(tframe: TFrame, tzone: string) {
         const { baseSer, kvar, xc } = this.state.isLoaded
             ? { baseSer: this.state.baseSer, kvar: this.state.kvar, xc: this.state.xc }
             : this.#createBaseSer(tframe, tzone)
 
-        return { baseSer, kvar, xc }
+        return ({ baseSer, kvar, xc })
     }
 
     #createBaseSer(tframe: TFrame, tzone: string) {
@@ -281,121 +279,125 @@ class KlineViewContainer extends Component<Props, State> {
         limit: number,
         selectedIndicatorTags?: Selection) => {
 
-        this.getBaseSer(tframe, tzone)
-            .then(({ baseSer, kvar, xc }) => {
-                this.fetchDataBinance(baseSer, symbol, tframe, startTime, limit)
-                    .catch(ex => {
-                        console.error(ex);
-                        return this.fetchDataLocal()
-                    })
-                    .then((latestTime) => {
-                        let start = performance.now()
+        // Put getBaseSer() in another async block for checking `state.isLoaded`, to make sure that 
+        // any `setState({ isLoaded: false })` was already called. 
+        Promise.resolve().then(() => {
 
-                        let selectedIndicatorFns = new Map<string, string>();
-                        const selectedIndicatorTagsNow = selectedIndicatorTags || this.state.selectedIndicatorTags
-                        if (selectedIndicatorTagsNow === 'all') {
-                            selectedIndicatorFns = this.loadedIndFns;
+            const { baseSer, kvar, xc } = this.getBaseSer(tframe, tzone)
 
-                        } else {
-                            for (const indName of selectedIndicatorTagsNow) {
-                                selectedIndicatorFns.set(indName as string, this.loadedIndFns.get(indName as string))
-                            }
+            this.fetchDataBinance(baseSer, symbol, tframe, startTime, limit)
+                .catch(ex => {
+                    console.error(ex);
+                    return this.fetchDataLocal()
+                })
+                .then((latestTime) => {
+                    let start = performance.now()
+
+                    let selectedIndicatorFns = new Map<string, string>();
+                    const selectedIndicatorTagsNow = selectedIndicatorTags || this.state.selectedIndicatorTags
+                    if (selectedIndicatorTagsNow === 'all') {
+                        selectedIndicatorFns = this.loadedIndFns;
+
+                    } else {
+                        for (const indName of selectedIndicatorTagsNow) {
+                            selectedIndicatorFns.set(indName as string, this.loadedIndFns.get(indName as string))
                         }
+                    }
 
-                        const pinets = new PineTS(kvar.toArray(), symbol, '1d');
+                    const pinets = new PineTS(kvar.toArray(), symbol, '1d');
 
-                        const fnRuns: Promise<{ indName: string, result: Context }>[] = []
-                        for (const [indName, fn] of selectedIndicatorFns) {
-                            if (fn !== undefined) {
-                                const fnRun = pinets.run(fn).then(result => ({ indName, result }));
-                                fnRuns.push(fnRun)
-                            }
+                    const fnRuns: Promise<{ indName: string, result: Context }>[] = []
+                    for (const [indName, fn] of selectedIndicatorFns) {
+                        if (fn !== undefined) {
+                            const fnRun = pinets.run(fn).then(result => ({ indName, result }));
+                            fnRuns.push(fnRun)
                         }
+                    }
 
-                        Promise.all(fnRuns).then(results => {
-                            console.log(`indicators calculated in ${performance.now() - start} ms`);
+                    Promise.all(fnRuns).then(results => {
+                        console.log(`indicators calculated in ${performance.now() - start} ms`);
 
-                            start = performance.now();
+                        start = performance.now();
 
-                            const overlayIndicators = [];
-                            const stackedIndicators = [];
+                        const overlayIndicators = [];
+                        const stackedIndicators = [];
 
-                            results.map(({ indName, result }, n) => {
-                                const tvar = baseSer.varOf(indName) as TVar<unknown[]>;
-                                const size = baseSer.size();
-                                const indicator = result.indicator;
-                                const plots = Object.values(result.plots) as Plot[];
-                                const dataValues = plots.map(({ data }) => data);
-                                for (let i = 0; i < size; i++) {
-                                    const vs = dataValues.map(v => v[i].value);
-                                    tvar.setByIndex(i, vs);
-                                }
+                        results.map(({ indName, result }, n) => {
+                            const tvar = baseSer.varOf(indName) as TVar<unknown[]>;
+                            const size = baseSer.size();
+                            const indicator = result.indicator;
+                            const plots = Object.values(result.plots) as Plot[];
+                            const dataValues = plots.map(({ data }) => data);
+                            for (let i = 0; i < size; i++) {
+                                const vs = dataValues.map(v => v[i].value);
+                                tvar.setByIndex(i, vs);
+                            }
 
-                                // console.log(result)
-                                // console.log(plots.map(x => x.data))
-                                // console.log(plots.map(x => x.options))
+                            // console.log(result)
+                            // console.log(plots.map(x => x.data))
+                            // console.log(plots.map(x => x.options))
 
-                                const outputs = plots.map(({ title, options }, atIndex) => {
-                                    return ({ atIndex, title, options })
-                                })
-
-                                const overlay = indicator !== undefined && indicator.overlay
-                                if (overlay) {
-                                    overlayIndicators.push({ indName, tvar, outputs })
-
-                                } else {
-                                    stackedIndicators.push({ indName, tvar, outputs })
-                                }
+                            const outputs = plots.map(({ title, options }, atIndex) => {
+                                return ({ atIndex, title, options })
                             })
 
-                            // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                            this.latestTime = latestTime;
-
-                            if (this.state.isLoaded) {
-                                // regular update
-                                if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
-                                    this.updateState({
-                                        overlayIndicators,
-                                        stackedIndicators,
-                                        selectedIndicatorTags
-                                    })
-
-                                } else {
-                                    this.updateState({
-                                        updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                        overlayIndicators,
-                                        stackedIndicators,
-                                    })
-                                }
+                            const overlay = indicator !== undefined && indicator.overlay
+                            if (overlay) {
+                                overlayIndicators.push({ indName, tvar, outputs })
 
                             } else {
-                                // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
-                                xc.reinit()
+                                stackedIndicators.push({ indName, tvar, outputs })
+                            }
+                        })
 
+                        // console.log(`indicators added to series in ${performance.now() - start} ms`);
+
+                        this.latestTime = latestTime;
+
+                        if (this.state.isLoaded) {
+                            // regular update
+                            if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
                                 this.updateState({
-                                    symbol,
-                                    tframe,
-                                    tzone,
-                                    baseSer,
-                                    kvar,
-                                    xc,
-                                    isLoaded: true,
+                                    overlayIndicators,
+                                    stackedIndicators,
+                                    selectedIndicatorTags
+                                })
+
+                            } else {
+                                this.updateState({
                                     updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                                     overlayIndicators,
                                     stackedIndicators,
                                 })
-
                             }
 
-                            if (latestTime !== undefined) {
-                                this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, tframe, tzone, latestTime, 1000), 5000)
-                            }
+                        } else {
+                            // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
+                            xc.reinit()
 
-                        })
+                            this.updateState({
+                                symbol,
+                                tframe,
+                                tzone,
+                                baseSer,
+                                kvar,
+                                xc,
+                                isLoaded: true,
+                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                                overlayIndicators,
+                                stackedIndicators,
+                            })
+
+                        }
+
+                        if (latestTime !== undefined) {
+                            this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, tframe, tzone, latestTime, 1000), 5000)
+                        }
 
                     })
-            })
+
+                })
+        })
 
     }
 
