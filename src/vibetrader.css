@@ -76,12 +76,12 @@
 
 .container div.title {
     position: relative;
-    border-bottom: 2px solid var(--gray-100);
+    border-bottom: 2px solid var(--gray-600-light);
     color: var(--text-color);
 }
 
 .container div.borderLeftUp {
-    border-left: 1px solid var(--gray-100);
+    border-left: 1px solid var(--gray-600-light);
     position: absolute;
     top: 80%;
     bottom: 0;
