@@ -76,19 +76,19 @@
 
 .container div.title {
     position: relative;
-    border-bottom: 0.7px solid var(--gray-600);
+    border-bottom: 2px solid var(--gray-100);
     color: var(--text-color);
 }
 
 .container div.borderLeftUp {
-    border-left: 0.7px solid var(--gray-600);
+    border-left: 1px solid var(--gray-100);
     position: absolute;
     top: 80%;
     bottom: 0;
 }
 
 .container div.borderLeftDown {
-    border-left: 0.7px solid white;
+    border-left: 1px solid var(--gray-100);
     position: absolute;
     top: 0;
     bottom: 80%;

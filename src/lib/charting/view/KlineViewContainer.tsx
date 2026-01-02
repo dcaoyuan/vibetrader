@@ -67,6 +67,7 @@ import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
+import Spacing from "../pane/Spacing";
 
 type Props = {
     width: number,
@@ -603,6 +604,7 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
+            // is under drawing?
             xc.isMouseCursorEnabled = false;
             this.update({ type: 'cursors' });
             return
@@ -611,7 +613,7 @@ class KlineViewContainer extends Component<Props, State> {
         const b = xc.bx(x);
 
         if (this.isNotInAxisYArea(x)) {
-            // draw mouse cursor only when not in the axis-y area
+            // show mouse cursor only when x is not in the axis-y area
             const row = xc.rb(b)
             xc.setMouseCursorByRow(row)
             xc.isMouseCursorEnabled = true
@@ -1071,8 +1073,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 )}
                             </TagGroup>
                         </div>
-
-                        <div style={{ position: 'relative', width: this.width + 'px', height: this.state.svgHeight + 'px' }}>
+                        <div style={{ position: 'relative', width: this.width, height: this.state.svgHeight }}>
                             <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
                                 width={this.width}
                                 height={this.state.svgHeight}
