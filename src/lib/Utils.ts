@@ -64,3 +64,15 @@ export function arrayDeeplyEquals(arr1: unknown, arr2: unknown) {
 }
 
 
+let canvas: HTMLCanvasElement;
+
+export const stringMetrics = (str: string, font: string) => {
+    if (canvas === undefined) {
+        canvas = document.createElement('canvas');
+    }
+
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+
+    return ctx.measureText(str);
+}

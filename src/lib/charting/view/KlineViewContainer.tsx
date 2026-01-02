@@ -168,7 +168,7 @@ class KlineViewContainer extends Component<Props, State> {
             ...geometry,
         }
 
-        console.log("KlinerViewContainer render");
+        console.log("KlinerViewContainer created");
 
         this.setOverlayIndicatorLabels = this.setOverlayIndicatorLabels.bind(this)
         this.setStackedIndicatorLabels = this.setStackedIndicatorLabels.bind(this)

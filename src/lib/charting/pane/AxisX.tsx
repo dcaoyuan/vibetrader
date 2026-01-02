@@ -5,8 +5,8 @@ import { Texts } from "../../svg/Texts";
 import { Temporal } from "temporal-polyfill";
 import { Component, type JSX, type RefObject, } from "react";
 import type { UpdateEvent } from "../view/ChartView";
-import { textMetrics } from "../view/Format";
 import React from "react";
+import { stringMetrics } from "../../Utils";
 
 const MIN_TICK_SPACING = 100 // in pixels
 
@@ -425,7 +425,8 @@ class AxisX extends Component<Props, State> {
 					tickStr = this.dfm.format(date);
 			}
 
-			const wTickStr = textMetrics(tickStr, this.font).width;
+			const metrics = stringMetrics(tickStr, this.font)
+			const wTickStr = metrics.width;
 			const xText = x - Math.round(wTickStr / 2);
 
 			if (this.props.up) {
@@ -493,10 +494,7 @@ class AxisX extends Component<Props, State> {
 
 		const dtStr = this.dfCursor.format(new Date(time))
 
-		const canvas = document.createElement("canvas");
-		const ctx = canvas.getContext("2d");
-		ctx.font = this.font;
-		const metrics = ctx.measureText(dtStr);
+		const metrics = stringMetrics(dtStr, this.font)
 		const w = metrics.width + 3
 		const x0 = x - w / 2;
 

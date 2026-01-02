@@ -14,6 +14,7 @@ import type { Scalar } from "../scalar/Scalar";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import type { PlotCharOptions, PlotOptions, PlotShapeOptions } from "../plot/Plot";
+import { stringMetrics } from "../../Utils";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -126,7 +127,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
         this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
 
-        console.log(`${this.props.name} ChartView render`)
+        console.log(`${this.props.name} ChartView created`)
     }
 
     /**
@@ -394,11 +395,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     plotYValueLabel(y: number, value: number, className: string) {
         const valueStr = value.toFixed(3);
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        ctx.font = this.font;
-        const metrics = ctx.measureText(valueStr);
-        const wLabel = metrics.width + 5
+        const metrics = stringMetrics(valueStr, this.font)
+        const wLabel = metrics.width + 4
         const hLabel = 13;
 
         const wAxisY = ChartView.AXISY_WIDTH
