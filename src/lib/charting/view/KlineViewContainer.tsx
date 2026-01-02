@@ -6,15 +6,17 @@ import { ChartView, type CallbacksToContainer, type Indicator, type UpdateDrawin
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
-import { Kline } from "../../domain/Kline";
+import { Kline, KVAR_NAME } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Context, PineTS, Provider } from "pinets";
+import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
-import * as Binance from "../../domain/BinanaceData";
+import type { KlineKind } from "../plot/PlotKline";
+import type { Plot } from "../plot/Plot";
+import { fetchData } from "../../domain/DataFecther";
 
 import {
     ActionButton,
@@ -65,8 +67,6 @@ import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
-import type { KlineKind } from "../plot/PlotKline";
-import type { Plot } from "../plot/Plot";
 
 type Props = {
     width: number,
@@ -116,13 +116,10 @@ type State = {
 }
 
 
-export const KVAR_NAME = "kline";
-
 // const allInds = ['macd']
 const allInds = ['sma', 'ema', 'bb', 'rsi', 'macd']
 
-const TOOPTIP_DELAY = 500; // ms
-
+const TOOLTIP_DELAY = 500; // ms
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
@@ -199,76 +196,28 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     getBaseSer(tframe: TFrame, tzone: string) {
+        const createBaseSer = () => {
+            const baseSer = new DefaultTSer(tframe, tzone, 1000);
+            const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+            const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+            return ({ baseSer, kvar, xc })
+        }
+
         const { baseSer, kvar, xc } = this.state.isLoaded
             ? { baseSer: this.state.baseSer, kvar: this.state.kvar, xc: this.state.xc }
-            : this.#createBaseSer(tframe, tzone)
+            : createBaseSer()
 
         return ({ baseSer, kvar, xc })
     }
 
-    #createBaseSer(tframe: TFrame, tzone: string) {
-        const baseSer = new DefaultTSer(tframe, tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+    fetchIndicatorFns = (indNames: string[]) => {
+        const fetchIndicatorFn = (indName: string) =>
+            fetch("./indicators/" + indName + ".pine")
+                .then(r => r.text())
+                .then(pine => ({ indName, pine }))
 
-        return ({ baseSer, kvar, xc })
-    }
-
-    fetchIndicatorFns = (indNames: string[]) =>
-        Promise.all(
-            indNames.map(indName => this.fetchIndicatorFn(indName))
-        )
-
-    fetchIndicatorFn = (indName: string) =>
-        fetch("./indicators/" + indName + ".pine")
-            .then(r => r.text())
-            .then(pine => ({ indName, pine }))
-
-    fetchDataLocal = (startTime?: number) => fetch("./klines.json")
-        .then(r => r.json())
-        .then(json => {
-            for (const k of json) {
-                const time = Date.parse(k.Date);
-                const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
-                this.state.baseSer.addToVar(KVAR_NAME, kline);
-            }
-
-            return undefined; // latestTime
-        })
-
-    fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, startTime?: number, limit?: number) => {
-        const endTime = new Date().getTime();
-        const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, this.state.tzone)
-        startTime = startTime
-            ? startTime
-            : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
-
-        const provider = Provider.Binance
-        const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
-        return provider.getMarketData(symbol, pinets_tframe, limit, startTime, endTime)
-            //return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
-            .then(binanceKline => {
-                // console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
-
-                // Sort by openTime to ensure chronological order
-                binanceKline.sort((a, b) => a.openTime - b.openTime);
-
-                // Remove duplicates (in case of any overlap)
-                const uniqueKlines = binanceKline//.filter((kline, index, self) => index === self.findIndex((k) => k.openTime === kline.openTime));
-
-                // console.log(`After deduplication: ${uniqueKlines.length} klines`);
-
-                const latestKline = uniqueKlines.length > 0 ? uniqueKlines[uniqueKlines.length - 1] : undefined;
-                // console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
-
-                for (const k of uniqueKlines) {
-                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                    baseSer.addToVar(KVAR_NAME, kline);
-                }
-
-                return latestKline ? latestKline.openTime : undefined;
-            })
-
+        return Promise.all(indNames.map(indName => fetchIndicatorFn(indName)))
     }
 
     fetchData_calcInds = (
@@ -279,17 +228,13 @@ class KlineViewContainer extends Component<Props, State> {
         limit: number,
         selectedIndicatorTags?: Selection) => {
 
-        // Put getBaseSer() in another async block for checking `state.isLoaded`, to make sure that 
+        // Put getBaseSer() in another async block to check `state.isLoaded`, this makes it sure that 
         // any `setState({ isLoaded: false })` was already called. 
         Promise.resolve().then(() => {
 
             const { baseSer, kvar, xc } = this.getBaseSer(tframe, tzone)
 
-            this.fetchDataBinance(baseSer, symbol, tframe, startTime, limit)
-                .catch(ex => {
-                    console.error(ex);
-                    return this.fetchDataLocal()
-                })
+            fetchData(baseSer, symbol, tframe, tzone, startTime, limit)
                 .then((latestTime) => {
                     let start = performance.now()
 
@@ -304,7 +249,7 @@ class KlineViewContainer extends Component<Props, State> {
                         }
                     }
 
-                    const pinets = new PineTS(kvar.toArray(), symbol, '1d');
+                    const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
                     const fnRuns: Promise<{ indName: string, result: Context }>[] = []
                     for (const [indName, fn] of selectedIndicatorFns) {
@@ -398,80 +343,6 @@ class KlineViewContainer extends Component<Props, State> {
 
                 })
         })
-
-    }
-
-    onGlobalKeyDown(e: KeyboardEvent) {
-        if (
-            document.activeElement.tagName === 'INPUT' ||
-            document.activeElement.tagName === 'TEXTAREA'
-        ) {
-            return;
-        }
-
-        const xc = this.state.xc;
-        xc.isMouseCursorEnabled = false;
-
-        const fastSteps = Math.floor(xc.nBars * 0.168)
-
-        switch (e.key) {
-            case "ArrowLeft":
-                if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, -1)
-
-                } else {
-                    xc.moveChartsInDirection(fastSteps, -1)
-                }
-
-                this.update({ type: 'chart' })
-                break;
-
-            case "ArrowRight":
-                if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, 1)
-
-                } else {
-                    xc.moveChartsInDirection(fastSteps, 1)
-                }
-
-                this.update({ type: 'chart' })
-                break;
-
-            case "ArrowUp":
-                if (!e.ctrlKey) {
-                    xc.growWBar(1)
-                    this.update({ type: 'chart' })
-                }
-                break;
-
-            case "ArrowDown":
-                if (!e.ctrlKey) {
-                    xc.growWBar(-1);
-                    this.update({ type: 'chart' })
-                }
-                break;
-
-            case " ":
-                xc.isCursorAccelerated = !xc.isCursorAccelerated
-                break;
-
-            case "Escape":
-                if (xc.selectedDrawingIdx !== undefined) {
-                    this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'unselect' } })
-
-                } else {
-                    xc.isReferCursorEnabled = !xc.isReferCursorEnabled;
-
-                    this.update({ type: 'cursors' })
-                }
-                break;
-
-            case 'Delete':
-                this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'delete' } })
-                break;
-
-            default:
-        }
 
     }
 
@@ -607,6 +478,81 @@ class KlineViewContainer extends Component<Props, State> {
     translate(e: React.MouseEvent) {
         return [e.nativeEvent.offsetX, e.nativeEvent.offsetY]
     }
+
+    onGlobalKeyDown(e: KeyboardEvent) {
+        if (
+            document.activeElement.tagName === 'INPUT' ||
+            document.activeElement.tagName === 'TEXTAREA'
+        ) {
+            return;
+        }
+
+        const xc = this.state.xc;
+        xc.isMouseCursorEnabled = false;
+
+        const fastSteps = Math.floor(xc.nBars * 0.168)
+
+        switch (e.key) {
+            case "ArrowLeft":
+                if (e.ctrlKey) {
+                    xc.moveCursorInDirection(fastSteps, -1)
+
+                } else {
+                    xc.moveChartsInDirection(fastSteps, -1)
+                }
+
+                this.update({ type: 'chart' })
+                break;
+
+            case "ArrowRight":
+                if (e.ctrlKey) {
+                    xc.moveCursorInDirection(fastSteps, 1)
+
+                } else {
+                    xc.moveChartsInDirection(fastSteps, 1)
+                }
+
+                this.update({ type: 'chart' })
+                break;
+
+            case "ArrowUp":
+                if (!e.ctrlKey) {
+                    xc.growWBar(1)
+                    this.update({ type: 'chart' })
+                }
+                break;
+
+            case "ArrowDown":
+                if (!e.ctrlKey) {
+                    xc.growWBar(-1);
+                    this.update({ type: 'chart' })
+                }
+                break;
+
+            case " ":
+                xc.isCursorAccelerated = !xc.isCursorAccelerated
+                break;
+
+            case "Escape":
+                if (xc.selectedDrawingIdx !== undefined) {
+                    this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'unselect' } })
+
+                } else {
+                    xc.isReferCursorEnabled = !xc.isReferCursorEnabled;
+
+                    this.update({ type: 'cursors' })
+                }
+                break;
+
+            case 'Delete':
+                this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'delete' } })
+                break;
+
+            default:
+        }
+
+    }
+
 
     onMouseLeave() {
         const xc = this.state.xc;
@@ -913,7 +859,7 @@ class KlineViewContainer extends Component<Props, State> {
                             selectedKeys={this.state.drawingIdsToCreate}
                             onSelectionChange={this.setDrawingIdsToCreate}
                         >
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="line">
                                     <Line />
                                 </ToggleButton>
@@ -922,7 +868,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="parallel">
                                     <Properties />
                                 </ToggleButton>
@@ -931,7 +877,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="gann_angles">
                                     <Collection />
                                 </ToggleButton>
@@ -940,7 +886,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="fibonacci_retrace" >
                                     <DistributeSpaceVertically />
                                 </ToggleButton>
@@ -949,7 +895,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="fibonacci_timezone">
                                     <DistributeSpaceHorizontally />
                                 </ToggleButton>
@@ -958,7 +904,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="fibonacci_retrace_v">
                                     <AudioWave />
                                 </ToggleButton>
@@ -967,7 +913,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                                 <ToggleButton id="polyline" >
                                     <DirectSelect />
                                 </ToggleButton>
@@ -980,7 +926,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={() => this.setState({
                                 updateDrawing: {
                                     action: 'hide',
@@ -995,7 +941,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={() => this.setState({
                                 updateDrawing: {
                                     ...(this.state.updateDrawing),
@@ -1012,7 +958,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.toggleKlineKind} >
                                 <DistributeHorizontalCenter />
                             </ActionButton>
@@ -1021,7 +967,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.toggleScalar} >
                                 <Percentage />
                             </ActionButton>
@@ -1039,7 +985,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger> */}
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
                                 <Resize />
                             </ActionButton>
@@ -1048,7 +994,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.toggleCrosshairVisiable} >
                                 <Add />
                             </ActionButton>
@@ -1059,7 +1005,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.props.toggleColorTheme} >
                                 <BrightnessContrast />
                             </ActionButton>

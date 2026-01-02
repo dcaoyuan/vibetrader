@@ -1,6 +1,8 @@
 
 import { TVal } from "../timeseris/TVal";
 
+export const KVAR_NAME = "kline";
+
 export class Kline extends TVal {
     open: number;
     high: number;
