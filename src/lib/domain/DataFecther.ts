@@ -9,6 +9,12 @@ export const fetchData = (baseSer: TSer, symbol: string, tframe: TFrame, tzone: 
         .catch(ex => {
             console.error(ex);
             return fetchDataLocal(baseSer)
+
+        }).then(lastKline => {
+            console.log(lastKline)
+            return lastKline === undefined
+                ? fetchDataLocal(baseSer)
+                : lastKline
         })
 
 const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
