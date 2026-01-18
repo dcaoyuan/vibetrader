@@ -65,6 +65,7 @@ import StrokeWidth from '@react-spectrum/s2/icons/StrokeWidth';
 import Percentage from '@react-spectrum/s2/icons/Percentage';
 import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
+import Exposure from '@react-spectrum/s2/icons/Exposure';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import Spacing from "../pane/Spacing";
@@ -989,7 +990,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
-                                <Resize />
+                                <AlignTop />
                             </ActionButton>
                             <Tooltip >
                                 Original chart height
@@ -1031,6 +1032,17 @@ class KlineViewContainer extends Component<Props, State> {
                                     </div>
                                 </Popover>
                             </DialogTrigger>
+                        </TooltipTrigger>
+
+                        <Divider staticColor='auto' />
+
+                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <ActionButton onPress={() => { }} >
+                                <Exposure />
+                            </ActionButton>
+                            <Tooltip>
+                                Take snapshot
+                            </Tooltip>
                         </TooltipTrigger>
 
                     </ActionButtonGroup>

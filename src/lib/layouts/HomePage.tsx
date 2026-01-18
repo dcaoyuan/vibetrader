@@ -1,3 +1,4 @@
+import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import KlineViewContainer from '../charting/view/KlineViewContainer';
 
 type HomePageProps = {
@@ -6,15 +7,16 @@ type HomePageProps = {
 }
 
 const HomePage = (props: HomePageProps) => {
-    const width = 900;
+    const width = 600;
 
     return (
-        <KlineViewContainer
-            width={width}
-            toggleColorTheme={props.toggleColorTheme}
-            colorTheme={props.colorTheme}
-        />
-    )
+        <div className={style({ display: "flex" })}>
+            <KlineViewContainer
+                width={width}
+                toggleColorTheme={props.toggleColorTheme}
+                colorTheme={props.colorTheme}
+            />
+        </div>)
 };
 
 export default HomePage;
