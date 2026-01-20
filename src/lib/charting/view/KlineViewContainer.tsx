@@ -808,11 +808,11 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    private backToOriginalChartScale() {
+    backToOriginalChartScale() {
         this.update({ type: 'chart', deltaMouse: { dx: undefined, dy: undefined } });
     }
 
-    private toggleCrosshairVisiable() {
+    toggleCrosshairVisiable() {
         const xc = this.state.xc;
 
         xc.isCrosshairEnabled = !xc.isCrosshairEnabled
@@ -820,7 +820,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'cursors' })
     }
 
-    private toggleKlineKind() {
+    toggleKlineKind() {
         let kind: KlineKind
         switch (this.state.xc.klineKind) {
             case 'candle':
@@ -843,16 +843,16 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' })
     }
 
-    private toggleScalar() {
+    toggleScalar() {
         this.update({ type: 'chart', yScalar: true })
     }
 
-    private toggleOnCalendarMode() {
+    toggleOnCalendarMode() {
         this.state.xc.setOnCalendarMode(!this.state.xc.isOnCalendarMode)
         this.update({ type: 'chart' })
     }
 
-    private takeScreenshot(): Promise<HTMLCanvasElement> {
+    takeScreenshot(): Promise<HTMLCanvasElement> {
         return html2canvas(this.containerRef.current, {
             useCORS: true // in case you have images stored in your application
         })
