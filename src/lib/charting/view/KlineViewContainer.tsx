@@ -1,4 +1,5 @@
 import React, { Component, Fragment, type JSX } from "react";
+import html2canvas from "html2canvas";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -68,7 +69,8 @@ import Star from '@react-spectrum/s2/icons/Star';
 import Exposure from '@react-spectrum/s2/icons/Exposure';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
-import Spacing from "../pane/Spacing";
+import { Screenshot } from "../pane/Screenshot";
+
 
 type Props = {
     width: number,
@@ -115,6 +117,8 @@ type State = {
     isLoaded?: boolean;
 
     cursor?: string;
+
+    screenshot?: HTMLCanvasElement
 }
 
 
@@ -131,7 +135,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     loadedIndFns: Map<string, string>;
 
-    focusRef: React.RefObject<HTMLDivElement>;
+    containerRef: React.RefObject<HTMLDivElement>;
     globalKeyboardListener = undefined
     isDragging: boolean;
     xDragStart: number;
@@ -147,6 +151,7 @@ class KlineViewContainer extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 25;
 
+
     callbacks: CallbacksToContainer
 
     systemScheme: string;
@@ -155,7 +160,7 @@ class KlineViewContainer extends Component<Props, State> {
         super(props);
         this.width = props.width;
 
-        this.focusRef = React.createRef();
+        this.containerRef = React.createRef();
 
         const geometry = this.#calcGeometry([]);
         this.state = {
@@ -181,6 +186,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.toggleScalar = this.toggleScalar.bind(this)
 
         this.handleSymbolTimeframeChanged = this.handleSymbolTimeframeChanged.bind(this)
+        this.handleTakeScreenshot = this.handleTakeScreenshot.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -366,8 +372,8 @@ class KlineViewContainer extends Component<Props, State> {
             this.globalKeyboardListener = this.onGlobalKeyDown;
             document.addEventListener("keydown", this.onGlobalKeyDown);
 
-            if (this.focusRef.current) {
-                this.focusRef.current.focus()
+            if (this.containerRef.current) {
+                this.containerRef.current.focus()
             }
         })
     }
@@ -846,13 +852,24 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' })
     }
 
+    private takeScreenshot(): Promise<HTMLCanvasElement> {
+        return html2canvas(this.containerRef.current, {
+            useCORS: true // in case you have images stored in your application
+        })
+    }
+
+    private handleTakeScreenshot() {
+        this.takeScreenshot().then((screenshot) =>
+            this.setState({ screenshot })
+        )
+    }
 
     render() {
         return (
             <div style={{ display: "flex" }} >
 
                 {/* Toolbar */}
-                <div style={{ display: "inline-block", paddingRight: "6px", paddingTop: '3px' }}>
+                <div style={{ display: "inline-block", paddingTop: '3px' }}>
 
                     <ActionButtonGroup orientation="vertical" >
 
@@ -1037,12 +1054,20 @@ class KlineViewContainer extends Component<Props, State> {
                         <Divider staticColor='auto' />
 
                         <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
-                            <ActionButton onPress={() => { }} >
-                                <Exposure />
-                            </ActionButton>
-                            <Tooltip>
-                                Take snapshot
-                            </Tooltip>
+                            <DialogTrigger>
+                                <ActionButton onPress={this.handleTakeScreenshot} >
+                                    <Exposure />
+                                </ActionButton>
+                                <Tooltip>
+                                    Take screenshot
+                                </Tooltip>
+
+                                <Popover>
+                                    <div className="help" >
+                                        <Screenshot canvas={this.state.screenshot} />
+                                    </div>
+                                </Popover>
+                            </DialogTrigger>
                         </TooltipTrigger>
 
                     </ActionButtonGroup>
@@ -1050,9 +1075,9 @@ class KlineViewContainer extends Component<Props, State> {
                 </div>
 
                 {/* View Container */}
-                <div className="container" style={{ width: this.width + 'px', height: this.state.containerHeight + 'px' }}
+                <div className="container" style={{ paddingLeft: '6px', width: this.width + 'px', height: this.state.containerHeight + 'px' }}
                     key="klineviewcontainer"
-                    ref={this.focusRef}
+                    ref={this.containerRef}
                 >
                     {this.state.isLoaded && (<>
                         <div className="title" style={{ width: this.width, height: this.hTitle }}>
