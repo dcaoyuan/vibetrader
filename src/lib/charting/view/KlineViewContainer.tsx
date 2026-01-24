@@ -67,6 +67,7 @@ import Percentage from '@react-spectrum/s2/icons/Percentage';
 import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
 import Exposure from '@react-spectrum/s2/icons/Exposure';
+import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
@@ -1007,7 +1008,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
-                                <AlignTop />
+                                <Maximize />
                             </ActionButton>
                             <Tooltip >
                                 Original chart height
