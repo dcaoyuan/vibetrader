@@ -127,7 +127,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
         this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
 
-        console.log(`${this.props.name} ChartView created`)
+        console.log(`ChartView created`)
     }
 
     /**
