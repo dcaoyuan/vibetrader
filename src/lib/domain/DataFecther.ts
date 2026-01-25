@@ -38,6 +38,7 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
 
     const provider = Provider.Binance
     const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
+
     return provider.getMarketData(symbol, pinets_tframe, limit, startTime, endTime)
         //return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
         .then(binanceKline => {
@@ -55,8 +56,10 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
             // console.log(`latestKline: ${new Date(latestKline.openTime)}, ${latestKline.close}`)
 
             for (const k of uniqueKlines) {
-                const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
-                baseSer.addToVar(KVAR_NAME, kline);
+                if (k) {
+                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
+                    baseSer.addToVar(KVAR_NAME, kline);
+                }
             }
 
             return latestKline ? latestKline.openTime : undefined;

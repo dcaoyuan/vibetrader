@@ -239,7 +239,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         // Put getBaseSer() in another async block to check `state.isLoaded`, this makes it sure that 
         // any `setState({ isLoaded: false })` was already called. 
-        Promise.resolve().then(() => {
+        return Promise.resolve().then(() => {
 
             const { baseSer, kvar, xc } = this.getBaseSer(tframe, tzone)
 
@@ -258,96 +258,99 @@ class KlineViewContainer extends Component<Props, State> {
                         }
                     }
 
+                    console.log(kvar.toArray().filter(k => k === undefined), "klines in series");
                     const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
-                    const fnRuns: Promise<{ indName: string, result: Context }>[] = []
-                    for (const [indName, fn] of selectedIndicatorFns) {
-                        if (fn !== undefined) {
-                            const fnRun = pinets.run(fn).then(result => ({ indName, result }));
-                            fnRuns.push(fnRun)
+                    pinets.ready().then(async () => {
+                        const fnRuns: Promise<{ indName: string, result: Context }>[] = []
+                        for (const [indName, fn] of selectedIndicatorFns) {
+                            if (fn !== undefined) {
+                                const fnRun = pinets.run(fn).then(result => ({ indName, result }));
+                                fnRuns.push(fnRun)
+                            }
                         }
-                    }
 
-                    Promise.all(fnRuns).then(results => {
-                        console.log(`indicators calculated in ${performance.now() - start} ms`);
+                        return Promise.all(fnRuns).then(results => {
+                            console.log(`indicators calculated in ${performance.now() - start} ms`);
 
-                        start = performance.now();
+                            start = performance.now();
 
-                        const overlayIndicators = [];
-                        const stackedIndicators = [];
+                            const overlayIndicators = [];
+                            const stackedIndicators = [];
 
-                        results.map(({ indName, result }, n) => {
-                            const tvar = baseSer.varOf(indName) as TVar<unknown[]>;
-                            const size = baseSer.size();
-                            const indicator = result.indicator;
-                            const plots = Object.values(result.plots) as Plot[];
-                            const dataValues = plots.map(({ data }) => data);
-                            for (let i = 0; i < size; i++) {
-                                const vs = dataValues.map(v => v[i].value);
-                                tvar.setByIndex(i, vs);
-                            }
+                            results.map(({ indName, result }, n) => {
+                                const tvar = baseSer.varOf(indName) as TVar<unknown[]>;
+                                const size = baseSer.size();
+                                const indicator = result.indicator;
+                                const plots = Object.values(result.plots) as Plot[];
+                                const dataValues = plots.map(({ data }) => data);
+                                for (let i = 0; i < size; i++) {
+                                    const vs = dataValues.map(v => v[i].value);
+                                    tvar.setByIndex(i, vs);
+                                }
 
-                            // console.log(result)
-                            // console.log(plots.map(x => x.data))
-                            // console.log(plots.map(x => x.options))
+                                // console.log(result)
+                                // console.log(plots.map(x => x.data))
+                                // console.log(plots.map(x => x.options))
 
-                            const outputs = plots.map(({ title, options }, atIndex) => {
-                                return ({ atIndex, title, options })
-                            })
-
-                            const overlay = indicator !== undefined && indicator.overlay
-                            if (overlay) {
-                                overlayIndicators.push({ indName, tvar, outputs })
-
-                            } else {
-                                stackedIndicators.push({ indName, tvar, outputs })
-                            }
-                        })
-
-                        // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                        this.latestTime = latestTime;
-
-                        if (this.state.isLoaded) {
-                            // regular update
-                            if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
-                                this.updateState({
-                                    overlayIndicators,
-                                    stackedIndicators,
-                                    selectedIndicatorTags
+                                const outputs = plots.map(({ title, options }, atIndex) => {
+                                    return ({ atIndex, title, options })
                                 })
 
+                                const overlay = indicator !== undefined && indicator.overlay
+                                if (overlay) {
+                                    overlayIndicators.push({ indName, tvar, outputs })
+
+                                } else {
+                                    stackedIndicators.push({ indName, tvar, outputs })
+                                }
+                            })
+
+                            // console.log(`indicators added to series in ${performance.now() - start} ms`);
+
+                            this.latestTime = latestTime;
+
+                            if (this.state.isLoaded) {
+                                // regular update
+                                if (selectedIndicatorTags !== undefined) { // selectedIndicatorTags changed
+                                    this.updateState({
+                                        overlayIndicators,
+                                        stackedIndicators,
+                                        selectedIndicatorTags
+                                    })
+
+                                } else {
+                                    this.updateState({
+                                        updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                                        overlayIndicators,
+                                        stackedIndicators,
+                                    })
+                                }
+
                             } else {
+                                // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
+                                xc.reinit()
+
                                 this.updateState({
+                                    symbol,
+                                    tframe,
+                                    tzone,
+                                    baseSer,
+                                    kvar,
+                                    xc,
+                                    isLoaded: true,
                                     updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                                     overlayIndicators,
                                     stackedIndicators,
                                 })
+
                             }
 
-                        } else {
-                            // reinit it to get correct last occured time/row, should be called after data loaded to baseSer
-                            xc.reinit()
+                            if (latestTime !== undefined) {
+                                // this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, tframe, tzone, latestTime, 1000), 5000)
+                            }
 
-                            this.updateState({
-                                symbol,
-                                tframe,
-                                tzone,
-                                baseSer,
-                                kvar,
-                                xc,
-                                isLoaded: true,
-                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                overlayIndicators,
-                                stackedIndicators,
-                            })
-
-                        }
-
-                        if (latestTime !== undefined) {
-                            this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcInds(symbol, tframe, tzone, latestTime, 1000), 5000)
-                        }
-
+                        })
                     })
 
                 })
@@ -727,9 +730,9 @@ class KlineViewContainer extends Component<Props, State> {
         // NOTE When you call setState multiple times within the same synchronous block of code, 
         // React batches these calls into a single update for performance reasons.
         // So we set isLoaded to false here, then will set to true in asycn fetchData_calcInds.
-        this.setState({ isLoaded: false })
+        this.setState(prevState => ({ ...prevState, isLoaded: false }));
 
-        this.fetchData_calcInds(symbol, tframe, tzone, undefined, 1000, selectedIndicatorTags)
+        return this.fetchData_calcInds(symbol, tframe, tzone, undefined, 1000, selectedIndicatorTags)
     }
 
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
@@ -783,7 +786,7 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.fetchData_calcInds(this.state.symbol, this.state.tframe, this.state.tzone, this.latestTime, 1000, selectedIndicatorTags)
+        return this.fetchData_calcInds(this.state.symbol, this.state.tframe, this.state.tzone, this.latestTime, 1000, selectedIndicatorTags)
     }
 
     setDrawingIdsToCreate(ids?: Selection) {
@@ -853,16 +856,20 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' })
     }
 
+    private handleTakeScreenshot() {
+        this.takeScreenshot().then((screenshot) =>
+            this.setState({ screenshot })
+        )
+    }
+
     takeScreenshot(): Promise<HTMLCanvasElement> {
         return html2canvas(this.containerRef.current, {
             useCORS: true // in case you have images stored in your application
         })
     }
 
-    private handleTakeScreenshot() {
-        this.takeScreenshot().then((screenshot) =>
-            this.setState({ screenshot })
-        )
+    changeTimeframe(tframe: string) {
+        return this.handleSymbolTimeframeChanged(this.state.symbol, tframe, this.state.tzone)
     }
 
     render() {
