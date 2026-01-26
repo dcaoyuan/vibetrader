@@ -250,7 +250,7 @@ class KlineViewContainer extends Component<Props, State> {
                 }
             }
 
-            console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
+            // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
             const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
             pinets.ready().then(async () => {
@@ -335,7 +335,6 @@ class KlineViewContainer extends Component<Props, State> {
                             overlayIndicators,
                             stackedIndicators,
                         })
-
                     }
 
                     if (latestTime !== undefined) {
