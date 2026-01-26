@@ -861,8 +861,16 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
+    changeSymbol(symbol: string): Promise<void> {
+        return this.handleSymbolTimeframeChanged(symbol, this.state.tframe.shortName, this.state.tzone)
+    }
+
     changeTimeframe(tframe: string): Promise<void> {
         return this.handleSymbolTimeframeChanged(this.state.symbol, tframe, this.state.tzone)
+    }
+
+    changeTimezone(tzone: string): Promise<void> {
+        return this.handleSymbolTimeframeChanged(this.state.symbol, this.state.tframe.shortName, tzone)
     }
 
     render() {
