@@ -25,7 +25,7 @@ export type UpdateEvent = {
 }
 
 export type Indicator = {
-    indName: string,
+    pineName: string,
     tvar: TVar<unknown[]>,
     outputs: Output[],
     overlay?: boolean
@@ -560,7 +560,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             const newInd = newInds[i];
             const oldInd = oldInds[i];
 
-            if (newInd.indName !== oldInd.indName) {
+            if (newInd.pineName !== oldInd.pineName) {
                 return true
             }
         }
