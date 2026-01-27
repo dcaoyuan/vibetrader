@@ -230,10 +230,7 @@ class KlineViewContainer extends Component<Props, State> {
         return Array.from(selectedIndicatorFns, ([pineName, pine]) => ({ pineName, pine }))
     }
 
-    fetchData_calcPines = async (
-        startTime: number,
-        limit: number
-    ) => {
+    fetchData_calcPines = async (startTime: number, limit: number) => {
 
         const symbol = this.state.symbol
         const tframe = this.state.tframe
@@ -242,10 +239,10 @@ class KlineViewContainer extends Component<Props, State> {
         const kvar = this.state.kvar
         const xc = this.state.xc
 
+        const pines = this.pines || this.getSelectedIncicators()
+
         return fetchData(baseSer, symbol, tframe, tzone, startTime, limit).then(latestTime => {
             let start = performance.now()
-
-            const pines = this.pines || this.getSelectedIncicators()
 
             // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
             const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
@@ -280,7 +277,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         // console.log(result)
                         // console.log(plots.map(x => x.data))
-                        // console.log(plots.map(x => x.options))
+                        console.log(plots.map(x => x.options))
 
                         const outputs = plots.map(({ title, options }, atIndex) => {
                             return ({ atIndex, title, options })
@@ -308,6 +305,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                     } else {
                         // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
+                        console.log("reinit xc")
                         xc.reinit()
 
                         this.updateState({
@@ -316,6 +314,7 @@ class KlineViewContainer extends Component<Props, State> {
                             overlayIndicators,
                             stackedIndicators,
                         })
+
                     }
 
                     if (latestTime !== undefined) {
@@ -872,6 +871,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     runPines(pines: { pineName: string, pine: string }[]) {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
         this.pines = pines;
 
         const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
@@ -893,6 +896,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     resetPines() {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
         this.pines = undefined
 
         const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
