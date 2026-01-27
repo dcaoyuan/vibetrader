@@ -81,14 +81,6 @@ type Props = {
 }
 
 type State = {
-    tzone?: string;
-    tframe?: TFrame;
-    symbol?: string;
-
-    baseSer?: TSer;
-    kvar?: TVar<Kline>;
-    xc?: ChartXControl;
-
     updateEvent?: UpdateEvent;
     updateDrawing?: UpdateDrawing;
 
@@ -107,21 +99,18 @@ type State = {
     selectedIndicatorTags?: Selection;
     drawingIdsToCreate?: Selection;
 
-    yKlineView?: number;
-    yVolumeView?: number;
-    yIndicatorViews?: number;
-    yAxisx?: number;
-    svgHeight?: number;
-    containerHeight?: number;
-    yCursorRange?: number[];
+    yKlineView: number;
+    yVolumeView: number;
+    yIndicatorViews: number;
+    yAxisx: number;
+    svgHeight: number;
+    containerHeight: number;
+    yCursorRange: number[];
 
-    isLoaded?: boolean;
+    isLoaded: boolean;
 
-    cursor?: string;
-
-    screenshot?: HTMLCanvasElement
+    screenshot: HTMLCanvasElement
 }
-
 
 // const allIndTags = ['macd']
 const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd']
@@ -130,6 +119,14 @@ const TOOLTIP_DELAY = 500; // ms
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
+
+    symbol: string;
+    tframe: TFrame;
+    tzone: string;
+
+    baseSer: TSer;
+    kvar: TVar<Kline>;
+    xc: ChartXControl;
 
     reloadDataTimeoutId = undefined;
     latestTime: number;
@@ -153,7 +150,6 @@ class KlineViewContainer extends Component<Props, State> {
     hAxisx = 40;
     hSpacing = 25;
 
-
     callbacks: CallbacksToContainer
 
     systemScheme: string;
@@ -166,11 +162,13 @@ class KlineViewContainer extends Component<Props, State> {
 
         const geometry = this.#calcGeometry([]);
         this.state = {
+            isLoaded: false,
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['sma', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
+            screenshot: undefined,
             ...geometry,
         }
 
@@ -232,12 +230,12 @@ class KlineViewContainer extends Component<Props, State> {
 
     fetchData_calcPines = async (startTime: number, limit: number) => {
 
-        const symbol = this.state.symbol
-        const tframe = this.state.tframe
-        const tzone = this.state.tzone
-        const baseSer = this.state.baseSer
-        const kvar = this.state.kvar
-        const xc = this.state.xc
+        const symbol = this.symbol
+        const tframe = this.tframe
+        const tzone = this.tzone
+        const baseSer = this.baseSer
+        const kvar = this.kvar
+        const xc = this.xc
 
         const pines = this.pines || this.getSelectedIncicators()
 
@@ -332,35 +330,24 @@ class KlineViewContainer extends Component<Props, State> {
             this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
 
         }).then(() => {
-            const symbol = 'BTCUSDT'
-            const tframe = TFrame.DAILY
-            const tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            //const tzone = "America/Vancouver" 
+            this.symbol = 'BTCUSDT'
+            this.tframe = TFrame.DAILY
+            this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //this. tzone = "America/Vancouver" 
 
-            const baseSer = new DefaultTSer(tframe, tzone, 1000);
-            const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-            const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+            this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+            this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+            this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
-            this.setState(
-                {
-                    symbol,
-                    tframe,
-                    tzone,
+            this.fetchData_calcPines(undefined, 1000).then(() => {
+                this.globalKeyboardListener = this.onGlobalKeyDown;
+                document.addEventListener("keydown", this.onGlobalKeyDown);
 
-                    baseSer,
-                    kvar,
-                    xc,
-                }, () => {
-                    this.fetchData_calcPines(undefined, 1000)
-
-                    this.globalKeyboardListener = this.onGlobalKeyDown;
-                    document.addEventListener("keydown", this.onGlobalKeyDown);
-
-                    if (this.containerRef.current) {
-                        this.containerRef.current.focus()
-                    }
+                if (this.containerRef.current) {
+                    this.containerRef.current.focus()
                 }
-            )
+            })
+
         })
     }
 
@@ -379,8 +366,8 @@ class KlineViewContainer extends Component<Props, State> {
         this.updateState({ updateEvent: { ...event, changed } });
     }
 
-    updateState(state: State) {
-        const xc = state.xc || this.state.xc;
+    updateState(newState: Partial<State>) {
+        const xc = this.xc;
 
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
@@ -398,11 +385,11 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         // need to re-calculate geometry?
-        const geometry = state.stackedIndicators
-            ? this.#calcGeometry(state.stackedIndicators)
+        const geometry = newState.stackedIndicators
+            ? this.#calcGeometry(newState.stackedIndicators)
             : undefined
 
-        this.setState({ ...state, ...geometry, referCursor, mouseCursor })
+        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCursor, mouseCursor })
     }
 
     #calcGeometry(stackedIndicators: Indicator[]) {
@@ -449,7 +436,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     #plotCursor(x: number, className: string) {
-        if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || this.state.xc.isCrosshairEnabled) {
+        if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || this.xc.isCrosshairEnabled) {
             return <></>
         }
 
@@ -481,7 +468,7 @@ class KlineViewContainer extends Component<Props, State> {
             return;
         }
 
-        const xc = this.state.xc;
+        const xc = this.xc;
         xc.isMouseCursorEnabled = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
@@ -548,7 +535,7 @@ class KlineViewContainer extends Component<Props, State> {
 
 
     onMouseLeave() {
-        const xc = this.state.xc;
+        const xc = this.xc;
 
         // clear mouse cursor
         xc.isMouseCursorEnabled = false;
@@ -565,7 +552,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onMouseMove(e: React.MouseEvent) {
-        const xc = this.state.xc;
+        const xc = this.xc;
         const [x, y] = this.translate(e)
 
         if (this.isDragging && xc.mouseDownHitDrawingIdx === undefined) {
@@ -628,7 +615,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onDoubleClick(e: React.MouseEvent) {
-        const xc = this.state.xc;
+        const xc = this.xc;
         const [x, y] = this.translate(e)
 
         // set refer cursor
@@ -661,7 +648,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onWheel(e: React.WheelEvent) {
-        const xc = this.state.xc;
+        const xc = this.xc;
 
         const delta = Math.sign(e.deltaY)
 
@@ -786,7 +773,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     toggleCrosshairVisiable() {
-        const xc = this.state.xc;
+        const xc = this.xc;
 
         xc.isCrosshairEnabled = !xc.isCrosshairEnabled
 
@@ -795,7 +782,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     toggleKlineKind() {
         let kind: KlineKind
-        switch (this.state.xc.klineKind) {
+        switch (this.xc.klineKind) {
             case 'candle':
                 kind = 'bar'
                 break;
@@ -812,7 +799,7 @@ class KlineViewContainer extends Component<Props, State> {
                 kind = 'bar'
         }
 
-        this.state.xc.klineKind = kind;
+        this.xc.klineKind = kind;
         this.update({ type: 'chart' })
     }
 
@@ -821,7 +808,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     toggleOnCalendarMode() {
-        this.state.xc.setOnCalendarMode(!this.state.xc.isOnCalendarMode)
+        this.xc.setOnCalendarMode(!this.xc.isOnCalendarMode)
         this.update({ type: 'chart' })
     }
 
@@ -842,12 +829,12 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
-        tzone = tzone === undefined ? this.state.tzone : tzone
+        this.tframe = timeframe === undefined ? this.tframe : TFrame.ofName(timeframe)
+        this.tzone = tzone === undefined ? this.tzone : tzone
 
-        const baseSer = new DefaultTSer(tframe, tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         // Force related components re-render .
         // NOTE When you call setState multiple times within the same synchronous block of code, 
@@ -857,12 +844,6 @@ class KlineViewContainer extends Component<Props, State> {
             this.setState(
                 {
                     isLoaded: false,
-                    symbol,
-                    tframe,
-                    tzone,
-                    baseSer,
-                    kvar,
-                    xc
                 }, () =>
                 this.fetchData_calcPines(undefined, 1000).then(() => {
                     resolve();
@@ -877,17 +858,14 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.pines = pines;
 
-        const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve) => {
             this.setState(
                 {
                     isLoaded: false,
-                    baseSer,
-                    kvar,
-                    xc,
                 }, () =>
                 this.fetchData_calcPines(undefined, 1000).then(() => {
                     resolve();
@@ -902,17 +880,14 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.pines = undefined
 
-        const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve) => {
             this.setState(
                 {
                     isLoaded: false,
-                    baseSer,
-                    kvar,
-                    xc,
                 }, () =>
                 this.fetchData_calcPines(undefined, 1000).then(() => {
                     resolve();
@@ -921,15 +896,15 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     changeSymbol(symbol: string): Promise<void> {
-        return this.handleSymbolTimeframeChanged(symbol, this.state.tframe.shortName, this.state.tzone)
+        return this.handleSymbolTimeframeChanged(symbol, this.tframe.shortName, this.tzone)
     }
 
     changeTimeframe(tframe: string): Promise<void> {
-        return this.handleSymbolTimeframeChanged(this.state.symbol, tframe, this.state.tzone)
+        return this.handleSymbolTimeframeChanged(this.symbol, tframe, this.tzone)
     }
 
     changeTimezone(tzone: string): Promise<void> {
-        return this.handleSymbolTimeframeChanged(this.state.symbol, this.state.tframe.shortName, tzone)
+        return this.handleSymbolTimeframeChanged(this.symbol, this.tframe.shortName, tzone)
     }
 
     render() {
@@ -1152,9 +1127,9 @@ class KlineViewContainer extends Component<Props, State> {
                             <Title
                                 width={this.width}
                                 height={this.hTitle}
-                                xc={this.state.xc}
-                                tvar={this.state.kvar}
-                                symbol={this.state.symbol}
+                                xc={this.xc}
+                                tvar={this.kvar}
+                                symbol={this.symbol}
                                 updateEvent={this.state.updateEvent}
                                 handleSymbolTimeframeChanged={this.handleSymbolTimeframeChanged}
                             />
@@ -1189,7 +1164,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 onMouseDown={this.onMouseDown}
                                 onMouseUp={this.onMouseUp}
                                 onWheel={this.onWheel}
-                                cursor={this.state.cursor}
                                 style={{ zIndex: 1 }}
                             >
                                 <KlineView
@@ -1199,8 +1173,8 @@ class KlineViewContainer extends Component<Props, State> {
                                     width={this.width}
                                     height={this.hKlineView}
                                     name=""
-                                    xc={this.state.xc}
-                                    tvar={this.state.kvar}
+                                    xc={this.xc}
+                                    tvar={this.kvar}
                                     updateEvent={this.state.updateEvent}
                                     updateDrawing={this.state.updateDrawing}
 
@@ -1216,8 +1190,8 @@ class KlineViewContainer extends Component<Props, State> {
                                     width={this.width}
                                     height={this.hVolumeView}
                                     name="Vol"
-                                    xc={this.state.xc}
-                                    tvar={this.state.kvar}
+                                    xc={this.xc}
+                                    tvar={this.kvar}
                                     updateEvent={this.state.updateEvent}
                                 />
 
@@ -1227,7 +1201,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     y={this.state.yAxisx}
                                     width={this.width}
                                     height={this.hAxisx}
-                                    xc={this.state.xc}
+                                    xc={this.xc}
                                     updateEvent={this.state.updateEvent}
                                 />
                                 {
@@ -1240,7 +1214,7 @@ class KlineViewContainer extends Component<Props, State> {
                                             y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
                                             width={this.width}
                                             height={this.hIndicatorView}
-                                            xc={this.state.xc}
+                                            xc={this.xc}
                                             tvar={tvar}
                                             mainIndicatorOutputs={outputs}
                                             updateEvent={this.state.updateEvent}
@@ -1295,7 +1269,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }}>
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, n) =>
+                                                    this.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, n) =>
                                                         <Fragment key={"ovarlay-indicator-lable-" + title} >
                                                             <span className="label-refer">{title}&nbsp;</span>
                                                             <span style={{ color }}>{
@@ -1358,7 +1332,7 @@ class KlineViewContainer extends Component<Props, State> {
                                         }}>
                                             <div style={{ display: "inline-block", paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
-                                                    this.state.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, k) =>
+                                                    this.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, k) =>
                                                         <Fragment key={"stacked-indicator-label-" + n + '-' + k} >
                                                             <span className="label-refer">{title}&nbsp;</span>
                                                             <span style={{ color }}>{
