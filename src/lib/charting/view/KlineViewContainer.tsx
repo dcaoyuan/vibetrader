@@ -134,7 +134,8 @@ class KlineViewContainer extends Component<Props, State> {
     reloadDataTimeoutId = undefined;
     latestTime: number;
 
-    loadedPines: Map<string, string>;
+    predefinedPines: Map<string, string>;
+    pines?: { pineName: string, pine: string }[];
 
     containerRef: React.RefObject<HTMLDivElement>;
     globalKeyboardListener = undefined
@@ -218,11 +219,11 @@ class KlineViewContainer extends Component<Props, State> {
 
         const selectedIndicatorTagsNow = this.state.selectedIndicatorTags
         if (selectedIndicatorTagsNow === 'all') {
-            selectedIndicatorFns = this.loadedPines;
+            selectedIndicatorFns = this.predefinedPines;
 
         } else {
             for (const pineName of selectedIndicatorTagsNow) {
-                selectedIndicatorFns.set(pineName as string, this.loadedPines.get(pineName as string))
+                selectedIndicatorFns.set(pineName as string, this.predefinedPines.get(pineName as string))
             }
         }
 
@@ -231,8 +232,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     fetchData_calcPines = async (
         startTime: number,
-        limit: number,
-        pines?: { pineName: string, pine: string }[]) => {
+        limit: number
+    ) => {
 
         const symbol = this.state.symbol
         const tframe = this.state.tframe
@@ -241,12 +242,10 @@ class KlineViewContainer extends Component<Props, State> {
         const kvar = this.state.kvar
         const xc = this.state.xc
 
-        // const { baseSer, kvar, xc } = this.getBaseSer(tframe, tzone);
-
         return fetchData(baseSer, symbol, tframe, tzone, startTime, limit).then(latestTime => {
             let start = performance.now()
 
-            pines = pines || this.getSelectedIncicators()
+            const pines = this.pines || this.getSelectedIncicators()
 
             // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
             const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
@@ -320,7 +319,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     if (latestTime !== undefined) {
-                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000, pines), 5000)
+                        this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
                     }
 
                 })
@@ -331,7 +330,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     override componentDidMount() {
         this.fetchOPredefinedPines(allIndTags).then(pines => {
-            this.loadedPines = new Map(pines.map(p => [p.pineName, p.pine]))
+            this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
 
         }).then(() => {
             const symbol = 'BTCUSDT'
@@ -363,8 +362,6 @@ class KlineViewContainer extends Component<Props, State> {
                     }
                 }
             )
-
-
         })
     }
 
@@ -701,39 +698,6 @@ class KlineViewContainer extends Component<Props, State> {
         this.update({ type: 'chart' });
     }
 
-    handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
-        if (this.reloadDataTimeoutId) {
-            clearTimeout(this.reloadDataTimeoutId);
-        }
-
-        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
-        tzone = tzone === undefined ? this.state.tzone : tzone
-
-        const baseSer = new DefaultTSer(tframe, tzone, 1000);
-        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
-
-        // Force related components re-render .
-        // NOTE When you call setState multiple times within the same synchronous block of code, 
-        // React batches these calls into a single update for performance reasons.
-        // So we set isLoaded to false here and use callback.
-        return new Promise<void>((resolve) => {
-            this.setState(
-                {
-                    isLoaded: false,
-                    symbol,
-                    tframe,
-                    tzone,
-                    baseSer,
-                    kvar,
-                    xc
-                }, () =>
-                this.fetchData_calcPines(undefined, 1000).then(() => {
-                    resolve();
-                }))
-        })
-    }
-
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
         let overlayIndicatorLabels = this.state.overlayIndicatorLabels
         let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
@@ -874,6 +838,81 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
+    private handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
+        const tframe = timeframe === undefined ? this.state.tframe : TFrame.ofName(timeframe)
+        tzone = tzone === undefined ? this.state.tzone : tzone
+
+        const baseSer = new DefaultTSer(tframe, tzone, 1000);
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        // Force related components re-render .
+        // NOTE When you call setState multiple times within the same synchronous block of code, 
+        // React batches these calls into a single update for performance reasons.
+        // So we set isLoaded to false here and use callback.
+        return new Promise<void>((resolve) => {
+            this.setState(
+                {
+                    isLoaded: false,
+                    symbol,
+                    tframe,
+                    tzone,
+                    baseSer,
+                    kvar,
+                    xc
+                }, () =>
+                this.fetchData_calcPines(undefined, 1000).then(() => {
+                    resolve();
+                }))
+        })
+    }
+
+    runPines(pines: { pineName: string, pine: string }[]) {
+        this.pines = pines;
+
+        const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        return new Promise<void>((resolve) => {
+            this.setState(
+                {
+                    isLoaded: false,
+                    baseSer,
+                    kvar,
+                    xc,
+                }, () =>
+                this.fetchData_calcPines(undefined, 1000).then(() => {
+                    resolve();
+                }))
+        })
+    }
+
+    resetPines() {
+        this.pines = undefined
+
+        const baseSer = new DefaultTSer(this.state.tframe, this.state.tzone, 1000);
+        const kvar = baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        const xc = new ChartXControl(baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        return new Promise<void>((resolve) => {
+            this.setState(
+                {
+                    isLoaded: false,
+                    baseSer,
+                    kvar,
+                    xc,
+                }, () =>
+                this.fetchData_calcPines(undefined, 1000).then(() => {
+                    resolve();
+                }))
+        })
+    }
+
     changeSymbol(symbol: string): Promise<void> {
         return this.handleSymbolTimeframeChanged(symbol, this.state.tframe.shortName, this.state.tzone)
     }
@@ -884,10 +923,6 @@ class KlineViewContainer extends Component<Props, State> {
 
     changeTimezone(tzone: string): Promise<void> {
         return this.handleSymbolTimeframeChanged(this.state.symbol, this.state.tframe.shortName, tzone)
-    }
-
-    runPines(pines: { pineName: string, pine: string }[]) {
-        return this.fetchData_calcPines(this.latestTime, 1000, pines)
     }
 
     render() {
