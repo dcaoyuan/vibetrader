@@ -320,11 +320,12 @@ class KlineViewContainer extends Component<Props, State> {
                             updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
                             overlayIndicators,
                             stackedIndicators,
+                        }, () => {
+                            if (latestTime !== undefined) {
+                                this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
+                            }
                         })
 
-                        if (latestTime !== undefined) {
-                            this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
-                        }
 
                     })
                 })
@@ -374,7 +375,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.updateState({ updateEvent: { ...event, changed } });
     }
 
-    updateState(newState: Partial<State>) {
+    updateState(newState: Partial<State>, callback?: () => void) {
         const xc = this.xc;
 
         let referCursor: JSX.Element
@@ -397,7 +398,7 @@ class KlineViewContainer extends Component<Props, State> {
             ? this.#calcGeometry(newState.stackedIndicators)
             : undefined
 
-        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCursor, mouseCursor })
+        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCursor, mouseCursor }, callback)
     }
 
     #calcGeometry(stackedIndicators: Indicator[]) {
