@@ -14,7 +14,7 @@ export const fetchData = (baseSer: TSer, symbol: string, tframe: TFrame, tzone: 
             console.log(lastKline)
             return lastKline === undefined
                 ? fetchDataLocal(baseSer)
-                : lastKline
+                : Promise.resolve(lastKline as number)
         })
 
 const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
@@ -26,7 +26,7 @@ const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
             baseSer.addToVar(KVAR_NAME, kline);
         }
 
-        return undefined; // latestTime
+        return undefined as number; // latestTime
     })
 
 const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
@@ -62,7 +62,7 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
                 }
             }
 
-            return latestKline ? latestKline.openTime : undefined;
+            return latestKline ? latestKline.openTime as number : undefined as number;
         })
 }
 

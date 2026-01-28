@@ -239,98 +239,99 @@ class KlineViewContainer extends Component<Props, State> {
 
         const pines = this.pines || this.getSelectedIncicators()
 
-        return fetchData(baseSer, symbol, tframe, tzone, startTime, limit).then(latestTime => {
-            let start = performance.now()
+        return fetchData(baseSer, symbol, tframe, tzone, startTime, limit)
+            .then(async latestTime => {
+                let start = performance.now()
 
-            if (!this.state.isLoaded) {
-                // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
-                console.log("reinit xc")
-                xc.reinit()
-            }
+                if (!this.state.isLoaded) {
+                    // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
+                    console.log("reinit xc")
+                    xc.reinit()
+                }
 
-            // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
-            const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
+                // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
+                const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
-            pinets.ready()
-                .then(async () => {
-                    const fnRuns: Promise<{ pineName: string, result: Context }>[] = []
-                    for (const { pineName, pine } of pines) {
-                        if (pine !== undefined) {
-                            const fnRun = pinets.run(pine)
-                                .then(result => ({ pineName, result }))
-                                .catch(error => {
-                                    console.error(error);
+                return pinets.ready()
+                    .then(async () => {
+                        const fnRuns: Promise<{ pineName: string, result: Context }>[] = []
+                        for (const { pineName, pine } of pines) {
+                            if (pine !== undefined) {
+                                const fnRun = pinets.run(pine)
+                                    .then(result => ({ pineName, result }))
+                                    .catch(error => {
+                                        console.error(error);
 
-                                    return { pineName, result: undefined }
-                                })
+                                        return { pineName, result: undefined }
+                                    })
 
-                            fnRuns.push(fnRun)
+                                fnRuns.push(fnRun)
+                            }
                         }
-                    }
 
-                    return Promise.all(fnRuns).then(results => {
-                        console.log(`indicators calculated in ${performance.now() - start} ms`);
+                        return Promise.all(fnRuns).then(results => {
+                            console.log(`indicators calculated in ${performance.now() - start} ms`);
 
-                        start = performance.now();
+                            start = performance.now();
 
-                        const overlayIndicators = [];
-                        const stackedIndicators = [];
+                            const overlayIndicators = [];
+                            const stackedIndicators = [];
 
-                        results.map(({ pineName, result }, n) => {
-                            if (result) {
-                                const tvar = baseSer.varOf(pineName) as TVar<unknown[]>;
-                                const size = baseSer.size();
-                                const indicator = result.indicator;
-                                const plots = Object.values(result.plots) as Plot[];
-                                const dataValues = plots.map(({ data }) => data);
-                                try {
-                                    for (let i = 0; i < size; i++) {
-                                        const vs = dataValues.map(v => v[i].value);
-                                        tvar.setByIndex(i, vs);
+                            results.map(({ pineName, result }, n) => {
+                                if (result) {
+                                    const tvar = baseSer.varOf(pineName) as TVar<unknown[]>;
+                                    const size = baseSer.size();
+                                    const indicator = result.indicator;
+                                    const plots = Object.values(result.plots) as Plot[];
+                                    const dataValues = plots.map(({ data }) => data);
+                                    try {
+                                        for (let i = 0; i < size; i++) {
+                                            const vs = dataValues.map(v => v[i].value);
+                                            tvar.setByIndex(i, vs);
+                                        }
+
+                                    } catch (error) {
+                                        console.log(dataValues)
                                     }
 
-                                } catch (error) {
-                                    console.log(dataValues)
+                                    // console.log(result)
+                                    // console.log(plots.map(x => x.data))
+                                    // console.log(plots.map(x => x.options))
+
+                                    const outputs = plots.map(({ title, options }, atIndex) => {
+                                        return ({ atIndex, title, options })
+                                    })
+
+                                    const overlay = indicator !== undefined && indicator.overlay
+                                    if (overlay) {
+                                        overlayIndicators.push({ pineName, tvar, outputs })
+
+                                    } else {
+                                        stackedIndicators.push({ pineName, tvar, outputs })
+                                    }
                                 }
+                            })
 
-                                // console.log(result)
-                                // console.log(plots.map(x => x.data))
-                                // console.log(plots.map(x => x.options))
+                            // console.log(`indicators added to series in ${performance.now() - start} ms`);
 
-                                const outputs = plots.map(({ title, options }, atIndex) => {
-                                    return ({ atIndex, title, options })
-                                })
+                            this.latestTime = latestTime;
 
-                                const overlay = indicator !== undefined && indicator.overlay
-                                if (overlay) {
-                                    overlayIndicators.push({ pineName, tvar, outputs })
-
-                                } else {
-                                    stackedIndicators.push({ pineName, tvar, outputs })
+                            this.updateState({
+                                isLoaded: true,
+                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                                overlayIndicators,
+                                stackedIndicators,
+                            }, () => {
+                                if (latestTime !== undefined) {
+                                    this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
                                 }
-                            }
+                            })
+
+
                         })
-
-                        // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                        this.latestTime = latestTime;
-
-                        this.updateState({
-                            isLoaded: true,
-                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                            overlayIndicators,
-                            stackedIndicators,
-                        }, () => {
-                            if (latestTime !== undefined) {
-                                this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
-                            }
-                        })
-
-
                     })
-                })
 
-        })
+            })
     }
 
     override componentDidMount() {
