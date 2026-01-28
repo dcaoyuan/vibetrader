@@ -33,7 +33,7 @@ export class ChartXControl {
 
     readonly baseSer: TSer;
 
-    #wBarIdx = 10;
+    #wBarIdx = 11;
     /** pixels per bar (bar width in pixels) */
     wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
 
