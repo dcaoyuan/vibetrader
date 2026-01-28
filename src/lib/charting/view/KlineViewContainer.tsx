@@ -837,6 +837,7 @@ class KlineViewContainer extends Component<Props, State> {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
+        this.symbol = symbol
         this.tframe = timeframe === undefined ? this.tframe : TFrame.ofName(timeframe)
         this.tzone = tzone === undefined ? this.tzone : tzone
 
@@ -850,12 +851,11 @@ class KlineViewContainer extends Component<Props, State> {
         // So we set isLoaded to false here and use callback.
         return new Promise<void>((resolve) => {
             this.setState(
-                {
-                    isLoaded: false,
-                }, () =>
-                this.fetchData_calcPines(undefined, 1000).then(() => {
-                    resolve();
-                }))
+                { isLoaded: false },
+                () =>
+                    this.fetchData_calcPines(undefined, 1000).then(() => {
+                        resolve();
+                    }))
         })
     }
 
@@ -873,12 +873,11 @@ class KlineViewContainer extends Component<Props, State> {
         return new Promise<void>((resolve) => {
             console.log("runPines ...")
             this.setState(
-                {
-                    isLoaded: false,
-                }, () =>
-                this.fetchData_calcPines(undefined, 1000).then(() => {
-                    resolve();
-                }))
+                { isLoaded: false },
+                () =>
+                    this.fetchData_calcPines(undefined, 1000).then(() => {
+                        resolve();
+                    }))
         })
     }
 
