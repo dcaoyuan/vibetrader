@@ -242,6 +242,12 @@ class KlineViewContainer extends Component<Props, State> {
         return fetchData(baseSer, symbol, tframe, tzone, startTime, limit).then(latestTime => {
             let start = performance.now()
 
+            if (!this.state.isLoaded) {
+                // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
+                console.log("reinit xc")
+                xc.reinit()
+            }
+
             // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
             const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
@@ -277,9 +283,14 @@ class KlineViewContainer extends Component<Props, State> {
                                 const indicator = result.indicator;
                                 const plots = Object.values(result.plots) as Plot[];
                                 const dataValues = plots.map(({ data }) => data);
-                                for (let i = 0; i < size; i++) {
-                                    const vs = dataValues.map(v => v[i].value);
-                                    tvar.setByIndex(i, vs);
+                                try {
+                                    for (let i = 0; i < size; i++) {
+                                        const vs = dataValues.map(v => v[i].value);
+                                        tvar.setByIndex(i, vs);
+                                    }
+
+                                } catch (error) {
+                                    console.log(dataValues)
                                 }
 
                                 // console.log(result)
@@ -304,25 +315,12 @@ class KlineViewContainer extends Component<Props, State> {
 
                         this.latestTime = latestTime;
 
-                        if (this.state.isLoaded) {
-                            this.updateState({
-                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                overlayIndicators,
-                                stackedIndicators,
-                            })
-
-                        } else {
-                            // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
-                            console.log("reinit xc")
-                            xc.reinit()
-
-                            this.updateState({
-                                isLoaded: true,
-                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                overlayIndicators,
-                                stackedIndicators,
-                            })
-                        }
+                        this.updateState({
+                            isLoaded: true,
+                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                            overlayIndicators,
+                            stackedIndicators,
+                        })
 
                         if (latestTime !== undefined) {
                             this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
