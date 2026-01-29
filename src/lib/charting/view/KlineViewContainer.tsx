@@ -113,7 +113,7 @@ type State = {
 }
 
 // const allIndTags = ['macd']
-const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd']
+const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
 
 const TOOLTIP_DELAY = 500; // ms
 

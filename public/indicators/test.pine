@@ -1,0 +1,22 @@
+//@version=6
+indicator("Technical Analysis Setup", overlay=true)
+
+// Moving Averages
+ema20 = ta.ema(close, 20)
+ema50 = ta.ema(close, 50)
+plot(ema20, color=color.blue, title="EMA 20", linewidth=2)
+plot(ema50, color=color.orange, title="EMA 50", linewidth=2)
+
+// Bollinger Bands
+[middle, upper, lower] = ta.bb(close, 20, 2)
+plot(upper, color=color.new(color.green, 50), title="BB Upper")
+plot(lower, color=color.new(color.green, 50), title="BB Lower")
+fill(plot(upper), plot(lower), color=color.new(color.green, 95))
+
+// Pattern Detection: Bearish Engulfing
+bearishEngulfing = open[1] < close[1] and open > close and open >= close[1] and close <= open[1]
+plotshape(bearishEngulfing, title="Bearish Engulfing", location=location.abovebar, color=color.red, style=shape.triangledown, text="Bear")
+
+// Pattern Detection: Bullish Engulfing
+bullishEngulfing = open[1] > close[1] and close > open and close >= open[1] and open <= close[1]
+plotshape(bullishEngulfing, title="Bullish Engulfing", location=location.belowbar, color=color.green, style=shape.triangleup, text="Bull")
