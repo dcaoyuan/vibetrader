@@ -154,6 +154,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     systemScheme: string;
 
+    currentLoading = Promise.resolve()
+
     constructor(props: Props) {
         super(props);
         this.width = props.width;
@@ -228,111 +230,113 @@ class KlineViewContainer extends Component<Props, State> {
         return Array.from(selectedIndicatorFns, ([pineName, pine]) => ({ pineName, pine }))
     }
 
-    fetchData_calcPines = async (startTime: number, limit: number) => {
+    // reload/calc should be chained after currentLoading to avoid concurrent loading/calculating
+    fetchData_calcPines = async (startTime: number, limit: number) => this.currentLoading
+        .then(async () => {
+            const symbol = this.symbol
+            const tframe = this.tframe
+            const tzone = this.tzone
+            const baseSer = this.baseSer
+            const kvar = this.kvar
+            const xc = this.xc
 
-        const symbol = this.symbol
-        const tframe = this.tframe
-        const tzone = this.tzone
-        const baseSer = this.baseSer
-        const kvar = this.kvar
-        const xc = this.xc
+            const pines = this.pines || this.getSelectedIncicators()
 
-        const pines = this.pines || this.getSelectedIncicators()
+            return fetchData(baseSer, symbol, tframe, tzone, startTime, limit)
+                .then(async latestTime => {
+                    let start = performance.now()
 
-        return fetchData(baseSer, symbol, tframe, tzone, startTime, limit)
-            .then(async latestTime => {
-                let start = performance.now()
+                    if (!this.state.isLoaded) {
+                        // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
+                        console.log("reinit xc")
+                        xc.reinit()
+                    }
 
-                if (!this.state.isLoaded) {
-                    // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
-                    console.log("reinit xc")
-                    xc.reinit()
-                }
+                    // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
+                    const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
 
-                // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
-                const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
+                    return pinets.ready()
+                        .then(async () => {
+                            const fnRuns: Promise<{ pineName: string, result: Context }>[] = []
+                            for (const { pineName, pine } of pines) {
+                                if (pine !== undefined) {
+                                    const fnRun = pinets.run(pine)
+                                        .then(result => ({ pineName, result }))
+                                        .catch(error => {
+                                            console.error(error);
 
-                return pinets.ready()
-                    .then(async () => {
-                        const fnRuns: Promise<{ pineName: string, result: Context }>[] = []
-                        for (const { pineName, pine } of pines) {
-                            if (pine !== undefined) {
-                                const fnRun = pinets.run(pine)
-                                    .then(result => ({ pineName, result }))
-                                    .catch(error => {
-                                        console.error(error);
+                                            return { pineName, result: undefined }
+                                        })
 
-                                        return { pineName, result: undefined }
-                                    })
-
-                                fnRuns.push(fnRun)
+                                    fnRuns.push(fnRun)
+                                }
                             }
-                        }
 
-                        return Promise.all(fnRuns).then(results => {
-                            console.log(`indicators calculated in ${performance.now() - start} ms`);
+                            return Promise.all(fnRuns).then(results => {
+                                console.log(`indicators calculated in ${performance.now() - start} ms`);
 
-                            start = performance.now();
+                                start = performance.now();
 
-                            const overlayIndicators = [];
-                            const stackedIndicators = [];
+                                const overlayIndicators = [];
+                                const stackedIndicators = [];
 
-                            results.map(({ pineName, result }, n) => {
-                                if (result) {
-                                    const tvar = baseSer.varOf(pineName) as TVar<unknown[]>;
-                                    const size = baseSer.size();
-                                    const indicator = result.indicator;
-                                    const plots = Object.values(result.plots) as Plot[];
-                                    const dataValues = plots.map(({ data }) => data);
-                                    try {
-                                        for (let i = 0; i < size; i++) {
-                                            const vs = dataValues.map(v => v[i].value);
-                                            tvar.setByIndex(i, vs);
+                                results.map(({ pineName, result }, n) => {
+                                    if (result) {
+                                        const tvar = baseSer.varOf(pineName) as TVar<unknown[]>;
+                                        const size = baseSer.size();
+                                        const indicator = result.indicator;
+                                        const plots = Object.values(result.plots) as Plot[];
+                                        const dataValues = plots.map(({ data }) => data);
+                                        try {
+                                            for (let i = 0; i < size; i++) {
+                                                const vs = dataValues.map(v => v[i].value);
+                                                tvar.setByIndex(i, vs);
+                                            }
+
+                                        } catch (error) {
+                                            console.error(error)
+                                            console.log(dataValues)
                                         }
 
-                                    } catch (error) {
-                                        console.log(dataValues)
+                                        // console.log(result)
+                                        // console.log(plots.map(x => x.data))
+                                        // console.log(plots.map(x => x.options))
+
+                                        const outputs = plots.map(({ title, options }, atIndex) => {
+                                            return ({ atIndex, title, options })
+                                        })
+
+                                        const overlay = indicator !== undefined && indicator.overlay
+                                        if (overlay) {
+                                            overlayIndicators.push({ pineName, tvar, outputs })
+
+                                        } else {
+                                            stackedIndicators.push({ pineName, tvar, outputs })
+                                        }
                                     }
+                                })
 
-                                    // console.log(result)
-                                    // console.log(plots.map(x => x.data))
-                                    // console.log(plots.map(x => x.options))
+                                // console.log(`indicators added to series in ${performance.now() - start} ms`);
 
-                                    const outputs = plots.map(({ title, options }, atIndex) => {
-                                        return ({ atIndex, title, options })
-                                    })
+                                this.latestTime = latestTime;
 
-                                    const overlay = indicator !== undefined && indicator.overlay
-                                    if (overlay) {
-                                        overlayIndicators.push({ pineName, tvar, outputs })
-
-                                    } else {
-                                        stackedIndicators.push({ pineName, tvar, outputs })
+                                this.updateState({
+                                    isLoaded: true,
+                                    updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                                    overlayIndicators,
+                                    stackedIndicators,
+                                }, () => {
+                                    if (latestTime !== undefined) {
+                                        this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_calcPines(latestTime, 1000) }, 5000)
                                     }
-                                }
+                                })
+
                             })
-
-                            // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                            this.latestTime = latestTime;
-
-                            this.updateState({
-                                isLoaded: true,
-                                updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                overlayIndicators,
-                                stackedIndicators,
-                            }, () => {
-                                if (latestTime !== undefined) {
-                                    this.reloadDataTimeoutId = setTimeout(() => this.fetchData_calcPines(latestTime, 1000), 5000)
-                                }
-                            })
-
-
                         })
-                    })
 
-            })
-    }
+                })
+        })
+
 
     override componentDidMount() {
         this.fetchOPredefinedPines(allIndTags)
@@ -349,7 +353,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
                 this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
-                this.fetchData_calcPines(undefined, 1000).then(() => {
+                this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
                     this.globalKeyboardListener = this.onGlobalKeyDown;
                     document.addEventListener("keydown", this.onGlobalKeyDown);
 
@@ -748,10 +752,13 @@ class KlineViewContainer extends Component<Props, State> {
         return new Promise<void>((resolve) => {
             this.setState(
                 { selectedIndicatorTags },
-                () =>
-                    this.fetchData_calcPines(this.latestTime, 1000).then(() => {
+                () => {
+                    this.currentLoading = this.fetchData_calcPines(this.latestTime, 1000).then(() => {
                         resolve();
-                    }))
+                    })
+
+                    return this.currentLoading
+                })
         })
     }
 
@@ -854,10 +861,13 @@ class KlineViewContainer extends Component<Props, State> {
         return new Promise<void>((resolve) => {
             this.setState(
                 { isLoaded: false },
-                () =>
-                    this.fetchData_calcPines(undefined, 1000).then(() => {
+                () => {
+                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
                         resolve();
-                    }))
+                    })
+
+                    return this.currentLoading
+                })
         })
     }
 
@@ -876,10 +886,13 @@ class KlineViewContainer extends Component<Props, State> {
             console.log("runPines ...")
             this.setState(
                 { isLoaded: false },
-                () =>
-                    this.fetchData_calcPines(undefined, 1000).then(() => {
+                () => {
+                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
                         resolve();
-                    }))
+                    })
+
+                    return this.currentLoading
+                })
         })
     }
 
@@ -898,22 +911,25 @@ class KlineViewContainer extends Component<Props, State> {
             this.setState(
                 {
                     isLoaded: false,
-                }, () =>
-                this.fetchData_calcPines(undefined, 1000).then(() => {
-                    resolve();
-                }))
+                }, () => {
+                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
+                        resolve();
+                    })
+
+                    return this.currentLoading
+                })
         })
     }
 
-    changeSymbol(symbol: string): Promise<void> {
+    changeSymbol(symbol: string) {
         return this.handleSymbolTimeframeChanged(symbol, this.tframe.shortName, this.tzone)
     }
 
-    changeTimeframe(tframe: string): Promise<void> {
+    changeTimeframe(tframe: string) {
         return this.handleSymbolTimeframeChanged(this.symbol, tframe, this.tzone)
     }
 
-    changeTimezone(tzone: string): Promise<void> {
+    changeTimezone(tzone: string) {
         return this.handleSymbolTimeframeChanged(this.symbol, this.tframe.shortName, tzone)
     }
 
