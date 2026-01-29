@@ -944,7 +944,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <ToggleButtonGroup
                             orientation="vertical"
-                            selectionMode="multiple"
+                            selectionMode="single"
                             selectedKeys={this.state.drawingIdsToCreate}
                             onSelectionChange={this.setDrawingIdsToCreate}
                         >
