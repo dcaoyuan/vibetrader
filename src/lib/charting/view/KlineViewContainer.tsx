@@ -344,7 +344,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
             })
             .then(() => {
-                this.symbol = 'BTCUSDT' // 'NVDA' // 'BTCUSDT'
+                this.symbol = 'BTCUSDT' //'NVDA' // 'BTCUSDT'
                 this.tframe = TFrame.DAILY
                 this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 //this. tzone = "America/Vancouver" 
@@ -871,7 +871,7 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    runPines(pines: { pineName: string, pine: string }[]) {
+    runPineScripts(pines: { pineName: string, pine: string }[]) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
@@ -883,7 +883,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve) => {
-            console.log("runPines ...")
+            console.log("runPineScripts ...")
             this.setState(
                 { isLoaded: false },
                 () => {
