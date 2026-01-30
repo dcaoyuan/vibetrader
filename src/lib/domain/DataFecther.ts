@@ -3,9 +3,24 @@ import type { TFrame } from "../timeseris/TFrame";
 import type { TSer } from "../timeseris/TSer";
 import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
+import { fetchYahooData, } from "./YFinanceData";
 
-export const fetchData = (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) =>
-    fetchDataBinance(baseSer, symbol, tframe, tzone, startTime, limit)
+export const fetchData_ = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    return fetchDataYahoo(baseSer, symbol, tframe, tzone, startTime, limit)
+        .catch(ex => {
+            console.error(ex);
+            return fetchDataLocal(baseSer)
+
+        }).then(lastKline => {
+            //console.log(lastKline)
+            return lastKline === undefined
+                ? fetchDataLocal(baseSer)
+                : Promise.resolve(lastKline as number)
+        })
+}
+
+export const fetchData = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    return fetchDataBinance(baseSer, symbol, tframe, tzone, startTime, limit)
         .catch(ex => {
             console.error(ex);
             return fetchDataLocal(baseSer)
@@ -16,6 +31,7 @@ export const fetchData = (baseSer: TSer, symbol: string, tframe: TFrame, tzone: 
                 ? fetchDataLocal(baseSer)
                 : Promise.resolve(lastKline as number)
         })
+}
 
 const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
     .then(r => r.json())
@@ -31,7 +47,9 @@ const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
 
 const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     const endTime = new Date().getTime();
+
     const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, tzone)
+
     startTime = startTime
         ? startTime
         : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
@@ -65,4 +83,36 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
             return latestKline ? latestKline.openTime as number : undefined as number;
         })
 }
+
+const fetchDataYahoo = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    let endTime = new Date().getTime();
+
+    const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, tzone)
+
+    startTime = startTime
+        ? startTime
+        : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 periods
+
+    // convert to Unix Timestamps (seconds)
+    startTime = Math.floor(startTime / 1000)
+    endTime = Math.floor(Date.now() / 1000)
+
+    const timeframe = tframe.shortName.toLowerCase()
+
+    return fetchYahooData(symbol, timeframe, startTime, endTime).then((klines) => {
+        // console.log(klines);
+        const latestKline = klines.length > 0 ? klines[klines.length - 1] : undefined;
+        // console.log(`latestKline: ${new Date(latestKline.time)}, ${latestKline.close}`)
+
+        for (const k of klines) {
+            if (k && k.time) {
+                const kline = new Kline(k.time, k.open, k.high, k.low, k.close, k.volume, k.time, true);
+                baseSer.addToVar(KVAR_NAME, kline);
+            }
+        }
+
+        return latestKline ? latestKline.time as number : undefined as number;
+    });
+}
+
 

@@ -344,7 +344,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
             })
             .then(() => {
-                this.symbol = 'BTCUSDT'
+                this.symbol = 'BTCUSDT' // 'NVDA' // 'BTCUSDT'
                 this.tframe = TFrame.DAILY
                 this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 //this. tzone = "America/Vancouver" 
