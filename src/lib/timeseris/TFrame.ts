@@ -51,7 +51,7 @@ export class TFrame {
 		TFrame.MONTHLY,
 	];
 
-	static readonly #shortNamePattern = /([0-9]+)([smhDWMY])/;
+	static readonly #shortNamePattern = /([0-9]+)([sSmhHDdWwMYy])/;
 
 	static ofName(shortName: string): TFrame | undefined {
 		const match = shortName.match(TFrame.#shortNamePattern);

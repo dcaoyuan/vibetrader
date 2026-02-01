@@ -54,14 +54,34 @@ export class TUnit {
 
     static withShortName(shortName: string): TUnit | undefined {
         switch (shortName) {
-            case "s": return TUnit.Second;
-            case "m": return TUnit.Minute;
-            case "h": return TUnit.Hour;
-            case "D": return TUnit.Day;
-            case "W": return TUnit.Week;
-            case "M": return TUnit.Month;
-            case "Y": return TUnit.Year;
-            default: return undefined;
+            case "s":
+            case "S":
+                return TUnit.Second;
+
+            case "m":
+                return TUnit.Minute;
+
+            case "h":
+            case "H":
+                return TUnit.Hour;
+
+            case "d":
+            case "D":
+                return TUnit.Day;
+
+            case "w":
+            case "W":
+                return TUnit.Week;
+
+            case "M":
+                return TUnit.Month;
+
+            case "y":
+            case "Y":
+                return TUnit.Year;
+
+            default:
+                return undefined;
         }
     }
 
