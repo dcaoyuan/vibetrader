@@ -15,9 +15,9 @@ type Props = {
     height: number,
     updateEvent: UpdateEvent,
     tvar: TVar<Kline>,
-    symbol: string,
+    ticker: string,
 
-    handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void
+    handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void
 }
 
 type State = {
@@ -36,10 +36,10 @@ type Snapshot = {
 
 const L_SNAPSHOTS = 6;
 
-export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void }) {
+export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void }) {
     const { startsWith } = useFilter({ sensitivity: 'base' });
 
-    const list = useAsyncList<{ symbol: string }>({
+    const list = useAsyncList<{ ticker: string }>({
         async load({ signal, filterText }) {
             const items = await fetchSymbolList(filterText, { signal });
             return { items };
@@ -50,10 +50,10 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
         <MenuTrigger>
             <TooltipTrigger delay={500} placement="top">
                 <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
-                    {props.symbol}
+                    {props.ticker}
                 </Button>
                 <Tooltip>
-                    Change symbol
+                    Change ticker
                 </Tooltip>
             </TooltipTrigger>
 
@@ -73,7 +73,7 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
                             selectionMode="single"
                             onSelectionChange={(keys) => props.handleSymbolTimeframeChanged((keys as Set<string>).values().next().value)}
                         >
-                            {(item) => <MenuItem id={item.symbol}>{item.symbol}</MenuItem>}
+                            {(item) => <MenuItem id={item.ticker}>{item.ticker}</MenuItem>}
                         </Menu>
                     </Autocomplete>
                 </div>
@@ -82,7 +82,7 @@ export function ChooseSymbol(props: { symbol: string, handleSymbolTimeframeChang
     );
 }
 
-export function ChooseTimeframe(props: { symbol: string, timeframe: TFrame, handleSymbolTimeframeChanged: (symbol: string, timeframe?: string) => void }) {
+export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void }) {
     const { contains } = useFilter({ sensitivity: 'base' });
 
     const list = [
@@ -122,7 +122,7 @@ export function ChooseTimeframe(props: { symbol: string, timeframe: TFrame, hand
                         <Menu
                             items={list}
                             selectionMode="single"
-                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged(props.symbol, (keys as Set<string>).values().next().value)}
+                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged(props.ticker, (keys as Set<string>).values().next().value)}
                         >
                             {(item) => <MenuItem id={item.shortName}>{item.shortName}</MenuItem>}
                         </Menu>
@@ -326,11 +326,11 @@ class Title extends Component<Props, State> {
                 <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
                     <ActionButtonGroup>
                         <ChooseSymbol
-                            symbol={this.props.symbol}
+                            ticker={this.props.ticker}
                             handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
                         &nbsp;&middot;&nbsp;
                         <ChooseTimeframe
-                            symbol={this.props.symbol}
+                            ticker={this.props.ticker}
                             timeframe={this.props.xc.baseSer.timeframe}
                             handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
                         &nbsp;&middot;&nbsp;

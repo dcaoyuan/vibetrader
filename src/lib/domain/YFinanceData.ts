@@ -25,9 +25,9 @@ const validTFrames = [
     '1m', '2m', '5m', '15m', '30m', '60m', '90m', '1h', '4h', '1d', '5d', '1wk', '1mo', '3mo'
 ]
 
-export async function fetchYahooData(symbol: string, tframe: string, startTime: number, endTime: number): Promise<Candle[]> {
-    //const url = ` https://mmmmmm.io/yfinance/v8/finance/chart/${symbol}?interval=${tframe}&range=${range}`;
-    const url = `https://mmmmmm.io/yfinance/v8/finance/chart/${symbol}?interval=${tframe}&period1=${startTime}&period2=${endTime}`;
+export async function fetchYahooData(ticker: string, tframe: string, startTime: number, endTime: number): Promise<Candle[]> {
+    //const url = ` https://mmmmmm.io/yfinance/v8/finance/chart/${ticker}?interval=${tframe}&range=${range}`;
+    const url = `https://mmmmmm.io/yfinance/v8/finance/chart/${ticker}?interval=${tframe}&period1=${startTime}&period2=${endTime}`;
 
     return fetch(url)
         .catch(error => {

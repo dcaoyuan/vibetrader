@@ -120,7 +120,7 @@ const TOOLTIP_DELAY = 500; // ms
 class KlineViewContainer extends Component<Props, State> {
     width: number;
 
-    symbol: string;
+    ticker: string;
     tframe: TFrame;
     tzone: string;
 
@@ -187,7 +187,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.toggleKlineKind = this.toggleKlineKind.bind(this)
         this.toggleScalar = this.toggleScalar.bind(this)
 
-        this.handleSymbolTimeframeChanged = this.handleSymbolTimeframeChanged.bind(this)
+        this.handleTickerTimeframeChanged = this.handleTickerTimeframeChanged.bind(this)
         this.handleTakeScreenshot = this.handleTakeScreenshot.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
@@ -233,7 +233,7 @@ class KlineViewContainer extends Component<Props, State> {
     // reload/calc should be chained after currentLoading to avoid concurrent loading/calculating
     fetchData_calcPines = async (startTime: number, limit: number) => this.currentLoading
         .then(async () => {
-            const symbol = this.symbol
+            const ticker = this.ticker
             const tframe = this.tframe
             const tzone = this.tzone
             const baseSer = this.baseSer
@@ -242,7 +242,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             const pines = this.pines || this.getSelectedIncicators()
 
-            return fetchData(baseSer, symbol, tframe, tzone, startTime, limit)
+            return fetchData(baseSer, ticker, tframe, tzone, startTime, limit)
                 .then(async latestTime => {
                     let start = performance.now()
 
@@ -253,7 +253,7 @@ class KlineViewContainer extends Component<Props, State> {
                     }
 
                     // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
-                    const pinets = new PineTS(kvar.toArray(), symbol, tframe.shortName);
+                    const pinets = new PineTS(kvar.toArray(), ticker, tframe.shortName);
 
                     return pinets.ready()
                         .then(async () => {
@@ -344,7 +344,8 @@ class KlineViewContainer extends Component<Props, State> {
                 this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
             })
             .then(() => {
-                this.symbol = 'BTCUSDT' //'NVDA' // 'BTCUSDT'
+                this.ticker = 'BTCUSDT'
+                //this.ticker = 'NVDA'
                 this.tframe = TFrame.DAILY
                 this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 //this. tzone = "America/Vancouver" 
@@ -841,12 +842,12 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    private handleSymbolTimeframeChanged(symbol: string, timeframe?: string, tzone?: string) {
+    private handleTickerTimeframeChanged(ticker: string, timeframe?: string, tzone?: string) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.symbol = symbol
+        this.ticker = ticker
         this.tframe = timeframe === undefined ? this.tframe : TFrame.ofName(timeframe)
         this.tzone = tzone === undefined ? this.tzone : tzone
 
@@ -921,16 +922,16 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    changeSymbol(symbol: string) {
-        return this.handleSymbolTimeframeChanged(symbol, this.tframe.shortName, this.tzone)
+    changeTicker(ticker: string) {
+        return this.handleTickerTimeframeChanged(ticker, this.tframe.shortName, this.tzone)
     }
 
     changeTimeframe(tframe: string) {
-        return this.handleSymbolTimeframeChanged(this.symbol, tframe, this.tzone)
+        return this.handleTickerTimeframeChanged(this.ticker, tframe, this.tzone)
     }
 
     changeTimezone(tzone: string) {
-        return this.handleSymbolTimeframeChanged(this.symbol, this.tframe.shortName, tzone)
+        return this.handleTickerTimeframeChanged(this.ticker, this.tframe.shortName, tzone)
     }
 
     render() {
@@ -1155,9 +1156,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 height={this.hTitle}
                                 xc={this.xc}
                                 tvar={this.kvar}
-                                symbol={this.symbol}
+                                ticker={this.ticker}
                                 updateEvent={this.state.updateEvent}
-                                handleSymbolTimeframeChanged={this.handleSymbolTimeframeChanged}
+                                handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
                             />
                             <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                         </div>

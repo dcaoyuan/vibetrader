@@ -53,7 +53,7 @@ export const timeframe_to_pinetsProvider = {
  * Fetches a batch of klines from Binance API
  */
 export async function fetchKlinesBatch(
-    symbol: string,
+    ticker: string,
     interval: string,
     startTime: number,
     endTime: number,
@@ -61,7 +61,7 @@ export async function fetchKlinesBatch(
 ): Promise<Kline[]> {
     interval = timeframe_to_binance[interval] || interval
 
-    const url = `${BINANCE_API_URL}/klines?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
+    const url = `${BINANCE_API_URL}/klines?symbol=${ticker}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
 
     // console.log(`Fetching batch: ${new Date(startTime).toISOString()} to ${new Date(endTime).toISOString()}`);
 
@@ -90,7 +90,7 @@ export async function fetchKlinesBatch(
  * Fetches all klines with pagination
  */
 export async function fetchAllKlines(
-    symbol: string,
+    ticker: string,
     interval: string,
     startTime: number,
     endTime: number,
@@ -105,9 +105,9 @@ export async function fetchAllKlines(
     let count = 0;
 
     while (currentStartTime < endTime && count < limit) {
-        console.log(`\nFetching ${symbol}, ${interval}, batch ${batchNumber}...`);
+        console.log(`\nFetching ${ticker}, ${interval}, batch ${batchNumber}...`);
 
-        const batch = await fetchKlinesBatch(symbol, interval, currentStartTime, endTime, limit);
+        const batch = await fetchKlinesBatch(ticker, interval, currentStartTime, endTime, limit);
 
         if (batch.length === 0) {
             // console.log('No more data available');
@@ -185,26 +185,26 @@ async function getBaseUrl(): Promise<string> {
 
 
 const defaultSymbols = [
-    { symbol: 'BTCUSDT' },
-    { symbol: 'ETHUSDT' },
-    { symbol: 'BNBUSDT' },
-    { symbol: 'SOLUSDT' },
-    { symbol: 'XRPUSDT' },
+    { ticker: 'BTCUSDT' },
+    { ticker: 'ETHUSDT' },
+    { ticker: 'BNBUSDT' },
+    { ticker: 'SOLUSDT' },
+    { ticker: 'XRPUSDT' },
 ]
 
-let symbolLoaded = false
-let symbols: { symbol: string }[]
-export async function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ symbol: string }[]> {
-    if (!symbolLoaded) {
+let tickerLoaded = false
+let tickers: { ticker: string }[]
+export async function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
+    if (!tickerLoaded) {
         const baseUrl = await getBaseUrl();
         const url = `${baseUrl}/exchangeInfo`;
 
         return fetch(url, init)
             .then(r => r.json())
             .then(data => {
-                symbols = data.symbols.filter(({ status }) => status === 'TRADING')
+                tickers = data.symbols.filter(({ status }) => status === 'TRADING')
 
-                symbolLoaded = true;
+                tickerLoaded = true;
 
                 return defaultSymbols
             })
@@ -216,10 +216,10 @@ export async function fetchSymbolList(filterText: string, init: RequestInit): Pr
     } else {
         if (filterText) {
             filterText = filterText.toUpperCase()
-            let items = symbols.filter(({ symbol }) => symbol.toLocaleUpperCase().startsWith(filterText))
+            let items = tickers.filter(({ ticker }) => ticker.toLocaleUpperCase().startsWith(filterText))
             if (items.length > 100) {
                 items = items.slice(0, 100);
-                return [...items, { symbol: '...' }]
+                return [...items, { ticker: '...' }]
 
             } else {
                 return items;

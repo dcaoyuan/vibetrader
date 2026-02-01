@@ -6,8 +6,8 @@ export const Help = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
             <div style={{ textAlign: 'left', fontFamily: 'monospace' }}>
                 <div>
-                    <span className='label-mouse'>Click on symbol: </span>
-                    <span className='label-refer'>Select symbol</span>
+                    <span className='label-mouse'>Click on ticker: </span>
+                    <span className='label-refer'>Select ticker</span>
                 </div>
                 <div>
                     <span className='label-mouse'>Clock on timeframe: </span>

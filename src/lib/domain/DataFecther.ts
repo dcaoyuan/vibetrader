@@ -5,8 +5,8 @@ import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
 
-export const fetchData_ = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
-    return fetchDataYahoo(baseSer, symbol, tframe, tzone, startTime, limit)
+export const fetchData_ = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    return fetchDataYahoo(baseSer, ticker, tframe, tzone, startTime, limit)
         .catch(ex => {
             console.error(ex);
             return fetchDataLocal(baseSer)
@@ -19,8 +19,8 @@ export const fetchData_ = async (baseSer: TSer, symbol: string, tframe: TFrame, 
         })
 }
 
-export const fetchData = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
-    return fetchDataBinance(baseSer, symbol, tframe, tzone, startTime, limit)
+export const fetchData = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    return fetchDataBinance(baseSer, ticker, tframe, tzone, startTime, limit)
         .catch(ex => {
             console.error(ex);
             return fetchDataLocal(baseSer)
@@ -45,7 +45,7 @@ const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
         return undefined as number; // latestTime
     })
 
-const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+const fetchDataBinance = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     const endTime = new Date().getTime();
 
     const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, tzone)
@@ -57,8 +57,8 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
     const provider = Provider.Binance
     const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
 
-    return provider.getMarketData(symbol, pinets_tframe, limit, startTime, endTime)
-        //return Binance.fetchAllKlines(symbol, timeframe, startTime, endTime, limit)
+    return provider.getMarketData(ticker, pinets_tframe, limit, startTime, endTime)
+        //return Binance.fetchAllKlines(ticker, timeframe, startTime, endTime, limit)
         .then(binanceKline => {
             // console.log(`\nSuccessfully fetched ${binanceKline.length} klines`);
 
@@ -84,7 +84,7 @@ const fetchDataBinance = async (baseSer: TSer, symbol: string, tframe: TFrame, t
         })
 }
 
-const fetchDataYahoo = async (baseSer: TSer, symbol: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     let endTime = new Date().getTime();
 
     const backLimitTime = tframe.timeBeforeNTimeframes(endTime, limit, tzone)
@@ -99,7 +99,7 @@ const fetchDataYahoo = async (baseSer: TSer, symbol: string, tframe: TFrame, tzo
 
     const timeframe = tframe.shortName.toLowerCase()
 
-    return fetchYahooData(symbol, timeframe, startTime, endTime).then((klines) => {
+    return fetchYahooData(ticker, timeframe, startTime, endTime).then((klines) => {
         // console.log(klines);
         const latestKline = klines.length > 0 ? klines[klines.length - 1] : undefined;
         // console.log(`latestKline: ${new Date(latestKline.time)}, ${latestKline.close}`)
