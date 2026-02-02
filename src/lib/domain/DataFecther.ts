@@ -5,28 +5,29 @@ import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
 
-export const fetchData_ = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
-    return fetchDataYahoo(baseSer, ticker, tframe, tzone, startTime, limit)
+export const fetchData = async (source: string, baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+    let fetch: (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => Promise<number>
+
+    switch (source) {
+        case 'yfinance':
+            fetch = fetchDataYahoo
+            break
+
+        case 'binance':
+            fetch = fetchDataBinance
+            break
+
+        default:
+            fetch = fetchDataYahoo
+    }
+
+    return fetch(baseSer, ticker, tframe, tzone, startTime, limit)
         .catch(ex => {
             console.error(ex);
             return fetchDataLocal(baseSer)
 
         }).then(lastKline => {
             //console.log(lastKline)
-            return lastKline === undefined
-                ? fetchDataLocal(baseSer)
-                : Promise.resolve(lastKline as number)
-        })
-}
-
-export const fetchData = async (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
-    return fetchDataBinance(baseSer, ticker, tframe, tzone, startTime, limit)
-        .catch(ex => {
-            console.error(ex);
-            return fetchDataLocal(baseSer)
-
-        }).then(lastKline => {
-            console.log(lastKline)
             return lastKline === undefined
                 ? fetchDataLocal(baseSer)
                 : Promise.resolve(lastKline as number)

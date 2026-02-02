@@ -117,6 +117,9 @@ const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
 
 const TOOLTIP_DELAY = 500; // ms
 
+// const source = 'yfinance'
+const source = 'binance'
+
 class KlineViewContainer extends Component<Props, State> {
     width: number;
 
@@ -242,7 +245,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             const scripts = this.scripts || this.getSelectedIncicators()
 
-            return fetchData(baseSer, ticker, tframe, tzone, startTime, limit)
+            return fetchData(source, baseSer, ticker, tframe, tzone, startTime, limit)
                 .then(async latestTime => {
                     let start = performance.now()
 
@@ -326,7 +329,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     overlayIndicators,
                                     stackedIndicators,
                                 }, () => {
-                                    if (latestTime !== undefined) {
+                                    if (latestTime !== undefined && source === 'binance') {
                                         this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
                                     }
                                 })
@@ -344,8 +347,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
             })
             .then(() => {
-                this.ticker = 'BTCUSDT'
-                //this.ticker = 'NVDA'
+                this.ticker = source === 'binance' ? 'BTCUSDT' : 'BTC-USD'
                 this.tframe = TFrame.DAILY
                 this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 //this. tzone = "America/Vancouver" 
