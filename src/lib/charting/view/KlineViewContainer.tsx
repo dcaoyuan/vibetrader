@@ -131,8 +131,8 @@ class KlineViewContainer extends Component<Props, State> {
     reloadDataTimeoutId = undefined;
     latestTime: number;
 
-    predefinedPines: Map<string, string>;
-    pines?: { pineName: string, pine: string }[];
+    predefinedScripts: Map<string, string>;
+    scripts?: { scriptName: string, script: string }[];
 
     containerRef: React.RefObject<HTMLDivElement>;
     globalKeyboardListener = undefined
@@ -205,13 +205,13 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    fetchOPredefinedPines = (pineName: string[]) => {
-        const fetchIndicatorFn = (pineName: string) =>
-            fetch("./indicators/" + pineName + ".pine")
+    fetchOPredefinedScripts = (scriptNames: string[]) => {
+        const fetchScript = (scriptName: string) =>
+            fetch("./indicators/" + scriptName + ".pine")
                 .then(r => r.text())
-                .then(pine => ({ pineName, pine }))
+                .then(script => ({ scriptName, script }))
 
-        return Promise.all(pineName.map(pineName => fetchIndicatorFn(pineName)))
+        return Promise.all(scriptNames.map(scriptName => fetchScript(scriptName)))
     }
 
     getSelectedIncicators = () => {
@@ -219,19 +219,19 @@ class KlineViewContainer extends Component<Props, State> {
 
         const selectedIndicatorTagsNow = this.state.selectedIndicatorTags
         if (selectedIndicatorTagsNow === 'all') {
-            selectedIndicatorFns = this.predefinedPines;
+            selectedIndicatorFns = this.predefinedScripts;
 
         } else {
-            for (const pineName of selectedIndicatorTagsNow) {
-                selectedIndicatorFns.set(pineName as string, this.predefinedPines.get(pineName as string))
+            for (const scriptName of selectedIndicatorTagsNow) {
+                selectedIndicatorFns.set(scriptName as string, this.predefinedScripts.get(scriptName as string))
             }
         }
 
-        return Array.from(selectedIndicatorFns, ([pineName, pine]) => ({ pineName, pine }))
+        return Array.from(selectedIndicatorFns, ([scriptName, script]) => ({ scriptName, script }))
     }
 
-    // reload/calc should be chained after currentLoading to avoid concurrent loading/calculating
-    fetchData_calcPines = async (startTime: number, limit: number) => this.currentLoading
+    // reload/rerun should be chained after currentLoading to avoid concurrent loading/calculating
+    fetchData_runScripts = async (startTime: number, limit: number) => this.currentLoading
         .then(async () => {
             const ticker = this.ticker
             const tframe = this.tframe
@@ -240,7 +240,7 @@ class KlineViewContainer extends Component<Props, State> {
             const kvar = this.kvar
             const xc = this.xc
 
-            const pines = this.pines || this.getSelectedIncicators()
+            const scripts = this.scripts || this.getSelectedIncicators()
 
             return fetchData(baseSer, ticker, tframe, tzone, startTime, limit)
                 .then(async latestTime => {
@@ -257,32 +257,32 @@ class KlineViewContainer extends Component<Props, State> {
 
                     return pinets.ready()
                         .then(async () => {
-                            const fnRuns: Promise<{ pineName: string, result: Context }>[] = []
-                            for (const { pineName, pine } of pines) {
-                                if (pine !== undefined) {
-                                    const fnRun = pinets.run(pine)
-                                        .then(result => ({ pineName, result }))
+                            const scriptRuns: Promise<{ scriptName: string, result: Context }>[] = []
+                            for (const { scriptName, script } of scripts) {
+                                if (script !== undefined) {
+                                    const fnRun = pinets.run(script)
+                                        .then(result => ({ scriptName, result }))
                                         .catch(error => {
                                             console.error(error);
 
-                                            return { pineName, result: undefined }
+                                            return { scriptName, result: undefined }
                                         })
 
-                                    fnRuns.push(fnRun)
+                                    scriptRuns.push(fnRun)
                                 }
                             }
 
-                            return Promise.all(fnRuns).then(results => {
-                                console.log(`indicators calculated in ${performance.now() - start} ms`);
+                            return Promise.all(scriptRuns).then(results => {
+                                console.log(`Scripts run in ${performance.now() - start} ms`);
 
                                 start = performance.now();
 
                                 const overlayIndicators = [];
                                 const stackedIndicators = [];
 
-                                results.map(({ pineName, result }, n) => {
+                                results.map(({ scriptName, result }, n) => {
                                     if (result) {
-                                        const tvar = baseSer.varOf(pineName) as TVar<unknown[]>;
+                                        const tvar = baseSer.varOf(scriptName) as TVar<unknown[]>;
                                         const size = baseSer.size();
                                         const indicator = result.indicator;
                                         const plots = Object.values(result.plots) as Plot[];
@@ -308,10 +308,10 @@ class KlineViewContainer extends Component<Props, State> {
 
                                         const overlay = indicator !== undefined && indicator.overlay
                                         if (overlay) {
-                                            overlayIndicators.push({ pineName, tvar, outputs })
+                                            overlayIndicators.push({ scriptName, tvar, outputs })
 
                                         } else {
-                                            stackedIndicators.push({ pineName, tvar, outputs })
+                                            stackedIndicators.push({ scriptName, tvar, outputs })
                                         }
                                     }
                                 })
@@ -327,7 +327,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     stackedIndicators,
                                 }, () => {
                                     if (latestTime !== undefined) {
-                                        this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_calcPines(latestTime, 1000) }, 5000)
+                                        this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
                                     }
                                 })
 
@@ -339,9 +339,9 @@ class KlineViewContainer extends Component<Props, State> {
 
 
     override componentDidMount() {
-        this.fetchOPredefinedPines(allIndTags)
-            .then(pines => {
-                this.predefinedPines = new Map(pines.map(p => [p.pineName, p.pine]))
+        this.fetchOPredefinedScripts(allIndTags)
+            .then(scripts => {
+                this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
             })
             .then(() => {
                 this.ticker = 'BTCUSDT'
@@ -354,7 +354,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
                 this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
-                this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
+                this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
                     this.globalKeyboardListener = this.onGlobalKeyDown;
                     document.addEventListener("keydown", this.onGlobalKeyDown);
 
@@ -754,7 +754,7 @@ class KlineViewContainer extends Component<Props, State> {
             this.setState(
                 { selectedIndicatorTags },
                 () => {
-                    this.currentLoading = this.fetchData_calcPines(this.latestTime, 1000).then(() => {
+                    this.currentLoading = this.fetchData_runScripts(this.latestTime, 1000).then(() => {
                         resolve();
                     })
 
@@ -863,7 +863,7 @@ class KlineViewContainer extends Component<Props, State> {
             this.setState(
                 { isLoaded: false },
                 () => {
-                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
+                    this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
                         resolve();
                     })
 
@@ -872,23 +872,23 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    runPineScripts(pines: { pineName: string, pine: string }[]) {
+    runScripts(scripts: { scriptName: string, script: string }[]) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.pines = pines;
+        this.scripts = scripts;
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
         this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve) => {
-            console.log("runPineScripts ...")
+            console.log("runScripts ...")
             this.setState(
                 { isLoaded: false },
                 () => {
-                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
+                    this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
                         resolve();
                     })
 
@@ -897,12 +897,12 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    resetPines() {
+    resetScripts() {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.pines = undefined
+        this.scripts = undefined
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
@@ -913,7 +913,7 @@ class KlineViewContainer extends Component<Props, State> {
                 {
                     isLoaded: false,
                 }, () => {
-                    this.currentLoading = this.fetchData_calcPines(undefined, 1000).then(() => {
+                    this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
                         resolve();
                     })
 
@@ -932,6 +932,10 @@ class KlineViewContainer extends Component<Props, State> {
 
     changeTimezone(tzone: string) {
         return this.handleTickerTimeframeChanged(this.ticker, this.tframe.shortName, tzone)
+    }
+
+    changeTickerAndTimeframe(ticker: string, tframe: string) {
+        return this.handleTickerTimeframeChanged(ticker, tframe, this.tzone)
     }
 
     render() {
@@ -1232,9 +1236,9 @@ class KlineViewContainer extends Component<Props, State> {
                                     updateEvent={this.state.updateEvent}
                                 />
                                 {
-                                    this.state.stackedIndicators.map(({ pineName, tvar, outputs }, n) =>
+                                    this.state.stackedIndicators.map(({ scriptName, tvar, outputs }, n) =>
                                         <IndicatorView
-                                            key={"stacked-indicator-view-" + pineName}
+                                            key={"stacked-indicator-view-" + scriptName}
                                             id={this.#indicatorViewId(n)}
                                             name={"Indicator-" + n}
                                             x={0}
