@@ -233,7 +233,9 @@ class Title extends Component<Props, State> {
                 const prevOccurredTime = xc.tr(prevRow)
                 if (xc.occurred(prevOccurredTime)) {
                     const prevKline = this.props.tvar.getByTime(prevOccurredTime);
-                    delta = { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+                    delta = prevKline.close
+                        ? { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+                        : undefined
 
                     let latestUpdateTime = new Date().getTime();
                     latestUpdateTime = latestUpdateTime > pointKline.closeTime
@@ -287,9 +289,11 @@ class Title extends Component<Props, State> {
 
                 const period = Math.abs(xc.br(mRow) - xc.br(rRow))
                 const mValue = this.props.tvar.getByTime(mTime).close
-                const percent = mRow > rRow
-                    ? 100 * (mValue - rValue) / rValue
-                    : 100 * (rValue - mValue) / mValue
+                const percent = rValue && mValue
+                    ? mRow > rRow
+                        ? 100 * (mValue - rValue) / rValue
+                        : 100 * (rValue - mValue) / mValue
+                    : undefined
 
                 let volumeSum = 0.0
                 const rowBeg = Math.min(rRow, mRow)
@@ -347,7 +351,7 @@ class Title extends Component<Props, State> {
                             <div>
                                 {pKline && <>
                                     <span className="label-mouse">
-                                        {this.dtFormatL.format(new Date(pKline.closeTime))}
+                                        {pKline.closeTime ? this.dtFormatL.format(new Date(pKline.closeTime)) : ''}
                                     </span>
                                 </>}
                             </div>
@@ -363,7 +367,7 @@ class Title extends Component<Props, State> {
                                 {pKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-mouse">
-                                        {pKline.open.toPrecision(8)}
+                                        {pKline.open?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
@@ -371,7 +375,7 @@ class Title extends Component<Props, State> {
                                 {pKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-mouse">
-                                        {pKline.high.toPrecision(8)}
+                                        {pKline.high?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
@@ -379,26 +383,28 @@ class Title extends Component<Props, State> {
                                 {pKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-mouse">
-                                        {pKline.low.toPrecision(8)}
+                                        {pKline.low?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
                             <div
                                 className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
-                                key={pKline ? 'close-' + pKline.close.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
+                                key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
                             >
                                 {pKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-mouse">
                                         {delta
-                                            ? pKline.close.toPrecision(8) + ` (${delta.percent >= 0 ? '+' : ''}${delta.percent.toFixed(2)}%` + (
-                                                delta.period
-                                                    ? ` in ${delta.period} ${delta.period === 1
-                                                        ? this.tframeShowName
-                                                        : this.tframeShowName + 's'})`
-                                                    : ')'
-                                            )
-                                            : pKline.close
+                                            ? pKline.close
+                                                ? (pKline.close.toPrecision(8) + (delta.percent ? ` (${delta.percent >= 0 ? '+' : ''}${delta.percent?.toFixed(2)}% ` : '(') + (
+                                                    delta.period
+                                                        ? `in ${delta.period} ${delta.period === 1
+                                                            ? this.tframeShowName
+                                                            : this.tframeShowName + 's'})`
+                                                        : ')'
+                                                ))
+                                                : ''
+                                            : ''
                                         }
                                     </span>
                                 </>}
@@ -430,7 +436,7 @@ class Title extends Component<Props, State> {
                     <div style={{ justifyContent: "flex-end", padding: '0px 0px' }}>
                         <div style={{ textAlign: 'left' }}>
                             <div>
-                                {rKline
+                                {rKline && rKline.closeTime
                                     ? <>
                                         <span className="label-refer">
                                             {this.dtFormatL.format(new Date(rKline.closeTime))}
@@ -455,7 +461,7 @@ class Title extends Component<Props, State> {
                                 {rKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-refer">
-                                        {rKline.open.toPrecision(8)}
+                                        {rKline.open?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
@@ -463,7 +469,7 @@ class Title extends Component<Props, State> {
                                 {rKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-refer">
-                                        {rKline.high.toPrecision(8)}
+                                        {rKline.high?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
@@ -471,7 +477,7 @@ class Title extends Component<Props, State> {
                                 {rKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-refer">
-                                        {rKline.low.toPrecision(8)}
+                                        {rKline.low?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
@@ -479,7 +485,7 @@ class Title extends Component<Props, State> {
                                 {rKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-refer">
-                                        {rKline.close.toPrecision(8)}
+                                        {rKline.close?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
