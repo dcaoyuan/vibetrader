@@ -7,7 +7,7 @@ type HomePageProps = {
 }
 
 const HomePage = (props: HomePageProps) => {
-    const width = 600;
+    const width = 800;
 
     return (
         <div className={style({ display: "flex" })}>

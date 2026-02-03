@@ -252,7 +252,7 @@ export class ChartXControl {
             this.#wBarIdx = ChartXControl.PREDEFINED_BAR_WIDTHS.length - 1
         }
 
-        console.log(this.#wBarIdx)
+        // console.log(this.#wBarIdx)
         this.#internal_setWBar(ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]);
 
         this.#updateGeometry()
