@@ -249,7 +249,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             let cursorY: number;
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
-                if (value !== undefined && !isNaN(value)) {
+                if (value !== undefined && value !== null && !isNaN(value)) {
                     cursorY = yc.yv(value);
                 }
 
@@ -258,7 +258,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 value = yc.vy(cursorY);
             }
 
-            if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && !isNaN(value)) {
+            if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && value !== null && !isNaN(value)) {
                 if (yc.shouldNormScale) {
                     value /= yc.normScale
                 }
@@ -278,7 +278,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
 
             let value = this.valueAtTime(latestTime);
-            if (value !== undefined && !isNaN(value)) {
+            if (value !== undefined && value !== null && !isNaN(value)) {
                 const y = yc.yv(value);
 
                 if (yc.shouldNormScale) {
