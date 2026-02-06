@@ -9,6 +9,7 @@ import PlotLine from "../plot/PlotLine";
 import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import PlotStepLine from "../plot/PlotStepLine";
+import PlotCrossCircle from "../plot/PlotCrossCircle";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -78,6 +79,29 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             break
 
                         case "style_cross":
+                            ovchart = <PlotCrossCircle
+                                tvar={tvar}
+                                name={title}
+                                color={color}
+                                atIndex={atIndex}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                shape="cross"
+                                depth={depth++}
+                            />
+                            break
+
+                        case "style_circle":
+                            ovchart = <PlotCrossCircle
+                                tvar={tvar}
+                                name={title}
+                                color={color}
+                                atIndex={atIndex}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                shape="circle"
+                                depth={depth++}
+                            />
                             break
 
                         case "line":
