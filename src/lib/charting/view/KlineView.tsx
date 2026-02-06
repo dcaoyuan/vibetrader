@@ -8,6 +8,7 @@ import AxisY from "../pane/AxisY";
 import PlotLine from "../plot/PlotLine";
 import { type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
+import PlotStepLine from "../plot/PlotStepLine";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -64,7 +65,23 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 for (const { title, atIndex, options: { style, color } } of indicator.outputs) {
                     let ovchart: JSX.Element;
                     switch (style) {
+                        case "style_stepline":
+                            ovchart = <PlotStepLine
+                                tvar={tvar}
+                                name={title}
+                                color={color}
+                                atIndex={atIndex}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                depth={depth++}
+                            />
+                            break
+
+                        case "style_cross":
+                            break
+
                         case "line":
+                        case "style_line":
                         default:
                             ovchart = <PlotLine
                                 tvar={tvar}

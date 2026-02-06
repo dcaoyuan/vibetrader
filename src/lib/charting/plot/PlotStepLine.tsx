@@ -13,7 +13,7 @@ type Props = {
     depth?: number;
 }
 
-const PlotLine = (props: Props) => {
+const PlotStepLine = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, color } = props;
 
     function plot() {
@@ -25,8 +25,14 @@ const PlotLine = (props: Props) => {
     function plotLine(): Path {
         const path = new Path()
 
+        const r = xc.wBar < 2
+            ? 0
+            : Math.floor((xc.wBar - 2) / 2);
+
         let y1: number // for prev
         let y2: number // for curr
+
+        let prevValue: number
 
         // For those need connect from one bar to the next, use bar++ instead of 
         // bar += xc.nBarsCompressed to avoid uncontinuted line.
@@ -62,13 +68,28 @@ const PlotLine = (props: Props) => {
                         // think about the case of on calendar day mode
                         const x1 = xc.xb(bar - xc.nBarsCompressed)
                         const x2 = xc.xb(bar)
-                        path.moveto(x1, y1);
-                        path.lineto(x2, y2);
+                        if (prevValue !== undefined && prevValue !== value) {
+                            const x = x1 + r
+                            path.moveto(x, y1);
+                            path.lineto(x, y2);
+
+                            path.moveto(x1, y1);
+                            path.lineto(x, y1);
+
+                            path.moveto(x, y2);
+                            path.lineto(x2, y2);
+
+                        } else {
+                            path.moveto(x1, y1);
+                            path.lineto(x2, y2);
+                        }
                     }
                 }
                 y1 = y2;
 
             }
+
+            prevValue = value
         }
 
         return path
@@ -81,4 +102,4 @@ const PlotLine = (props: Props) => {
     )
 }
 
-export default PlotLine;
+export default PlotStepLine;
