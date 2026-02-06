@@ -1,19 +1,25 @@
-import { Provider } from "pinets";
 import type { TFrame } from "../timeseris/TFrame";
 import type { TSer } from "../timeseris/TSer";
 import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
+import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
 
-export const fetchData = async (source: string, baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
+export enum Source {
+    yfinance,
+    binance
+}
+
+
+export const fetchData = async (source: Source, baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     let fetch: (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => Promise<number>
 
     switch (source) {
-        case 'yfinance':
+        case Source.yfinance:
             fetch = fetchDataYahoo
             break
 
-        case 'binance':
+        case Source.binance:
             fetch = fetchDataBinance
             break
 
