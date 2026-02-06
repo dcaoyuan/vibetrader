@@ -3,7 +3,7 @@ import type { TSer } from "../timeseris/TSer";
 import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
-import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
+import { Provider } from "pinets";
 
 export enum Source {
     yfinance,

@@ -12,8 +12,7 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-import { Context } from '../../../../../PineTS/src/Context.class'
+import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
@@ -118,7 +117,7 @@ const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
 
 const TOOLTIP_DELAY = 500; // ms
 
-const source = Source.binance
+const source = Source.yfinance
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
