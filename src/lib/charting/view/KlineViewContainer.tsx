@@ -18,6 +18,8 @@ import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
 import { fetchData, Source } from "../../domain/DataFecther";
+// import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
+// import { Context } from '../../../../../PineTS/src/Context.class'
 
 import {
     ActionButton,
@@ -117,7 +119,8 @@ const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
 
 const TOOLTIP_DELAY = 500; // ms
 
-const source = Source.yfinance
+// const source: Source = Source.yfinance
+const source: Source = Source.binance
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;

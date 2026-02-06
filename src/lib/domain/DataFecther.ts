@@ -4,6 +4,7 @@ import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
 import { Provider } from "pinets";
+// import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
 
 export enum Source {
     yfinance,
