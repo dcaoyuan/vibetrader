@@ -49,7 +49,19 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         name={title}
                         atIndex={atIndex} />
 
+                case "hline":
+                    return <PlotLine
+                        tvar={this.props.tvar as TVar<unknown[]>}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
+                        color={options.color}
+                        name={title}
+                        atIndex={atIndex}
+                    />
+
                 case 'line':
+                case 'dashed':
                 default:
                     return <PlotLine
                         tvar={this.props.tvar as TVar<unknown[]>}
