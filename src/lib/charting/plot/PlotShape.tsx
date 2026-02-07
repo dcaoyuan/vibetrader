@@ -160,11 +160,11 @@ const PlotShape = (props: Props) => {
 
                     case 'labelup':
                     case 'labeldown':
-                    default: // cross
-                        path.moveto(x, y - d)
-                        path.lineto(x, y)
-                        path.moveto(x - r, y - r)
-                        path.lineto(x + r, y - r)
+                    default: // xcross
+                        path.moveto(x - r, y - d)
+                        path.lineto(x + r, y)
+                        path.moveto(x - r, y)
+                        path.lineto(x + r, y - d)
                 }
             }
         }
