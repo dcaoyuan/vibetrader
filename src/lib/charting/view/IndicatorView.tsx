@@ -41,7 +41,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
                 case 'shape':
                 case 'char':
-                    console.log("shape")
                     return <PlotShape
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}

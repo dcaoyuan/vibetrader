@@ -67,7 +67,7 @@ const PlotShape = (props: Props) => {
                         break;
 
                     case 'belowbar':
-                        y = yc.yv(low) + d + 2
+                        y = yc.yv(low) + 2
                         break
 
                     case 'top':
@@ -121,23 +121,45 @@ const PlotShape = (props: Props) => {
                         break;
 
                     case 'arrowup':
-                        path.moveto(x, y - d)
-                        path.lineto(x + r, y - r)
-                        path.lineto(x + r / 2, y - r)
-                        path.lineto(x + r / 2, y)
-                        path.lineto(x - r / 2, y)
-                        path.lineto(x - r / 2, y - r)
-                        path.lineto(x - r, y - r)
+                        path.moveto(x, y)
+                        path.lineto(x + r, y + r)
+                        path.lineto(x + (r - 2), y + r)
+                        path.lineto(x + (r - 2), y + d)
+                        path.lineto(x - (r - 2), y + d)
+                        path.lineto(x - (r - 2), y + r)
+                        path.lineto(x - r, y + r)
                         path.closepath()
                         break
 
                     case 'arrowdown':
                         path.moveto(x, y)
                         path.lineto(x - r, y - r)
-                        path.lineto(x - r / 2, y - r)
-                        path.lineto(x - r / 2, y - d)
-                        path.lineto(x + r / 2, y - d)
-                        path.lineto(x + r / 2, y - r)
+                        path.lineto(x - (r - 2), y - r)
+                        path.lineto(x - (r - 2), y - d)
+                        path.lineto(x + (r - 2), y - d)
+                        path.lineto(x + (r - 2), y - r)
+                        path.lineto(x + r, y - r)
+                        path.closepath()
+                        break
+
+                    case 'labelup':
+                        path.moveto(x, y)
+                        path.lineto(x + r, y + r)
+                        path.lineto(x + r, y + r)
+                        path.lineto(x + r, y + 20)
+                        path.lineto(x - r, y + 20)
+                        path.lineto(x - r, y + r)
+                        path.lineto(x - r, y + r)
+                        path.closepath()
+                        break
+
+                    case 'labeldown':
+                        path.moveto(x, y)
+                        path.lineto(x - r, y - r)
+                        path.lineto(x - r, y - r)
+                        path.lineto(x - r, y - 20)
+                        path.lineto(x + r, y - 20)
+                        path.lineto(x + r, y - r)
                         path.lineto(x + r, y - r)
                         path.closepath()
                         break
@@ -158,8 +180,6 @@ const PlotShape = (props: Props) => {
                         path.closepath()
                         break;
 
-                    case 'labelup':
-                    case 'labeldown':
                     default: // xcross
                         path.moveto(x - r, y - d)
                         path.lineto(x + r, y)

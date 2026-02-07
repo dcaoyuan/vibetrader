@@ -68,6 +68,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 for (const { title, atIndex, options } of indicator.outputs) {
                     let ovchart: JSX.Element;
                     switch (options.style) {
+                        case 'style_linebr':
                         case "style_stepline":
                             ovchart = <PlotStepLine
                                 tvar={tvar}
