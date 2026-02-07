@@ -64,14 +64,19 @@ const PlotShape = (props: Props) => {
                 switch (location) {
                     case 'abovebar':
                         y = yc.yv(high) - 2
-                        // y = yc.hCanvas + d
                         break;
 
                     case 'belowbar':
-                    default:
                         y = yc.yv(low) + d + 2
-                        // y = yc.hCanvas + d
-                        break;
+                        break
+
+                    case 'top':
+                        y = 0
+                        break
+
+                    case 'bottom':
+                    default:
+                        y = yc.hCanvas + d
                 }
 
                 switch (shape) {
@@ -80,7 +85,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r, y)
                         path.moveto(x - r, y)
                         path.lineto(x + r, y - d)
-
                         break
 
                     case 'cross':
@@ -88,7 +92,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x, y)
                         path.moveto(x - r, y - r)
                         path.lineto(x + r, y - r)
-
                         break
 
                     case 'circle':
@@ -100,7 +103,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r, y)
                         path.lineto(x - r, y)
                         path.lineto(x, y - d)
-
                         break;
 
                     case 'triangledown':
@@ -108,7 +110,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r, y - d)
                         path.lineto(x - r, y - d)
                         path.lineto(x, y)
-
                         break;
 
                     case 'flag':
@@ -117,7 +118,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r - 1, y - d)
                         path.lineto(x + r - 1, y - r)
                         path.lineto(x - r + 1, y - r)
-
                         break;
 
                     case 'arrowup':
@@ -129,7 +129,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x - r / 2, y - r)
                         path.lineto(x - r, y - r)
                         path.closepath()
-
                         break
 
                     case 'arrowdown':
@@ -141,7 +140,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r / 2, y - r)
                         path.lineto(x + r, y - r)
                         path.closepath()
-
                         break
 
                     case 'square':
@@ -150,7 +148,6 @@ const PlotShape = (props: Props) => {
                         path.lineto(x + r, y)
                         path.lineto(x + r, y - d)
                         path.closepath()
-
                         break
 
                     case 'diamond':
@@ -159,14 +156,16 @@ const PlotShape = (props: Props) => {
                         path.lineto(x, y)
                         path.lineto(x - r, y - r)
                         path.closepath()
-
                         break;
 
                     case 'labelup':
                     case 'labeldown':
-
+                    default: // cross
+                        path.moveto(x, y - d)
+                        path.lineto(x, y)
+                        path.moveto(x - r, y - r)
+                        path.lineto(x + r, y - r)
                 }
-
             }
         }
 

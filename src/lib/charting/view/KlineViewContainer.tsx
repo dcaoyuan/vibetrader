@@ -12,14 +12,14 @@ import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
 import { IndicatorView } from "./IndicatorView";
-import { Context, PineTS } from "pinets";
 import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
 import { fetchData, Source } from "../../domain/DataFecther";
-// import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-// import { Context } from '../../../../../PineTS/src/Context.class'
+import { Context, PineTS } from "pinets";
+//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
+//import { Context } from '../../../../../PineTS/src/Context.class'
 
 import {
     ActionButton,
@@ -114,12 +114,12 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-// const allIndTags = ['macd']
+// const allIndTags = ['test']
 const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
 
 const TOOLTIP_DELAY = 500; // ms
 
-// const source: Source = Source.yfinance
+//const source: Source = Source.yfinance
 const source: Source = Source.binance
 
 class KlineViewContainer extends Component<Props, State> {
@@ -304,20 +304,31 @@ class KlineViewContainer extends Component<Props, State> {
                                         }
 
                                         // console.log(result)
-                                        // console.log(plots.map(x => x.data))
-                                        // console.log(plots.map(x => x.options))
+                                        console.log(plots.map(x => x.data))
+                                        console.log(plots.map(x => x.options))
 
-                                        const outputs = plots.map(({ title, options }, atIndex) => {
-                                            return ({ atIndex, title, options })
-                                        })
+                                        const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
-                                        const overlay = indicator !== undefined && indicator.overlay
-                                        if (overlay) {
-                                            overlayIndicators.push({ scriptName, tvar, outputs })
+                                        const outputs = plots.reduce(([overlay, stacked], { title, options }, atIndex) => {
+                                            const style = options.style
+                                            const location = options.location
 
-                                        } else {
-                                            stackedIndicators.push({ scriptName, tvar, outputs })
-                                        }
+                                            const isOverlayOutput = (style === 'shape' || style === 'char')
+                                                && (location === 'abovebar' || location === 'belowbar')
+
+                                            if (isOverlayOutput || isOverlayIndicator) {
+                                                overlay.push({ atIndex, title, options })
+
+                                            } else {
+                                                stacked.push({ atIndex, title, options })
+                                            }
+
+                                            return [overlay, stacked]
+
+                                        }, [[], []])
+
+                                        overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
+                                        stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
                                     }
                                 })
 
