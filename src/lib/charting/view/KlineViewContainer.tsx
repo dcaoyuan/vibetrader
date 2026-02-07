@@ -327,8 +327,13 @@ class KlineViewContainer extends Component<Props, State> {
 
                                         }, [[], []])
 
-                                        overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
-                                        stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
+                                        if (outputs[0].length > 0) {
+                                            overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
+                                        }
+
+                                        if (outputs[1].length > 0) {
+                                            stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
+                                        }
                                     }
                                 })
 
