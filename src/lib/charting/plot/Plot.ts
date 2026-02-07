@@ -51,6 +51,7 @@ export type PlotShapeOptions = {
     series?: number;
     title?: string;
     style?: string;
+    shape?: string;
     location?: Location;
     color?: string;
     offset?: number;

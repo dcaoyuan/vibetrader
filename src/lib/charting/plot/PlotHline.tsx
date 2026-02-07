@@ -12,13 +12,12 @@ type Props = {
     name: string,
     atIndex: number,
     color: string;
-    shape: string;
     linewidth?: number,
     depth?: number;
 }
 
 const PlotCrossCircle = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, color, shape, linewidth } = props;
+    const { xc, yc, tvar, name, atIndex, depth, color, linewidth } = props;
 
     const d = linewidth ? linewidth : 6
     const r = d / 2
@@ -33,15 +32,10 @@ const PlotCrossCircle = (props: Props) => {
         const path = new Path()
         const segs: Seg[] = [path]
 
-        let y1: number // for prev
-        let y2: number // for curr
-
         // For those need connect from one bar to the next, use bar++ instead of 
         // bar += xc.nBarsCompressed to avoid uncontinuted line.
         let value: number;
         for (let bar = 1; bar <= xc.nBars; bar++) {
-            // use `undefiend` to test if value has been set at least one time
-            const vs: number[] = []
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
@@ -65,7 +59,7 @@ const PlotCrossCircle = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color, strokeDasharray: "4 3" } }))
     )
 }
 

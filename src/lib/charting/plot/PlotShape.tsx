@@ -19,10 +19,9 @@ type Props = {
 }
 
 const PlotShape = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, options: { color, style, location } } = props;
+    const { xc, yc, tvar, name, atIndex, depth, options: { color, style, shape, location } } = props;
 
     const kvar = xc.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-
 
     function plot() {
         const segs = plotShape();
@@ -45,39 +44,37 @@ const PlotShape = (props: Props) => {
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
-                    const time = xc.tb(bar + i)
+                    const values = tvar.getByTime(time) as boolean[];
+                    v = v || values ? values[atIndex] : v;
+
                     if (xc.occurred(time)) {
                         const kline = kvar.getByTime(time);
                         if (kline) {
                             high = Math.max(high, kline.high)
                             low = Math.min(low, kline.low)
                         }
-
-                        const values = tvar.getByTime(time) as boolean[];
-                        v = v || values ? values[atIndex] : v;
                     }
                 }
             }
 
-            const x = xc.xb(bar)
-
-            let y: number
-            switch (location) {
-                case 'abovebar':
-                    y = yc.yv(high)
-                    y = yc.hCanvas + d
-                    break;
-
-                case 'belowbar':
-                default:
-                    y = yc.yv(low)
-                    y = yc.hCanvas + d
-                    break;
-            }
-
-            const style: string = 'triangleup'
             if (v) {
-                switch (style) {
+                const x = xc.xb(bar)
+
+                let y: number
+                switch (location) {
+                    case 'abovebar':
+                        y = yc.yv(high) - 2
+                        // y = yc.hCanvas + d
+                        break;
+
+                    case 'belowbar':
+                    default:
+                        y = yc.yv(low) + d + 2
+                        // y = yc.hCanvas + d
+                        break;
+                }
+
+                switch (shape) {
                     case 'xcross':
                         path.moveto(x - r, y - d)
                         path.lineto(x + r, y)

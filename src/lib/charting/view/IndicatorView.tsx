@@ -8,6 +8,7 @@ import PlotHistogram from "../plot/PlotHistogram";
 import { Fragment } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
 import type { PlotShapeOptions } from "../plot/Plot";
+import PlotHline from "../plot/PlotHline";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -50,7 +51,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         atIndex={atIndex} />
 
                 case "hline":
-                    return <PlotLine
+                    return <PlotHline
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
