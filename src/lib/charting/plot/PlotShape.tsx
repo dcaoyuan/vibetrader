@@ -30,7 +30,7 @@ const PlotShape = (props: Props) => {
     }
 
     function plotShape(): Seg[] {
-        const r = Math.floor(xc.wBar / 2);
+        const r = Math.max(Math.floor((xc.wBar - 2) / 2), 3);
         const d = r * 2
 
         const path = new Path()
@@ -61,58 +61,126 @@ const PlotShape = (props: Props) => {
                 const x = xc.xb(bar)
 
                 let y: number
+                let below: boolean
                 switch (location) {
                     case 'abovebar':
-                        y = yc.yv(high) - 2
+                        below = false
+                        y = yc.yv(high) - 3
                         break;
 
                     case 'belowbar':
-                        y = yc.yv(low) + 2
+                        below = true
+                        y = yc.yv(low) + 3
                         break
 
                     case 'top':
+                        below = false
                         y = 0
                         break
 
                     case 'bottom':
                     default:
-                        y = yc.hCanvas + d
+                        below = true
+                        y = yc.hCanvas
                 }
 
+                let h = d;
                 switch (shape) {
                     case 'xcross':
-                        path.moveto(x - r, y - d)
-                        path.lineto(x + r, y)
+                        y = below ? y + h : y
+
                         path.moveto(x - r, y)
                         path.lineto(x + r, y - d)
+                        path.moveto(x - r, y - d)
+                        path.lineto(x + r, y)
                         break
 
                     case 'cross':
-                        path.moveto(x, y - d)
-                        path.lineto(x, y)
-                        path.moveto(x - r, y - r)
-                        path.lineto(x + r, y - r)
+                        y = below ? y + h : y
+
+                        path.moveto(x, y)
+                        path.lineto(x, y - d - 2)
+                        path.moveto(x - r - 1, y - r - 1)
+                        path.lineto(x + r + 1, y - r - 1)
                         break
 
                     case 'circle':
-                        segs.push(new Circle(x + r, y - r, r))
+                        y = below ? y + h : y
+
+                        segs.push(new Circle(x, y - r, r))
                         break
 
                     case 'triangleup':
-                        path.moveto(x, y - d)
+                        y = below ? y + h : y
+
+                        path.moveto(x - r, y)
+                        path.lineto(x, y - d)
                         path.lineto(x + r, y)
                         path.lineto(x - r, y)
-                        path.lineto(x, y - d)
                         break;
 
                     case 'triangledown':
+                        y = below ? y + h : y
+
                         path.moveto(x, y)
-                        path.lineto(x + r, y - d)
                         path.lineto(x - r, y - d)
+                        path.lineto(x + r, y - d)
                         path.lineto(x, y)
                         break;
 
+                    case 'arrowup':
+                        y = below ? y + h : y
+
+                        path.moveto(x - r + 2, y)
+                        path.lineto(x - r + 2, y - r)
+                        path.lineto(x - r, y - r)
+                        path.lineto(x, y - d)
+                        path.lineto(x + r, y - r)
+                        path.lineto(x + r - 2, y - r)
+                        path.lineto(x + r - 2, y)
+                        path.closepath()
+                        break
+
+                    case 'arrowdown':
+                        y = below ? y + h : y
+
+                        path.moveto(x, y)
+                        path.lineto(x - r, y - r)
+                        path.lineto(x - r + 2, y - r)
+                        path.lineto(x - r + 2, y - d)
+                        path.lineto(x + r - 2, y - d)
+                        path.lineto(x + r - 2, y - r)
+                        path.lineto(x + r, y - r)
+                        path.closepath()
+                        break
+
+                    case 'labelup':
+                        h = 14
+                        y = below ? y + h : y
+
+                        path.moveto(x - r + 1, y)
+                        path.lineto(x - r + 1, y - h + r)
+                        path.lineto(x, y - h)
+                        path.lineto(x + r - 1, y - h + r)
+                        path.lineto(x + r - 1, y)
+                        path.closepath()
+                        break
+
+                    case 'labeldown':
+                        h = 14
+                        y = below ? y + h : y
+
+                        path.moveto(x, y)
+                        path.lineto(x - r + 1, y - r)
+                        path.lineto(x - r + 1, y - h)
+                        path.lineto(x + r - 1, y - h)
+                        path.lineto(x + r - 1, y - r)
+                        path.closepath()
+                        break
+
                     case 'flag':
+                        y = below ? y + h : y
+
                         path.moveto(x - r + 1, y)
                         path.lineto(x - r + 1, y - d)
                         path.lineto(x + r - 1, y - d)
@@ -120,59 +188,19 @@ const PlotShape = (props: Props) => {
                         path.lineto(x - r + 1, y - r)
                         break;
 
-                    case 'arrowup':
-                        path.moveto(x, y)
-                        path.lineto(x + r, y + r)
-                        path.lineto(x + (r - 2), y + r)
-                        path.lineto(x + (r - 2), y + d)
-                        path.lineto(x - (r - 2), y + d)
-                        path.lineto(x - (r - 2), y + r)
-                        path.lineto(x - r, y + r)
-                        path.closepath()
-                        break
-
-                    case 'arrowdown':
-                        path.moveto(x, y)
-                        path.lineto(x - r, y - r)
-                        path.lineto(x - (r - 2), y - r)
-                        path.lineto(x - (r - 2), y - d)
-                        path.lineto(x + (r - 2), y - d)
-                        path.lineto(x + (r - 2), y - r)
-                        path.lineto(x + r, y - r)
-                        path.closepath()
-                        break
-
-                    case 'labelup':
-                        path.moveto(x, y)
-                        path.lineto(x + r, y + r)
-                        path.lineto(x + r, y + r)
-                        path.lineto(x + r, y + 20)
-                        path.lineto(x - r, y + 20)
-                        path.lineto(x - r, y + r)
-                        path.lineto(x - r, y + r)
-                        path.closepath()
-                        break
-
-                    case 'labeldown':
-                        path.moveto(x, y)
-                        path.lineto(x - r, y - r)
-                        path.lineto(x - r, y - r)
-                        path.lineto(x - r, y - 20)
-                        path.lineto(x + r, y - 20)
-                        path.lineto(x + r, y - r)
-                        path.lineto(x + r, y - r)
-                        path.closepath()
-                        break
-
                     case 'square':
-                        path.moveto(x - r, y - d)
-                        path.lineto(x - r, y)
-                        path.lineto(x + r, y)
-                        path.lineto(x + r, y - d)
+                        y = below ? y + h : y
+
+                        path.moveto(x - r + 1, y - d + 2)
+                        path.lineto(x - r + 1, y)
+                        path.lineto(x + r - 1, y)
+                        path.lineto(x + r - 1, y - d + 2)
                         path.closepath()
                         break
 
                     case 'diamond':
+                        y = below ? y + h : y
+
                         path.moveto(x, y - d)
                         path.lineto(x + r, y - r)
                         path.lineto(x, y)
@@ -181,10 +209,12 @@ const PlotShape = (props: Props) => {
                         break;
 
                     default: // xcross
-                        path.moveto(x - r, y - d)
-                        path.lineto(x + r, y)
+                        y = below ? y + h : y
+
                         path.moveto(x - r, y)
                         path.lineto(x + r, y - d)
+                        path.moveto(x - r, y - d)
+                        path.lineto(x + r, y)
                 }
             }
         }
