@@ -4,7 +4,7 @@ import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import { fetchYahooData, } from "./YFinanceData";
 import { Provider } from "pinets";
-// import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
+//import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
 
 export enum Source {
     yfinance,
@@ -46,7 +46,7 @@ const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
     .then(json => {
         for (const k of json) {
             const time = Date.parse(k.Date);
-            const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
+            const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, time, true);
             baseSer.addToVar(KVAR_NAME, kline);
         }
 
@@ -83,7 +83,7 @@ const fetchDataBinance = async (baseSer: TSer, ticker: string, tframe: TFrame, t
 
             for (const k of uniqueKlines) {
                 if (k) {
-                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.closeTime, true);
+                    const kline = new Kline(k.openTime, k.open, k.high, k.low, k.close, k.volume, k.openTime, k.closeTime, true);
                     baseSer.addToVar(KVAR_NAME, kline);
                 }
             }
@@ -114,7 +114,7 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
 
         for (const k of klines) {
             if (k && k.time) {
-                const kline = new Kline(k.time, k.open, k.high, k.low, k.close, k.volume, k.time, true);
+                const kline = new Kline(k.time, k.open, k.high, k.low, k.close, k.volume, k.time, k.time, true);
                 baseSer.addToVar(KVAR_NAME, kline);
             }
         }

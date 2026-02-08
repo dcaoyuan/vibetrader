@@ -15,7 +15,7 @@ function loadSer(varName: string) {
 
 	for (const k of ks) {
 		const time = Date.parse(k.Date);
-		const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, true);
+		const kline = new Kline(time, k.Open, k.High, k.Low, k.Close, k.Volume, time, time, true);
 		kser.addToVar(varName, kline);
 	}
 

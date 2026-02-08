@@ -9,6 +9,7 @@ export class Kline extends TVal {
     low: number;
     close: number;
     volume: number;
+    openTime: number;
     closeTime: number;
     isClosed: boolean;
 
@@ -23,6 +24,7 @@ export class Kline extends TVal {
         low: number,
         close: number,
         volume: number,
+        openTime: number,
         closeTime: number,
         isClosed: boolean,
     ) {
@@ -33,6 +35,7 @@ export class Kline extends TVal {
         this.low = low;
         this.close = close;
         this.volume = volume;
+        this.openTime = openTime;
         this.closeTime = closeTime;
         this.isClosed = isClosed;
     }
