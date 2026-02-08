@@ -2,6 +2,7 @@ import { Path } from "../../svg/Path";
 import type { TVar } from "../../timeseris/TVar";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
+import type { PlotOptions } from "./Plot";
 
 type Props = {
     xc: ChartXControl,
@@ -9,7 +10,7 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
-    color: string;
+    options: PlotOptions;
     depth?: number;
 }
 

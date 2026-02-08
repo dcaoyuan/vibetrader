@@ -4,6 +4,7 @@ import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { Seg } from "../../svg/Seg";
 import { Circle } from "../../svg/Circle";
+import type { PlotOptions } from "./Plot";
 
 type Props = {
     xc: ChartXControl,
@@ -11,17 +12,17 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
-    color: string;
-    shape: string;
-    linewidth?: number,
+    options: PlotOptions;
     depth?: number;
 }
 
 const PlotCrossCircle = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, color, shape, linewidth } = props;
+    const { xc, yc, tvar, name, atIndex, depth, options, } = props;
 
-    const d = linewidth ? linewidth : 6
-    const r = d / 2
+    const r = Math.max(Math.floor((xc.wBar - 2) / 2), 3);
+    const d = r * 2
+    //const strokeWidth = undefined// options.linewidth || 1
+
 
     function plot() {
         const segs = plotLine();
@@ -61,12 +62,12 @@ const PlotCrossCircle = (props: Props) => {
                     const x1 = xc.xb(bar - xc.nBarsCompressed)
                     const x2 = xc.xb(bar)
 
-                    switch (shape) {
-                        case 'circle':
+                    switch (options.style) {
+                        case 'style_circle':
                             segs.push(new Circle(x2 + r, y2 - r, r))
                             break
 
-                        case 'cross':
+                        case 'style_cross':
                             path.moveto(x2, y2 - d)
                             path.lineto(x2, y2)
                             path.moveto(x2 - r, y2 - r)
@@ -85,7 +86,7 @@ const PlotCrossCircle = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: options.color } }))
     )
 }
 

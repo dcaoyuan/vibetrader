@@ -5,9 +5,9 @@ import { LG_SCALAR } from "../scalar/LgScalar";
 import AxisY from "../pane/AxisY";
 import PlotLine from "../plot/PlotLine";
 import PlotHistogram from "../plot/PlotHistogram";
-import { Fragment } from "react/jsx-runtime";
+import { Fragment, type JSX } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
-import type { PlotShapeOptions } from "../plot/Plot";
+import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
@@ -26,22 +26,24 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         this.computeGeometry();
 
         const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, options }) => {
+            let chart: JSX.Element;
             switch (options.style) {
                 case 'style_histogram':
                 case 'style_columns':
-                    return <PlotHistogram
+                    chart = <PlotHistogram
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        color={options.color}
+                        options={options as PlotOptions}
                         name={title}
                         atIndex={atIndex}
                     />
+                    break
 
                 case 'shape':
                 case 'char':
-                    return <PlotShape
+                    chart = <PlotShape
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
@@ -49,31 +51,35 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         options={options as PlotShapeOptions}  // todo, back to PlotCharOption
                         name={title}
                         atIndex={atIndex} />
+                    break
 
                 case "hline":
-                    return <PlotHline
+                    chart = <PlotHline
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        color={options.color}
+                        options={options as PlotOptions}
                         name={title}
                         atIndex={atIndex}
                     />
+                    break
 
                 case 'line':
                 case 'dashed':
                 default:
-                    return <PlotLine
+                    chart = <PlotLine
                         tvar={this.props.tvar as TVar<unknown[]>}
                         xc={this.props.xc}
                         yc={this.yc}
                         depth={0}
-                        color={options.color}
+                        options={options as PlotOptions}
                         name={title}
                         atIndex={atIndex}
                     />
             }
+
+            return chart;
         })
 
         const chartAxisy = <AxisY

@@ -3,7 +3,7 @@ import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { Seg } from "../../svg/Seg";
-import { Circle } from "../../svg/Circle";
+import type { PlotOptions } from "./Plot";
 
 type Props = {
     xc: ChartXControl,
@@ -11,16 +11,25 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
-    color: string;
-    linewidth?: number,
+    options: PlotOptions,
     depth?: number;
 }
 
-const PlotCrossCircle = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, color, linewidth } = props;
+const PlotHline = (props: Props) => {
+    const { xc, yc, tvar, name, atIndex, depth, options } = props;
 
-    const d = linewidth ? linewidth : 6
-    const r = d / 2
+    let strokeDasharray: string
+    switch (options.linestyle) {
+        case 'dashed':
+            strokeDasharray = "4 3"
+            break
+
+        case 'dotted':
+            strokeDasharray = "1 2"
+            break
+
+        default:
+    }
 
     function plot() {
         const segs = plotLine();
@@ -59,8 +68,8 @@ const PlotCrossCircle = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color, strokeDasharray: "4 3" } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: options.color, strokeDasharray } }))
     )
 }
 
-export default PlotCrossCircle;
+export default PlotHline;

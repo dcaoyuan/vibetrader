@@ -11,7 +11,8 @@ import { LN_SCALAR } from "../scalar/LnScalar";
 import PlotStepLine from "../plot/PlotStepLine";
 import PlotCrossCircle from "../plot/PlotCrossCircle";
 import PlotShape from "../plot/PlotShape";
-import type { PlotShapeOptions } from "../plot/Plot";
+import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
+import PlotHline from "../plot/PlotHline";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -66,50 +67,37 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             this.props.overlayIndicators.map((indicator, n) => {
                 const tvar = indicator.tvar;
                 for (const { title, atIndex, options } of indicator.outputs) {
-                    let ovchart: JSX.Element;
+                    let chart: JSX.Element;
                     switch (options.style) {
                         case 'style_linebr':
                         case "style_stepline":
-                            ovchart = <PlotStepLine
+                            chart = <PlotStepLine
                                 tvar={tvar}
                                 name={title}
-                                color={options.color}
+                                options={options as PlotOptions}
                                 atIndex={atIndex}
                                 xc={this.props.xc}
                                 yc={this.yc}
-                                depth={depth++}
-                            />
-                            break
-
-                        case "style_cross":
-                            ovchart = <PlotCrossCircle
-                                tvar={tvar}
-                                name={title}
-                                color={options.color}
-                                atIndex={atIndex}
-                                xc={this.props.xc}
-                                yc={this.yc}
-                                shape="cross"
                                 depth={depth++}
                             />
                             break
 
                         case "style_circle":
-                            ovchart = <PlotCrossCircle
+                        case "style_cross":
+                            chart = <PlotCrossCircle
                                 tvar={tvar}
                                 name={title}
-                                color={options.color}
+                                options={options as PlotOptions}
                                 atIndex={atIndex}
                                 xc={this.props.xc}
                                 yc={this.yc}
-                                shape="circle"
                                 depth={depth++}
                             />
                             break
 
                         case 'shape':
                         case 'char':
-                            ovchart = <PlotShape
+                            chart = <PlotShape
                                 tvar={tvar}
                                 xc={this.props.xc}
                                 yc={this.yc}
@@ -119,13 +107,26 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 atIndex={atIndex} />
                             break
 
+                        case "hline":
+                            chart = <PlotHline
+                                tvar={this.props.tvar as TVar<unknown[]>}
+                                xc={this.props.xc}
+                                yc={this.yc}
+                                depth={0}
+                                options={options as PlotOptions}
+                                name={title}
+                                atIndex={atIndex}
+                            />
+                            break
+
+
                         case "line":
                         case "style_line":
                         default:
-                            ovchart = <PlotLine
+                            chart = <PlotLine
                                 tvar={tvar}
                                 name={title}
-                                color={options.color}
+                                options={options as PlotOptions}
                                 atIndex={atIndex}
                                 xc={this.props.xc}
                                 yc={this.yc}
@@ -133,8 +134,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             />
                     }
 
-                    if (ovchart !== undefined) {
-                        overlayChartLines.push(ovchart)
+                    if (chart !== undefined) {
+                        overlayChartLines.push(chart)
                     }
                 }
 

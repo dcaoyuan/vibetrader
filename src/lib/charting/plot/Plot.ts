@@ -3,10 +3,9 @@ export type PlotData = {
     value: unknown
 }
 
-
 export type Plot = {
     data: PlotData[],
-    options: PlotOptions | PlotCharOptions | PlotShapeOptions
+    options: PlotOptions | PlotCharOptions | PlotShapeOptions,
     title: string,
 }
 
@@ -33,6 +32,7 @@ export type PlotOptions = {
     title?: string;
     color?: string;
     linewidth?: number;
+    linestyle?: string;
     style?: string;
     trackprice?: boolean;
     histbase?: boolean;

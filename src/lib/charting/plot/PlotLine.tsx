@@ -2,6 +2,7 @@ import { TVar } from "../../timeseris/TVar";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
+import type { PlotOptions } from "./Plot";
 
 type Props = {
     xc: ChartXControl,
@@ -9,12 +10,12 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     atIndex: number,
-    color: string;
+    options: PlotOptions;
     depth?: number;
 }
 
 const PlotLine = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, color } = props;
+    const { xc, yc, tvar, name, atIndex, depth, options } = props;
 
     function plot() {
         const path = plotLine();
@@ -77,7 +78,7 @@ const PlotLine = (props: Props) => {
     const { path } = plot();
 
     return (
-        path.render({ style: { stroke: color, fill: color } })
+        path.render({ style: { stroke: options.color, fill: options.color } })
     )
 }
 
