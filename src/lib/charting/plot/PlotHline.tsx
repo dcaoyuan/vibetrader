@@ -28,6 +28,7 @@ const PlotHline = (props: Props) => {
             strokeDasharray = "1 2"
             break
 
+        case "solid":
         default:
     }
 

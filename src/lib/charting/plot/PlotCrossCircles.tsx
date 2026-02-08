@@ -34,7 +34,6 @@ const PlotCrossCircles = (props: Props) => {
         const path = new Path()
         const segs: Seg[] = [path]
 
-
         let y1: number // for prev
         let y2: number // for curr
 
@@ -64,7 +63,7 @@ const PlotCrossCircles = (props: Props) => {
 
                     switch (options.style) {
                         case 'style_circles':
-                            segs.push(new Circle(x2 + r, y2 - r, r))
+                            segs.push(new Circle(x2, y2, r))
                             break
 
                         case 'style_cross':
