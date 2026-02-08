@@ -9,6 +9,7 @@ import { Fragment, type JSX } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
 import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
+import PlotCrossCircles from "../plot/PlotCrossCircles";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -38,6 +39,19 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         options={options as PlotOptions}
                         name={title}
                         atIndex={atIndex}
+                    />
+                    break
+
+                case "style_circles":
+                case "style_cross":
+                    chart = <PlotCrossCircles
+                        tvar={this.props.tvar as TVar<unknown[]>}
+                        name={title}
+                        options={options as PlotOptions}
+                        atIndex={atIndex}
+                        xc={this.props.xc}
+                        yc={this.yc}
+                        depth={0}
                     />
                     break
 

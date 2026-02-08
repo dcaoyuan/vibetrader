@@ -16,7 +16,7 @@ type Props = {
     depth?: number;
 }
 
-const PlotCrossCircle = (props: Props) => {
+const PlotCrossCircles = (props: Props) => {
     const { xc, yc, tvar, name, atIndex, depth, options, } = props;
 
     const r = Math.max(Math.floor((xc.wBar - 2) / 2), 3);
@@ -63,7 +63,7 @@ const PlotCrossCircle = (props: Props) => {
                     const x2 = xc.xb(bar)
 
                     switch (options.style) {
-                        case 'style_circle':
+                        case 'style_circles':
                             segs.push(new Circle(x2 + r, y2 - r, r))
                             break
 
@@ -90,4 +90,4 @@ const PlotCrossCircle = (props: Props) => {
     )
 }
 
-export default PlotCrossCircle;
+export default PlotCrossCircles;
