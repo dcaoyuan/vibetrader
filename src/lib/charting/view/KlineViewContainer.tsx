@@ -114,12 +114,13 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-//const source: Source = Source.yfinance
-const source: Source = Source.binance
+const dev = false
 
-const allIndTags = source === Source.binance
-    ? ['sma', 'ema', 'bb', 'rsi', 'macd']
-    : ['test', 'bb']
+const source: Source = dev ? Source.yfinance : Source.binance
+
+const allIndTags = dev
+    ? ['test', 'bb']
+    : ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOLTIP_DELAY = 500; // ms
 
@@ -374,7 +375,7 @@ class KlineViewContainer extends Component<Props, State> {
                 this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
             })
             .then(() => {
-                this.ticker = source === Source.binance ? 'BTCUSDT' : 'BTC-USD'
+                this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
                 this.tframe = TFrame.DAILY
                 this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 //this. tzone = "America/Vancouver" 
