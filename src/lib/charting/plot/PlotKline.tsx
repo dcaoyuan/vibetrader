@@ -44,7 +44,7 @@ const PlotKline = (props: Props) => {
     function plotCandleOrBar(kind: KlineKind, posPath: Path, negPath: Path) {
 
         for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
-            // use `undefiend` to test if value has been set at least one time
+            // use `undefined` to test if value has been set at least one time
             let open: number = undefined
             let close: number = undefined
             let high = Number.NEGATIVE_INFINITY;

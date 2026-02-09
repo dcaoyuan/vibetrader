@@ -7,7 +7,7 @@ import { ChartView, type CallbacksToContainer, type Indicator, type Output, type
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
-import { Kline, KVAR_NAME } from "../../domain/Kline";
+import { Kline, KVAR_NAME, } from "../../domain/Kline";
 import { Path } from "../../svg/Path";
 import Title from "../pane/Title";
 import { Help } from "../pane/Help";
@@ -17,9 +17,6 @@ import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
 import { fetchData, Source } from "../../domain/DataFecther";
-import { Context, PineTS } from "pinets";
-//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-//import { Context } from '../../../../../PineTS/src/Context.class'
 
 import {
     ActionButton,
@@ -74,6 +71,12 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
 
+import { Context, PineTS } from "pinets";
+import type { PineData } from "../../domain/PineData";
+//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
+//import { Context } from '../../../../../PineTS/src/Context.class'
+
+const dev = false
 
 type Props = {
     width: number,
@@ -114,12 +117,11 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-const dev = false
 
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['test', 'bb']
+    ? ['test', 'bb', 'rsi', 'sma', 'ema', 'macd']
     : ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOLTIP_DELAY = 500; // ms
@@ -289,23 +291,23 @@ class KlineViewContainer extends Component<Props, State> {
 
                                 results.map(({ scriptName, result }, n) => {
                                     if (result) {
-                                        const tvar = baseSer.varOf(scriptName) as TVar<unknown[]>;
+                                        const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
                                         const size = baseSer.size();
                                         const indicator = result.indicator;
                                         const plots = Object.values(result.plots) as Plot[];
-                                        const dataValues = plots.map(({ data }) => data);
+                                        const data = plots.map(({ data }) => data);
                                         try {
                                             for (let i = 0; i < size; i++) {
-                                                const vs = dataValues.map(v => v ? v[i].value : undefined);
+                                                const vs = data.map(v => v ? v[i] : undefined);
                                                 tvar.setByIndex(i, vs);
                                             }
 
                                         } catch (error) {
-                                            console.error(error, dataValues)
+                                            console.error(error, data)
                                         }
 
                                         // console.log(result)
-                                        console.log(plots.map(x => x.data))
+                                        console.log(data)
                                         console.log(plots.map(x => x.options))
 
                                         const isOverlayIndicator = indicator !== undefined && indicator.overlay
@@ -341,7 +343,7 @@ class KlineViewContainer extends Component<Props, State> {
                                             stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
                                         }
 
-                                        console.log("overlay:", overlayIndicators, "\nstacked:", stackedIndicators)
+                                        console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
                                     }
                                 })
 
@@ -1303,8 +1305,8 @@ class KlineViewContainer extends Component<Props, State> {
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
                                                     outputs.map(({ title, options: { color } }, n) =>
-                                                        <Fragment key={"overlay-indicator-lable-" + title} >
-                                                            <span className="label-mouse">{title}&nbsp;</span>
+                                                        <Fragment key={"overlay-indicator-lable-" + n} >
+                                                            <span className="label-mouse">{title ? title : ''}&nbsp;</span>
                                                             <span style={{ color }}>{
                                                                 this.state.overlayIndicatorLabels !== undefined &&
                                                                 this.state.overlayIndicatorLabels[m] !== undefined &&
@@ -1331,8 +1333,8 @@ class KlineViewContainer extends Component<Props, State> {
                                             <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
                                                 {
                                                     this.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, n) =>
-                                                        <Fragment key={"ovarlay-indicator-lable-" + title} >
-                                                            <span className="label-refer">{title}&nbsp;</span>
+                                                        <Fragment key={"ovarlay-indicator-lable-" + n} >
+                                                            <span className="label-refer">{title ? title : ''}&nbsp;</span>
                                                             <span style={{ color }}>{
                                                                 this.state.referOverlayIndicatorLabels &&
                                                                 this.state.referOverlayIndicatorLabels[m] &&

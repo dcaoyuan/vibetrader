@@ -1,3 +1,4 @@
+import type { PineData } from "../../domain/PineData";
 import { Path } from "../../svg/Path";
 import type { TVar } from "../../timeseris/TVar";
 import type { ChartXControl } from "../view/ChartXControl";
@@ -7,7 +8,7 @@ import type { PlotOptions } from "./Plot";
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
     options: PlotOptions;
@@ -33,9 +34,10 @@ const PlotHistogram = (props: Props) => {
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
-                    const values = tvar.getByTime(time);
-                    const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && isNaN(v) === false) {
+                    const datas = tvar.getByTime(time);
+                    const data = datas ? datas[atIndex] : undefined;
+                    const v = data ? data.value : NaN;
+                    if (typeof v === "number" && !isNaN(v)) {
                         max = Math.max(max, v);
                         min = Math.min(min, v);
                     }

@@ -5,7 +5,7 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, Fragment, type JSX, type RefObject } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
-import { Kline, type TimeData } from "../../domain/Kline";
+import { Kline, } from "../../domain/Kline";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 import { type Selection } from "@react-spectrum/s2"
@@ -15,6 +15,7 @@ import { LG_SCALAR } from "../scalar/LgScalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import type { PlotCharOptions, PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import { stringMetrics } from "../../Utils";
+import type { PineData } from "../../domain/PineData";
 
 export type UpdateEvent = {
     type: 'chart' | 'cursors' | 'drawing'
@@ -26,7 +27,7 @@ export type UpdateEvent = {
 
 export type Indicator = {
     scriptName: string,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     outputs: Output[],
     overlay?: boolean
 }
@@ -34,8 +35,8 @@ export type Indicator = {
 export type Output = {
     atIndex: number,
     title: string,
-    plot1: TimeData[], // for fill
-    plot2: TimeData[], // for fill
+    plot1: PineData[], // for fill
+    plot2: PineData[], // for fill
     options: PlotOptions | PlotCharOptions | PlotShapeOptions
 }
 
@@ -305,8 +306,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 let mvs: string[]
                 if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
                     mvs = indicator.outputs.map(({ atIndex }, n) => {
-                        const values = tvar.getByTime(mouseTime);
-                        const v = values ? values[atIndex] : '';
+                        const datas = tvar.getByTime(mouseTime);
+                        const data = datas ? datas[atIndex] : undefined;
+                        const v = data ? data.value : NaN
                         return typeof v === 'number'
                             ? isNaN(v) ? "" : v.toFixed(2)
                             : '' + v
@@ -321,8 +323,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 let rvs: string[]
                 if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
                     rvs = indicator.outputs.map(({ atIndex }, n) => {
-                        const values = tvar.getByTime(referTime);
-                        const v = values ? values[atIndex] : '';
+                        const datas = tvar.getByTime(referTime);
+                        const data = datas ? datas[atIndex] : undefined;
+                        const v = data ? data.value : NaN
                         return typeof v === 'number'
                             ? isNaN(v) ? "" : v.toFixed(2)
                             : '' + v

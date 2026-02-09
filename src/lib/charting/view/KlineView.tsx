@@ -136,6 +136,10 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             />
                             break
 
+                        case 'backgroud':
+
+                            break
+
                         case "line":
                         case "style_line":
                         default:

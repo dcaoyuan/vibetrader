@@ -5,11 +5,12 @@ import type { ChartXControl } from "../view/ChartXControl";
 import type { Seg } from "../../svg/Seg";
 import { Circle } from "../../svg/Circle";
 import type { PlotOptions } from "./Plot";
+import type { PineData } from "../../domain/PineData";
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
     options: PlotOptions;
@@ -39,22 +40,23 @@ const PlotCrossCircles = (props: Props) => {
 
         // For those need connect from one bar to the next, use bar++ instead of 
         // bar += xc.nBarsCompressed to avoid uncontinuted line.
-        for (let bar = 1; bar <= xc.nBars; bar++) {
-            // use `undefiend` to test if value has been set at least one time
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
+            // use `undefined` to test if value has been set at least one time
             const vs: number[] = []
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
-                    const values = tvar.getByTime(time);
-                    const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && isNaN(v) === false) {
+                    const datas = tvar.getByTime(time);
+                    const data = datas ? datas[atIndex] : undefined;
+                    const v = data ? data.value : NaN
+                    if (typeof v === "number" && !isNaN(v)) {
                         vs.push(v)
                     }
                 }
             }
 
             for (const value of vs) {
-                if (value !== undefined && isNaN(value) === false) {
+                if (value !== undefined && !isNaN(value)) {
                     y2 = yc.yv(value)
                     // x1 shoud be decided here, it may not equal prev x2:
                     // think about the case of on calendar day mode
@@ -85,7 +87,7 @@ const PlotCrossCircles = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: options.color } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: 'none' } }))
     )
 }
 

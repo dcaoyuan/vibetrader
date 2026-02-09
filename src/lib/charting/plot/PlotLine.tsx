@@ -3,11 +3,12 @@ import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { PlotOptions } from "./Plot";
+import type { PineData } from "../../domain/PineData";
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
     options: PlotOptions;
@@ -31,25 +32,26 @@ const PlotLine = (props: Props) => {
 
         // For those need connect from one bar to the next, use bar++ instead of 
         // bar += xc.nBarsCompressed to avoid uncontinuted line.
-        for (let bar = 1; bar <= xc.nBars; bar++) {
-            // use `undefiend` to test if value has been set at least one time
+        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
+            // use `undefined` to test if value has been set at least one time
             let value: number
             let high = Number.NEGATIVE_INFINITY;
             let low = Number.POSITIVE_INFINITY;
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
-                    const values = tvar.getByTime(time);
-                    const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && isNaN(v) === false) {
+                    const datas = tvar.getByTime(time);
+                    const data = datas ? datas[atIndex] : undefined;
+                    const v = data ? data.value : NaN;
+                    if (typeof v === "number" && !isNaN(v)) {
                         value = v;
-                        high = Math.max(high, value);
-                        low = Math.min(low, value);
+                        high = Math.max(high, v);
+                        low = Math.min(low, v);
                     }
                 }
             }
 
-            if (value !== undefined && isNaN(value) === false) {
+            if (value !== undefined && !isNaN(value)) {
                 y2 = yc.yv(value)
                 if (xc.nBarsCompressed > 1) {
                     // draw a vertical line to cover the min to max
@@ -58,7 +60,7 @@ const PlotLine = (props: Props) => {
                     path.lineto(x, yc.yv(high));
 
                 } else {
-                    if (y1 !== undefined && isNaN(y1) === false) {
+                    if (y1 !== undefined && !isNaN(y1)) {
                         // x1 shoud be decided here, it may not equal prev x2:
                         // think about the case of on calendar day mode
                         const x1 = xc.xb(bar - xc.nBarsCompressed)
@@ -78,7 +80,7 @@ const PlotLine = (props: Props) => {
     const { path } = plot();
 
     return (
-        path.render({ style: { stroke: options.color, fill: options.color } })
+        path.render({ style: { stroke: options.color, fill: 'none' } })
     )
 }
 

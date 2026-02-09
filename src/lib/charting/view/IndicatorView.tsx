@@ -11,6 +11,7 @@ import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
 import PlotFill from "../plot/PlotFill";
+import type { PineData } from "../../domain/PineData";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -29,7 +30,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
         const xc = this.props.xc
         const yc = this.yc
-        const tvar = this.props.tvar as TVar<unknown[]>
+        const tvar = this.props.tvar as TVar<PineData[]>
 
         const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, plot1, plot2, options }) => {
             let chart: JSX.Element;
@@ -132,13 +133,15 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         let min = Number.POSITIVE_INFINITY;
 
         const xc = this.props.xc;
+        const tvar = this.props.tvar as TVar<PineData[]>
 
         for (let i = 1; i <= xc.nBars; i++) {
             const time = xc.tb(i)
             if (xc.occurred(time)) {
-                const values = this.props.tvar.getByTime(time);
+                const datas = tvar.getByTime(time);
                 for (const { atIndex } of this.props.mainIndicatorOutputs) {
-                    const v = values[atIndex];
+                    const data = datas ? datas[atIndex] : undefined;
+                    const v = data ? data.value : NaN
                     if (v !== undefined && typeof v === 'number' && !isNaN(v)) {
                         max = Math.max(max, v)
                         min = Math.min(min, v)

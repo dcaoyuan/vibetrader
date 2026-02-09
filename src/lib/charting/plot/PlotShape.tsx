@@ -2,16 +2,16 @@ import { TVar } from "../../timeseris/TVar";
 import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
-import { KVAR_NAME, type Kline } from "../../domain/Kline";
-import type { Location, PlotShapeOptions } from "./Plot";
-import type { Shape } from "./Plot";
+import { KVAR_NAME, type Kline, } from "../../domain/Kline";
+import type { PlotShapeOptions } from "./Plot";
 import type { Seg } from "../../svg/Seg";
 import { Circle } from "../../svg/Circle";
+import type { PineData } from "../../domain/PineData";
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
     options: PlotShapeOptions
@@ -37,15 +37,16 @@ const PlotShape = (props: Props) => {
         const segs: Seg[] = [path]
 
         for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
-            // use `undefiend` to test if value has been set at least one time
+            // use `undefined` to test if value has been set at least one time
             let high = Number.NEGATIVE_INFINITY;
             let low = Number.POSITIVE_INFINITY
             let v = false
             for (let i = 0; i < xc.nBarsCompressed; i++) {
                 const time = xc.tb(bar + i)
                 if (tvar.occurred(time)) {
-                    const values = tvar.getByTime(time) as boolean[];
-                    v = v || values ? values[atIndex] : v;
+                    const datas = tvar.getByTime(time);
+                    const data = datas ? datas[atIndex] : undefined;
+                    v = v || data ? (data.value as boolean) : v;
 
                     if (xc.occurred(time)) {
                         const kline = kvar.getByTime(time);
@@ -225,7 +226,7 @@ const PlotShape = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: color } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: color, fill: 'none' } }))
     )
 }
 

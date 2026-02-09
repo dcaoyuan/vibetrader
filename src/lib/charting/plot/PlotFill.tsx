@@ -3,49 +3,79 @@ import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { PlotOptions } from "./Plot";
-import type { TimeData } from "../../domain/Kline";
+import type { PineData } from "../../domain/PineData";
+import type { Seg } from "../../svg/Seg";
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     options: PlotOptions;
-    plot1: TimeData[];
-    plot2: TimeData[];
+    plot1: PineData[];
+    plot2: PineData[];
     depth?: number;
 }
 
 const PlotFill = (props: Props) => {
     const { xc, yc, tvar, name, depth, plot1, plot2, options } = props;
 
-    function plot() {
-        const path = new Path();
-        const points_a = linePoints(plot1);
-        const points_b = linePoints(plot2).reverse();
-        const points = [...points_a, ...points_b]
+    const fillgaps = options.fillgaps;
 
-        for (let i = 0; i < points.length; i++) {
-            const [x, y] = points[i]
-            if (i === 0) {
-                path.moveto(x, y)
+    const r = xc.wBar < 2
+        ? 0
+        : Math.floor((xc.wBar - 2) / 2);
+
+    function plot() {
+        const segs: Seg[] = [];
+        const points_a = collectPoints(plot1);
+        const points_b = collectPoints(plot2)
+
+        let shallStartNewFill = true
+
+        let unClosedPath: Path
+        let lastCloseIndex = 0
+        for (let m = 0; m < points_a.length; m++) {
+            const [xa, ya] = points_a[m]
+            const [xb, yb] = points_b[m]
+
+            if (xa === undefined || xb === undefined) {
+                if (unClosedPath) {
+                    for (let n = m - 1; n > lastCloseIndex; n--) {
+                        const [xb, yb] = points_b[n]
+                        unClosedPath.lineto(xb, yb)
+                    }
+
+                    unClosedPath.closepath()
+                }
+
+                shallStartNewFill = true
+
             } else {
-                path.lineto(x, y)
+                if (shallStartNewFill) {
+                    unClosedPath = new Path()
+                    segs.push(unClosedPath)
+
+                    unClosedPath.moveto(xa, ya)
+
+                    lastCloseIndex = m
+                    shallStartNewFill = false
+
+                } else {
+                    unClosedPath.lineto(xa, ya)
+                }
+
             }
         }
 
-        path.closepath()
-
-        return { path }
+        return { segs }
     }
 
-    function linePoints(datas: TimeData[]) {
+    function collectPoints(datas: PineData[]) {
         const points: number[][] = []
 
-        // For those need connect from one bar to the next, use bar++ instead of 
-        // bar += xc.nBarsCompressed to avoid uncontinuted line.
         for (let bar = 1; bar <= xc.nBars; bar++) {
-            // use `undefiend` to test if value has been set at least one time
+            // use `undefined` to test if value has been set at least one time
             let value: number
             const time = xc.tb(bar)
             if (tvar.occurred(time)) {
@@ -55,17 +85,22 @@ const PlotFill = (props: Props) => {
 
                 // console.log(index, data)
 
-                if (typeof v === "number" && isNaN(v) === false) {
+                if (typeof v === "number" && !isNaN(v)) {
                     value = v;
                 }
             }
 
-            if (value !== undefined && isNaN(value) === false) {
+            if (value !== undefined && !isNaN(value)) {
                 const x = xc.xb(bar)
                 const y = yc.yv(value)
 
                 if (y !== undefined && !isNaN(y)) {
                     points.push([x, y])
+                }
+
+            } else {
+                if (!fillgaps) {
+                    points.push([undefined, undefined])
                 }
             }
         }
@@ -73,10 +108,10 @@ const PlotFill = (props: Props) => {
         return points
     }
 
-    const { path } = plot();
+    const { segs } = plot();
 
     return (
-        path.render({ style: { stroke: options.color, fill: options.color } })
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: undefined, fill: options.color } }))
     )
 }
 

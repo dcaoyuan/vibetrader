@@ -1,16 +1,11 @@
-import type { TimeData } from "../../domain/Kline";
-
-export type PlotData = {
-    time?: number,
-    value: unknown
-}
+import type { PineData } from "../../domain/PineData";
 
 export type Plot = {
-    data: PlotData[],
+    data: PineData[],
     options: PlotOptions | PlotCharOptions | PlotShapeOptions,
     title: string,
-    plot1: TimeData[], // plot1 for fill
-    plot2: TimeData[], // plot2 for fill
+    plot1: PineData[], // plot1 for fill
+    plot2: PineData[], // plot2 for fill
 }
 
 export type PlotCharOptions = {
@@ -48,6 +43,7 @@ export type PlotOptions = {
     format?: string;
     precision?: number;
     force_overlay?: boolean;
+    fillgaps?: boolean;
     location?: Location; // added by me, may need to remove
 };
 

@@ -4,11 +4,12 @@ import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { Seg } from "../../svg/Seg";
 import type { PlotOptions } from "./Plot";
+import type { PineData } from "../../domain/PineData";
 
 type Props = {
     xc: ChartXControl,
     yc: ChartYControl,
-    tvar: TVar<unknown[]>,
+    tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
     options: PlotOptions,
@@ -46,15 +47,14 @@ const PlotHline = (props: Props) => {
         // bar += xc.nBarsCompressed to avoid uncontinuted line.
         let value: number;
         for (let bar = 1; bar <= xc.nBars; bar++) {
-            for (let i = 0; i < xc.nBarsCompressed; i++) {
-                const time = xc.tb(bar + i)
-                if (tvar.occurred(time)) {
-                    const values = tvar.getByTime(time);
-                    const v = values ? values[atIndex] : NaN;
-                    if (typeof v === "number" && isNaN(v) === false) {
-                        value = v;
-                        break;
-                    }
+            const time = xc.tb(bar)
+            if (tvar.occurred(time)) {
+                const datas = tvar.getByTime(time);
+                const data = datas ? datas[atIndex] : undefined;
+                const v = data ? data.value : NaN
+                if (typeof v === "number" && !isNaN(v)) {
+                    value = v;
+                    break;
                 }
             }
         }
@@ -69,7 +69,7 @@ const PlotHline = (props: Props) => {
     const { segs } = plot();
 
     return (
-        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: options.color, strokeDasharray } }))
+        segs.map((seg, n) => seg.render({ key: 'seg-' + n, style: { stroke: options.color, fill: 'none', strokeDasharray } }))
     )
 }
 

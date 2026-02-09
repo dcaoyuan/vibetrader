@@ -69,10 +69,3 @@ export class Kline extends TVal {
 
 }
 
-// Data type from Pine
-export type TimeData = {
-    title?: string,
-    time: number,
-    value: number,
-    options?: object
-}
