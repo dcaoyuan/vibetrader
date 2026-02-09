@@ -10,6 +10,7 @@ import PlotShape from "../plot/PlotShape";
 import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
+import PlotFill from "../plot/PlotFill";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -26,15 +27,19 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     override plot() {
         this.computeGeometry();
 
-        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, options }) => {
+        const xc = this.props.xc
+        const yc = this.yc
+        const tvar = this.props.tvar as TVar<unknown[]>
+
+        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, plot1, plot2, options }) => {
             let chart: JSX.Element;
             switch (options.style) {
                 case 'style_histogram':
                 case 'style_columns':
                     chart = <PlotHistogram
-                        tvar={this.props.tvar as TVar<unknown[]>}
-                        xc={this.props.xc}
-                        yc={this.yc}
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
                         depth={0}
                         options={options as PlotOptions}
                         name={title}
@@ -45,12 +50,12 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 case "style_circles":
                 case "style_cross":
                     chart = <PlotCrossCircles
-                        tvar={this.props.tvar as TVar<unknown[]>}
+                        tvar={tvar}
                         name={title}
                         options={options as PlotOptions}
                         atIndex={atIndex}
-                        xc={this.props.xc}
-                        yc={this.yc}
+                        xc={xc}
+                        yc={yc}
                         depth={0}
                     />
                     break
@@ -58,9 +63,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 case 'shape':
                 case 'char':
                     chart = <PlotShape
-                        tvar={this.props.tvar as TVar<unknown[]>}
-                        xc={this.props.xc}
-                        yc={this.yc}
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
                         depth={0}
                         options={options as PlotShapeOptions}  // todo, back to PlotCharOption
                         name={title}
@@ -69,9 +74,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
                 case "hline":
                     chart = <PlotHline
-                        tvar={this.props.tvar as TVar<unknown[]>}
-                        xc={this.props.xc}
-                        yc={this.yc}
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
                         depth={0}
                         options={options as PlotOptions}
                         name={title}
@@ -79,13 +84,27 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     />
                     break
 
+                case "fill":
+                    chart = <PlotFill
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
+                        depth={0}
+                        options={options as PlotOptions}
+                        name={title}
+                        plot1={plot1}
+                        plot2={plot2}
+                    />
+                    break
+
+
                 case 'line':
                 case 'dashed':
                 default:
                     chart = <PlotLine
-                        tvar={this.props.tvar as TVar<unknown[]>}
-                        xc={this.props.xc}
-                        yc={this.yc}
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
                         depth={0}
                         options={options as PlotOptions}
                         name={title}

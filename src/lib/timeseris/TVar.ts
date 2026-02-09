@@ -70,7 +70,7 @@ export class TVar<V> {
         }
     }
 
-    InsertAtIndex(idx: number, value: V): boolean {
+    insertAtIndex(idx: number, value: V): boolean {
         this.values().insert(idx, value);
         return true;
     }
@@ -162,7 +162,7 @@ export class TVar<V> {
     }
 
     putNullByIndex(idx: number): boolean {
-        return this.InsertAtIndex(idx, undefined);
+        return this.insertAtIndex(idx, undefined);
     }
 
     /**

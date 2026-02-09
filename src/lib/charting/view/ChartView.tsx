@@ -5,7 +5,7 @@ import { ChartYControl } from "./ChartYControl";
 import { Component, Fragment, type JSX, type RefObject } from "react";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
-import { Kline } from "../../domain/Kline";
+import { Kline, type TimeData } from "../../domain/Kline";
 import type { Drawing, TPoint } from "../drawing/Drawing";
 import { createDrawing } from "../drawing/Drawings";
 import { type Selection } from "@react-spectrum/s2"
@@ -34,6 +34,8 @@ export type Indicator = {
 export type Output = {
     atIndex: number,
     title: string,
+    plot1: string | number | TimeData[], // title/index of data or data
+    plot2: string | number | TimeData[], // title/index of data ot data
     options: PlotOptions | PlotCharOptions | PlotShapeOptions
 
 }

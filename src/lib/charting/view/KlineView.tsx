@@ -13,6 +13,7 @@ import PlotCrossCircles from "../plot/PlotCrossCircles";
 import PlotShape from "../plot/PlotShape";
 import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
+import PlotFill from "../plot/PlotFill";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -65,8 +66,11 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         if (this.props.overlayIndicators) {
             let depth = 1;
             this.props.overlayIndicators.map((indicator, n) => {
+                const xc = this.props.xc
+                const yc = this.yc
                 const tvar = indicator.tvar;
-                for (const { title, atIndex, options } of indicator.outputs) {
+
+                for (const { title, atIndex, plot1, plot2, options } of indicator.outputs) {
                     let chart: JSX.Element;
                     switch (options.style) {
                         case 'style_linebr':
@@ -76,8 +80,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 name={title}
                                 options={options as PlotOptions}
                                 atIndex={atIndex}
-                                xc={this.props.xc}
-                                yc={this.yc}
+                                xc={xc}
+                                yc={yc}
                                 depth={depth++}
                             />
                             break
@@ -89,8 +93,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 name={title}
                                 options={options as PlotOptions}
                                 atIndex={atIndex}
-                                xc={this.props.xc}
-                                yc={this.yc}
+                                xc={xc}
+                                yc={yc}
                                 depth={depth++}
                             />
                             break
@@ -99,8 +103,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                         case 'char':
                             chart = <PlotShape
                                 tvar={tvar}
-                                xc={this.props.xc}
-                                yc={this.yc}
+                                xc={xc}
+                                yc={yc}
                                 depth={0}
                                 options={options as PlotShapeOptions}  // todo, back to PlotCharOption
                                 name={title}
@@ -109,9 +113,9 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
                         case "hline":
                             chart = <PlotHline
-                                tvar={this.props.tvar as TVar<unknown[]>}
-                                xc={this.props.xc}
-                                yc={this.yc}
+                                tvar={tvar}
+                                xc={xc}
+                                yc={yc}
                                 depth={0}
                                 options={options as PlotOptions}
                                 name={title}
@@ -119,6 +123,18 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             />
                             break
 
+                        case "fill":
+                            chart = <PlotFill
+                                tvar={tvar}
+                                xc={xc}
+                                yc={yc}
+                                depth={0}
+                                options={options as PlotOptions}
+                                name={title}
+                                plot1={plot1}
+                                plot2={plot2}
+                            />
+                            break
 
                         case "line":
                         case "style_line":
@@ -128,8 +144,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 name={title}
                                 options={options as PlotOptions}
                                 atIndex={atIndex}
-                                xc={this.props.xc}
-                                yc={this.yc}
+                                xc={xc}
+                                yc={yc}
                                 depth={depth++}
                             />
                     }

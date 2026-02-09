@@ -1,3 +1,5 @@
+import type { TimeData } from "../../domain/Kline";
+
 export type PlotData = {
     time?: number,
     value: unknown
@@ -7,6 +9,8 @@ export type Plot = {
     data: PlotData[],
     options: PlotOptions | PlotCharOptions | PlotShapeOptions,
     title: string,
+    plot1: string | number | TimeData[], // plot1 like in fill
+    plot2: string | number | TimeData[], // plot2 like in fill
 }
 
 export type PlotCharOptions = {

@@ -3,7 +3,7 @@ import html2canvas from "html2canvas";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, type CallbacksToContainer, type Indicator, type UpdateDrawing, type UpdateEvent } from "./ChartView";
+import { ChartView, type CallbacksToContainer, type Indicator, type Output, type UpdateDrawing, type UpdateEvent } from "./ChartView";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -114,8 +114,8 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-// const allIndTags = ['test']
-const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd', 'test']
+//const allIndTags = ['test', 'bb']
+const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOLTIP_DELAY = 500; // ms
 
@@ -294,38 +294,50 @@ class KlineViewContainer extends Component<Props, State> {
                                         const dataValues = plots.map(({ data }) => data);
                                         try {
                                             for (let i = 0; i < size; i++) {
-                                                const vs = dataValues.map(v => v[i].value);
+                                                const vs = dataValues.map(v => v ? v[i].value : undefined);
                                                 tvar.setByIndex(i, vs);
                                             }
 
                                         } catch (error) {
-                                            console.error(error)
-                                            console.log(dataValues)
+                                            console.error(error, dataValues)
                                         }
 
+                                        const titles = plots.map((plot) => plot.title)
                                         // console.log(result)
                                         console.log(plots.map(x => x.data))
                                         console.log(plots.map(x => x.options))
 
                                         const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
-                                        const outputs = plots.reduce(([overlay, stacked], { title, options }, atIndex) => {
+                                        // plot1, plot2 from fill function
+                                        const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
                                             const style = options.style
                                             const location = options.location
+
+                                            // for fill function
+                                            const plot1Value = (plot1 && typeof plot1 === 'string')
+                                                ? titles.findIndex(title => title === plot1)
+                                                : plot2
+
+                                            const plot2Value = (plot2 && typeof plot2 === 'string')
+                                                ? titles.findIndex(title => title === plot2)
+                                                : plot2
+
+                                            console.log(titles, plot1Value, plot2Value)
 
                                             const isOverlayOutput = (style === 'shape' || style === 'char')
                                                 && (location === 'abovebar' || location === 'belowbar')
 
                                             if (isOverlayOutput || isOverlayIndicator) {
-                                                overlay.push({ atIndex, title, options })
+                                                overlay.push({ atIndex, title, plot1: plot1Value, plot2: plot2Value, options })
 
                                             } else {
-                                                stacked.push({ atIndex, title, options })
+                                                stacked.push({ atIndex, title, plot1: plot1Value, plot2: plot2Value, options })
                                             }
 
                                             return [overlay, stacked]
 
-                                        }, [[], []])
+                                        }, [[], []] as Output[][])
 
                                         if (outputs[0].length > 0) {
                                             overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
@@ -334,6 +346,8 @@ class KlineViewContainer extends Component<Props, State> {
                                         if (outputs[1].length > 0) {
                                             stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
                                         }
+
+                                        console.log("overlay:", overlayIndicators, "\nstacked:", stackedIndicators)
                                     }
                                 })
 
@@ -341,16 +355,18 @@ class KlineViewContainer extends Component<Props, State> {
 
                                 this.latestTime = latestTime;
 
-                                this.updateState({
-                                    isLoaded: true,
-                                    updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                    overlayIndicators,
-                                    stackedIndicators,
-                                }, () => {
-                                    if (latestTime !== undefined && source === Source.binance) {
-                                        this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
-                                    }
-                                })
+                                this.updateState(
+                                    {
+                                        isLoaded: true,
+                                        updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                                        overlayIndicators,
+                                        stackedIndicators,
+                                    },
+                                    () => {
+                                        if (latestTime !== undefined && source === Source.binance) {
+                                            this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                                        }
+                                    })
 
                             })
                         })
