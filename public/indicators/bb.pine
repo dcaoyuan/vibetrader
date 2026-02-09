@@ -1,21 +1,18 @@
 //@version=6
-indicator("Bollinger Bands", overlay=true)
+indicator("Bollinger Bands Example", overlay=true)
 
-// 1. Inputs
-length = input.int(20, "SMA Length", minval=1)
-mult   = input.float(2.0, "StdDev Multiplier", minval=0.001, maxval=50)
-src    = input.source(close, "Source")
+// 1. Define inputs for the Bollinger Bands
+length = input.int(20, minval=1)
+mult = input.float(2.0, minval=0.001, maxval=50)
 
-// 2. Calculations
-basis = ta.sma(src, length)
-dev   = mult * ta.stdev(src, length)
-upper = basis + dev
-lower = basis - dev
+// 2. Calculate the Bollinger Bands using ta.bb()
+// TODO, after PineTS fixed, back to order of The function returns: middle, upper, lower 
+[upperBand, middleBand, lowerBand] = ta.bb(close, length, mult)
 
-// 3. Visuals
-p1 = plot(upper, "Upper Band", color = #2962FF)
-p2 = plot(lower, "Lower Band", color = #2962FF)
-plot(basis, "Basis (SMA)", color = #FF6D00)
+// 3. Plot the bands on the chart
+plot(middleBand, color=color.blue, title="Middle Band")
+p1 = plot(upperBand, color=color.red, title="Upper Band")
+p2 = plot(lowerBand, color=color.red, title="Lower Band")
 
-// Fill the background between the bands
-// fill(p1, p2, color=color.rgb(33, 150, 243, 90), title="Background")
+// 4. Fill the area between bands
+fill(p1, p2, color=color.rgb(33, 150, 243, 90), title="Background")

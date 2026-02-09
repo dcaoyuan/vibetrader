@@ -173,7 +173,7 @@ class KlineViewContainer extends Component<Props, State> {
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
-            selectedIndicatorTags: new Set(['sma', 'rsi', 'macd']),
+            selectedIndicatorTags: new Set(['bb', 'rsi', 'macd']),
             drawingIdsToCreate: new Set(),
             screenshot: undefined,
             ...geometry,
