@@ -114,13 +114,14 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-//const allIndTags = ['test', 'bb']
-const allIndTags = ['sma', 'ema', 'bb', 'rsi', 'macd']
-
-const TOOLTIP_DELAY = 500; // ms
-
 //const source: Source = Source.yfinance
 const source: Source = Source.binance
+
+const allIndTags = source === Source.binance
+    ? ['sma', 'ema', 'bb', 'rsi', 'macd']
+    : ['test', 'bb']
+
+const TOOLTIP_DELAY = 500; // ms
 
 class KlineViewContainer extends Component<Props, State> {
     width: number;
@@ -302,7 +303,6 @@ class KlineViewContainer extends Component<Props, State> {
                                             console.error(error, dataValues)
                                         }
 
-                                        const titles = plots.map((plot) => plot.title)
                                         // console.log(result)
                                         console.log(plots.map(x => x.data))
                                         console.log(plots.map(x => x.options))
@@ -314,25 +314,18 @@ class KlineViewContainer extends Component<Props, State> {
                                             const style = options.style
                                             const location = options.location
 
-                                            // for fill function
-                                            const plot1Value = (plot1 && typeof plot1 === 'string')
-                                                ? titles.findIndex(title => title === plot1)
-                                                : plot2
-
-                                            const plot2Value = (plot2 && typeof plot2 === 'string')
-                                                ? titles.findIndex(title => title === plot2)
-                                                : plot2
-
-                                            console.log(titles, plot1Value, plot2Value)
+                                            //console.log(plot1, plot2)
 
                                             const isOverlayOutput = (style === 'shape' || style === 'char')
                                                 && (location === 'abovebar' || location === 'belowbar')
 
+                                            const output = { atIndex, title, plot1, plot2, options }
+
                                             if (isOverlayOutput || isOverlayIndicator) {
-                                                overlay.push({ atIndex, title, plot1: plot1Value, plot2: plot2Value, options })
+                                                overlay.push(output)
 
                                             } else {
-                                                stacked.push({ atIndex, title, plot1: plot1Value, plot2: plot2Value, options })
+                                                stacked.push(output)
                                             }
 
                                             return [overlay, stacked]

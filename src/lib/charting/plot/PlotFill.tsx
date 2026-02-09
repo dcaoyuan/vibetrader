@@ -11,8 +11,8 @@ type Props = {
     tvar: TVar<unknown[]>,
     name: string,
     options: PlotOptions;
-    plot1: string | number | TimeData[];
-    plot2: string | number | TimeData[];
+    plot1: TimeData[];
+    plot2: TimeData[];
     depth?: number;
 }
 
@@ -39,8 +39,7 @@ const PlotFill = (props: Props) => {
         return { path }
     }
 
-    function linePoints(plot: string | number | TimeData[]) {
-
+    function linePoints(datas: TimeData[]) {
         const points: number[][] = []
 
         // For those need connect from one bar to the next, use bar++ instead of 
@@ -50,18 +49,11 @@ const PlotFill = (props: Props) => {
             let value: number
             const time = xc.tb(bar)
             if (tvar.occurred(time)) {
-                let v: unknown;
-                if (typeof plot === 'number') {
-                    const vs = tvar.getByTime(time);
-                    v = vs ? vs[plot] : NaN;
+                const index = tvar.timestamps().indexOfOccurredTime(time)
+                const data = index >= 0 && index < datas.length ? datas[index] : undefined
+                const v = data ? data.value : NaN;
 
-                } else if (Array.isArray(plot)) {
-                    const index = tvar.timestamps().indexOfOccurredTime(time)
-                    const data = index >= 0 && index < plot.length ? plot[index] : undefined
-                    v = data ? data.value : NaN;
-                }
-
-                // console.log(v)
+                // console.log(index, data)
 
                 if (typeof v === "number" && isNaN(v) === false) {
                     value = v;

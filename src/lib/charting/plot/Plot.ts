@@ -9,8 +9,8 @@ export type Plot = {
     data: PlotData[],
     options: PlotOptions | PlotCharOptions | PlotShapeOptions,
     title: string,
-    plot1: string | number | TimeData[], // plot1 like in fill
-    plot2: string | number | TimeData[], // plot2 like in fill
+    plot1: TimeData[], // plot1 for fill
+    plot2: TimeData[], // plot2 for fill
 }
 
 export type PlotCharOptions = {

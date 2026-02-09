@@ -34,10 +34,9 @@ export type Indicator = {
 export type Output = {
     atIndex: number,
     title: string,
-    plot1: string | number | TimeData[], // title/index of data or data
-    plot2: string | number | TimeData[], // title/index of data ot data
+    plot1: TimeData[], // for fill
+    plot2: TimeData[], // for fill
     options: PlotOptions | PlotCharOptions | PlotShapeOptions
-
 }
 
 export type UpdateDrawing = {
