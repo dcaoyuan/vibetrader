@@ -62,7 +62,7 @@ export interface ViewProps {
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
-    indexOfStackedIndicators?: number
+    indexOfStackedIndicator?: number
     overlayIndicators?: Indicator[];
 
     callbacksToContainer?: CallbacksToContainer;
@@ -342,7 +342,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         // stacked indicators
-        if (this.props.indexOfStackedIndicators !== undefined) {
+        if (this.props.indexOfStackedIndicator !== undefined) {
             const tvar = this.props.tvar as TVar<PineData[]>;
             let mvs: string[]
             if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
@@ -367,7 +367,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 });
             }
 
-            this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicators, mvs, rvs);
+            this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicator, mvs, rvs);
         }
     }
 

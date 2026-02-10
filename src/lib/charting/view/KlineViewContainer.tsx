@@ -17,6 +17,7 @@ import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
 import { fetchData, Source } from "../../domain/DataFecther";
+import type { PineData } from "../../domain/PineData";
 
 import {
     ActionButton,
@@ -72,7 +73,6 @@ import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
 
 import { Context, PineTS } from "pinets";
-import type { PineData } from "../../domain/PineData";
 //import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
 //import { Context } from '../../../../../PineTS/src/Context.class'
 
@@ -117,11 +117,10 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['test', 'bb', 'rsi', 'sma', 'ema', 'macd']
+    ? ['test', 'bb']
     : ['sma', 'ema', 'bb', 'rsi', 'macd']
 
 const TOOLTIP_DELAY = 500; // ms
@@ -732,49 +731,43 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
-        let overlayIndicatorLabels = this.state.overlayIndicatorLabels
-        let referOverlayIndicatorLabels = this.state.referOverlayIndicatorLabels
+        this.setState(prevState => {
+            const nOverlayInds = prevState.overlayIndicators.length
 
-        const nOverlayInds = this.state.overlayIndicators.length
+            const overlayIndicatorLabels = prevState.overlayIndicatorLabels || new Array(nOverlayInds)
+            const referOverlayIndicatorLabels = prevState.referOverlayIndicatorLabels || new Array(nOverlayInds)
 
-        overlayIndicatorLabels = overlayIndicatorLabels || new Array(nOverlayInds)
-        referOverlayIndicatorLabels = referOverlayIndicatorLabels || new Array(nOverlayInds)
+            for (let n = 0; n < nOverlayInds; n++) {
+                overlayIndicatorLabels[n] = vs[n];
+                referOverlayIndicatorLabels[n] = refVs[n];
+            }
 
-        for (let n = 0; n < nOverlayInds; n++) {
-            overlayIndicatorLabels[n] = vs[n];
-            referOverlayIndicatorLabels[n] = refVs[n];
-        }
-
-        this.setState({ overlayIndicatorLabels, referOverlayIndicatorLabels })
-    }
-
-
-    setStackedIndicatorLabels_old(n: number) {
-        return (vs: string[], refVs?: string[]) => {
-            let stackedIndicatorLabels = this.state.stackedIndicatorLabels
-            let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
-
-            stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
-            referStackedIndicatorLabels = referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
-
-            stackedIndicatorLabels[n] = vs;
-            referStackedIndicatorLabels[n] = refVs;
-
-            this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
-        }
+            return { overlayIndicatorLabels, referOverlayIndicatorLabels }
+        })
     }
 
     setStackedIndicatorLabels(n: number, vs: string[], refVs?: string[]) {
-        let stackedIndicatorLabels = this.state.stackedIndicatorLabels
-        let referStackedIndicatorLabels = this.state.referStackedIndicatorLabels
+        this.setState(prevState => {
 
-        stackedIndicatorLabels = stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
-        referStackedIndicatorLabels = referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+            let stackedIndicatorLabels = prevState.stackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
+            let referStackedIndicatorLabels = prevState.referStackedIndicatorLabels || new Array(this.state.stackedIndicators.length)
 
-        stackedIndicatorLabels[n] = vs;
-        referStackedIndicatorLabels[n] = refVs;
+            //stackedIndicatorLabels[n] = vs;
+            stackedIndicatorLabels = [
+                ...stackedIndicatorLabels.slice(0, n),        // elements before the index
+                vs,                                           // the new value
+                ...stackedIndicatorLabels.slice(n + 1)        // elements after the index
+            ];
 
-        this.setState({ stackedIndicatorLabels, referStackedIndicatorLabels })
+            //referStackedIndicatorLabels[n] = refVs;
+            referStackedIndicatorLabels = [
+                ...referStackedIndicatorLabels.slice(0, n),   // elements before the index
+                refVs,                                        // the new value
+                ...referStackedIndicatorLabels.slice(n + 1)   // elements after the index
+            ];
+
+            return { stackedIndicatorLabels, referStackedIndicatorLabels }
+        })
     }
 
     setSelectedIndicatorTags(selectedIndicatorTags: Selection) {
@@ -1281,7 +1274,7 @@ class KlineViewContainer extends Component<Props, State> {
                                             tvar={tvar}
                                             mainIndicatorOutputs={outputs}
                                             updateEvent={this.state.updateEvent}
-                                            indexOfStackedIndicators={n}
+                                            indexOfStackedIndicator={n}
                                             callbacksToContainer={this.callbacks}
                                         />
                                     )
