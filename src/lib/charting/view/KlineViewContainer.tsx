@@ -72,11 +72,11 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
 
-import { Context, PineTS } from "pinets";
-//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-//import { Context } from '../../../../../PineTS/src/Context.class'
+//import { Context, PineTS } from "pinets";
+import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
+import { Context } from '../../../../../PineTS/src/Context.class'
 
-const dev = false
+const dev = true
 
 type Props = {
     width: number,
@@ -732,6 +732,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     setOverlayIndicatorLabels(vs: string[][], refVs?: string[][]) {
         this.setState(prevState => {
+
             const nOverlayInds = prevState.overlayIndicators.length
 
             const overlayIndicatorLabels = prevState.overlayIndicatorLabels || new Array(nOverlayInds)

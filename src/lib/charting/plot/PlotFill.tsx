@@ -29,12 +29,13 @@ const PlotFill = (props: Props) => {
     function plot() {
         const segs: Seg[] = [];
         const points_a = collectPoints(plot1);
-        const points_b = collectPoints(plot2)
+        const points_b = collectPoints(plot2);
 
         let shallStartNewFill = true
 
         let unClosedPath: Path
         let lastCloseIndex = 0
+
         for (let m = 0; m < points_a.length; m++) {
             const [xa, ya] = points_a[m]
             const [xb, yb] = points_b[m]
@@ -47,6 +48,7 @@ const PlotFill = (props: Props) => {
                     }
 
                     unClosedPath.closepath()
+                    unClosedPath = undefined
                 }
 
                 shallStartNewFill = true
@@ -64,8 +66,18 @@ const PlotFill = (props: Props) => {
                 } else {
                     unClosedPath.lineto(xa, ya)
                 }
-
             }
+        }
+
+        // reached point_a end, has unClosedPath ?
+        if (unClosedPath) {
+            for (let n = points_a.length - 1; n > lastCloseIndex; n--) {
+                const [xb, yb] = points_b[n]
+                unClosedPath.lineto(xb, yb)
+                n--
+            }
+
+            unClosedPath.closepath()
         }
 
         return { segs }
