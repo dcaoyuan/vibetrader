@@ -1,13 +1,13 @@
 import { Fragment } from "react/jsx-runtime";
 import type { Options, Seg } from "./Seg";
 
-export type TextData = { x: number, y: number, text: string }
+export type TextData = { x: number, y: number, text: string, color: string }
 
 export class Texts implements Seg {
     texts: TextData[] = [];
 
-    text(x: number, y: number, text: string) {
-        this.texts.push({ x, y, text })
+    text(x: number, y: number, text: string, color?: string) {
+        this.texts.push({ x, y, text, color })
     }
 
     render(options?: Options) {
@@ -20,7 +20,7 @@ export class Texts implements Seg {
                         key={'text-' + i}
                         x={text.x}
                         y={text.y}
-                        fill={style && style.fill}
+                        fill={text.color || style && style.fill}
                         opacity={style && style.opacity}
                         className={className}
                     >

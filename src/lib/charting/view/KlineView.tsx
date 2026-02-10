@@ -109,7 +109,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 depth={0}
                                 options={options as PlotShapeOptions}  // todo, back to PlotCharOption
                                 name={title}
-                                atIndex={atIndex} />
+                                atIndex={atIndex}
+                            />
                             break
 
                         case "hline":
