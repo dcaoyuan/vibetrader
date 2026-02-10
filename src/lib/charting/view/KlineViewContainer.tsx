@@ -72,11 +72,11 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
 
-//import { Context, PineTS } from "pinets";
-import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-import { Context } from '../../../../../PineTS/src/Context.class'
+import { Context, PineTS } from "pinets";
+//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
+//import { Context } from '../../../../../PineTS/src/Context.class'
 
-const dev = true
+const dev = false
 
 type Props = {
     width: number,
