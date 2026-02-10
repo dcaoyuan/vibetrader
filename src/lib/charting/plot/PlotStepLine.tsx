@@ -35,10 +35,7 @@ const PlotStepLine = (props: Props) => {
         for (let m = 0; m < points.length; m++) {
             const [x, y] = points[m]
 
-            if (y === undefined) {
-                prevY = undefined
-
-            } else {
+            if (y !== undefined) {
                 if (prevY === undefined) {
                     // new segment
                     path.moveto(x, y)
@@ -74,8 +71,6 @@ const PlotStepLine = (props: Props) => {
                 if (typeof v === "number" && !isNaN(v)) {
                     value = v;
                 }
-
-                // console.log(index, data)
 
                 if (typeof v === "number" && isNaN(v) === false) {
                     value = v;

@@ -16,65 +16,66 @@ type Props = {
 }
 
 const PlotLine = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, options } = props;
+    const { xc, yc, tvar, name, atIndex, depth, options } = props
+
+    const fillgap = options.fillgaps;
 
     function plot() {
-        const path = plotLine();
+        const path = new Path()
+
+        const points = collectPoints();
+
+        let prevY: number
+        for (let m = 0; m < points.length; m++) {
+            const [x, y] = points[m]
+
+            if (y !== undefined) {
+                if (prevY === undefined) {
+                    // new segment
+                    path.moveto(x, y)
+
+                } else {
+                    path.lineto(x, y)
+                }
+            }
+
+            prevY = y
+        }
 
         return { path }
     }
 
-    function plotLine(): Path {
-        const path = new Path()
+    function collectPoints() {
+        const points: number[][] = []
 
-        let y1: number // for prev
-        let y2: number // for curr
-
-        // For those need connect from one bar to the next, use bar++ instead of 
-        // bar += xc.nBarsCompressed to avoid uncontinuted line.
-        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
-            // use `undefined` to test if value has been set at least one time
+        for (let bar = 1; bar <= xc.nBars; bar++) {
             let value: number
-            let high = Number.NEGATIVE_INFINITY;
-            let low = Number.POSITIVE_INFINITY;
-            for (let i = 0; i < xc.nBarsCompressed; i++) {
-                const time = xc.tb(bar + i)
-                if (tvar.occurred(time)) {
-                    const datas = tvar.getByTime(time);
-                    const data = datas ? datas[atIndex] : undefined;
-                    const v = data ? data.value : NaN;
-                    if (typeof v === "number" && !isNaN(v)) {
-                        value = v;
-                        high = Math.max(high, v);
-                        low = Math.min(low, v);
-                    }
+            const time = xc.tb(bar)
+            if (tvar.occurred(time)) {
+                const datas = tvar.getByTime(time);
+                const data = datas ? datas[atIndex] : undefined;
+                const v = data ? data.value : NaN;
+                if (typeof v === "number" && !isNaN(v)) {
+                    value = v;
                 }
             }
 
             if (value !== undefined && !isNaN(value)) {
-                y2 = yc.yv(value)
-                if (xc.nBarsCompressed > 1) {
-                    // draw a vertical line to cover the min to max
-                    const x = xc.xb(bar)
-                    path.moveto(x, yc.yv(low));
-                    path.lineto(x, yc.yv(high));
+                const x = xc.xb(bar)
+                const y = yc.yv(value)
 
-                } else {
-                    if (y1 !== undefined && !isNaN(y1)) {
-                        // x1 shoud be decided here, it may not equal prev x2:
-                        // think about the case of on calendar day mode
-                        const x1 = xc.xb(bar - xc.nBarsCompressed)
-                        const x2 = xc.xb(bar)
-                        path.moveto(x1, y1);
-                        path.lineto(x2, y2);
-                    }
+                if (y !== undefined && !isNaN(y)) {
+                    points.push([x, y])
                 }
-                y1 = y2;
 
+            } else {
+                if (!fillgap) {
+                    points.push([undefined, undefined])
+                }
             }
         }
 
-        return path
+        return points
     }
 
     const { path } = plot();
