@@ -343,26 +343,28 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         // stacked indicators
         if (this.props.indexOfStackedIndicators !== undefined) {
-            const tvar = this.props.tvar;
+            const tvar = this.props.tvar as TVar<PineData[]>;
             let mvs: string[]
             if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
-                const values = tvar.getByTime(mouseTime);
-                mvs = values && (values as unknown[]).map((v) =>
-                    typeof v === 'number'
+                const datas = tvar.getByTime(mouseTime);
+                mvs = datas && datas.map(data => {
+                    const v = data ? data.value : NaN;
+                    return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
-                );
+                });
 
             }
 
             let rvs: string[]
             if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
-                const values = tvar.getByTime(referTime);
-                rvs = values && (values as unknown[]).map((v) =>
-                    typeof v === 'number'
+                const datas = tvar.getByTime(referTime);
+                rvs = datas && datas.map(data => {
+                    const v = data ? data.value : NaN
+                    return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
                         : '' + v
-                );
+                });
             }
 
             this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicators, mvs, rvs);
