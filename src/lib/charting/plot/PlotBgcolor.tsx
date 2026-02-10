@@ -1,5 +1,7 @@
 import type { PineData } from "../../domain/PineData";
 import { Path } from "../../svg/Path";
+import { Rect } from "../../svg/Rect";
+import type { Seg } from "../../svg/Seg";
 import type { TVar } from "../../timeseris/TVar";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
@@ -19,62 +21,38 @@ const PlotBgcolor = (props: Props) => {
     const { xc, yc, tvar, atIndex } = props;
 
     function plot() {
-        const thin = false
+        const segs: { seg: Seg, color: string }[] = []
 
-        const posPath = new Path()
-        const negPath = new Path()
-
-        const r = xc.wBar < 2
-            ? 0
-            : Math.floor((xc.wBar - 2) / 2);
+        const d = xc.wBar
+        const r = Math.floor(xc.wBar / 2) + 1
 
         for (let bar = 1; bar <= xc.nBars; bar++) {
             const time = xc.tb(bar)
+            let color: string
             if (tvar.occurred(time)) {
                 const datas = tvar.getByTime(time);
                 const data = datas ? datas[atIndex] : undefined;
-                const v = data?.options?.color
+                color = data?.options?.color
+
             }
 
-            // if (!(max === 0 && min === 0)) {
-            //     let yValue = 0;
-            //     let yDatum = 0;
-            //     let path: Path;
-            //     if (Math.abs(max) > Math.abs(min)) {
-            //         path = posPath;
-            //         yValue = yc.yv(max);
-            //         yDatum = yc.yv(min);
-            //     } else {
-            //         path = negPath;
-            //         yValue = yc.yv(min)
-            //         yDatum = yc.yv(max)
-            //     }
-
-            //     const x = xc.xb(bar)
-
-            //     if (thin || xc.wBar <= 2) {
-            //         path.moveto(x, yDatum);
-            //         path.lineto(x, yValue);
-
-            //     } else {
-            //         path.moveto(x - r, yDatum)
-            //         path.lineto(x - r, yValue)
-            //         path.lineto(x + r, yValue)
-            //         path.lineto(x + r, yDatum)
-            //     }
-            // }
-
+            if (color) {
+                const x = xc.xb(bar)
+                const rect = { seg: new Rect(x - r, 0, d, yc.hChart), color }
+                segs.push(rect)
+            }
         }
 
-        return { posPath, negPath }
+        return { segs }
     }
 
-    const { posPath, negPath } = plot();
+    const { segs } = plot();
 
     return (
-        <g className="volumechart">
-            {posPath.render({ className: 'positive' })}
-            {negPath.render({ className: 'negative' })}
+        <g>
+            {
+                segs.map(({ seg, color }, n) => seg.render({ key: 'seg-' + n, style: { stroke: 'none', fill: color } }))
+            }
         </g>
     )
 }

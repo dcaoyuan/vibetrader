@@ -12,6 +12,7 @@ import PlotHline from "../plot/PlotHline";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
 import PlotFill from "../plot/PlotFill";
 import type { PineData } from "../../domain/PineData";
+import PlotBgcolor from "../plot/PlotBgcolor";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -98,6 +99,17 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     />
                     break
 
+                case 'background':
+                    chart = <PlotBgcolor
+                        tvar={tvar}
+                        xc={xc}
+                        yc={yc}
+                        depth={0}
+                        atIndex={atIndex}
+                        options={options as PlotOptions}
+                        name={title}
+                    />
+                    break
 
                 case 'line':
                 case 'dashed':
