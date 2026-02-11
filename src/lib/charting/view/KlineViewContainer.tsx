@@ -69,7 +69,6 @@ import Star from '@react-spectrum/s2/icons/Star';
 import Exposure from '@react-spectrum/s2/icons/Exposure';
 import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 
-import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { Screenshot } from "../pane/Screenshot";
 
 import { Context, PineTS } from "pinets";
@@ -239,162 +238,156 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     // reload/rerun should be chained after currentLoading to avoid concurrent loading/calculating
-    fetchData_runScripts = async (startTime: number, limit: number) => this.currentLoading
-        .then(async () => {
-            const ticker = this.ticker
-            const tframe = this.tframe
-            const tzone = this.tzone
-            const baseSer = this.baseSer
-            const kvar = this.kvar
-            const xc = this.xc
+    fetchData_runScripts = async (startTime: number, limit: number) => this.currentLoading.then(async () => {
+        const ticker = this.ticker
+        const tframe = this.tframe
+        const tzone = this.tzone
+        const baseSer = this.baseSer
+        const kvar = this.kvar
+        const xc = this.xc
 
-            const scripts = this.scripts || this.getSelectedIncicators()
+        const scripts = this.scripts || this.getSelectedIncicators()
 
-            return fetchData(source, baseSer, ticker, tframe, tzone, startTime, limit)
-                .then(async latestTime => {
-                    let start = performance.now()
+        return fetchData(source, baseSer, ticker, tframe, tzone, startTime, limit).then(async latestTime => {
+            let start = performance.now()
 
-                    if (!this.state.isLoaded) {
-                        // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
-                        console.log("reinit xc")
-                        xc.reinit()
+            if (!this.state.isLoaded) {
+                // reinit xc to get correct last occured time/row, should be called after data loaded to baseSer
+                console.log("reinit xc")
+                xc.reinit()
+            }
+
+            // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
+            const pinets = new PineTS(kvar.toArray(), ticker, tframe.shortName);
+
+            return pinets.ready().then(async () => {
+                const scriptRuns: Promise<{ scriptName: string, result: Context }>[] = []
+                for (const { scriptName, script } of scripts) {
+                    if (script !== undefined) {
+                        const fnRun = pinets.run(script).then(result => ({ scriptName, result }))
+                            .catch(error => {
+                                console.error(error);
+
+                                return { scriptName, result: undefined }
+                            })
+
+                        scriptRuns.push(fnRun)
                     }
+                }
 
-                    // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
-                    const pinets = new PineTS(kvar.toArray(), ticker, tframe.shortName);
+                return Promise.all(scriptRuns).then(results => {
+                    console.log(`Scripts run in ${performance.now() - start} ms`);
 
-                    return pinets.ready()
-                        .then(async () => {
-                            const scriptRuns: Promise<{ scriptName: string, result: Context }>[] = []
-                            for (const { scriptName, script } of scripts) {
-                                if (script !== undefined) {
-                                    const fnRun = pinets.run(script)
-                                        .then(result => ({ scriptName, result }))
-                                        .catch(error => {
-                                            console.error(error);
+                    start = performance.now();
 
-                                            return { scriptName, result: undefined }
-                                        })
+                    const overlayIndicators = [];
+                    const stackedIndicators = [];
 
-                                    scriptRuns.push(fnRun)
+                    results.map(({ scriptName, result }, n) => {
+                        if (result) {
+                            const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
+                            const size = baseSer.size();
+                            const indicator = result.indicator;
+                            const plots = Object.values(result.plots) as Plot[];
+                            const data = plots.map(({ data }) => data);
+                            try {
+                                for (let i = 0; i < size; i++) {
+                                    const vs = data.map(v => v ? v[i] : undefined);
+                                    tvar.setByIndex(i, vs);
                                 }
+
+                            } catch (error) {
+                                console.error(error, data)
                             }
 
-                            return Promise.all(scriptRuns).then(results => {
-                                console.log(`Scripts run in ${performance.now() - start} ms`);
+                            // console.log(result)
+                            console.log(data)
+                            console.log(plots.map(x => x.options))
 
-                                start = performance.now();
+                            const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
-                                const overlayIndicators = [];
-                                const stackedIndicators = [];
+                            // plot1, plot2 from fill function
+                            const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
+                                const style = options.style
+                                const location = options.location
 
-                                results.map(({ scriptName, result }, n) => {
-                                    if (result) {
-                                        const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
-                                        const size = baseSer.size();
-                                        const indicator = result.indicator;
-                                        const plots = Object.values(result.plots) as Plot[];
-                                        const data = plots.map(({ data }) => data);
-                                        try {
-                                            for (let i = 0; i < size; i++) {
-                                                const vs = data.map(v => v ? v[i] : undefined);
-                                                tvar.setByIndex(i, vs);
-                                            }
+                                //console.log(plot1, plot2)
 
-                                        } catch (error) {
-                                            console.error(error, data)
-                                        }
+                                const isOverlayOutput = (style === 'shape' || style === 'char')
+                                    && (location === 'abovebar' || location === 'belowbar')
 
-                                        // console.log(result)
-                                        console.log(data)
-                                        console.log(plots.map(x => x.options))
+                                const output = { atIndex, title, plot1, plot2, options }
 
-                                        const isOverlayIndicator = indicator !== undefined && indicator.overlay
+                                if (isOverlayOutput || isOverlayIndicator) {
+                                    overlay.push(output)
 
-                                        // plot1, plot2 from fill function
-                                        const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
-                                            const style = options.style
-                                            const location = options.location
+                                } else {
+                                    stacked.push(output)
+                                }
 
-                                            //console.log(plot1, plot2)
+                                return [overlay, stacked]
 
-                                            const isOverlayOutput = (style === 'shape' || style === 'char')
-                                                && (location === 'abovebar' || location === 'belowbar')
+                            }, [[], []] as Output[][])
 
-                                            const output = { atIndex, title, plot1, plot2, options }
+                            if (outputs[0].length > 0) {
+                                overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
+                            }
 
-                                            if (isOverlayOutput || isOverlayIndicator) {
-                                                overlay.push(output)
+                            if (outputs[1].length > 0) {
+                                stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
+                            }
 
-                                            } else {
-                                                stacked.push(output)
-                                            }
+                            console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
+                        }
+                    })
 
-                                            return [overlay, stacked]
+                    // console.log(`indicators added to series in ${performance.now() - start} ms`);
 
-                                        }, [[], []] as Output[][])
+                    this.latestTime = latestTime;
 
-                                        if (outputs[0].length > 0) {
-                                            overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
-                                        }
-
-                                        if (outputs[1].length > 0) {
-                                            stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
-                                        }
-
-                                        console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
-                                    }
-                                })
-
-                                // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                                this.latestTime = latestTime;
-
-                                this.updateState(
-                                    {
-                                        isLoaded: true,
-                                        updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                                        overlayIndicators,
-                                        stackedIndicators,
-                                    },
-                                    () => {
-                                        if (latestTime !== undefined && source === Source.binance) {
-                                            this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
-                                        }
-                                    })
-
-                            })
+                    this.updateState(
+                        {
+                            isLoaded: true,
+                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                            overlayIndicators,
+                            stackedIndicators,
+                        },
+                        () => {
+                            if (latestTime !== undefined && source === Source.binance) {
+                                this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                            }
                         })
 
                 })
+            })
+
         })
+    })
 
 
     override componentDidMount() {
-        this.fetchOPredefinedScripts(allIndTags)
-            .then(scripts => {
-                this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
+        this.fetchOPredefinedScripts(allIndTags).then(scripts => {
+            this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
+        }).then(() => {
+            this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
+            this.tframe = TFrame.DAILY
+            this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //this. tzone = "America/Vancouver" 
+
+            this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+            this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+            this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+
+            this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
+                this.globalKeyboardListener = this.onGlobalKeyDown;
+                document.addEventListener("keydown", this.onGlobalKeyDown);
+
+                if (this.containerRef.current) {
+                    this.containerRef.current.focus()
+                }
             })
-            .then(() => {
-                this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
-                this.tframe = TFrame.DAILY
-                this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                //this. tzone = "America/Vancouver" 
 
-                this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-                this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-                this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
-
-                this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
-                    this.globalKeyboardListener = this.onGlobalKeyDown;
-                    document.addEventListener("keydown", this.onGlobalKeyDown);
-
-                    if (this.containerRef.current) {
-                        this.containerRef.current.focus()
-                    }
-                })
-
-            })
+        })
     }
 
     override componentWillUnmount() {
