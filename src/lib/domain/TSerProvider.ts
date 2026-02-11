@@ -1,16 +1,16 @@
 import type { Kline } from "./Kline";
 import type { TVar } from "../timeseris/TVar";
-import type { IProvider, ISymbolInfo } from "../../../../PineTS/src/marketData/IProvider";
+//import type { IProvider, ISymbolInfo } from "../../../../PineTS/src/marketData/IProvider";
 
-export class TSerProvider implements IProvider {
+export class TSerProvider {
     data: Kline[];
 
     constructor(kvar: TVar<Kline>) {
         this.data = kvar.toArray();
     }
 
-    getSymbolInfo(tickerId: string): Promise<ISymbolInfo> {
-        const syminfo: ISymbolInfo = {
+    getSymbolInfo(tickerId: string) {
+        const syminfo = {
             current_contract: "",
             description: "",
             isin: "",
