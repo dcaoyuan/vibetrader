@@ -71,11 +71,10 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 
 import { Screenshot } from "../pane/Screenshot";
 
-import { Context, PineTS } from "pinets";
+import { PineTS } from "pinets";
 //import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-//import { Context } from '../../../../../PineTS/src/Context.class'
 
-const dev = false
+const dev = true
 
 type Props = {
     width: number,
@@ -119,8 +118,8 @@ type State = {
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['test', 'bb']
-    : ['sma', 'ema', 'bb', 'rsi', 'macd']
+    ? ['test', 'bb', 'kdj']
+    : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 const TOOLTIP_DELAY = 500; // ms
 
@@ -258,88 +257,83 @@ class KlineViewContainer extends Component<Props, State> {
             }
 
             // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
-            const pinets = new PineTS(kvar.toArray(), ticker, tframe.shortName);
 
-            return pinets.ready().then(async () => {
-                const scriptRuns: Promise<{ scriptName: string, result: Context }>[] = []
-                for (const { scriptName, script } of scripts) {
-                    if (script !== undefined) {
-                        const fnRun = pinets.run(script).then(result => ({ scriptName, result }))
-                            .catch(error => {
-                                console.error(error);
+            const fRuns = scripts.filter(({ script }) => script !== undefined).map(async ({ scriptName, script }) => {
+                const pineTS = new PineTS(kvar.toArray(), ticker, tframe.shortName);
 
-                                return { scriptName, result: undefined }
-                            })
+                return pineTS.ready().then(() =>
+                    pineTS.run(script).then(result => ({ scriptName, result }))
+                        .catch(error => {
+                            console.error(error);
 
-                        scriptRuns.push(fnRun)
-                    }
-                }
+                            return { scriptName, result: undefined }
+                        }))
+            })
 
-                return Promise.all(scriptRuns).then(results => {
-                    console.log(`Scripts run in ${performance.now() - start} ms`);
+            return Promise.all(fRuns).then(results => {
+                console.log(`Scripts run in ${performance.now() - start} ms`);
 
-                    start = performance.now();
+                start = performance.now();
 
-                    const overlayIndicators = [];
-                    const stackedIndicators = [];
+                const overlayIndicators = [];
+                const stackedIndicators = [];
 
-                    results.map(({ scriptName, result }, n) => {
-                        if (result) {
-                            const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
-                            const size = baseSer.size();
-                            const indicator = result.indicator;
-                            const plots = Object.values(result.plots) as Plot[];
-                            const data = plots.map(({ data }) => data);
-                            try {
-                                for (let i = 0; i < size; i++) {
-                                    const vs = data.map(v => v ? v[i] : undefined);
-                                    tvar.setByIndex(i, vs);
-                                }
-
-                            } catch (error) {
-                                console.error(error, data)
+                results.map(({ scriptName, result }, n) => {
+                    if (result) {
+                        const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
+                        const size = baseSer.size();
+                        const indicator = result.indicator;
+                        const plots = Object.values(result.plots) as Plot[];
+                        const data = plots.map(({ data }) => data);
+                        try {
+                            for (let i = 0; i < size; i++) {
+                                const vs = data.map(v => v ? v[i] : undefined);
+                                tvar.setByIndex(i, vs);
                             }
 
-                            // console.log(result)
-                            console.log(data)
-                            console.log(plots.map(x => x.options))
-
-                            const isOverlayIndicator = indicator !== undefined && indicator.overlay
-
-                            // plot1, plot2 from fill function
-                            const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
-                                const style = options.style
-                                const location = options.location
-
-                                //console.log(plot1, plot2)
-
-                                const isOverlayOutput = (style === 'shape' || style === 'char')
-                                    && (location === 'abovebar' || location === 'belowbar')
-
-                                const output = { atIndex, title, plot1, plot2, options }
-
-                                if (isOverlayOutput || isOverlayIndicator) {
-                                    overlay.push(output)
-
-                                } else {
-                                    stacked.push(output)
-                                }
-
-                                return [overlay, stacked]
-
-                            }, [[], []] as Output[][])
-
-                            if (outputs[0].length > 0) {
-                                overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
-                            }
-
-                            if (outputs[1].length > 0) {
-                                stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
-                            }
-
-                            console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
+                        } catch (error) {
+                            console.error(error, data)
                         }
-                    })
+
+                        // console.log(result)
+                        console.log(scriptName + ' data\n', data)
+                        console.log(scriptName + ' opts\n', plots.map(x => x.options))
+
+                        const isOverlayIndicator = indicator !== undefined && indicator.overlay
+
+                        // plot1, plot2 from fill function
+                        const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
+                            const style = options.style
+                            const location = options.location
+
+                            //console.log(plot1, plot2)
+
+                            const isOverlayOutput = (style === 'shape' || style === 'char')
+                                && (location === 'abovebar' || location === 'belowbar')
+
+                            const output = { atIndex, title, plot1, plot2, options }
+
+                            if (isOverlayOutput || isOverlayIndicator) {
+                                overlay.push(output)
+
+                            } else {
+                                stacked.push(output)
+                            }
+
+                            return [overlay, stacked]
+
+                        }, [[], []] as Output[][])
+
+                        if (outputs[0].length > 0) {
+                            overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
+                        }
+
+                        if (outputs[1].length > 0) {
+                            stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
+                        }
+
+                        console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
+                    }
 
                     // console.log(`indicators added to series in ${performance.now() - start} ms`);
 

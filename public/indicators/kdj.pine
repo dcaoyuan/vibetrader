@@ -1,0 +1,28 @@
+//@version=6
+indicator("KDJ", overlay=false)
+length = input.int(9, minval=1)
+signal = input.int(3, minval=1)
+rsv = 100 * (close - ta.lowest(low, length)) / (ta.highest(high, length) - ta.lowest(low, length))
+k = ta.ema(rsv, signal) // Using EMA for smoothing as a common variation, or SMA. Standard is usually SMA. Let's use SMA to be safe for standard KDJ.
+// Re-evaluating standard KDJ formula:
+// RSV = (Close - LowestLow) / (HighestHigh - LowestLow) * 100
+// K = SMA(RSV, 3)
+// D = SMA(K, 3)
+// J = 3*K - 2*D
+
+// Pine Script built-in stoch is %K and %D.
+// Let's implement manually to be sure.
+periodK = input.int(9, title="K Period", minval=1)
+periodD = input.int(3, title="D Period", minval=1)
+smoothK = input.int(3, title="Smooth", minval=1)
+
+kLine = ta.sma(ta.stoch(close, high, low, periodK), smoothK)
+dLine = ta.sma(kLine, periodD)
+jLine = 3 * kLine - 2 * dLine
+
+plot(kLine, title="K", color=color.blue)
+plot(dLine, title="D", color=color.orange)
+plot(jLine, title="J", color=color.purple)
+hline(80, "Overbought", color=color.red, linestyle=hline.style_dashed)
+hline(20, "Oversold", color=color.green, linestyle=hline.style_dashed)
+
