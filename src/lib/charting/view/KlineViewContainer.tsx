@@ -74,7 +74,7 @@ import { Screenshot } from "../pane/Screenshot";
 import { PineTS } from "pinets";
 //import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
 
-const dev = true
+const dev = false
 
 type Props = {
     width: number,
