@@ -14,4 +14,4 @@ plot(rsiValue, "RSI", color = #FF6D00, linewidth = 2)
 // Horizontal lines for Overbought/Oversold levels
 h0 = hline(70, "Upper Band", color = color.gray, linestyle = hline.style_dashed)
 h1 = hline(30, "Lower Band", color = color.gray, linestyle = hline.style_dashed)
-// fill(h0, h1, color = color.rgb(126, 87, 194, 90), title = "Background")
+fill(h0, h1, color = color.rgb(126, 87, 194, 90), title = "Background")

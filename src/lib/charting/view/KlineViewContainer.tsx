@@ -277,85 +277,86 @@ class KlineViewContainer extends Component<Props, State> {
 
                 start = performance.now();
 
-                const overlayIndicators = [];
-                const stackedIndicators = [];
+                const init = { overlayIndicators: [], stackedIndicators: [] } as { overlayIndicators: Indicator[], stackedIndicators: Indicator[] }
 
-                results.map(({ scriptName, result }, n) => {
-                    if (result) {
-                        // should use identity var name, here we use `${scriptName}_${n}` 
-                        const tvar = baseSer.varOf(`${scriptName}_${n}`) as TVar<PineData[]>;
-                        const size = baseSer.size();
-                        const indicator = result.indicator;
-                        const plots = Object.values(result.plots) as Plot[];
-                        const data = plots.map(({ data }) => data);
-                        try {
-                            for (let i = 0; i < size; i++) {
-                                const vs = data.map(v => v ? v[i] : undefined);
-                                tvar.setByIndex(i, vs);
+                const { overlayIndicators, stackedIndicators } =
+                    results.reduce(({ overlayIndicators, stackedIndicators }, { scriptName, result }, n) => {
+                        if (result) {
+                            // should use identity var name, here we use `${scriptName}_${n}` 
+                            const tvar = baseSer.varOf(`${scriptName}_${n}`) as TVar<PineData[]>;
+                            const size = baseSer.size();
+                            const indicator = result.indicator;
+                            const plots = Object.values(result.plots) as Plot[];
+                            const data = plots.map(({ data }) => data);
+                            try {
+                                for (let i = 0; i < size; i++) {
+                                    const vs = data.map(v => v ? v[i] : undefined);
+                                    tvar.setByIndex(i, vs);
+                                }
+
+                            } catch (error) {
+                                console.error(error, data)
                             }
 
-                        } catch (error) {
-                            console.error(error, data)
-                        }
+                            // console.log(result)
+                            console.log(scriptName + ' data\n', data)
+                            console.log(scriptName + ' options\n', plots.map(x => x.options))
 
-                        // console.log(result)
-                        console.log(scriptName + ' data\n', data)
-                        console.log(scriptName + ' opts\n', plots.map(x => x.options))
+                            const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
-                        const isOverlayIndicator = indicator !== undefined && indicator.overlay
+                            // plot1, plot2 from fill function
+                            const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
+                                const style = options.style
+                                const location = options.location
 
-                        // plot1, plot2 from fill function
-                        const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
-                            const style = options.style
-                            const location = options.location
+                                //console.log(plot1, plot2)
 
-                            //console.log(plot1, plot2)
+                                const isOverlayOutput = (style === 'shape' || style === 'char')
+                                    && (location === 'abovebar' || location === 'belowbar')
 
-                            const isOverlayOutput = (style === 'shape' || style === 'char')
-                                && (location === 'abovebar' || location === 'belowbar')
+                                const output = { atIndex, title, plot1, plot2, options }
 
-                            const output = { atIndex, title, plot1, plot2, options }
+                                if (isOverlayOutput || isOverlayIndicator) {
+                                    overlay.push(output)
 
-                            if (isOverlayOutput || isOverlayIndicator) {
-                                overlay.push(output)
+                                } else {
+                                    stacked.push(output)
+                                }
 
-                            } else {
-                                stacked.push(output)
+                                return [overlay, stacked]
+
+                            }, [[], []] as Output[][])
+
+                            if (outputs[0].length > 0) {
+                                overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
                             }
 
-                            return [overlay, stacked]
-
-                        }, [[], []] as Output[][])
-
-                        if (outputs[0].length > 0) {
-                            overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
-                        }
-
-                        if (outputs[1].length > 0) {
-                            stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
-                        }
-
-                        console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
-                    }
-
-                    // console.log(`indicators added to series in ${performance.now() - start} ms`);
-
-                    this.latestTime = latestTime;
-
-                    this.updateState(
-                        {
-                            isLoaded: true,
-                            updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
-                            overlayIndicators,
-                            stackedIndicators,
-                        },
-                        () => {
-                            if (latestTime !== undefined && source === Source.binance) {
-                                this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                            if (outputs[1].length > 0) {
+                                stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
                             }
-                        })
 
-                })
+                            console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
+                        }
+
+                        return { overlayIndicators, stackedIndicators }
+
+                    }, init)
+
+                this.latestTime = latestTime;
+
+                return this.updateState(
+                    {
+                        isLoaded: true,
+                        updateEvent: { type: 'chart', changed: this.state.updateEvent.changed + 1 },
+                        overlayIndicators,
+                        stackedIndicators,
+                    },
+                    () => {
+                        if (latestTime !== undefined && source === Source.binance) {
+                            this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                        }
+                    })
+
             })
 
         })
