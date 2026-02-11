@@ -280,7 +280,8 @@ class KlineViewContainer extends Component<Props, State> {
 
                 results.map(({ scriptName, result }, n) => {
                     if (result) {
-                        const tvar = baseSer.varOf(scriptName) as TVar<PineData[]>;
+                        // should use identity var name, here we use `${scriptName}_${n}` 
+                        const tvar = baseSer.varOf(`${scriptName}_${n}`) as TVar<PineData[]>;
                         const size = baseSer.size();
                         const indicator = result.indicator;
                         const plots = Object.values(result.plots) as Plot[];
