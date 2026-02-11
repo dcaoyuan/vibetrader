@@ -17,7 +17,8 @@ import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
 import { fetchData, Source } from "../../domain/DataFecther";
-import type { PineData } from "../../domain/PineData";
+import { tframeToPineTimeframe, type PineData } from "../../domain/PineData";
+import { TSerProvider } from "../../domain/TSerProvider";
 
 import {
     ActionButton,
@@ -258,8 +259,9 @@ class KlineViewContainer extends Component<Props, State> {
 
             // console.log(kvar.toArray().filter(k => k === undefined), "undefined klines in series");
 
+            const provider = new TSerProvider(kvar)
             const fRuns = scripts.filter(({ script }) => script !== undefined).map(async ({ scriptName, script }) => {
-                const pineTS = new PineTS(kvar.toArray(), ticker, tframe.shortName);
+                const pineTS = new PineTS(provider, ticker, tframeToPineTimeframe(tframe));
 
                 return pineTS.ready().then(() =>
                     pineTS.run(script).then(result => ({ scriptName, result }))
