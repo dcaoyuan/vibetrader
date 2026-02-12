@@ -1,8 +1,8 @@
 @import "theme.css";
 
 :root {
-    --positive-color: #00AA00B4;
-    --negative-color: #FF0000B4;
+    --positive-color: #FF0000B4;
+    --negative-color: #00AA00B4;
     --neutral-color: #00F0F0B4;
 
     --annot-color-g: #009000;

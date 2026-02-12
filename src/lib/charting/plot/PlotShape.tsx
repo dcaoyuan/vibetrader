@@ -107,12 +107,16 @@ const PlotShape = (props: Props) => {
                         break
 
                     case 'circle':
+                        fill = color
+
                         y = below ? y + h : y
 
                         segs.push(new Circle(x, y - r, r))
                         break
 
                     case 'triangleup':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x - r, y)
@@ -122,6 +126,8 @@ const PlotShape = (props: Props) => {
                         break;
 
                     case 'triangledown':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x, y)
@@ -131,6 +137,8 @@ const PlotShape = (props: Props) => {
                         break;
 
                     case 'arrowup':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x - r + 2, y)
@@ -144,6 +152,8 @@ const PlotShape = (props: Props) => {
                         break
 
                     case 'arrowdown':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x, y)
@@ -231,6 +241,8 @@ const PlotShape = (props: Props) => {
                     }
 
                     case 'flag':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x - r + 1, y)
@@ -241,6 +253,8 @@ const PlotShape = (props: Props) => {
                         break;
 
                     case 'square':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x - r + 1, y - d + 2)
@@ -251,6 +265,8 @@ const PlotShape = (props: Props) => {
                         break
 
                     case 'diamond':
+                        fill = color
+
                         y = below ? y + h : y
 
                         path.moveto(x, y - d)
