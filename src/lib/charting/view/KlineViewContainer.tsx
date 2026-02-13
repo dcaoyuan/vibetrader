@@ -120,7 +120,7 @@ type State = {
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['test', 'bb', 'kdj']
+    ? ['bb', 'macd', 'rsi']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 const TOOLTIP_DELAY = 500; // ms
@@ -176,7 +176,7 @@ class KlineViewContainer extends Component<Props, State> {
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
-            selectedIndicatorTags: new Set(['bb', 'rsi', 'macd']),
+            selectedIndicatorTags: new Set(['bb', 'macd', 'rsi']),
             drawingIdsToCreate: new Set(),
             screenshot: undefined,
             ...geometry,
@@ -204,7 +204,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.onMouseMove = this.onMouseMove.bind(this)
         this.onMouseLeave = this.onMouseLeave.bind(this)
         this.onDoubleClick = this.onDoubleClick.bind(this)
-        this.onWheel = this.onWheel.bind(this)
+        // this.onWheel = this.onWheel.bind(this)
 
         this.callbacks = {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
@@ -1217,7 +1217,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 onMouseMove={this.onMouseMove}
                                 onMouseDown={this.onMouseDown}
                                 onMouseUp={this.onMouseUp}
-                                onWheel={this.onWheel}
+                                // onWheel={this.onWheel}
                                 style={{ zIndex: 1 }}
                             >
                                 <KlineView
