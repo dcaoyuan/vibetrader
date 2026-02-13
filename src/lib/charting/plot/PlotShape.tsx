@@ -28,7 +28,7 @@ const PlotShape = (props: Props) => {
     const kvar = xc.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
 
     function plot() {
-        const r = Math.max(Math.floor((xc.wBar - 2) / 2), 3);
+        const r = 5;
         const d = r * 2
 
         const path = new Path()
@@ -108,6 +108,7 @@ const PlotShape = (props: Props) => {
 
                     case 'circle':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -116,6 +117,7 @@ const PlotShape = (props: Props) => {
 
                     case 'triangleup':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -127,6 +129,7 @@ const PlotShape = (props: Props) => {
 
                     case 'triangledown':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -138,6 +141,7 @@ const PlotShape = (props: Props) => {
 
                     case 'arrowup':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -153,6 +157,7 @@ const PlotShape = (props: Props) => {
 
                     case 'arrowdown':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -242,6 +247,7 @@ const PlotShape = (props: Props) => {
 
                     case 'flag':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -254,6 +260,7 @@ const PlotShape = (props: Props) => {
 
                     case 'square':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
@@ -266,6 +273,7 @@ const PlotShape = (props: Props) => {
 
                     case 'diamond':
                         fill = color
+                        opacity = 0.7
 
                         y = below ? y + h : y
 
