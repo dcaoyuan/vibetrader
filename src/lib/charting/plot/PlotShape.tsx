@@ -28,7 +28,7 @@ const PlotShape = (props: Props) => {
     const kvar = xc.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
 
     function plot() {
-        const r = 5;
+        const r = 4;
         const d = r * 2
 
         const path = new Path()
