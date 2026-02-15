@@ -169,12 +169,12 @@ class Title extends Component<Props, State> {
 
         this.dtFormatL = new Intl.DateTimeFormat("en-US", {
             timeZone: this.tzone,
-            year: "numeric",
+            year: "2-digit",
             month: "short",
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
-            second: "2-digit",
+            // second: "2-digit",
             hour12: false,
         });
 
@@ -342,28 +342,33 @@ class Title extends Component<Props, State> {
                             {this.tzoneShort}
                         </Button>
                     </ActionButtonGroup>
+
+                    <div>&nbsp;&middot;&nbsp;</div>
+                    <div
+                        className={this.props.xc.isMouseCursorEnabled ? "title-value" : "blinking-label title-value"}
+                        key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
+                    >
+
+                        {delta && (pKline.close.toPrecision(8) + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
+                            delta.period
+                                ? 'in ' + delta.period + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
+                                : ')'
+                        ))}
+                    </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0px 8px 0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0px 8px 0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
                     <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>
-                        <div style={{ textAlign: 'left' }}>
-                            <div>
+                        <div className="title-value-group">
+                            <div className="title-value">
                                 {pKline && <>
                                     <span className="label-mouse">
                                         {pKline.closeTime ? this.dtFormatL.format(new Date(pKline.closeTime)) : ''}
                                     </span>
                                 </>}
                             </div>
-                            <div>
-                                {pKline && <>
-                                    <span className="label-title">V </span>
-                                    <span className="label-mouse">
-                                        {pKline.volume}
-                                    </span>
-                                </>}
-                            </div>
-                            <div>
+                            <div className="title-value">
                                 {pKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-mouse">
@@ -371,7 +376,7 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div>
+                            <div className="title-value">
                                 {pKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-mouse">
@@ -379,7 +384,7 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div>
+                            <div className="title-value">
                                 {pKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-mouse">
@@ -387,32 +392,27 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div
-                                className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
-                                key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
-                            >
+                            <div className="title-value">
                                 {pKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-mouse">
-                                        {delta
-                                            ? pKline.close
-                                                ? (pKline.close.toPrecision(8) + (delta.percent ? ` (${delta.percent >= 0 ? '+' : ''}${delta.percent?.toFixed(2)}% ` : '(') + (
-                                                    delta.period
-                                                        ? `in ${delta.period} ${delta.period === 1
-                                                            ? this.tframeShowName
-                                                            : this.tframeShowName + 's'})`
-                                                        : ')'
-                                                ))
-                                                : ''
-                                            : ''
-                                        }
+                                        {pKline.close && pKline.close.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
+                            <div className="title-value">
+                                {pKline && <>
+                                    <span className="label-title">V</span>
+                                    <span className="label-mouse">
+                                        {pKline.volume}
+                                    </span>
+                                </>}
+                            </div>
+
                         </div>
                     </div>
 
-                    <div style={{ flex: 1, padding: '0px 0px' }}>
+                    {/* <div style={{ flex: 1, padding: '0px 0px' }}>
                         <div style={{ textAlign: 'left' }}>
                             {this.state.snapshots.map(({ time, price, volume }, n) =>
                                 <div
@@ -431,11 +431,11 @@ class Title extends Component<Props, State> {
                             )
                             }
                         </div>
-                    </div>
+                    </div> */}
 
                     <div style={{ justifyContent: "flex-end", padding: '0px 0px' }}>
-                        <div style={{ textAlign: 'left' }}>
-                            <div>
+                        <div className="title-value-group">
+                            <div className="title-value">
                                 {rKline && rKline.closeTime
                                     ? <>
                                         <span className="label-refer">
@@ -449,15 +449,7 @@ class Title extends Component<Props, State> {
                                     </div>
                                 }
                             </div>
-                            <div>
-                                {rKline && <>
-                                    <span className="label-title">V </span>
-                                    <span className="label-refer">
-                                        {rKline.volume}
-                                    </span>
-                                </>}
-                            </div>
-                            <div>
+                            <div className="title-value">
                                 {rKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-refer">
@@ -465,7 +457,7 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div>
+                            <div className="title-value">
                                 {rKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-refer">
@@ -473,7 +465,7 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div>
+                            <div className="title-value">
                                 {rKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-refer">
@@ -481,7 +473,7 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-                            <div>
+                            <div className="title-value">
                                 {rKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-refer">
@@ -489,6 +481,15 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
+                            <div className="title-value">
+                                {rKline && <>
+                                    <span className="label-title">V </span>
+                                    <span className="label-refer">
+                                        {rKline.volume}
+                                    </span>
+                                </>}
+                            </div>
+
                         </div>
                     </div>
                 </div >

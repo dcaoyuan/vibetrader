@@ -149,7 +149,7 @@ class KlineViewContainer extends Component<Props, State> {
     yDragStart: number;
 
     // geometry variables
-    hTitle = 130;
+    hTitle = 55;
     hIndtags = 28;
 
     hKlineView = 400;

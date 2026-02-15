@@ -260,3 +260,16 @@
 .annot-negative text {
     fill: var(--annot-text-color-2);
 }
+
+.title-value-group {
+    display: flex;
+    flex-direction: row;
+    text-align: 'left';
+    gap: 6px;
+}
+
+.title-value {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+}
