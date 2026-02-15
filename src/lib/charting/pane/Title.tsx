@@ -345,14 +345,14 @@ class Title extends Component<Props, State> {
                         </ActionButtonGroup>
                     </div>
 
-                    <div style={{ flex: 1, justifyContent: 'flex-end' }}
+                    <div style={{ justifyContent: 'flex-end' }}
                         className={this.props.xc.isMouseCursorEnabled ? "title-value" : "blinking-label title-value"}
                         key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
                     >
 
                         {delta && (pKline.close.toPrecision(8) + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
                             delta.period
-                                ? 'in ' + delta.period + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
+                                ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
                                 : ')'
                         ))}
                     </div>
