@@ -328,23 +328,24 @@ class Title extends Component<Props, State> {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
-                    <ActionButtonGroup>
-                        <ChooseSymbol
-                            ticker={this.props.ticker}
-                            handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
-                        &nbsp;&middot;&nbsp;
-                        <ChooseTimeframe
-                            ticker={this.props.ticker}
-                            timeframe={this.props.xc.baseSer.timeframe}
-                            handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
-                        &nbsp;&middot;&nbsp;
-                        <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
-                            {this.tzoneShort}
-                        </Button>
-                    </ActionButtonGroup>
+                    <div style={{ flex: 1, justifyContent: 'flex-start' }}>
+                        <ActionButtonGroup>
+                            <ChooseSymbol
+                                ticker={this.props.ticker}
+                                handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
+                            &nbsp;&middot;&nbsp;
+                            <ChooseTimeframe
+                                ticker={this.props.ticker}
+                                timeframe={this.props.xc.baseSer.timeframe}
+                                handleSymbolTimeframeChanged={this.props.handleSymbolTimeframeChanged} />
+                            &nbsp;&middot;&nbsp;
+                            <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
+                                {this.tzoneShort}
+                            </Button>
+                        </ActionButtonGroup>
+                    </div>
 
-                    <div>&nbsp;&middot;&nbsp;</div>
-                    <div
+                    <div style={{ flex: 1, justifyContent: 'flex-end' }}
                         className={this.props.xc.isMouseCursorEnabled ? "title-value" : "blinking-label title-value"}
                         key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
                     >
