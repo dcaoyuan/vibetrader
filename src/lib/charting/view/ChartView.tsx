@@ -144,11 +144,11 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
      * layout manager will layout the size of its ChartView instances automatically,
      * and if success, the newNBars computed here will equals the newNBars you want.
      */
-    protected computeGeometry() {
+    protected computeGeometry(atleastMinValue?: number) {
         const [maxValue, minValue] = this.computeMaxValueMinValue();
 
-        // compute y-geometry after compute maxmin
-        this.yc.computeGeometry(maxValue, minValue)
+        // compute y-geometry according to maxmin
+        this.yc.computeGeometry(maxValue, atleastMinValue !== undefined ? Math.min(minValue, atleastMinValue) : minValue)
     }
 
     wChart(): number {

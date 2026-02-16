@@ -27,7 +27,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     }
 
     override plot() {
-        this.computeGeometry();
+        const atleastMinValue = this.props.mainIndicatorOutputs.some(({ options }) => options.style === 'style_columns') ? 0 : undefined
+        this.computeGeometry(atleastMinValue);
 
         const xc = this.props.xc
         const yc = this.yc
