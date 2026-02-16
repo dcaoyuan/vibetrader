@@ -344,24 +344,70 @@ class Title extends Component<Props, State> {
                             </Button>
                         </ActionButtonGroup>
                     </div>
-
-                    <div style={{ justifyContent: 'flex-end' }}
-                        className={this.props.xc.isMouseCursorEnabled ? "title-value" : "blinking-label title-value"}
-                        key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
-                    >
-
-                        {delta && (pKline.close.toPrecision(8) + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
-                            delta.period
-                                ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
-                                : ')'
-                        ))}
-                    </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '0px 8px 0px 8px', fontFamily: 'monospace', fontSize: '12px' }}>
 
-                    <div style={{ flex: 1, justifyContent: "flex-start", padding: '0px 0px' }}>
-                        <div className="title-value-group">
+                    <div /** refer values */ className="title-value-group" >
+                        <div className="title-value">
+                            {rKline && rKline.closeTime
+                                ? <>
+                                    <span className="label-refer">
+                                        {this.dtFormatL.format(new Date(rKline.closeTime))}
+                                    </span>
+                                </>
+                                : <div style={{ visibility: "hidden" }}>
+                                    <span className="label-refer">
+                                        {this.dtFormatL.format(new Date())}
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                        <div className="title-value">
+                            {rKline && <>
+                                <span className="label-title">O </span>
+                                <span className="label-refer">
+                                    {rKline.open?.toPrecision(8)}
+                                </span>
+                            </>}
+                        </div>
+                        <div className="title-value">
+                            {rKline && <>
+                                <span className="label-title">H </span>
+                                <span className="label-refer">
+                                    {rKline.high?.toPrecision(8)}
+                                </span>
+                            </>}
+                        </div>
+                        <div className="title-value">
+                            {rKline && <>
+                                <span className="label-title">L </span>
+                                <span className="label-refer">
+                                    {rKline.low?.toPrecision(8)}
+                                </span>
+                            </>}
+                        </div>
+                        <div className="title-value">
+                            {rKline && <>
+                                <span className="label-title">C </span>
+                                <span className="label-refer">
+                                    {rKline.close?.toPrecision(8)}
+                                </span>
+                            </>}
+                        </div>
+                        <div className="title-value">
+                            {rKline && <>
+                                <span className="label-title">V </span>
+                                <span className="label-refer">
+                                    {rKline.volume}
+                                </span>
+                            </>}
+                        </div>
+
+                    </div>
+
+                    <div /** mouse values */ style={{ display: 'flex', flexDirection: 'row', justifyContent: "flex-end" }}>
+                        <div style={{ flex: 1, justifyContent: "flex-start" }} className="title-value-group">
                             <div className="title-value">
                                 {pKline && <>
                                     <span className="label-mouse">
@@ -409,8 +455,20 @@ class Title extends Component<Props, State> {
                                     </span>
                                 </>}
                             </div>
-
                         </div>
+
+                        <div style={{ justifyContent: "flex-end" }}
+                            className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
+                            key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
+                        >
+
+                            {delta && (pKline.close.toPrecision(8) + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
+                                delta.period
+                                    ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
+                                    : ')'
+                            ))}
+                        </div>
+
                     </div>
 
                     {/* <div style={{ flex: 1, padding: '0px 0px' }}>
@@ -434,65 +492,7 @@ class Title extends Component<Props, State> {
                         </div>
                     </div> */}
 
-                    <div style={{ justifyContent: "flex-end", padding: '0px 0px' }}>
-                        <div className="title-value-group">
-                            <div className="title-value">
-                                {rKline && rKline.closeTime
-                                    ? <>
-                                        <span className="label-refer">
-                                            {this.dtFormatL.format(new Date(rKline.closeTime))}
-                                        </span>
-                                    </>
-                                    : <div style={{ visibility: "hidden" }}>
-                                        <span className="label-refer">
-                                            {this.dtFormatL.format(new Date())}
-                                        </span>
-                                    </div>
-                                }
-                            </div>
-                            <div className="title-value">
-                                {rKline && <>
-                                    <span className="label-title">O </span>
-                                    <span className="label-refer">
-                                        {rKline.open?.toPrecision(8)}
-                                    </span>
-                                </>}
-                            </div>
-                            <div className="title-value">
-                                {rKline && <>
-                                    <span className="label-title">H </span>
-                                    <span className="label-refer">
-                                        {rKline.high?.toPrecision(8)}
-                                    </span>
-                                </>}
-                            </div>
-                            <div className="title-value">
-                                {rKline && <>
-                                    <span className="label-title">L </span>
-                                    <span className="label-refer">
-                                        {rKline.low?.toPrecision(8)}
-                                    </span>
-                                </>}
-                            </div>
-                            <div className="title-value">
-                                {rKline && <>
-                                    <span className="label-title">C </span>
-                                    <span className="label-refer">
-                                        {rKline.close?.toPrecision(8)}
-                                    </span>
-                                </>}
-                            </div>
-                            <div className="title-value">
-                                {rKline && <>
-                                    <span className="label-title">V </span>
-                                    <span className="label-refer">
-                                        {rKline.volume}
-                                    </span>
-                                </>}
-                            </div>
 
-                        </div>
-                    </div>
                 </div >
             </>
         )
