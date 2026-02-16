@@ -1,5 +1,6 @@
 import type { PineData } from "../../domain/PineData";
 import { Path } from "../../svg/Path";
+import type { Seg } from "../../svg/Seg";
 import type { TVar } from "../../timeseris/TVar";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
@@ -21,71 +22,59 @@ const PlotHistogram = (props: Props) => {
     function plot() {
         const thin = false
 
-        const posPath = new Path()
-        const negPath = new Path()
+        const paths: Record<string, Path> = {}
 
         const r = xc.wBar < 2
             ? 0
             : Math.floor((xc.wBar - 2) / 2);
 
-        for (let bar = 1; bar <= xc.nBars; bar += xc.nBarsCompressed) {
-            let max = Number.NEGATIVE_INFINITY;
-            let min = Number.POSITIVE_INFINITY;
-            for (let i = 0; i < xc.nBarsCompressed; i++) {
-                const time = xc.tb(bar + i)
-                if (tvar.occurred(time)) {
-                    const datas = tvar.getByTime(time);
-                    const data = datas ? datas[atIndex] : undefined;
-                    const v = data ? data.value : NaN;
-                    if (typeof v === "number" && !isNaN(v)) {
-                        max = Math.max(max, v);
-                        min = Math.min(min, v);
-                    }
+        for (let bar = 1; bar <= xc.nBars; bar++) {
+            let color: string;
+            let value: number;
+            const time = xc.tb(bar)
+            if (tvar.occurred(time)) {
+                const datas = tvar.getByTime(time);
+                const data = datas ? datas[atIndex] : undefined;
+                const v = data ? data.value : NaN;
+                if (typeof v === "number" && !isNaN(v)) {
+                    value = v;
                 }
+                color = data?.options?.color
             }
 
-            max = Math.max(max, 0) // max not less than 0
-            min = Math.min(min, 0) // min not more than 0
-
-            if (!(max === 0 && min === 0)) {
-                let yValue = 0;
-                let yDatum = 0;
-                let path: Path;
-                if (Math.abs(max) > Math.abs(min)) {
-                    path = posPath;
-                    yValue = yc.yv(max);
-                    yDatum = yc.yv(min);
-                } else {
-                    path = negPath;
-                    yValue = yc.yv(min)
-                    yDatum = yc.yv(max)
-                }
-
-                const x = xc.xb(bar)
-
-                if (thin || xc.wBar <= 2) {
-                    path.moveto(x, yDatum);
-                    path.lineto(x, yValue);
-
-                } else {
-                    path.moveto(x - r, yDatum)
-                    path.lineto(x - r, yValue)
-                    path.lineto(x + r, yValue)
-                    path.lineto(x + r, yDatum)
-                }
+            if (!paths[color]) {
+                paths[color] = new Path()
             }
 
+            const path = paths[color]
+
+            const y0 = yc.yv(0);
+            const yValue = yc.yv(value)
+
+            const x = xc.xb(bar)
+
+            if (thin || xc.wBar <= 2) {
+                path.moveto(x, y0);
+                path.lineto(x, yValue);
+
+            } else {
+                path.moveto(x - r, y0)
+                path.lineto(x - r, yValue)
+                path.lineto(x + r, yValue)
+                path.lineto(x + r, y0)
+            }
         }
 
-        return { posPath, negPath }
+        return paths
     }
 
-    const { posPath, negPath } = plot();
+    const paths = plot();
 
     return (
-        <g className="volumechart">
-            {posPath.render({ className: 'positive' })}
-            {negPath.render({ className: 'negative' })}
+        <g>
+            {
+                Object.keys(paths).map((color, n) => paths[color].render({ key: 'seg-' + n, style: { stroke: color, fill: color } }))
+            }
         </g>
     )
 }
