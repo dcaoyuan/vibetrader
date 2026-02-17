@@ -136,7 +136,7 @@ class KlineViewContainer extends Component<Props, State> {
     kvar: TVar<Kline>;
     xc: ChartXControl;
 
-    reloadDataTimeoutId = undefined;
+    reloadDataTimeoutId: number = undefined;
     latestTime: number;
 
     predefinedScripts: Map<string, string>;
@@ -311,34 +311,48 @@ class KlineViewContainer extends Component<Props, State> {
                                 const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
                                 // plot1, plot2 from fill function
-                                const outputs = plots.reduce(([overlay, stacked], { title, plot1, plot2, options }, atIndex) => {
+                                const [overlayOutputs, stackedOutputs] = plots.reduce(([overlayOutputs, stackedOutputs], { title, plot1, plot2, options }, atIndex) => {
                                     const style = options.style
                                     const location = options.location
+                                    const isForceOverlay = options.force_overlay === true
+                                    const notForceOverlay = options.force_overlay === false
 
                                     //console.log(plot1, plot2)
 
-                                    const isOverlayOutput = (style === 'shape' || style === 'char')
-                                        && (location === 'abovebar' || location === 'belowbar')
+                                    const isOverlayOutputShapeAndLocation = (
+                                        (style === 'shape' || style === 'char') && (location === 'abovebar' || location === 'belowbar')
+                                    )
 
                                     const output = { atIndex, title, plot1, plot2, options }
 
-                                    if (isOverlayOutput || isOverlayIndicator) {
-                                        overlay.push(output)
+                                    if (isOverlayOutputShapeAndLocation || isForceOverlay) {
+                                        overlayOutputs.push(output)
 
                                     } else {
-                                        stacked.push(output)
+                                        if (notForceOverlay) {
+                                            stackedOutputs.push(output)
+
+                                        } else {
+                                            if (isOverlayIndicator) {
+                                                overlayOutputs.push(output)
+
+                                            } else {
+                                                stackedOutputs.push(output)
+                                            }
+                                        }
+
                                     }
 
-                                    return [overlay, stacked]
+                                    return [overlayOutputs, stackedOutputs]
 
                                 }, [[], []] as Output[][])
 
-                                if (outputs[0].length > 0) {
-                                    overlayIndicators.push({ scriptName, tvar, outputs: outputs[0] })
+                                if (overlayOutputs.length > 0) {
+                                    overlayIndicators.push({ scriptName, tvar, outputs: overlayOutputs })
                                 }
 
-                                if (outputs[1].length > 0) {
-                                    stackedIndicators.push({ scriptName, tvar, outputs: outputs[1] })
+                                if (stackedOutputs.length > 0) {
+                                    stackedIndicators.push({ scriptName, tvar, outputs: stackedOutputs })
                                 }
 
                                 console.log("overlay:", overlayIndicators.map(ind => ind.outputs), "\nstacked:", stackedIndicators.map(ind => ind.outputs))
@@ -359,7 +373,7 @@ class KlineViewContainer extends Component<Props, State> {
                         },
                         () => {
                             if (latestTime !== undefined && source === Source.binance) {
-                                this.reloadDataTimeoutId = setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                                this.reloadDataTimeoutId = window.setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
                             }
                         })
 
