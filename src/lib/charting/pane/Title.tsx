@@ -462,7 +462,7 @@ class Title extends Component<Props, State> {
                             key={mKline ? 'close-' + mKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
                         >
                             {mKline && mKline.close && !isNaN(mKline.close)
-                                ? (mKline.close?.toPrecision(8) + (delta.percent && !isNaN(delta.percent)
+                                ? (mKline.close?.toPrecision(8) + (delta && delta.percent && !isNaN(delta.percent)
                                     ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' + (delta.period
                                         ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
                                         : ')'
