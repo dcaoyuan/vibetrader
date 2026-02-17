@@ -322,7 +322,7 @@ class Title extends Component<Props, State> {
 
     render() {
         const rKline = this.state.referKline
-        const pKline = this.state.pointKline
+        const mKline = this.state.pointKline
         const delta = this.state.delta;
 
         return (
@@ -409,49 +409,49 @@ class Title extends Component<Props, State> {
                     <div /** mouse values */ style={{ display: 'flex', flexDirection: 'row', justifyContent: "flex-end" }}>
                         <div style={{ flex: 1, justifyContent: "flex-start" }} className="title-value-group">
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-mouse">
-                                        {pKline.closeTime ? this.dtFormatL.format(new Date(pKline.closeTime)) : ''}
+                                        {mKline.closeTime ? this.dtFormatL.format(new Date(mKline.closeTime)) : ''}
                                     </span>
                                 </>}
                             </div>
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-title">O </span>
                                     <span className="label-mouse">
-                                        {pKline.open?.toPrecision(8)}
+                                        {mKline.open?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-title">H </span>
                                     <span className="label-mouse">
-                                        {pKline.high?.toPrecision(8)}
+                                        {mKline.high?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-title">L </span>
                                     <span className="label-mouse">
-                                        {pKline.low?.toPrecision(8)}
+                                        {mKline.low?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-title">C </span>
                                     <span className="label-mouse">
-                                        {pKline.close && pKline.close.toPrecision(8)}
+                                        {mKline.close?.toPrecision(8)}
                                     </span>
                                 </>}
                             </div>
                             <div className="title-value">
-                                {pKline && <>
+                                {mKline && <>
                                     <span className="label-title">V</span>
                                     <span className="label-mouse">
-                                        {pKline.volume}
+                                        {mKline.volume}
                                     </span>
                                 </>}
                             </div>
@@ -459,14 +459,19 @@ class Title extends Component<Props, State> {
 
                         <div style={{ justifyContent: "flex-end" }}
                             className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
-                            key={pKline ? 'close-' + pKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
+                            key={mKline ? 'close-' + mKline.close?.toPrecision(8) : 'close-'} // tell react to retrigger blinking when key i.e. the close price changes
                         >
-
-                            {delta && (pKline.close.toPrecision(8) + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
-                                delta.period
-                                    ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
-                                    : ')'
-                            ))}
+                            {mKline
+                                ? (mKline.close?.toPrecision(8) +
+                                    (delta
+                                        ? + (delta.percent ? ' (' + (delta.percent >= 0 ? '+' : '') + delta.percent?.toFixed(2) + '%' : '(') + (
+                                            delta.period
+                                                ? ' in ' + delta.period + ' ' + this.tframeShowName + (delta.period === 1 ? '' : 's') + ')'
+                                                : ')'
+                                        )
+                                        : ''))
+                                : ''
+                            }
                         </div>
 
                     </div>
