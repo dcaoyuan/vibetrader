@@ -100,7 +100,7 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
     startTime = Math.floor(startTime / 1000)
     endTime = Math.floor(Date.now() / 1000)
 
-    const timeframe = tframe.shortName.toLowerCase()
+    const timeframe = tframe.shortName
 
     return fetchYahooData(ticker, timeframe, startTime, endTime).then((klines) => {
         // console.log(klines);

@@ -51,13 +51,15 @@ export class TFrame {
 		TFrame.MONTHLY,
 	];
 
-	static readonly #shortNamePattern = /([0-9]+)([sSmhHDdWwMYy])/;
+	static readonly #shortNamePattern = /([0-9]+)(mo|[sSmhHDdWwMYy])/;
 
 	static ofName(shortName: string): TFrame | undefined {
 		const match = shortName.match(TFrame.#shortNamePattern);
 		if (match && match.length > 2) {
 			const nUnits = parseInt(match[1]);
-			const unit = TUnit.withShortName(match[2]);
+			const unit = match[2] === 'mo'
+				? TUnit.Month
+				: TUnit.withShortName(match[2]);
 			return new TFrame(unit, nUnits);
 
 		} else {

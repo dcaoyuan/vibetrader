@@ -120,7 +120,7 @@ type State = {
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['bb', 'macd', 'rsi']
+    ? ['bb', 'macd', 'rsi', 'signals']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 const TOOLTIP_DELAY = 500; // ms
@@ -247,6 +247,8 @@ class KlineViewContainer extends Component<Props, State> {
         const kvar = this.kvar
         const xc = this.xc
 
+        console.log(tframe)
+
         const scripts = this.scripts || this.getSelectedIncicators()
 
         return fetchData(source, baseSer, ticker, tframe, tzone, startTime, limit)
@@ -274,7 +276,6 @@ class KlineViewContainer extends Component<Props, State> {
                             .catch(error => {
                                 console.error(error);
                                 throw error;
-                                //return { scriptName, result: undefined }
                             }))
                 })
 
