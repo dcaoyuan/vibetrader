@@ -2,11 +2,15 @@ import type { Kline } from "./Kline";
 import type { TVar } from "../timeseris/TVar";
 //import type { IProvider, ISymbolInfo } from "../../../../PineTS/src/marketData/IProvider";
 
-export class TSerProvider {
+export class TSerProvider /* implements IProvider */ {
     data: Kline[];
 
     constructor(kvar: TVar<Kline>) {
         this.data = kvar.toArray();
+    }
+
+    configure(config: unknown): void {
+
     }
 
     getSymbolInfo(tickerId: string) {

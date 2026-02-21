@@ -120,7 +120,7 @@ type State = {
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['bb', 'macd', 'rsi', 'signals']
+    ? ['ema', 'macd', 'rsi', 'bb', 'signals']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 const TOOLTIP_DELAY = 500; // ms
@@ -176,7 +176,7 @@ class KlineViewContainer extends Component<Props, State> {
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
             stackedIndicators: [],
-            selectedIndicatorTags: new Set(['bb', 'macd', 'rsi']),
+            selectedIndicatorTags: new Set(['ema', 'macd', 'rsi']),
             drawingIdsToCreate: new Set(),
             screenshot: undefined,
             ...geometry,
