@@ -2,15 +2,24 @@ import type { TFrame } from "../timeseris/TFrame";
 import type { TSer } from "../timeseris/TSer";
 import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
-import { fetchYahooData, } from "./YFinanceData";
-import { Provider } from "pinets";
-//import { Provider } from "../../../../PineTS/src/marketData/Provider.class";
+import * as Yahoo from "./YFinanceData";
+
+import { Provider as PinetsProveder, PineTS as PinetsPineTS } from "pinets";
+// import { Provider as PinetsProveder} from "../../../../PineTS/src/marketData/Provider.class";
+// import { PineTS as PinetsPineTS } from '../../../../PineTS/src/PineTS.class';
+
+//export const dev = false
+export const dev = true
+
+export { PinetsProveder as Provider };
+export { PinetsPineTS as PineTS };
 
 export enum Source {
     yfinance,
     binance
 }
 
+export const source: Source = dev ? Source.yfinance : Source.binance
 
 export const fetchData = async (source: Source, baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     let fetch: (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => Promise<number>
@@ -57,7 +66,7 @@ const fetchDataBinance = async (baseSer: TSer, ticker: string, tframe: TFrame, t
         ? startTime
         : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-    const provider = Provider.Binance
+    const provider = PinetsProveder.Binance
     const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
 
     return provider.getMarketData(ticker, pinets_tframe, limit, startTime, endTime)
@@ -102,7 +111,7 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
 
     const timeframe = tframe.shortName
 
-    return fetchYahooData(ticker, timeframe, startTime, endTime).then((klines) => {
+    return Yahoo.fetchYahooData(ticker, timeframe, startTime, endTime).then((klines) => {
         // console.log(klines);
         const latestKline = klines.length > 0 ? klines[klines.length - 1] : undefined;
         // console.log(`latestKline: ${new Date(latestKline.time)}, ${latestKline.close}`)
@@ -119,3 +128,21 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
 }
 
 
+export function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
+    let fetch: (filterText: string, init: RequestInit) => Promise<{ ticker: string }[]>
+
+    switch (source) {
+        case Source.yfinance:
+            fetch = Yahoo.fetchSymbolList
+            break
+
+        case Source.binance:
+            fetch = Binance.fetchSymbolList
+            break
+
+        default:
+            fetch = Binance.fetchSymbolList
+    }
+
+    return fetch(filterText, init);
+}

@@ -12,6 +12,26 @@ export interface YahooPriceData {
     };
 }
 
+export interface YahooSearchResult {
+    quotes: Array<{
+        exchange: string // "NYQ",
+        shortname: string // "Alibaba Group Holding Limited",
+        quoteType: string // "EQUITY",
+        symbol: string // "BABA",
+        index: string // "quotes",
+        score: number // 1.02635E7,
+        typeDisp: string // "Equity",
+        longname: string // "Alibaba Group Holding Limited",
+        exchDisp: string // "NYSE",
+        sector: string // "Consumer Cyclical",
+        sectorDisp: string // "Consumer Cyclical",
+        industry: string // "Internet Retail",
+        industryDisp: string // "Internet Retail",
+        dispSecIndFlag: boolean //true,
+        isYahooFinance: boolean // true
+    }>;
+}
+
 export interface Candle {
     time: number;
     open: number;
@@ -74,5 +94,50 @@ export async function fetchYahooData(ticker: string, tframe: string, startTime: 
                 }));
             })
         )
+}
+
+
+const defaultSymbols = [
+    { ticker: '^GSPC' },
+    { ticker: '^DJI' },
+    { ticker: '^IXIC' },
+    { ticker: '^HSI' },
+    { ticker: 'GC=F' },
+    { ticker: 'BTC-USD' },
+]
+
+// const baseUrl = "https://query2.finance.yahoo.com/v1/finance/search";
+
+export async function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
+    if (filterText && filterText.trim().length >= 2) {
+        const baseUrl = "https://mmmmmm.io/yfinance/v1/finance/search";
+        const url = `${baseUrl}?q=${filterText}&quotesCount=100&newsCount=0`;
+
+        return fetch(url, init)
+            .then(r => {
+                console.log(r)
+                return r.json()
+            })
+            .then(data => {
+                console.log("Yahoo search result:", data)
+                const tickers = data.quotes.map(({ symbol }) => ({ ticker: symbol }))
+                let items = tickers.filter(({ ticker }) => ticker.toLocaleUpperCase().startsWith(filterText))
+                if (items.length > 100) {
+                    items = items.slice(0, 100);
+                    return [...items, { ticker: '...' }]
+
+                } else {
+                    return items;
+                }
+
+            })
+            .catch(e => {
+                console.error(`Error fetching symbols batch:`, e)
+                return defaultSymbols
+            });
+
+    } else {
+        return defaultSymbols
+    }
 }
 

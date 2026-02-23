@@ -16,7 +16,7 @@ import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
-import { fetchData, Source } from "../../domain/DataFecther";
+import { dev, fetchData, PineTS, Source } from "../../domain/DataFecther";
 import { tframeToPineTimeframe, type PineData } from "../../domain/PineData";
 import { TSerProvider } from "../../domain/TSerProvider";
 
@@ -71,12 +71,6 @@ import Exposure from '@react-spectrum/s2/icons/Exposure';
 import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 
 import { Screenshot } from "../pane/Screenshot";
-
-import { PineTS } from "pinets";
-//import { PineTS, } from '../../../../../PineTS/src/PineTS.class'
-
-const dev = false
-//const dev = true
 
 type Props = {
     width: number,

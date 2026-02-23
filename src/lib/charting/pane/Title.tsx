@@ -7,7 +7,7 @@ import { Button, useFilter } from 'react-aria-components';
 import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField, TooltipTrigger, Tooltip } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { TFrame } from "../../timeseris/TFrame";
-import { fetchSymbolList } from "../../domain/BinanaceData";
+import { fetchSymbolList } from "../../domain/DataFecther";
 
 type Props = {
     xc: ChartXControl,

@@ -209,7 +209,7 @@ export async function fetchSymbolList(filterText: string, init: RequestInit): Pr
                 return defaultSymbols
             })
             .catch(e => {
-                console.error(`Error fetching klines batch:`, e)
+                console.error(`Error fetching symbols batch:`, e)
                 return defaultSymbols
             });
 
