@@ -8,8 +8,7 @@ import { Provider as PinetsProveder, PineTS as PinetsPineTS } from "pinets";
 // import { Provider as PinetsProveder} from "../../../../PineTS/src/marketData/Provider.class";
 // import { PineTS as PinetsPineTS } from '../../../../PineTS/src/PineTS.class';
 
-//export const dev = false
-export const dev = true
+export const dev = false
 
 export { PinetsProveder as Provider };
 export { PinetsPineTS as PineTS };
@@ -130,6 +129,8 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
 
 export function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
     let fetch: (filterText: string, init: RequestInit) => Promise<{ ticker: string }[]>
+
+    //console.log(`Fetching symbol list for filter: "${filterText}" from source: ${Source[source]}`)
 
     switch (source) {
         case Source.yfinance:

@@ -241,8 +241,6 @@ class KlineViewContainer extends Component<Props, State> {
         const kvar = this.kvar
         const xc = this.xc
 
-        console.log(tframe)
-
         const scripts = this.scripts || this.getSelectedIncicators()
 
         return fetchData(source, baseSer, ticker, tframe, tzone, startTime, limit)

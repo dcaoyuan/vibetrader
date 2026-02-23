@@ -202,7 +202,7 @@ export async function fetchSymbolList(filterText: string, init: RequestInit): Pr
         return fetch(url, init)
             .then(r => r.json())
             .then(data => {
-                tickers = data.symbols.filter(({ status }) => status === 'TRADING')
+                tickers = data.symbols.filter(({ status }) => status === 'TRADING').map(({ symbol }) => ({ ticker: symbol }))
 
                 tickerLoaded = true;
 
