@@ -121,7 +121,7 @@ export async function fetchSymbolList(filterText: string, init: RequestInit): Pr
             .then(data => {
                 console.log("Yahoo search result:", data)
                 const tickers = data.quotes.map(({ symbol }) => ({ ticker: symbol }))
-                let items = tickers.filter(({ ticker }) => ticker.toLocaleUpperCase().startsWith(filterText))
+                let items = tickers
                 if (items.length > 100) {
                     items = items.slice(0, 100);
                     return [...items, { ticker: '...' }]

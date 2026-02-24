@@ -5,8 +5,8 @@ import * as Binance from "./BinanaceData";
 import * as Yahoo from "./YFinanceData";
 
 import { Provider as PinetsProveder, PineTS as PinetsPineTS } from "pinets";
-// import { Provider as PinetsProveder} from "../../../../PineTS/src/marketData/Provider.class";
-// import { PineTS as PinetsPineTS } from '../../../../PineTS/src/PineTS.class';
+//import { Provider as PinetsProveder } from "../../../../PineTS/src/marketData/Provider.class";
+//import { PineTS as PinetsPineTS } from '../../../../PineTS/src/PineTS.class';
 
 export const dev = false
 
