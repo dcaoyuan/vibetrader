@@ -16,7 +16,7 @@ type Props = {
 }
 
 const AxisY = (props: Props) => {
-    const { x, y, height, yc } = props;
+    const { x, y, height, xc, yc } = props;
 
     const chart = plot();
 
@@ -64,12 +64,13 @@ const AxisY = (props: Props) => {
             }
         }
 
-        const path = new Path;
-        const texts = new Texts;
+        const gridPath = new Path;
+        const tickPath = new Path;
+        const tickTexts = new Texts;
 
         // draw axis-y line */
-        path.moveto(0, 0)
-        path.lineto(0, height)
+        tickPath.moveto(0, 0)
+        tickPath.lineto(0, height)
 
         const wTick = 4;
         for (let i = 0; i < vTicks.length; i++) {
@@ -80,8 +81,8 @@ const AxisY = (props: Props) => {
                 // skip to leave space for normMultiple text 
 
             } else {
-                path.moveto(0, yTick)
-                path.lineto(wTick, yTick)
+                tickPath.moveto(0, yTick)
+                tickPath.lineto(wTick, yTick)
 
                 vTick = yc.shouldNormScale
                     ? vTick / yc.normScale
@@ -90,31 +91,39 @@ const AxisY = (props: Props) => {
                 const vStr = parseFloat(vTick.toFixed(4)).toString();
                 const yText = yTick + 4
 
-                texts.text(8, yText, vStr);
+                tickTexts.text(8, yText, vStr);
+
+                gridPath.moveto(-xc.wChart, yTick);
+                gridPath.lineto(0, yTick);
             }
         }
 
         if (yc.shouldNormScale) {
-            texts.text(8, yc.hCanvas, yc.normMultiple);
+            tickTexts.text(8, yc.hCanvas, yc.normMultiple);
         }
 
         // draw end line 
-        path.moveto(0, 0);
-        path.lineto(8, 0);
+        tickPath.moveto(0, 0);
+        tickPath.lineto(8, 0);
 
         if (yc.valueScalar.kind !== 'Linear') {
-            texts.text(-1, -8, yc.valueScalar.kind)
+            tickTexts.text(-1, -8, yc.valueScalar.kind)
         }
 
-        return { path, texts };
+        return { tickPath, tickTexts, gridPath };
     }
 
     const transform = `translate(${x} ${y})`;
     return (
-        <g transform={transform} className="axis" >
-            {chart.path.render()}
-            {chart.texts.render()}
-        </g>
+        <>
+            <g transform={transform} className="axis" >
+                {chart.tickPath.render()}
+                {chart.tickTexts.render()}
+            </g>
+            <g transform={transform} className="grid" >
+                {chart.gridPath.render()}
+            </g>
+        </>
     );
 }
 
