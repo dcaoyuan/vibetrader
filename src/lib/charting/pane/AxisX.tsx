@@ -1,14 +1,10 @@
-import { TUnit } from "../../timeseris/TUnit";
 import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
-import { Temporal } from "temporal-polyfill";
 import { Component, type JSX, type RefObject, } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import React from "react";
 import { stringMetrics } from "../../Utils";
-
-const MIN_TICK_SPACING = 100 // in pixels
 
 type Props = {
 	id: string,
@@ -26,100 +22,6 @@ type State = {
 
 	referCursor: JSX.Element,
 	mouseCursor: JSX.Element,
-}
-
-const locatorDict = {
-	year: [
-		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-		[0, 2, 4, 6, 8],
-		[0, 5, 10],
-		[0, 5],
-	],
-	month: [
-		[2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-		[2, 4, 6, 8, 10],
-		[4, 7, 10],
-		[6],
-	],
-	week: [
-		[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-		[0, 2, 4, 6, 8],
-		[0, 5, 10],
-		[0, 5],
-	],
-	day: [
-		[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28],
-		[4, 8, 12, 16, 20, 24, 28],
-		[5, 10, 15, 20, 25],
-		[10, 20],
-		[15],
-	],
-	hour: [
-		[2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22],
-		[3, 6, 9, 12, 15, 18, 21],
-		[4, 8, 12, 16, 20],
-		[6, 12, 18],
-		[8, 16],
-		[12],
-	],
-	minute: [
-		[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-		[10, 20, 30, 40, 50, 60],
-		[15, 30, 45, 60],
-		[30, 60],
-	],
-}
-
-type Tick = {
-	dt: Temporal.ZonedDateTime,
-	x: number,
-	level: "year" | "month" | "week" | "day" | "hour" | "minute"
-}
-
-function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: string, nTicksAround: number): Tick[] {
-
-	// Find the lowest level ticks first 
-	if (existedTicks.length < 2) {
-		const locators = locatorDict[level]
-		let i = 0;
-		while (i < locators.length) {
-			const locator = locators[i]
-			let count = 0
-			for (const tick of newTicks) {
-				const value = level === "year" || level === "week"
-					? tick.dt[level] % 10
-					: tick.dt[level]
-
-				if (locator.includes(value)) {
-					count++
-				}
-			}
-
-			// console.log(level, locator, count)
-			if (count < nTicksAround) { // may add upper level ticks later, so nTicksAround, not nTicksMax
-				for (const tick of newTicks) {
-					const value = level === "year" || level === "week"
-						? tick.dt[level] % 10
-						: tick.dt[level]
-
-					if (locator.includes(value)) {
-						existedTicks.push(tick)
-					}
-
-				}
-				break
-			}
-
-			i++
-		}
-
-	} else {
-		// just dump upper level ticks after lowest found, 
-		// whose number is less than 1/12 (year to month) of lowest ticks 
-		existedTicks = existedTicks.concat(newTicks)
-	}
-
-	return existedTicks.sort((a, b) => a.x - b.x);
 }
 
 class AxisX extends Component<Props, State> {
@@ -220,154 +122,7 @@ class AxisX extends Component<Props, State> {
 
 
 	plot() {
-		const nBars = this.props.xc.nBars
-
-		const nTicksAround = Math.round(this.props.xc.wChart / MIN_TICK_SPACING);
-		const tzone = this.props.xc.baseSer.timezone;
-		const tframe = this.props.xc.baseSer.timeframe;
-		let prevDt: Temporal.ZonedDateTime;
-
-		const yearTicks: Tick[] = []
-		const monthTicks: Tick[] = []
-		const weekTicks: Tick[] = []
-		const dayTicks: Tick[] = []
-		const hourTicks: Tick[] = []
-		const minuteTicks: Tick[] = []
-
-		const minute_locator = locatorDict['minute'][0]
-		for (let i = 1; i <= nBars; i++) {
-			const time = this.props.xc.tb(i)
-			const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
-			const x = this.props.xc.xb(i);
-
-			if (prevDt !== undefined) {
-				switch (tframe.unit.shortName) {
-					case 'm':
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-
-						} else if (dt.month !== prevDt.month) {
-							monthTicks.push({ dt, x, level: "month" })
-
-						} else if (dt.day !== prevDt.day) {
-							dayTicks.push({ dt, x, level: "day" })
-
-						} else if (dt.hour !== prevDt.hour) {
-							hourTicks.push({ dt, x, level: "hour" })
-
-						} else if (dt.minute !== prevDt.minute && minute_locator.includes(dt.minute)) {
-							minuteTicks.push({ dt, x, level: "minute" })
-						}
-
-						break;
-
-					case "h":
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-
-						} else if (dt.month !== prevDt.month) {
-							monthTicks.push({ dt, x, level: "month" })
-
-						} else if (dt.day !== prevDt.day) {
-							dayTicks.push({ dt, x, level: "day" })
-
-						} else if (dt.hour !== prevDt.hour) {
-							hourTicks.push({ dt, x, level: "hour" })
-						}
-
-						break
-
-					case "D":
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-
-						} else if (dt.month !== prevDt.month) {
-							monthTicks.push({ dt, x, level: "month" })
-
-						} else if (dt.day !== prevDt.day) {
-							dayTicks.push({ dt, x, level: "day" })
-						}
-
-						break;
-
-					case "W":
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-
-						} else if (dt.month !== prevDt.month) {
-							monthTicks.push({ dt, x, level: "month" })
-
-						} else if (dt.weekOfYear !== prevDt.weekOfYear) {
-							weekTicks.push({ dt, x, level: "week" })
-						}
-
-						break
-
-					case "M":
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-
-						} else if (dt.month !== prevDt.month) {
-							monthTicks.push({ dt, x, level: "month" })
-						}
-
-						break;
-
-					case "Y":
-						if (dt.year !== prevDt.year) {
-							yearTicks.push({ dt, x, level: "year" })
-						}
-				}
-
-			}
-
-			prevDt = dt;
-		}
-
-		let ticks: Tick[] = []
-		switch (tframe.unit.shortName) {
-			case "m":
-				ticks = fillTicks(ticks, minuteTicks, "minute", nTicksAround);
-				ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
-				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
-				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-
-				break;
-
-			case "h":
-				ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
-				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
-				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-
-				break
-
-			case "D":
-				ticks = fillTicks(ticks, dayTicks, "day", nTicksAround);
-				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-
-				break;
-
-			case "W":
-				ticks = fillTicks(ticks, weekTicks, "week", nTicksAround);
-				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-
-				break
-
-			case "M":
-				ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-
-				break;
-
-			case "Y":
-				ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
-		}
-
-		// --- path and texts
+		const ticks = this.props.xc.xTicks;
 
 		const hFont = 16;
 
@@ -385,7 +140,6 @@ class AxisX extends Component<Props, State> {
 		}
 
 		const hTick = 4;
-		prevDt = undefined
 		for (let i = 0; i < ticks.length; i++) {
 			const { dt, x, level } = ticks[i]
 			if (this.props.up) {
@@ -436,7 +190,6 @@ class AxisX extends Component<Props, State> {
 				texts.text(xText, hFont + 1, tickStr);
 			}
 
-			prevDt = dt
 		}
 
 		// draw end line
