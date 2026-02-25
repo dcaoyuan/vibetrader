@@ -119,7 +119,6 @@ export async function fetchSymbolList(filterText: string, init: RequestInit): Pr
                 return r.json()
             })
             .then(data => {
-                console.log("Yahoo search result:", data)
                 const tickers = data.quotes.map(({ symbol }) => ({ ticker: symbol }))
                 let items = tickers
                 if (items.length > 100) {
