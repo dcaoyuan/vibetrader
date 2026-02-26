@@ -141,7 +141,7 @@
 .grid path {
     stroke: var(--gray-600-light);
     fill: var(--gray-600-light);
-    stroke-width: 0.4px;
+    stroke-width: 0.5px;
 }
 
 .drawing-highlight path {
