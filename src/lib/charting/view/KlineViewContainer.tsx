@@ -902,12 +902,12 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
-    runScripts(scripts: { scriptName: string, script: string }[]) {
+    runScripts(scripts: string[]) {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
 
-        this.scripts = scripts;
+        this.scripts = scripts.map((script, i) => ({ scriptName: `ai_${Math.round(1000)}_${i}`, script }));
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
@@ -915,6 +915,37 @@ class KlineViewContainer extends Component<Props, State> {
 
         return new Promise<void>((resolve, reject) => {
             console.log("runScripts ...")
+            this.setState(
+                { isLoaded: false },
+                () => {
+                    this.currentLoading = this.fetchData_runScripts(undefined, 1000)
+                        .catch(ex => reject(ex))
+                        .then(() => resolve())
+
+                    return this.currentLoading
+                })
+        })
+    }
+
+    analyze(ticker: string, timeframe: string, scripts?: string[], tzone?: string) {
+        if (this.reloadDataTimeoutId) {
+            clearTimeout(this.reloadDataTimeoutId);
+        }
+
+        this.ticker = ticker
+        this.tframe = timeframe === undefined ? this.tframe : TFrame.ofName(timeframe)
+        this.tzone = tzone === undefined ? this.tzone : tzone
+        this.scripts = scripts === undefined ? this.scripts : scripts.map((script, i) => ({ scriptName: `ai_${Math.round(1000)}_${i}`, script }));
+
+        this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+
+        // Force related components re-render .
+        // NOTE When you call setState multiple times within the same synchronous block of code, 
+        // React batches these calls into a single update for performance reasons.
+        // So we set isLoaded to false here and use callback.
+        return new Promise<void>((resolve, reject) => {
             this.setState(
                 { isLoaded: false },
                 () => {
