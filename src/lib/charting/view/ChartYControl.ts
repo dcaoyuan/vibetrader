@@ -1,7 +1,10 @@
 import type { TSer } from "../../timeseris/TSer";
-import { getNormPow } from "../Normalize";
+import { getNormPow, normMinTick, normTickUnit } from "../Normalize";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import type { Scalar } from "../scalar/Scalar";
+
+const MIN_TICK_SPACING = 40 // in pixels
+
 
 export class ChartYControl {
 
@@ -45,6 +48,8 @@ export class ChartYControl {
     normScale: number
     shouldNormScale: boolean
     normMultiple: string
+
+    vTicks: number[]
 
 
     computeGeometry(maxValue: number, minValue: number) {
@@ -96,6 +101,8 @@ export class ChartYControl {
         this.shouldNormScale = this.normPow !== 0;
         this.normMultiple = "x 10^" + this.normPow;
 
+        this.vTicks = this.calcYTicks();
+
         // console.log('ChartYControl computeGeometry:',
         //   {
         //     hCanvas: this.#hCanvas,
@@ -114,6 +121,53 @@ export class ChartYControl {
         //   },
         // )
 
+    }
+
+    calcYTicks(): number[] {
+        let nTicksMax = 6.0;
+        while (this.hCanvas / nTicksMax < MIN_TICK_SPACING && nTicksMax > 2) {
+            nTicksMax -= 1
+        }
+
+        const maxValueOnCanvas = this.#maxValue
+        const minValueOnCanvas = this.#minValue
+
+
+        const vRange = maxValueOnCanvas - minValueOnCanvas
+        const potentialUnit = vRange / nTicksMax;
+        const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
+
+        const vMinTick = normMinTick(minValueOnCanvas, vTickUnit);
+        const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
+
+        const vTicks = [];
+        if (vMidTick === undefined) {
+            let i = 0
+            let vTick = minValueOnCanvas;
+            while (vTick <= maxValueOnCanvas) {
+                vTick = vMinTick + vTickUnit * i
+                if ((vTick > minValueOnCanvas || this.shouldNormScale) && vTick <= maxValueOnCanvas) {
+                    vTicks.push(vTick);
+                }
+
+                i++;
+            }
+
+        } else {
+            const minI = Math.sign(minValueOnCanvas) * Math.floor(Math.abs(minValueOnCanvas / vTickUnit));
+            let i = minI
+            let vTick = 0;
+            while (vTick >= minValueOnCanvas && vTick <= maxValueOnCanvas) {
+                vTick = vMidTick + vTickUnit * i
+                if ((vTick > minValueOnCanvas || this.shouldNormScale) && vTick <= maxValueOnCanvas) {
+                    vTicks.push(vTick);
+                }
+
+                i++;
+            }
+        }
+
+        return vTicks;
     }
 
     get yChartScale(): number {

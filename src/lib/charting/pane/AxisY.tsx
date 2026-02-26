@@ -1,10 +1,7 @@
 import { ChartXControl } from "../view/ChartXControl";
+import { ChartYControl } from "../view/ChartYControl";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
-import { ChartYControl } from "../view/ChartYControl";
-import { normMinTick, normTickUnit } from "../Normalize";
-
-const MIN_TICK_SPACING = 40 // in pixels
 
 type Props = {
     x: number,
@@ -21,48 +18,7 @@ const AxisY = (props: Props) => {
     const chart = plot();
 
     function plot() {
-        let nTicksMax = 6.0;
-        while (yc.hCanvas / nTicksMax < MIN_TICK_SPACING && nTicksMax > 2) {
-            nTicksMax -= 1
-        }
-
-        const maxValueOnCanvas = yc.maxValue
-        const minValueOnCanvas = yc.minValue
-
-
-        const vRange = maxValueOnCanvas - minValueOnCanvas
-        const potentialUnit = vRange / nTicksMax;
-        const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
-
-        const vMinTick = normMinTick(minValueOnCanvas, vTickUnit);
-        const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
-
-        const vTicks = [];
-        if (vMidTick === undefined) {
-            let i = 0
-            let vTick = minValueOnCanvas;
-            while (vTick <= maxValueOnCanvas) {
-                vTick = vMinTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || yc.shouldNormScale) && vTick <= maxValueOnCanvas) {
-                    vTicks.push(vTick);
-                }
-
-                i++;
-            }
-
-        } else {
-            const minI = Math.sign(minValueOnCanvas) * Math.floor(Math.abs(minValueOnCanvas / vTickUnit));
-            let i = minI
-            let vTick = 0;
-            while (vTick >= minValueOnCanvas && vTick <= maxValueOnCanvas) {
-                vTick = vMidTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || yc.shouldNormScale) && vTick <= maxValueOnCanvas) {
-                    vTicks.push(vTick);
-                }
-
-                i++;
-            }
-        }
+        const vTicks = yc.vTicks;
 
         const gridPath = new Path;
         const tickPath = new Path;
