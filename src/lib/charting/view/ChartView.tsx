@@ -72,6 +72,7 @@ export interface ViewState {
 
     chartLines: JSX.Element[];
     chartAxisy?: JSX.Element;
+    gridLines?: JSX.Element;
     overlayChartLines?: JSX.Element[];
     drawingLines?: JSX.Element[];
 
@@ -166,7 +167,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): Pick<ViewState, "chartLines" | "chartAxisy" | "overlayChartLines" | "drawingLines">;
+    abstract plot(): Pick<ViewState, "chartLines" | "chartAxisy" | "gridLines" | "overlayChartLines" | "drawingLines">;
 
     protected plotOverlayCharts(): JSX.Element[] {
         return [];
@@ -431,6 +432,47 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 {axisyTexts.render()}
             </g>
         )
+    }
+
+    // We'll plot grids in AxisX and AxisY, so ChartView doesn't need to care about grids
+    // Leave code here for reference.
+    plotGrids() {
+        const disable = true;
+        if (disable) {
+            return <></>
+
+        } else {
+            const xTicks = this.props.xc.xTicks;
+            const vTicks = this.yc.vTicks;
+            const gridPath = new Path;
+
+            // x grid lines
+            for (let i = 0; i < xTicks.length; i++) {
+                const { x } = xTicks[i];
+                gridPath.moveto(x, 0);
+                gridPath.lineto(x, this.props.height);
+            }
+
+            // y grid lines
+            for (let i = 0; i < vTicks.length; i++) {
+                const vTick = vTicks[i];
+                const yTick = Math.round(this.yc.yv(vTick))
+
+                if (this.yc.shouldNormScale && yTick > this.yc.hCanvas - 10) {
+                    // skip to leave space for normMultiple text 
+
+                } else {
+                    gridPath.moveto(0, yTick);
+                    gridPath.lineto(this.props.xc.wChart, yTick);
+                }
+            }
+
+            return (
+                <g className="grid" >
+                    {gridPath.render()}
+                </g>
+            )
+        }
     }
 
     // translate offset x, y to svg to x, y to this view
@@ -889,35 +931,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
     }
 
-    render() {
-        const transform = `translate(${this.props.x} ${this.props.y})`;
-        return (
-            <g transform={transform}
-                onDoubleClick={this.onDrawingMouseDoubleClick}
-                onMouseDown={this.onDrawingMouseDown}
-                onMouseMove={this.onDrawingMouseMove}
-                onMouseUp={this.onDrawingMouseUp}
-                cursor={this.state.cursor}
-                ref={this.ref}
-            >
-                {/* Invisible background to capture clicks in empty space */}
-                <rect width="100%" height="100%" fill="transparent" pointerEvents="all" />
 
-                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.chartAxisy}
-                {this.state.latestValueLabel}
-                {this.state.referCursor}
-                {this.state.mouseCursor}
-                {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {
-                    this.props.updateDrawing && this.props.updateDrawing.isHidingDrawing
-                        ? <></>
-                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
-                }
-                {this.state.sketching}
-            </g >
-        )
-    }
 
 }
 

@@ -1214,7 +1214,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 )}
                             </TagGroup>
                         </div>
+
                         <div style={{ position: 'relative', width: this.width, height: this.state.svgHeight }}>
+
                             <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
                                 width={this.width}
                                 height={this.state.svgHeight}
@@ -1238,9 +1240,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     tvar={this.kvar}
                                     updateEvent={this.state.updateEvent}
                                     updateDrawing={this.state.updateDrawing}
-
                                     overlayIndicators={this.state.overlayIndicators}
-
                                     callbacksToContainer={this.callbacks}
                                 />
 
@@ -1256,15 +1256,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     updateEvent={this.state.updateEvent}
                                 />
 
-                                <AxisX
-                                    id={"axisx"}
-                                    x={0}
-                                    y={this.state.yAxisx}
-                                    width={this.width}
-                                    height={this.hAxisx}
-                                    xc={this.xc}
-                                    updateEvent={this.state.updateEvent}
-                                />
+
                                 {
                                     this.state.stackedIndicators.map(({ scriptName, tvar, outputs }, n) =>
                                         <IndicatorView
@@ -1284,6 +1276,16 @@ class KlineViewContainer extends Component<Props, State> {
                                         />
                                     )
                                 }
+
+                                <AxisX
+                                    id={"axisx"}
+                                    x={0}
+                                    y={this.state.yAxisx}
+                                    width={this.width}
+                                    height={this.hAxisx}
+                                    xc={this.xc}
+                                    updateEvent={this.state.updateEvent}
+                                />
 
                                 {this.state.referCursor}
                                 {this.state.mouseCursor}

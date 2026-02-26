@@ -6,7 +6,7 @@ import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
 import AxisY from "../pane/AxisY";
 import PlotLine from "../plot/PlotLine";
-import { type JSX } from "react";
+import { Fragment, type JSX } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import PlotStepLine from "../plot/PlotStepLine";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
@@ -24,11 +24,12 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         this.yc.valueScalar = LINEAR_SCALAR;
 
-        const { chartLines, chartAxisy, overlayChartLines, drawingLines } = this.plot();
+        const { chartLines, chartAxisy, gridLines, overlayChartLines, drawingLines } = this.plot();
 
         this.state = {
             chartLines,
             chartAxisy,
+            gridLines,
             overlayChartLines,
             drawingLines
         };
@@ -56,10 +57,12 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
+        const gridLines = this.plotGrids();
+
         const overlayChartLines = this.plotOverlayCharts();
         const drawingLines = this.plotDrawings()
 
-        return { chartLines, chartAxisy, overlayChartLines, drawingLines }
+        return { chartLines, chartAxisy, gridLines, overlayChartLines, drawingLines }
     }
 
     protected override plotOverlayCharts() {
@@ -218,5 +221,35 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         return (this.props.tvar.getByTime(time) as Kline).close;
     }
 
+    render() {
+        const transform = `translate(${this.props.x} ${this.props.y})`;
+        return (
+            <g transform={transform}
+                onDoubleClick={this.onDrawingMouseDoubleClick}
+                onMouseDown={this.onDrawingMouseDown}
+                onMouseMove={this.onDrawingMouseMove}
+                onMouseUp={this.onDrawingMouseUp}
+                cursor={this.state.cursor}
+                ref={this.ref}
+            >
+                {/* Invisible background to capture clicks in empty space */}
+                <rect width={this.props.width} height={this.props.height} fill="transparent" pointerEvents="all" />
+
+                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.chartAxisy}
+                {this.state.gridLines}
+                {this.state.latestValueLabel}
+                {this.state.referCursor}
+                {this.state.mouseCursor}
+                {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {
+                    this.props.updateDrawing && this.props.updateDrawing.isHidingDrawing
+                        ? <></>
+                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
+                }
+                {this.state.sketching}
+            </g >
+        )
+    }
 }
 

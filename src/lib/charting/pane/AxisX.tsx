@@ -126,29 +126,34 @@ class AxisX extends Component<Props, State> {
 
 		const hFont = 16;
 
-		const path = new Path;
-		const texts = new Texts;
+		const gridPath = new Path;
+		const tickPath = new Path;
+		const tickTexts = new Texts;
 
 		// draw axis-x line 
 		if (this.props.up) {
-			path.moveto(0, this.props.height)
-			path.lineto(this.props.width, this.props.height)
+			tickPath.moveto(0, this.props.height)
+			tickPath.lineto(this.props.width, this.props.height)
 
 		} else {
-			path.moveto(0, 0)
-			path.lineto(this.props.width, 0)
+			tickPath.moveto(0, 0)
+			tickPath.lineto(this.props.width, 0)
 		}
 
 		const hTick = 4;
 		for (let i = 0; i < ticks.length; i++) {
 			const { dt, x, level } = ticks[i]
 			if (this.props.up) {
-				path.moveto(x, hFont - 1)
-				path.lineto(x, hFont - hTick)
+				tickPath.moveto(x, hFont - 1)
+				tickPath.lineto(x, hFont - hTick)
 
 			} else {
-				path.moveto(x, 1)
-				path.lineto(x, hTick)
+				tickPath.moveto(x, 1)
+				tickPath.lineto(x, hTick)
+
+				gridPath.moveto(x, 0);
+				console.log(this.props.y)
+				gridPath.lineto(x, -this.props.y);
 			}
 
 			const date = new Date(dt.epochMilliseconds);
@@ -184,29 +189,34 @@ class AxisX extends Component<Props, State> {
 			const xText = x - Math.round(wTickStr / 2);
 
 			if (this.props.up) {
-				texts.text(xText, hFont - hTick, tickStr);
+				tickTexts.text(xText, hFont - hTick, tickStr);
 
 			} else {
-				texts.text(xText, hFont + 1, tickStr);
+				tickTexts.text(xText, hFont + 1, tickStr);
 			}
 
 		}
 
 		// draw end line
 		if (this.props.up) {
-			path.moveto(0, this.props.height);
-			path.lineto(0, this.props.height - 8);
+			tickPath.moveto(0, this.props.height);
+			tickPath.lineto(0, this.props.height - 8);
 
 		} else {
-			path.moveto(0, 0);
-			path.lineto(0, 8);
+			tickPath.moveto(0, 0);
+			tickPath.lineto(0, 8);
 		}
 
 		return (
-			<g className="axis">
-				{path.render()}
-				{texts.render()}
-			</g>
+			<>
+				<g className="axis">
+					{tickPath.render()}
+					{tickTexts.render()}
+				</g>
+				<g className="grid" >
+					{gridPath.render()}
+				</g>
+			</>
 		);
 	}
 

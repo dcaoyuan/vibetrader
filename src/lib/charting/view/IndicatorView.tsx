@@ -18,11 +18,12 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        const { chartLines, chartAxisy } = this.plot();
+        const { chartLines, chartAxisy, gridLines } = this.plot();
 
         this.state = {
             chartLines,
             chartAxisy,
+            gridLines,
         };
     }
 
@@ -139,7 +140,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             yc={this.yc}
         />
 
-        return { chartLines, chartAxisy }
+        const gridLines = this.plotGrids();
+
+        return { chartLines, chartAxisy, gridLines }
     }
 
     override computeMaxValueMinValue() {
@@ -198,6 +201,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             <g transform={transform}>
                 {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.chartAxisy}
+                {this.state.gridLines}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
             </g>
