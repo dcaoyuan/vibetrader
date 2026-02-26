@@ -42,26 +42,28 @@ const PlotHistogram = (props: Props) => {
                 color = data?.options?.color
             }
 
-            if (!paths[color]) {
-                paths[color] = new Path()
-            }
+            if (value !== undefined && !isNaN(value)) {
+                if (!paths[color]) {
+                    paths[color] = new Path()
+                }
 
-            const path = paths[color]
+                const path = paths[color]
 
-            const y0 = yc.yv(0);
-            const yValue = yc.yv(value)
+                const y0 = yc.yv(0);
+                const yValue = yc.yv(value)
 
-            const x = xc.xb(bar)
+                const x = xc.xb(bar)
 
-            if (thin || xc.wBar <= 2) {
-                path.moveto(x, y0);
-                path.lineto(x, yValue);
+                if (thin || xc.wBar <= 2) {
+                    path.moveto(x, y0);
+                    path.lineto(x, yValue);
 
-            } else {
-                path.moveto(x - r, y0)
-                path.lineto(x - r, yValue)
-                path.lineto(x + r, yValue)
-                path.lineto(x + r, y0)
+                } else {
+                    path.moveto(x - r, y0)
+                    path.lineto(x - r, yValue)
+                    path.lineto(x + r, yValue)
+                    path.lineto(x + r, y0)
+                }
             }
         }
 
