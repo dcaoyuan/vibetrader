@@ -117,8 +117,6 @@ const allIndTags = dev
     ? ['ema', 'macd', 'rsi', 'bb', 'signals']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
-const TOOLTIP_DELAY = 500; // ms
-
 export const HSPACING = 25;
 
 class KlineViewContainer extends Component<Props, State> {
@@ -1016,7 +1014,7 @@ class KlineViewContainer extends Component<Props, State> {
                             selectedKeys={this.state.drawingIdsToCreate}
                             onSelectionChange={this.setDrawingIdsToCreate}
                         >
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="line">
                                     <Line />
                                 </ToggleButton>
@@ -1025,7 +1023,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="parallel">
                                     <Properties />
                                 </ToggleButton>
@@ -1034,7 +1032,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="gann_angles">
                                     <Collection />
                                 </ToggleButton>
@@ -1043,7 +1041,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="fibonacci_retrace" >
                                     <DistributeSpaceVertically />
                                 </ToggleButton>
@@ -1052,7 +1050,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="fibonacci_timezone">
                                     <DistributeSpaceHorizontally />
                                 </ToggleButton>
@@ -1061,7 +1059,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="fibonacci_retrace_v">
                                     <AudioWave />
                                 </ToggleButton>
@@ -1070,7 +1068,7 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                            <TooltipTrigger placement="end">
                                 <ToggleButton id="polyline" >
                                     <DirectSelect />
                                 </ToggleButton>
@@ -1083,7 +1081,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={() => this.setState({
                                 updateDrawing: {
                                     action: 'hide',
@@ -1098,7 +1096,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={() => this.setState({
                                 updateDrawing: {
                                     ...(this.state.updateDrawing),
@@ -1115,7 +1113,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={this.toggleKlineKind} >
                                 <DistributeHorizontalCenter />
                             </ActionButton>
@@ -1124,7 +1122,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={this.toggleScalar} >
                                 <Percentage />
                             </ActionButton>
@@ -1133,7 +1131,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        {/* <TooltipTrigger delay={TOOPTIP_DELAY} placement="end">
+                        {/* <TooltipTrigger placement="end">
                             <ActionButton onPress={this.toggleOnCalendarMode} >
                                 {this.state.xc.isOnCalendarMode ? <StarFilled /> : <Star />}
                             </ActionButton>
@@ -1142,7 +1140,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger> */}
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={this.backToOriginalChartScale} >
                                 <Maximize />
                             </ActionButton>
@@ -1151,7 +1149,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={this.toggleCrosshairVisiable} >
                                 <Add />
                             </ActionButton>
@@ -1162,7 +1160,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <ActionButton onPress={this.props.toggleColorTheme} >
                                 <BrightnessContrast />
                             </ActionButton>
@@ -1171,7 +1169,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </Tooltip>
                         </TooltipTrigger>
 
-                        <TooltipTrigger delay={500} placement="end">
+                        <TooltipTrigger placement="end">
                             <DialogTrigger>
                                 <ActionButton >
                                     <HelpCircle />
@@ -1190,7 +1188,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <Divider staticColor='auto' />
 
-                        <TooltipTrigger delay={TOOLTIP_DELAY} placement="end">
+                        <TooltipTrigger placement="end">
                             <DialogTrigger>
                                 <ActionButton onPress={this.handleTakeScreenshot} >
                                     <Exposure />
