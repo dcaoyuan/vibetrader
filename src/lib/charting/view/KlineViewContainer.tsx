@@ -119,6 +119,8 @@ const allIndTags = dev
 
 const TOOLTIP_DELAY = 500; // ms
 
+export const HSPACING = 25;
+
 class KlineViewContainer extends Component<Props, State> {
     width: number;
 
@@ -150,7 +152,7 @@ class KlineViewContainer extends Component<Props, State> {
     hVolumeView = 100;
     hIndicatorView = 160;
     hAxisx = 40;
-    hSpacing = 25;
+    hSpacing = HSPACING;
 
     callbacks: CallbacksToContainer
 

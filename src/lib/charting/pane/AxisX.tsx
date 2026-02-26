@@ -5,6 +5,7 @@ import { Component, type JSX, type RefObject, } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import React from "react";
 import { stringMetrics } from "../../Utils";
+import { HSPACING } from "../view/KlineViewContainer";
 
 type Props = {
 	id: string,
@@ -152,8 +153,7 @@ class AxisX extends Component<Props, State> {
 				tickPath.lineto(x, hTick)
 
 				gridPath.moveto(x, 0);
-				console.log(this.props.y)
-				gridPath.lineto(x, -this.props.y);
+				gridPath.lineto(x, -this.props.y + HSPACING);
 			}
 
 			const date = new Date(dt.epochMilliseconds);
