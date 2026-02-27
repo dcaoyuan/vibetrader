@@ -206,7 +206,11 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     updateWidth = () => {
-        this.updateWidthWthCallback();
+        this.updateWidthWthCallback(() => {
+            // console.log("Container width updated:", this.state.chartviewWidth);
+            this.xc.reinit();
+            this.update({ type: 'chart' });
+        });
     }
 
     updateWidthWthCallback = (callback?: () => void) => {

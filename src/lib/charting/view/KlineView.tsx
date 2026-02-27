@@ -51,7 +51,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const chartAxisy = <AxisY
             x={this.props.width - ChartView.AXISY_WIDTH}
             y={0}
-            width={ChartView.AXISY_WIDTH}
             height={this.props.height}
             xc={this.props.xc}
             yc={this.yc}

@@ -6,7 +6,6 @@ import { Texts } from "../../svg/Texts";
 type Props = {
     x: number,
     y: number,
-    width: number,
     height: number,
     xc: ChartXControl,
     yc: ChartYControl

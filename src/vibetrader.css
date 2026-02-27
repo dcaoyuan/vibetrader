@@ -45,14 +45,14 @@
 }
 
 .viewcontainer {
-    /* Take up all remaining available space (as large as possible) */
-    flex-grow: 1;
-    /* Allow shrinking when space is limited... */
-    flex-shrink: 1;
+    /* grow: 1, shrink: 1, basis: 900px */
+    flex: 1, 1, 900px;
+    /* This forces the element to rely on flex-basis/grow for width */
+    width: 0;
     /* ...but absolutely never shrink below 900px */
     min-width: 900px;
-    /* Ensure it expands to 100% width even in non-Flex environments */
-    width: 100%;
+    /* CRITICAL: Prevents internal SVG from stretching the div */
+    overflow: hidden;
 
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
