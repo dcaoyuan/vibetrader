@@ -92,7 +92,7 @@ const PlotFill = (props: Props) => {
             const time = xc.tb(bar)
             if (tvar.occurred(time)) {
                 const index = tvar.timestamps().indexOfOccurredTime(time)
-                const data = index >= 0 && index < datas.length ? datas[index] : undefined
+                const data = datas && index >= 0 && index < datas.length ? datas[index] : undefined
                 const v = data ? data.value : NaN;
 
                 // console.log(index, data)
