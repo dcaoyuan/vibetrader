@@ -11,7 +11,6 @@ import { fetchSymbolList } from "../../domain/DataFecther";
 
 type Props = {
     xc: ChartXControl,
-    width: number,
     height: number,
     updateEvent: UpdateEvent,
     tvar: TVar<Kline>,

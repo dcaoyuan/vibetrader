@@ -7,12 +7,9 @@ type HomePageProps = {
 }
 
 const HomePage = (props: HomePageProps) => {
-    const width = 800;
-
     return (
         <div className={style({ display: "flex" })}>
             <KlineViewContainer
-                width={width}
                 toggleColorTheme={props.toggleColorTheme}
                 colorTheme={props.colorTheme}
             />

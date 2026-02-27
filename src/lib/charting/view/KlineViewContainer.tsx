@@ -73,13 +73,12 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { Screenshot } from "../pane/Screenshot";
 
 type Props = {
-    width: number,
-
     toggleColorTheme?: () => void
     colorTheme?: 'light' | 'dark'
 }
 
 type State = {
+    chartviewWidth: number
     updateEvent?: UpdateEvent;
     updateDrawing?: UpdateDrawing;
 
@@ -120,7 +119,6 @@ const allIndTags = dev
 export const HSPACING = 25;
 
 class KlineViewContainer extends Component<Props, State> {
-    width: number;
 
     ticker: string;
     tframe: TFrame;
@@ -136,7 +134,7 @@ class KlineViewContainer extends Component<Props, State> {
     predefinedScripts: Map<string, string>;
     scripts?: { scriptName: string, script: string }[];
 
-    containerRef: React.RefObject<HTMLDivElement>;
+    chartviewRef: React.RefObject<HTMLDivElement>;
     globalKeyboardListener = undefined
     isDragging: boolean;
     xDragStart: number;
@@ -160,12 +158,12 @@ class KlineViewContainer extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
-        this.width = props.width;
 
-        this.containerRef = React.createRef();
+        this.chartviewRef = React.createRef();
 
         const geometry = this.#calcGeometry([]);
         this.state = {
+            chartviewWidth: 0,
             isLoaded: false,
             updateEvent: { type: 'chart', changed: 0 },
             updateDrawing: { isHidingDrawing: false },
@@ -204,6 +202,20 @@ class KlineViewContainer extends Component<Props, State> {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
             updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
             updateDrawingIdsToCreate: this.setDrawingIdsToCreate,
+        }
+    }
+
+    updateWidth = () => {
+        this.updateWidthWthCallback();
+    }
+
+    updateWidthWthCallback = (callback?: () => void) => {
+        // Ensure the ref is currently attached to a DOM node
+        if (this.chartviewRef.current) {
+            // You can use .offsetWidth or .getBoundingClientRect().width
+            const currentWidth = this.chartviewRef.current.offsetWidth;
+
+            this.setState({ chartviewWidth: currentWidth }, callback);
         }
     }
 
@@ -375,30 +387,35 @@ class KlineViewContainer extends Component<Props, State> {
             })
     })
 
+    override async componentDidMount() {
+        this.updateWidthWthCallback(() => {
 
-    override componentDidMount() {
-        this.fetchOPredefinedScripts(allIndTags).then(scripts => {
-            this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
-        }).then(() => {
-            this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
-            this.tframe = TFrame.DAILY
-            this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            //this. tzone = "America/Vancouver" 
+            this.fetchOPredefinedScripts(allIndTags).then(scripts => {
+                this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
+            }).then(() => {
+                this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
+                this.tframe = TFrame.DAILY
+                this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                //this. tzone = "America/Vancouver" 
 
-            this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-            this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-            this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+                this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+                this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+                this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
-            this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
-                this.globalKeyboardListener = this.onGlobalKeyDown;
-                document.addEventListener("keydown", this.onGlobalKeyDown);
+                this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
+                    this.globalKeyboardListener = this.onGlobalKeyDown;
+                    document.addEventListener("keydown", this.onGlobalKeyDown);
 
-                if (this.containerRef.current) {
-                    this.containerRef.current.focus()
-                }
+                    if (this.chartviewRef.current) {
+                        this.chartviewRef.current.focus()
+                    }
+                })
+
             })
-
         })
+
+        // Optional: Add a resize listener if the width might change when the window resizes
+        window.addEventListener('resize', this.updateWidth);
     }
 
     override componentWillUnmount() {
@@ -409,6 +426,8 @@ class KlineViewContainer extends Component<Props, State> {
         if (this.globalKeyboardListener) {
             document.removeEventListener("keydown", this.onGlobalKeyDown)
         }
+
+        window.removeEventListener('resize', this.updateWidth);
     }
 
     update(event: UpdateEvent) {
@@ -503,7 +522,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     isNotInAxisYArea(x: number) {
-        return x < this.width - ChartView.AXISY_WIDTH
+        return x < this.state.chartviewWidth - ChartView.AXISY_WIDTH
     }
 
     translate(e: React.MouseEvent) {
@@ -867,7 +886,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     takeScreenshot(): Promise<HTMLCanvasElement> {
-        return html2canvas(this.containerRef.current, {
+        return html2canvas(this.chartviewRef.current, {
             useCORS: true // in case you have images stored in your application
         })
     }
@@ -883,7 +902,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
         // Force related components re-render .
         // NOTE When you call setState multiple times within the same synchronous block of code, 
@@ -911,7 +930,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {
             console.log("runScripts ...")
@@ -939,7 +958,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
         // Force related components re-render .
         // NOTE When you call setState multiple times within the same synchronous block of code, 
@@ -967,7 +986,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.width - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {
             this.setState(
@@ -1001,7 +1020,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     render() {
         return (
-            <div style={{ display: "flex" }} >
+            <div style={{ display: "flex", width: '100%' }}>
 
                 {/* Toolbar */}
                 <div style={{ display: "inline-block", paddingTop: '3px' }}>
@@ -1210,14 +1229,13 @@ class KlineViewContainer extends Component<Props, State> {
                 </div>
 
                 {/* View Container */}
-                <div className="container" style={{ paddingLeft: '6px', width: this.width + 'px', height: this.state.containerHeight + 'px' }}
+                <div className="viewcontainer" style={{ paddingLeft: '6px', height: this.state.containerHeight + 'px' }}
                     key="klineviewcontainer"
-                    ref={this.containerRef}
+                    ref={this.chartviewRef}
                 >
                     {this.state.isLoaded && (<>
-                        <div className="title" style={{ width: this.width, height: this.hTitle }}>
+                        <div className="title" style={{ width: '100%', height: this.hTitle }}>
                             <Title
-                                width={this.width}
                                 height={this.hTitle}
                                 xc={this.xc}
                                 tvar={this.kvar}
@@ -1228,11 +1246,7 @@ class KlineViewContainer extends Component<Props, State> {
                             <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
                         </div>
 
-                        <div className="" style={{
-                            display: 'flex', justifyContent: 'flex-start',
-                            width: this.width, height: this.hIndtags,
-                            paddingTop: "0px"
-                        }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', height: this.hIndtags, paddingTop: "0px" }}>
                             <TagGroup
                                 aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
                                 size="S"
@@ -1246,10 +1260,10 @@ class KlineViewContainer extends Component<Props, State> {
                             </TagGroup>
                         </div>
 
-                        <div style={{ position: 'relative', width: this.width, height: this.state.svgHeight }}>
+                        <div style={{ position: 'relative', width: '100%', height: this.state.svgHeight }}>
 
-                            <svg viewBox={`0, 0, ${this.width} ${this.state.svgHeight}`}
-                                width={this.width}
+                            <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.state.svgHeight}`}
+                                width={this.state.chartviewWidth}
                                 height={this.state.svgHeight}
                                 vectorEffect="non-scaling-stroke"
                                 onDoubleClick={this.onDoubleClick}
@@ -1264,7 +1278,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     id={"kline"}
                                     x={0}
                                     y={this.state.yKlineView}
-                                    width={this.width}
+                                    width={this.state.chartviewWidth}
                                     height={this.hKlineView}
                                     name=""
                                     xc={this.xc}
@@ -1279,7 +1293,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     id={"volume"}
                                     x={0}
                                     y={this.state.yVolumeView}
-                                    width={this.width}
+                                    width={this.state.chartviewWidth}
                                     height={this.hVolumeView}
                                     name="Vol"
                                     xc={this.xc}
@@ -1296,7 +1310,7 @@ class KlineViewContainer extends Component<Props, State> {
                                             name={"Indicator-" + n}
                                             x={0}
                                             y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
-                                            width={this.width}
+                                            width={this.state.chartviewWidth}
                                             height={this.hIndicatorView}
                                             xc={this.xc}
                                             tvar={tvar}
@@ -1312,7 +1326,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     id={"axisx"}
                                     x={0}
                                     y={this.state.yAxisx}
-                                    width={this.width}
+                                    width={this.state.chartviewWidth}
                                     height={this.hAxisx}
                                     xc={this.xc}
                                     updateEvent={this.state.updateEvent}

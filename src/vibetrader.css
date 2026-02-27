@@ -44,7 +44,16 @@
     }
 }
 
-.container {
+.viewcontainer {
+    /* Take up all remaining available space (as large as possible) */
+    flex-grow: 1;
+    /* Allow shrinking when space is limited... */
+    flex-shrink: 1;
+    /* ...but absolutely never shrink below 900px */
+    min-width: 900px;
+    /* Ensure it expands to 100% width even in non-Flex environments */
+    width: 100%;
+
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-size: 12px;
     cursor: default;
@@ -54,40 +63,40 @@
     }
 }
 
-.container div.header {
+.viewcontainer div.header {
     grid-area: header;
 }
 
-.container div.content {
+.viewcontainer div.content {
     grid-area: content;
 }
 
-.container div.axisy {
+.viewcontainer div.axisy {
     grid-area: axisy;
 }
 
-.container div.axisx {
+.viewcontainer div.axisx {
     grid-area: axisx;
 }
 
-.container div.footer {
+.viewcontainer div.footer {
     grid-area: footer;
 }
 
-.container div.title {
+.viewcontainer div.title {
     position: relative;
     border-bottom: 2px solid var(--gray-600-light);
     color: var(--text-color);
 }
 
-.container div.borderLeftUp {
+.viewcontainer div.borderLeftUp {
     border-left: 1px solid var(--gray-600-light);
     position: absolute;
     top: 80%;
     bottom: 0;
 }
 
-.container div.borderLeftDown {
+.viewcontainer div.borderLeftDown {
     border-left: 1px solid var(--gray-100);
     position: absolute;
     top: 0;
