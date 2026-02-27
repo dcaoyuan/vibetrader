@@ -1228,7 +1228,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                 </div>
 
-                {/* View Container */}
+                {/* View Container, width should be set at '.viewcontainer' in vibetrader.css */}
                 <div className="viewcontainer" style={{ paddingLeft: '6px', height: this.state.containerHeight + 'px' }}
                     key="klineviewcontainer"
                     ref={this.chartviewRef}
