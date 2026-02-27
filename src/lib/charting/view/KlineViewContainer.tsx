@@ -135,6 +135,8 @@ class KlineViewContainer extends Component<Props, State> {
     scripts?: { scriptName: string, script: string }[];
 
     chartviewRef: React.RefObject<HTMLDivElement>;
+    resizeObserver: ResizeObserver;
+
     globalKeyboardListener = undefined
     isDragging: boolean;
     xDragStart: number;
@@ -202,24 +204,6 @@ class KlineViewContainer extends Component<Props, State> {
             updateOverlayIndicatorLabels: this.setOverlayIndicatorLabels,
             updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
             updateDrawingIdsToCreate: this.setDrawingIdsToCreate,
-        }
-    }
-
-    updateWidth = () => {
-        this.updateWidthWthCallback(() => {
-            // console.log("Container width updated:", this.state.chartviewWidth);
-            this.xc.reinit();
-            this.update({ type: 'chart' });
-        });
-    }
-
-    updateWidthWthCallback = (callback?: () => void) => {
-        // Ensure the ref is currently attached to a DOM node
-        if (this.chartviewRef.current) {
-            // You can use .offsetWidth or .getBoundingClientRect().width
-            const currentWidth = this.chartviewRef.current.offsetWidth;
-
-            this.setState({ chartviewWidth: currentWidth }, callback);
         }
     }
 
@@ -392,34 +376,43 @@ class KlineViewContainer extends Component<Props, State> {
     })
 
     override async componentDidMount() {
-        this.updateWidthWthCallback(() => {
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // contentRect is more accurate than offsetWidth for scaling
+                const { width } = entry.contentRect;
+                this.setState({ chartviewWidth: width });
+            }
+        });
 
-            this.fetchOPredefinedScripts(allIndTags).then(scripts => {
-                this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
-            }).then(() => {
-                this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
-                this.tframe = TFrame.DAILY
-                this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                //this. tzone = "America/Vancouver" 
+        if (this.chartviewRef.current) {
+            this.resizeObserver.observe(this.chartviewRef.current);
+        }
 
-                this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-                this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-                this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
-                this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
-                    this.globalKeyboardListener = this.onGlobalKeyDown;
-                    document.addEventListener("keydown", this.onGlobalKeyDown);
+        this.fetchOPredefinedScripts(allIndTags).then(scripts => {
+            this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
+        }).then(() => {
+            this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
+            this.tframe = TFrame.DAILY
+            this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            //this. tzone = "America/Vancouver" 
 
-                    if (this.chartviewRef.current) {
-                        this.chartviewRef.current.focus()
-                    }
-                })
+            this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
+            this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+            this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
 
+            this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
+                this.globalKeyboardListener = this.onGlobalKeyDown;
+                document.addEventListener("keydown", this.onGlobalKeyDown);
+
+                if (this.chartviewRef.current) {
+                    this.chartviewRef.current.focus()
+                }
             })
         })
 
         // Optional: Add a resize listener if the width might change when the window resizes
-        window.addEventListener('resize', this.updateWidth);
+        // window.addEventListener('resize', this.updateWidth);
     }
 
     override componentWillUnmount() {
@@ -431,7 +424,9 @@ class KlineViewContainer extends Component<Props, State> {
             document.removeEventListener("keydown", this.onGlobalKeyDown)
         }
 
-        window.removeEventListener('resize', this.updateWidth);
+        this.resizeObserver.disconnect();
+
+        // window.removeEventListener('resize', this.updateWidth);
     }
 
     update(event: UpdateEvent) {
