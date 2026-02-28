@@ -7,7 +7,6 @@ import PlotLine from "../plot/PlotLine";
 import PlotHistogram from "../plot/PlotHistogram";
 import { Fragment, type JSX } from "react/jsx-runtime";
 import PlotShape from "../plot/PlotShape";
-import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
 import PlotFill from "../plot/PlotFill";
@@ -35,7 +34,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const yc = this.yc
         const tvar = this.props.tvar as TVar<PineData[]>
 
-        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, plot1, plot2, options }) => {
+        const chartLines = this.props.mainIndicatorOutputs.map(({ atIndex, title, options }) => {
             let chart: JSX.Element;
             switch (options.style) {
                 case 'style_histogram':
@@ -45,7 +44,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={xc}
                         yc={yc}
                         depth={0}
-                        options={options as PlotOptions}
+                        options={options}
                         name={title}
                         atIndex={atIndex}
                     />
@@ -56,7 +55,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                     chart = <PlotCrossCircles
                         tvar={tvar}
                         name={title}
-                        options={options as PlotOptions}
+                        options={options}
                         atIndex={atIndex}
                         xc={xc}
                         yc={yc}
@@ -71,7 +70,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={xc}
                         yc={yc}
                         depth={0}
-                        options={options as PlotShapeOptions}  // todo, back to PlotCharOption
+                        options={options}  // todo, back to PlotCharOption
                         name={title}
                         atIndex={atIndex}
                     />
@@ -83,7 +82,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={xc}
                         yc={yc}
                         depth={0}
-                        options={options as PlotOptions}
+                        options={options}
                         name={title}
                         atIndex={atIndex}
                     />
@@ -95,10 +94,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={xc}
                         yc={yc}
                         depth={0}
-                        options={options as PlotOptions}
+                        options={options}
                         name={title}
-                        plot1={plot1}
-                        plot2={plot2}
                     />
                     break
 
@@ -109,7 +106,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         yc={yc}
                         depth={0}
                         atIndex={atIndex}
-                        options={options as PlotOptions}
+                        options={options}
                         name={title}
                     />
                     break
@@ -122,7 +119,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                         xc={xc}
                         yc={yc}
                         depth={0}
-                        options={options as PlotOptions}
+                        options={options}
                         name={title}
                         atIndex={atIndex}
                     />

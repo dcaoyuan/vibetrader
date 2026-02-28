@@ -11,7 +11,6 @@ import { LN_SCALAR } from "../scalar/LnScalar";
 import PlotStepLine from "../plot/PlotStepLine";
 import PlotCrossCircles from "../plot/PlotCrossCircles";
 import PlotShape from "../plot/PlotShape";
-import type { PlotOptions, PlotShapeOptions } from "../plot/Plot";
 import PlotHline from "../plot/PlotHline";
 import PlotFill from "../plot/PlotFill";
 import PlotBgcolor from "../plot/PlotBgcolor";
@@ -73,7 +72,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 const yc = this.yc
                 const tvar = indicator.tvar;
 
-                for (const { title, atIndex, plot1, plot2, options } of indicator.outputs) {
+                for (const { title, atIndex, options } of indicator.outputs) {
                     let chart: JSX.Element;
                     switch (options.style) {
                         case 'style_linebr':
@@ -81,7 +80,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             chart = <PlotStepLine
                                 tvar={tvar}
                                 name={title}
-                                options={options as PlotOptions}
+                                options={options}
                                 atIndex={atIndex}
                                 xc={xc}
                                 yc={yc}
@@ -94,7 +93,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             chart = <PlotCrossCircles
                                 tvar={tvar}
                                 name={title}
-                                options={options as PlotOptions}
+                                options={options}
                                 atIndex={atIndex}
                                 xc={xc}
                                 yc={yc}
@@ -109,7 +108,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 xc={xc}
                                 yc={yc}
                                 depth={0}
-                                options={options as PlotShapeOptions}  // todo, back to PlotCharOption
+                                options={options}
                                 name={title}
                                 atIndex={atIndex}
                             />
@@ -121,7 +120,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 xc={xc}
                                 yc={yc}
                                 depth={0}
-                                options={options as PlotOptions}
+                                options={options}
                                 name={title}
                                 atIndex={atIndex}
                             />
@@ -133,10 +132,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 xc={xc}
                                 yc={yc}
                                 depth={0}
-                                options={options as PlotOptions}
+                                options={options}
                                 name={title}
-                                plot1={plot1}
-                                plot2={plot2}
                             />
                             break
 
@@ -147,7 +144,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                                 yc={yc}
                                 depth={0}
                                 atIndex={atIndex}
-                                options={options as PlotOptions}
+                                options={options}
                                 name={title}
                             />
                             break
@@ -158,7 +155,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                             chart = <PlotLine
                                 tvar={tvar}
                                 name={title}
-                                options={options as PlotOptions}
+                                options={options}
                                 atIndex={atIndex}
                                 xc={xc}
                                 yc={yc}

@@ -12,13 +12,11 @@ type Props = {
     tvar: TVar<PineData[]>,
     name: string,
     options: PlotOptions;
-    plot1: PineData[];
-    plot2: PineData[];
     depth?: number;
 }
 
 const PlotFill = (props: Props) => {
-    const { xc, yc, tvar, name, depth, plot1, plot2, options } = props;
+    const { xc, yc, tvar, name, depth, options } = props;
 
     const fillgaps = options.fillgaps;
 
@@ -27,9 +25,12 @@ const PlotFill = (props: Props) => {
         : Math.floor((xc.wBar - 2) / 2);
 
     function plot() {
+        const plot1Index = options.plot1 as number;
+        const plot2Index = options.plot2 as number;
+
         const segs: Seg[] = [];
-        const points_a = collectPoints(plot1);
-        const points_b = collectPoints(plot2);
+        const points_a = collectPoints(plot1Index);
+        const points_b = collectPoints(plot2Index);
 
         let shallStartNewFill = true
 
@@ -83,7 +84,7 @@ const PlotFill = (props: Props) => {
         return { segs }
     }
 
-    function collectPoints(datas: PineData[]) {
+    function collectPoints(plotIndex: number) {
         const points: number[][] = []
 
         for (let bar = 1; bar <= xc.nBars; bar++) {
@@ -91,8 +92,8 @@ const PlotFill = (props: Props) => {
             let value: number
             const time = xc.tb(bar)
             if (tvar.occurred(time)) {
-                const index = tvar.timestamps().indexOfOccurredTime(time)
-                const data = datas && index >= 0 && index < datas.length ? datas[index] : undefined
+                const datas = tvar.getByTime(time);
+                const data = datas ? datas[plotIndex] : undefined;
                 const v = data ? data.value : NaN;
 
                 // console.log(index, data)

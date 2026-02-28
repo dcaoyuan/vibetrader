@@ -113,7 +113,7 @@ type State = {
 const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['ema', 'macd', 'rsi', 'bb', 'signals']
+    ? ['bb',]
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 export const HSPACING = 25;
@@ -297,26 +297,40 @@ class KlineViewContainer extends Component<Props, State> {
                                     console.error(error, data)
                                 }
 
-                                // console.log(result)
+                                // console.log(plots)
                                 console.log(scriptName + ' data\n', data)
                                 console.log(scriptName + ' options\n', plots.map(x => x.options))
 
+                                const plotKeys = plots.map((p) => p._plotKey)
+
                                 const isOverlayIndicator = indicator !== undefined && indicator.overlay
 
-                                // plot1, plot2 from fill function
-                                const [overlayOutputs, stackedOutputs] = plots.reduce(([overlayOutputs, stackedOutputs], { title, plot1, plot2, options }, atIndex) => {
+                                const [overlayOutputs, stackedOutputs] = plots.reduce(([overlayOutputs, stackedOutputs], { title, options }, atIndex) => {
                                     const style = options.style
                                     const location = options.location
                                     const isForceOverlay = options.force_overlay === true
                                     const notForceOverlay = options.force_overlay === false
 
-                                    //console.log(plot1, plot2)
+                                    // plot1 and plot2 are for fill, they can be assigned with plotKey to refer to another plot's data
+                                    // here we convert them to index for easier processing in view
+                                    if (options.plot1) {
+                                        const index = plotKeys.findIndex(k => k === options.plot1)
+                                        if (index !== -1) {
+                                            options.plot1 = index
+                                        }
+                                    }
+                                    if (options.plot2) {
+                                        const index = plotKeys.findIndex(k => k === options.plot2)
+                                        if (index !== -1) {
+                                            options.plot2 = index
+                                        }
+                                    }
 
                                     const isOverlayOutputShapeAndLocation = (
                                         (style === 'shape' || style === 'char') && (location === 'abovebar' || location === 'belowbar')
                                     )
 
-                                    const output = { atIndex, title, plot1, plot2, options }
+                                    const output = { atIndex, title, options }
 
                                     if (isOverlayOutputShapeAndLocation || isForceOverlay) {
                                         overlayOutputs.push(output)
@@ -387,7 +401,6 @@ class KlineViewContainer extends Component<Props, State> {
         if (this.chartviewRef.current) {
             this.resizeObserver.observe(this.chartviewRef.current);
         }
-
 
         this.fetchOPredefinedScripts(allIndTags).then(scripts => {
             this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))

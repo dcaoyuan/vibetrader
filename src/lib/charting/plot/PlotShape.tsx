@@ -3,12 +3,12 @@ import { Path } from "../../svg/Path";
 import type { ChartYControl } from "../view/ChartYControl";
 import type { ChartXControl } from "../view/ChartXControl";
 import { KVAR_NAME, type Kline, } from "../../domain/Kline";
-import type { PlotShapeOptions } from "./Plot";
 import type { Seg } from "../../svg/Seg";
 import { Circle } from "../../svg/Circle";
 import type { PineData } from "../../domain/PineData";
 import { stringMetrics } from "../../Utils";
 import { Texts } from "../../svg/Texts";
+import type { PlotOptions } from "./Plot";
 
 type Props = {
     xc: ChartXControl,
@@ -16,7 +16,7 @@ type Props = {
     tvar: TVar<PineData[]>,
     name: string,
     atIndex: number,
-    options: PlotShapeOptions
+    options: PlotOptions
     depth?: number;
 }
 

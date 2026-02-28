@@ -13,7 +13,7 @@ import React from "react";
 import type { Scalar } from "../scalar/Scalar";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
-import type { PlotCharOptions, PlotOptions, PlotShapeOptions } from "../plot/Plot";
+import type { PlotOptions } from "../plot/Plot";
 import { stringMetrics } from "../../Utils";
 import type { PineData } from "../../domain/PineData";
 
@@ -35,9 +35,7 @@ export type Indicator = {
 export type Output = {
     atIndex: number,
     title: string,
-    plot1: PineData[], // for fill
-    plot2: PineData[], // for fill
-    options: PlotOptions | PlotCharOptions | PlotShapeOptions
+    options: PlotOptions
 }
 
 export type UpdateDrawing = {
