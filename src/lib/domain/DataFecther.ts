@@ -3,22 +3,12 @@ import type { TSer } from "../timeseris/TSer";
 import { Kline, KVAR_NAME } from "./Kline";
 import * as Binance from "./BinanaceData";
 import * as Yahoo from "./YFinanceData";
-
-import { Provider as PinetsProveder, PineTS as PinetsPineTS } from "pinets";
-//import { Provider as PinetsProveder } from "../../../../PineTS/src/marketData/Provider.class";
-//import { PineTS as PinetsPineTS } from '../../../../PineTS/src/PineTS.class';
-
-export const dev = false
-
-export { PinetsProveder as Provider };
-export { PinetsPineTS as PineTS };
+import { Provider } from "pinets";
 
 export enum Source {
     yfinance,
     binance
 }
-
-export const source: Source = dev ? Source.yfinance : Source.binance
 
 export const fetchData = async (source: Source, baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => {
     let fetch: (baseSer: TSer, ticker: string, tframe: TFrame, tzone: string, startTime?: number, limit?: number) => Promise<number>
@@ -65,7 +55,7 @@ const fetchDataBinance = async (baseSer: TSer, ticker: string, tframe: TFrame, t
         ? startTime
         : backLimitTime //endTime - 300 * 3600 * 1000 * 24; // back 300 days
 
-    const provider = PinetsProveder.Binance
+    const provider = Provider.Binance
     const pinets_tframe = Binance.timeframe_to_pinetsProvider[tframe.shortName] || tframe.shortName
 
     return provider.getMarketData(ticker, pinets_tframe, limit, startTime, endTime)
@@ -127,7 +117,7 @@ const fetchDataYahoo = async (baseSer: TSer, ticker: string, tframe: TFrame, tzo
 }
 
 
-export function fetchSymbolList(filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
+export function fetchSymbolList(source: Source, filterText: string, init: RequestInit): Promise<{ ticker: string }[]> {
     let fetch: (filterText: string, init: RequestInit) => Promise<{ ticker: string }[]>
 
     //console.log(`Fetching symbol list for filter: "${filterText}" from source: ${Source[source]}`)

@@ -8,6 +8,7 @@ import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrig
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { TFrame } from "../../timeseris/TFrame";
 import { fetchSymbolList } from "../../domain/DataFecther";
+import { source } from "../../domain/Env";
 
 type Props = {
     xc: ChartXControl,
@@ -40,7 +41,7 @@ export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChang
 
     const list = useAsyncList<{ ticker: string }>({
         async load({ signal, filterText }) {
-            const items = await fetchSymbolList(filterText, { signal });
+            const items = await fetchSymbolList(source, filterText, { signal });
             return { items };
         }
     });

@@ -16,9 +16,11 @@ import { DefaultTSer } from "../../timeseris/DefaultTSer";
 import { TFrame } from "../../timeseris/TFrame";
 import type { KlineKind } from "../plot/PlotKline";
 import type { Plot } from "../plot/Plot";
-import { dev, fetchData, PineTS, Source } from "../../domain/DataFecther";
+import { dev, source } from "../../domain/Env";
 import { tframeToPineTimeframe, type PineData } from "../../domain/PineData";
 import { TSerProvider } from "../../domain/TSerProvider";
+import { Screenshot } from "../pane/Screenshot";
+import { PineTS } from "pinets";
 
 import {
     ActionButton,
@@ -69,8 +71,7 @@ import StarFilled from '@react-spectrum/s2/icons/StarFilled';
 import Star from '@react-spectrum/s2/icons/Star';
 import Exposure from '@react-spectrum/s2/icons/Exposure';
 import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
-
-import { Screenshot } from "../pane/Screenshot";
+import { fetchData, Source } from "../../domain/DataFecther";
 
 type Props = {
     toggleColorTheme?: () => void
@@ -110,10 +111,9 @@ type State = {
     screenshot: HTMLCanvasElement
 }
 
-const source: Source = dev ? Source.yfinance : Source.binance
 
 const allIndTags = dev
-    ? ['bb',]
+    ? ['ema', 'bb', 'rsi', 'macd', 'kdj', 'signals']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj']
 
 export const HSPACING = 25;
