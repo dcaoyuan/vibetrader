@@ -13,6 +13,8 @@ declare module '@react-spectrum/s2' {
     }
 }
 
+export type ColorScheme = 'light' | 'dark'
+
 const getMatches = (query: string) => window.matchMedia(query).matches;
 
 function App() {
@@ -20,25 +22,25 @@ function App() {
 
     const systemScheme = getMatches('(prefers-color-scheme: dark)') ? 'dark' : 'light';
 
-    const [colorTheme, setColorTheme] = useState(systemScheme);
+    const [colorScheme, setColorScheme] = useState(systemScheme);
 
     const toggleColorTheme = () => {
-        switch (colorTheme) {
+        switch (colorScheme) {
             case 'light':
-                setColorTheme('dark');
+                setColorScheme('dark');
                 break;
 
             case 'dark':
-                setColorTheme('light');
+                setColorScheme('light');
                 break;
         }
     }
 
     return (
-        <Provider colorScheme={colorTheme as 'light' | 'dark'} background="base" router={{ navigate, useHref }} >
+        <Provider colorScheme={colorScheme as 'light' | 'dark'} background="base" router={{ navigate, useHref }} >
             {/* Color Theme Selector */}
             <div>
-                <select hidden id="color-scheme" value={colorTheme} onChange={() => { }}>
+                <select hidden id="color-scheme" value={colorScheme} onChange={() => { }}>
                     <option value="system">System</option>
                     <option value="dark">Dark</option>
                     <option value="light">Light</option>
@@ -47,10 +49,10 @@ function App() {
 
             <Routes>
                 <Route path="/" element={
-                    <HomePage toggleColorTheme={toggleColorTheme} colorTheme={colorTheme as 'light' | 'dark'} />
+                    <HomePage toggleColorScheme={toggleColorTheme} colorScheme={colorScheme} />
                 } />
                 <Route path="/vibetrader" element={
-                    <HomePage toggleColorTheme={toggleColorTheme} colorTheme={colorTheme as 'light' | 'dark'} />
+                    <HomePage toggleColorScheme={toggleColorTheme} colorScheme={colorScheme} />
                 } />
             </Routes>
         </Provider>

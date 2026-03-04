@@ -74,8 +74,8 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { fetchData, Source } from "../../domain/DataFecther";
 
 type Props = {
-    toggleColorTheme?: () => void
-    colorTheme?: 'light' | 'dark'
+    toggleColorScheme: () => void
+    colorScheme: 'light' | 'dark'
     chartOnly: boolean
 }
 
@@ -1195,11 +1195,11 @@ class KlineViewContainer extends Component<Props, State> {
                             <Divider staticColor='auto' />
 
                             <TooltipTrigger placement="end">
-                                <ActionButton onPress={this.props.toggleColorTheme} >
+                                <ActionButton onPress={this.props.toggleColorScheme} >
                                     <BrightnessContrast />
                                 </ActionButton>
                                 <Tooltip>
-                                    Toggle color theme
+                                    Toggle color scheme
                                 </Tooltip>
                             </TooltipTrigger>
 
