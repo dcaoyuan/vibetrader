@@ -900,7 +900,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     takeScreenshot(): Promise<HTMLCanvasElement> {
         return html2canvas(this.chartviewRef.current, {
-            useCORS: true // in case you have images stored in your application
+            useCORS: true, // in case you have images stored in your application
+            backgroundColor: null // Sets the canvas background to transparent
         })
     }
 
