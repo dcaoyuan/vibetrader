@@ -114,7 +114,6 @@ type State = {
 
 
 const allIndTags = dev
-    // ? ['pivot']
     ? ['ema', 'bb', 'rsi', 'macd', 'kdj', 'signals', 'diagonal', 'ichimoku', 'dynline', 'pivot', 'sarstoch']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj', 'ichimoku', 'diagonal']
 
