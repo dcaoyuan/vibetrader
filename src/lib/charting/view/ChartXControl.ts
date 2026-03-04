@@ -4,6 +4,7 @@ import type { KlineKind } from "../plot/PlotKline"
 import { LINEAR_SCALAR } from "../scalar/LinearScala"
 import type { Scalar } from "../scalar/Scalar"
 import { TUnit } from "../../timeseris/TUnit"
+import { dev } from "../../../Env"
 
 
 // --- xticks related code
@@ -134,7 +135,7 @@ export class ChartXControl {
 
     readonly baseSer: TSer;
 
-    #wBarIdx = 10;
+    #wBarIdx = dev ? 10 : 11;
     /** pixels per bar (bar width in pixels) */
     wBar = ChartXControl.PREDEFINED_BAR_WIDTHS[this.#wBarIdx]
 
