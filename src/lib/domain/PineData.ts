@@ -27,7 +27,7 @@ export type LinefillObject = {
 export type PineData = {
     title?: string,
     time: number,
-    value: number | boolean | LineObject[] | LinefillObject,
+    value: number | boolean | LineObject[] | LinefillObject[],
     options?: { color: string }
 }
 

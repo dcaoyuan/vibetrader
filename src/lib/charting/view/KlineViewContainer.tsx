@@ -298,9 +298,9 @@ class KlineViewContainer extends Component<Props, State> {
                                     console.error(error, data)
                                 }
 
-                                // console.log(plots)
-                                console.log(scriptName + ' data\n', data)
-                                console.log(scriptName + ' options\n', plots.map(x => JSON.stringify(x.options)))
+                                // console.log(result)
+                                console.log(scriptName + ' data:\n', data)
+                                console.log(scriptName + ' options:\n', plots.map(x => JSON.stringify(x.options)))
 
                                 const plotKeys = plots.map((p) => p._plotKey)
 

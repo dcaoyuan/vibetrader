@@ -16,8 +16,7 @@ type Props = {
     depth?: number;
 }
 
-const PlotDrawingLineFill = (props: Props) => {
-    const { xc, yc, tvar, atIndex } = props
+const PlotDrawingLineFill = ({ xc, yc, tvar, atIndex }: Props) => {
 
     const chartWidth = xc.wChart;
     const chartHeight = yc.hChart;
@@ -27,8 +26,11 @@ const PlotDrawingLineFill = (props: Props) => {
 
         if (targetY > chartHeight) {
             return { x: xOnLine(chartHeight, refX, refY, k), y: chartHeight };
+
         } else if (targetY < 0) {
+
             return { x: xOnLine(0, refX, refY, k), y: 0 };
+
         } else {
             return { x: targetX, y: targetY };
         }
@@ -103,46 +105,44 @@ const PlotDrawingLineFill = (props: Props) => {
 
     function plot() {
         const fills = new Map<number, Path>();
+
         const datas = tvar.getByIndex(0);
         const data = datas ? datas[atIndex] : undefined;
 
         // Assuming your PineData payload contains arrays for both lines and fills
-        const lineFillObject = data?.value as LinefillObject;
-        const lineObject1 = lineFillObject?.line1;
-        const lineObject2 = lineFillObject?.line2;
+        const linefillObjects = data?.value as LinefillObject[];
+        if (linefillObjects !== undefined) {
+            for (let i = 0; i < linefillObjects.length; i++) {
+                const linefillObject = linefillObjects[i];
 
+                const { id, line1, line2, color } = linefillObject;
 
-        if (!lineObject1 || !lineObject2 || !lineFillObject) return fills;
+                if (!line1 || !line2) {
+                    continue;
+                }
 
-        // Create a lookup map for lines by ID for quick access
-        const lineMap = new Map([lineObject1, lineObject2].map(line => [line.id, line]));
+                const coords1 = getLineCoords(line1);
+                const coords2 = getLineCoords(line2);
 
-        const { id, line1, line2, color } = lineFillObject;
+                let path = fills.get(id);
+                if (!path) {
+                    path = new Path();
+                    fills.set(id, path);
+                }
 
-        const line1Path = lineMap.get(line1.id);
-        const line2Path = lineMap.get(line2.id);
+                // Draw the polygon: Start1 -> End1 -> End2 -> Start2 -> Close
+                path.moveto(coords1.startX, coords1.startY);
+                path.lineto(coords1.endX, coords1.endY);
+                path.lineto(coords2.endX, coords2.endY);
+                path.lineto(coords2.startX, coords2.startY);
+                // In a standard SVG Path class, there might be a close() or Z() method. 
+                // If not, just lineTo back to the start:
+                path.lineto(coords1.startX, coords1.startY);
 
-        const coords1 = getLineCoords(line1Path);
-        const coords2 = getLineCoords(line2Path);
-
-        let path = fills.get(id);
-        if (!path) {
-            path = new Path();
-            fills.set(id, path);
+                path.fill = color;
+                path.stroke = 'none'; // Fills usually don't have borders themselves
+            }
         }
-
-        // Draw the polygon: Start1 -> End1 -> End2 -> Start2 -> Close
-        path.moveto(coords1.startX, coords1.startY);
-        path.lineto(coords1.endX, coords1.endY);
-        path.lineto(coords2.endX, coords2.endY);
-        path.lineto(coords2.startX, coords2.startY);
-        // In a standard SVG Path class, there might be a close() or Z() method. 
-        // If not, just lineTo back to the start:
-        path.lineto(coords1.startX, coords1.startY);
-
-        path.fill = color;
-        path.stroke = 'none'; // Fills usually don't have borders themselves
-
 
         return fills;
     }

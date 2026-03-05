@@ -16,8 +16,7 @@ type Props = {
     depth?: number;
 }
 
-const PlotDrawingLine = (props: Props) => {
-    const { xc, yc, tvar, name, atIndex, depth, options } = props
+const PlotDrawingLine = ({ xc, yc, tvar, name, atIndex, depth, options }: Props) => {
 
     const chartWidth = xc.wChart;
     const chartHeight = yc.hChart;
@@ -50,11 +49,11 @@ const PlotDrawingLine = (props: Props) => {
 
         const datas = tvar.getByIndex(0);
         const data = datas ? datas[atIndex] : undefined;
-        const lineObject = data ? data.value as LineObject[] : undefined;
+        const lineObjects = data ? data.value as LineObject[] : undefined;
 
-        if (lineObject !== undefined) {
-            for (let i = 0; i < lineObject.length; i++) {
-                const { id, color, x1, y1, x2, y2, style, width: lineWidth, xloc, extend } = lineObject[i]
+        if (lineObjects !== undefined) {
+            for (let i = 0; i < lineObjects.length; i++) {
+                const { id, color, x1, y1, x2, y2, style, width: lineWidth, xloc, extend } = lineObjects[i]
 
                 if (isNaN(x1) || isNaN(y1) || isNaN(x2) || isNaN(y2)) {
                     continue;
@@ -103,8 +102,8 @@ const PlotDrawingLine = (props: Props) => {
 
                     path.moveto(xPos1, startY);
                     path.lineto(xPos2, endY);
-                }
-                else {
+
+                } else {
                     const k = dy / dx;
 
                     const isP1Left = xPos1 < xPos2;
