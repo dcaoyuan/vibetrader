@@ -3,8 +3,8 @@ import { Component, useState } from "react";
 import type { UpdateEvent } from "../view/ChartView";
 import type { TVar } from "../../timeseris/TVar";
 import type { Kline } from "../../domain/Kline";
-import { Button, useFilter } from 'react-aria-components';
-import { ActionButtonGroup, Autocomplete, useAsyncList, Menu, MenuItem, MenuTrigger, Popover, SearchField, TooltipTrigger, Tooltip } from "@react-spectrum/s2";
+import { Button } from 'react-aria-components';
+import { ActionButtonGroup, useAsyncList, Popover, TooltipTrigger, Tooltip, ComboBox, ComboBoxItem, MenuTrigger } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
 import { TFrame } from "../../timeseris/TFrame";
 import { fetchSymbolList } from "../../domain/DataFecther";
@@ -37,8 +37,6 @@ type Snapshot = {
 const L_SNAPSHOTS = 6;
 
 export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void }) {
-    const { startsWith } = useFilter({ sensitivity: 'base' });
-
     const list = useAsyncList<{ ticker: string }>({
         async load({ signal, filterText }) {
             const items = await fetchSymbolList(source, filterText, { signal });
@@ -48,7 +46,7 @@ export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChang
 
     return (
         <MenuTrigger>
-            <TooltipTrigger delay={500} placement="top">
+            <TooltipTrigger placement="top">
                 <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
                     {props.ticker}
                 </Button>
@@ -59,32 +57,32 @@ export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChang
 
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
-                    <Autocomplete
+                    <ComboBox
+                        aria-label="Search Symbols"
+                        placeholder="Type for more ..."
+                        items={list.items}
                         inputValue={list.filterText}
                         onInputChange={list.setFilterText}
-                    >
-                        <SearchField
-                            label="Symbol"
-                            autoFocus
-                            placeholder="Type for more ..."
-                        />
-                        <Menu
-                            items={list.items}
-                            selectionMode="single"
-                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged((keys as Set<string>).values().next().value)}
-                        >
-                            {(item) => <MenuItem id={item.ticker}>{item.ticker}</MenuItem>}
-                        </Menu>
-                    </Autocomplete>
+                        loadingState={list.loadingState}
+                        menuTrigger="focus"
+                        autoFocus
+                        onSelectionChange={key => {
+                            if (key) {
+                                props.handleSymbolTimeframeChanged(key as string);
+                            }
+                        }}>
+                        {(item) => (
+                            <ComboBoxItem id={item.ticker}>{item.ticker}</ComboBoxItem>
+                        )}
+                    </ComboBox>
                 </div>
+
             </Popover>
         </MenuTrigger>
     );
 }
 
 export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void }) {
-    const { contains } = useFilter({ sensitivity: 'base' });
-
     const list = [
         TFrame.DAILY,
         TFrame.ONE_HOUR,
@@ -99,10 +97,16 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
         TFrame.MONTHLY,
     ];
 
+    const [filterText, setFilterText] = useState('');
+
+    // Manually filter the list based on input
+    const filteredItems = list.filter(item =>
+        item.shortName.toLowerCase().includes(filterText.toLowerCase())
+    );
 
     return (
         <MenuTrigger>
-            <TooltipTrigger delay={500} placement="top">
+            <TooltipTrigger placement="top">
                 <Button style={{ fontFamily: 'monospace', fontSize: 12, padding: 0, border: 'none', background: 'transparent' }}>
                     {props.timeframe.shortName}
                 </Button>
@@ -113,22 +117,30 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
 
             <Popover>
                 <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
-                    <Autocomplete filter={contains}>
-                        <SearchField
-                            label="Timeframe"
-                            autoFocus
-                            placeholder=""
-                        />
-                        <Menu
-                            items={list}
-                            selectionMode="single"
-                            onSelectionChange={(keys) => props.handleSymbolTimeframeChanged(props.ticker, (keys as Set<string>).values().next().value)}
-                        >
-                            {(item) => <MenuItem id={item.shortName}>{item.shortName}</MenuItem>}
-                        </Menu>
-                    </Autocomplete>
+                    <ComboBox
+                        aria-label="Search timeframe"
+                        placeholder="Timeframe..."
+                        inputValue={filterText}
+                        onInputChange={setFilterText}
+                        items={filteredItems}
+                        menuTrigger="focus"
+                        autoFocus
+
+                        onSelectionChange={(key) => {
+                            if (key) {
+                                props.handleSymbolTimeframeChanged(props.ticker, key as string);
+                                close();
+                            }
+                        }} >
+                        {(item) => (
+                            <ComboBoxItem id={item.shortName}>
+                                {item.shortName}
+                            </ComboBoxItem>
+                        )}
+                    </ComboBox>
                 </div>
             </Popover>
+
         </MenuTrigger>
     );
 }
