@@ -56,27 +56,24 @@ export function ChooseSymbol(props: { ticker: string, handleSymbolTimeframeChang
             </TooltipTrigger>
 
             <Popover>
-                <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
-                    <ComboBox
-                        aria-label="Search Symbols"
-                        placeholder="Type for more ..."
-                        items={list.items}
-                        inputValue={list.filterText}
-                        onInputChange={list.setFilterText}
-                        loadingState={list.loadingState}
-                        menuTrigger="focus"
-                        autoFocus
-                        onSelectionChange={key => {
-                            if (key) {
-                                props.handleSymbolTimeframeChanged(key as string);
-                            }
-                        }}>
-                        {(item) => (
-                            <ComboBoxItem id={item.ticker}>{item.ticker}</ComboBoxItem>
-                        )}
-                    </ComboBox>
-                </div>
-
+                <ComboBox
+                    aria-label="Search Symbols"
+                    placeholder="Type for more ..."
+                    items={list.items}
+                    inputValue={list.filterText}
+                    onInputChange={list.setFilterText}
+                    loadingState={list.loadingState}
+                    menuTrigger="focus"
+                    autoFocus
+                    onSelectionChange={key => {
+                        if (key) {
+                            props.handleSymbolTimeframeChanged(key as string);
+                        }
+                    }}>
+                    {(item) => (
+                        <ComboBoxItem id={item.ticker}>{item.ticker}</ComboBoxItem>
+                    )}
+                </ComboBox>
             </Popover>
         </MenuTrigger>
     );
@@ -116,29 +113,27 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
             </TooltipTrigger>
 
             <Popover>
-                <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 'inherit' }}>
-                    <ComboBox
-                        aria-label="Search timeframe"
-                        placeholder="Timeframe..."
-                        inputValue={filterText}
-                        onInputChange={setFilterText}
-                        items={filteredItems}
-                        menuTrigger="focus"
-                        autoFocus
+                <ComboBox
+                    aria-label="Search timeframe"
+                    placeholder="Timeframe..."
+                    inputValue={filterText}
+                    onInputChange={setFilterText}
+                    items={filteredItems}
+                    menuTrigger="focus"
+                    autoFocus
 
-                        onSelectionChange={(key) => {
-                            if (key) {
-                                props.handleSymbolTimeframeChanged(props.ticker, key as string);
-                                close();
-                            }
-                        }} >
-                        {(item) => (
-                            <ComboBoxItem id={item.shortName}>
-                                {item.shortName}
-                            </ComboBoxItem>
-                        )}
-                    </ComboBox>
-                </div>
+                    onSelectionChange={(key) => {
+                        if (key) {
+                            props.handleSymbolTimeframeChanged(props.ticker, key as string);
+                            close();
+                        }
+                    }} >
+                    {(item) => (
+                        <ComboBoxItem id={item.shortName}>
+                            {item.shortName}
+                        </ComboBoxItem>
+                    )}
+                </ComboBox>
             </Popover>
 
         </MenuTrigger>
