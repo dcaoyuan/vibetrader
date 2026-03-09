@@ -9,8 +9,7 @@ export default defineConfig({
         react()
     ],
 
-    base: '/vibetrader/',
-    //base: '/',
+    base: '/',
 
     build: {
         target: ['es2022'],
