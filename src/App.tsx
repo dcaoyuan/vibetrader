@@ -54,6 +54,9 @@ function App() {
                 <Route path="/vibetrader" element={
                     <HomePage toggleColorScheme={toggleColorTheme} colorScheme={colorScheme} />
                 } />
+                <Route path="/vibetrader/:ticker/:timeframe" element={
+                    <HomePage toggleColorScheme={toggleColorTheme} colorScheme={colorScheme} />
+                } />
             </Routes>
         </Provider>
     )

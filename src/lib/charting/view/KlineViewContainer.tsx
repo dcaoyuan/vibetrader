@@ -77,6 +77,8 @@ type Props = {
     toggleColorScheme: () => void
     colorScheme: 'light' | 'dark'
     chartOnly: boolean
+    ticker?: string
+    timeframe?: string
 }
 
 type State = {
@@ -114,7 +116,8 @@ type State = {
 
 
 const allIndTags = dev
-    ? ['ema', 'bb', 'rsi', 'macd', 'kdj', 'signals', 'diagonal', 'ichimoku', 'dynline', 'pivot', 'sarstoch']
+    // ? ['autotrendline', 'channel']
+    ? ['ema', 'bb', 'rsi', 'macd', 'kdj', 'signals', 'diagonal', 'ichimoku', 'dynline', 'pivot', 'sarstoch', 'channel', 'autotrendline']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj', 'ichimoku', 'diagonal']
 
 export const HSPACING = 25;
@@ -209,8 +212,9 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     fetchOPredefinedScripts = (scriptNames: string[]) => {
+        const baseUrl = import.meta.env.BASE_URL;
         const fetchScript = (scriptName: string) =>
-            fetch("./indicators/" + scriptName + ".pine")
+            fetch(`${baseUrl}indicators/${scriptName}.pine`)
                 .then(r => r.text())
                 .then(script => ({ scriptName, script }))
 
@@ -406,8 +410,9 @@ class KlineViewContainer extends Component<Props, State> {
         this.fetchOPredefinedScripts(allIndTags).then(scripts => {
             this.predefinedScripts = new Map(scripts.map(p => [p.scriptName, p.script]))
         }).then(() => {
-            this.ticker = source === Source.binance ? 'BTCUSDT' : 'NVDA'
-            this.tframe = TFrame.DAILY
+            this.ticker = this.props.ticker || (source === Source.binance ? 'BTCUSDT' : 'NVDA');
+            this.tframe = this.props.timeframe ? TFrame.ofName(this.props.timeframe) : TFrame.DAILY;
+
             this.tzone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             //this. tzone = "America/Vancouver" 
 
@@ -427,6 +432,18 @@ class KlineViewContainer extends Component<Props, State> {
 
         // Optional: Add a resize listener if the width might change when the window resizes
         // window.addEventListener('resize', this.updateWidth);
+    }
+
+    // Around line 335
+    override componentDidUpdate(prevProps: Props) {
+        if (prevProps.ticker !== this.props.ticker || prevProps.timeframe !== this.props.timeframe) {
+            const newTicker = this.props.ticker || this.ticker;
+            const newTimeframe = this.props.timeframe || this.tframe.shortName;
+
+            console.log(`Route updated: Reloading chart for ${newTicker} at ${newTimeframe}`);
+
+            this.handleTickerTimeframeChanged(newTicker, newTimeframe, this.tzone);
+        }
     }
 
     override componentWillUnmount() {
