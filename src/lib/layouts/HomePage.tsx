@@ -9,13 +9,11 @@ type HomePageProps = {
     colorScheme: ColorScheme
 }
 
-const HomePage = (props: HomePageProps) => {
+const HomePage = ({ colorScheme, toggleColorScheme }: HomePageProps) => {
     const { ticker, timeframe } = useParams();
     const [searchParams] = useSearchParams();
 
-
     useEffect(() => {
-        // Only fetch if both parameters exist (ignores the base "/vibetrader" route)
         if (ticker && timeframe) {
             console.log(`URL changed! Now analyzing ${ticker} on the ${timeframe} chart.`);
 
@@ -25,11 +23,16 @@ const HomePage = (props: HomePageProps) => {
     const widthParam = searchParams.get('width');
     const chartWidth = widthParam ? parseInt(widthParam, 10) : 800;
 
+    const schemeParam = searchParams.get('scheme') as ColorScheme;
+    if (schemeParam && schemeParam !== colorScheme) {
+        toggleColorScheme()
+    }
+
     return (
         <div className={style({ display: "flex" })}>
             <KlineViewContainer
-                toggleColorScheme={props.toggleColorScheme}
-                colorScheme={props.colorScheme}
+                toggleColorScheme={toggleColorScheme}
+                colorScheme={colorScheme}
                 chartOnly={ticker !== undefined}
                 width={chartWidth}
                 ticker={ticker}
