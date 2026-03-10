@@ -1,6 +1,6 @@
 import './App.css'
 import { Provider, } from '@react-spectrum/s2';
-import { useNavigate, useHref, type NavigateOptions, Routes, Route } from 'react-router';
+import { useNavigate, useHref, type NavigateOptions, Routes, Route, useSearchParams } from 'react-router';
 import '@react-spectrum/s2/page.css';
 
 import HomePage from './lib/layouts/HomePage'
@@ -15,14 +15,23 @@ declare module '@react-spectrum/s2' {
 
 export type ColorScheme = 'light' | 'dark'
 
+function getColorScheme(value: string | null | undefined) {
+    return value === 'light' || value === 'dark'
+        ? value
+        : (getMatches('(prefers-color-scheme: dark)') ? 'dark' : 'light')
+}
+
 const getMatches = (query: string) => window.matchMedia(query).matches;
 
 function App() {
     const navigate = useNavigate()
 
-    const systemScheme = getMatches('(prefers-color-scheme: dark)') ? 'dark' : 'light';
+    const [searchParams] = useSearchParams();
 
-    const [colorScheme, setColorScheme] = useState<ColorScheme>(systemScheme);
+    const userScheme = searchParams.get('scheme');
+    const scheme = getColorScheme(userScheme)
+
+    const [colorScheme, setColorScheme] = useState<ColorScheme>(scheme);
 
     const toggleColorTheme = () => {
         switch (colorScheme) {
