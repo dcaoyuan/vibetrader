@@ -19,7 +19,7 @@ type Props = {
     yc: ChartYControl,
     tvar: TVar<unknown>
     colorScheme: ColorScheme
-    latestValue?: { value: number, isRise: boolean },
+    latestValue?: { value: number, isRising: boolean },
 }
 
 type State = {
@@ -114,9 +114,9 @@ class AxisY extends Component<Props, State> {
 
         if (this.props.latestValue) {
             let value = this.props.latestValue.value
-            const y = yc.yv(value);
-            const className = this.props.latestValue.isRise ? "annot-positive" : "annot-negative"
+            const className = this.props.latestValue.isRising ? "annot-positive" : "annot-negative"
 
+            const y = yc.yv(value);
             if (yc.shouldNormScale) {
                 value /= yc.normScale
             }
