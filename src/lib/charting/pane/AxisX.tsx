@@ -221,8 +221,8 @@ class AxisX extends Component<Props, State> {
 	}
 
 	protected updateChart() {
-		const chart = this.plot();
-		this.updateState({ chart });
+		const axis = this.plot();
+		this.updateState({ axis });
 	}
 
 	protected updateCursors() {

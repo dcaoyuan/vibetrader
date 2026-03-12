@@ -21,7 +21,7 @@ import { tframeToPineTimeframe, type PineData } from "../../domain/PineData";
 import { TSerProvider } from "../../domain/TSerProvider";
 import { Screenshot } from "../pane/Screenshot";
 import { PineTS } from "pinets";
-import { renderToStaticMarkup } from 'react-dom/server';
+import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 
 import {
     ActionButton,
@@ -924,7 +924,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     async takeScreenshot(): Promise<HTMLCanvasElement> {
-        //console.log(renderToStaticMarkup(this.renderSvgChart()))
+        // console.log(renderToStaticMarkup(this.renderSvgChart()))
         return html2canvas(this.chartviewRef.current, {
             useCORS: true, // in case you have images stored in your application
             backgroundColor: null // Sets the canvas background to transparent

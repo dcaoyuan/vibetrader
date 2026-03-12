@@ -43,6 +43,18 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const positive = positiveColor(this.props.colorScheme)
         const negative = negativeColor(this.props.colorScheme)
 
+
+        let latestValue: { value: number, isRise: boolean };
+        const latestTime = this.props.xc.lastOccurredTime();
+        if (latestTime !== undefined && latestTime > 0) {
+            const kline = this.props.tvar.getByTime(latestTime)
+
+            if (kline !== undefined && kline instanceof Kline) {
+                const className = kline.close > kline.open ? "annot-positive" : "annot-negative"
+                latestValue = { value: kline.close, isRise: kline.close > kline.open };
+            }
+        }
+
         const chartLines = [
             <PlotKline
                 kvar={this.props.tvar as TVar<Kline>}
@@ -55,12 +67,16 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             />
         ]
 
+
         const chartAxisy = <AxisY
             x={this.props.width - ChartView.AXISY_WIDTH}
             y={0}
             height={this.props.height}
             xc={this.props.xc}
             yc={this.yc}
+            tvar={this.props.tvar}
+            colorScheme={this.props.colorScheme}
+            latestValue={latestValue}
         />
 
         const gridLines = this.plotGrids();
@@ -266,7 +282,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.chartAxisy}
                 {this.state.gridLines}
-                {this.state.latestValueLabel}
                 {this.state.referCursor}
                 {this.state.mouseCursor}
                 {this.state.overlayChartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}

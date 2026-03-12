@@ -80,8 +80,6 @@ export interface ViewState {
     mouseCursor?: JSX.Element
     referCursor?: JSX.Element
 
-    latestValueLabel?: JSX.Element
-
     sketching?: JSX.Element
 
     cursor?: string;
@@ -212,8 +210,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     protected updateState(state: Partial<ViewState>, xMouse?: number, yMouse?: number) {
         let referCursor: JSX.Element
         let mouseCursor: JSX.Element
-        let latestValueLabel: JSX.Element
-        let latestColor: string
 
         const xc = this.props.xc;
         const yc = this.yc;
@@ -275,26 +271,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             mouseTime = latestTime;
         }
 
-        if (latestTime !== undefined && latestTime > 0) {
-            const kline = this.props.tvar.getByTime(latestTime)
-            if (kline !== undefined && kline instanceof Kline) {
-                latestColor = kline.close > kline.open ? "annot-positive" : "annot-negative"
-            }
-
-            let value = this.valueAtTime(latestTime);
-            if (value !== undefined && value !== null && !isNaN(value)) {
-                const y = yc.yv(value);
-
-                if (yc.shouldNormScale) {
-                    value /= yc.normScale
-                }
-
-                latestValueLabel = this.plotYValueLabel(y, value, latestColor)
-            }
-        }
-
         this.tryToUpdateIndicatorLables(mouseTime, referTime);
-        this.setState({ ...(state as object), referCursor, mouseCursor, latestValueLabel })
+        this.setState({ ...(state as object), referCursor, mouseCursor })
     }
 
     tryToUpdateIndicatorLables(mouseTime: number, referTime?: number) {

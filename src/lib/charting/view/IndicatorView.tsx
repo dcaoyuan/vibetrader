@@ -160,6 +160,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             height={this.props.height}
             xc={this.props.xc}
             yc={this.yc}
+            tvar={tvar}
+            colorScheme={this.props.colorScheme}
         />
 
         const gridLines = this.plotGrids();
