@@ -24,7 +24,7 @@ const HomePage = ({ colorScheme, toggleColorScheme }: HomePageProps) => {
     const chartWidth = widthParam ? parseInt(widthParam, 10) : 800;
 
     return (
-        <div className={style({ display: "flex" })}>
+        <div className={style({ display: "flex", marginTop: 8 })}>
             <KlineViewContainer
                 toggleColorScheme={toggleColorScheme}
                 colorScheme={colorScheme}

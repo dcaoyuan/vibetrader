@@ -75,6 +75,7 @@ import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { fetchData, Source } from "../../domain/DataFecther";
 import type { ColorScheme } from "../../../App";
 import { styleOfAnnot } from "../../colors";
+import Header from "../pane/Header";
 
 type Props = {
     toggleColorScheme: () => void
@@ -105,6 +106,7 @@ type State = {
     selectedIndicatorTags?: Selection;
     drawingIdsToCreate?: Selection;
 
+    yHeader: number;
     yKlineView: number;
     yVolumeView: number;
     yIndicatorViews: number;
@@ -119,14 +121,23 @@ type State = {
 }
 
 
-
-
 const allIndTags = dev
-    // ? ['autotrendline', 'channel']
+    //? ['dynpivot']
     ? ['ema', 'bb', 'rsi', 'macd', 'kdj', 'signals', 'diagonal', 'ichimoku', 'dynline', 'pivot', 'sarstoch', 'channel', 'autotrendline']
     : ['sma', 'ema', 'bb', 'rsi', 'macd', 'kdj', 'ichimoku', 'diagonal']
 
-export const HSPACING = 25;
+// used for space between indicator panes and place for indicator value labels.    
+export const H_SPACING = 25;
+
+
+const H_TITLE = 25;
+const H_INDICATOR_TAGS = 28;
+
+export const H_HEADER = 40;
+const H_KLINE_VIEW = 400;
+const H_VOLUME_VIEW = 100;
+const H_INDICATOR_VIEW = 160;
+const H_AXIS_X = 40;
 
 class KlineViewContainer extends Component<Props, State> {
 
@@ -152,15 +163,6 @@ class KlineViewContainer extends Component<Props, State> {
     xDragStart: number;
     yDragStart: number;
 
-    // geometry variables
-    hTitle = 55;
-    hIndtags = 28;
-
-    hKlineView = 400;
-    hVolumeView = 100;
-    hIndicatorView = 160;
-    hAxisx = 40;
-    hSpacing = HSPACING;
 
     callbacks: CallbacksToContainer
 
@@ -215,6 +217,22 @@ class KlineViewContainer extends Component<Props, State> {
             updateStackedIndicatorLabels: this.setStackedIndicatorLabels,
             updateDrawingIdsToCreate: this.setDrawingIdsToCreate,
         }
+    }
+
+    #calcGeometry(stackedIndicators: Indicator[]) {
+        stackedIndicators = stackedIndicators || [];
+
+        const yHeader = 0;
+        const yKlineView = yHeader + H_HEADER + H_INDICATOR_TAGS + H_SPACING;
+        const yVolumeView = yKlineView + H_KLINE_VIEW + H_SPACING;
+        const yIndicatorViews = yVolumeView + H_VOLUME_VIEW + H_SPACING;
+        const yAxisx = yIndicatorViews + stackedIndicators.length * (H_INDICATOR_VIEW + H_SPACING);
+
+        const svgHeight = yAxisx + H_AXIS_X;
+        const containerHeight = svgHeight + H_TITLE + H_INDICATOR_TAGS;
+        const yCursorRange = [0, yAxisx];
+
+        return { yHeader, yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
     }
 
     fetchOPredefinedScripts = (scriptNames: string[]) => {
@@ -497,40 +515,25 @@ class KlineViewContainer extends Component<Props, State> {
         this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCursor, mouseCursor }, callback)
     }
 
-    #calcGeometry(stackedIndicators: Indicator[]) {
-        stackedIndicators = stackedIndicators || [];
-
-        const yKlineView = this.hSpacing;
-        const yVolumeView = yKlineView + this.hKlineView + this.hSpacing;
-        const yIndicatorViews = yVolumeView + this.hVolumeView + this.hSpacing;
-        const yAxisx = yIndicatorViews + stackedIndicators.length * (this.hIndicatorView + this.hSpacing);
-
-        const svgHeight = yAxisx + this.hAxisx;
-        const containerHeight = svgHeight + this.hTitle + this.hIndtags;
-        const yCursorRange = [0, yAxisx];
-
-        return { yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
-    }
-
     #indicatorViewId(n: number) {
         return 'indicator-' + n;
     }
 
     #calcXYMouses(x: number, y: number) {
-        if (y >= this.state.yKlineView && y < this.state.yKlineView + this.hKlineView) {
+        if (y >= this.state.yKlineView && y < this.state.yKlineView + H_KLINE_VIEW) {
             return { who: 'kline', x, y: y - this.state.yKlineView };
 
-        } else if (y >= this.state.yVolumeView && y < this.state.yVolumeView + this.hVolumeView) {
+        } else if (y >= this.state.yVolumeView && y < this.state.yVolumeView + H_VOLUME_VIEW) {
             return { who: 'volume', x, y: y - this.state.yVolumeView };
 
-        } else if (y > this.state.yAxisx && y < this.state.yAxisx + this.hAxisx) {
+        } else if (y > this.state.yAxisx && y < this.state.yAxisx + H_AXIS_X) {
             return { who: 'axisx', x, y: y - this.state.yVolumeView };
 
         } else {
             if (this.state.stackedIndicators) {
                 for (let n = 0; n < this.state.stackedIndicators.length; n++) {
-                    const yIndicatorView = this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing);
-                    if (y >= yIndicatorView && y < yIndicatorView + this.hIndicatorView) {
+                    const yIndicatorView = this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING);
+                    if (y >= yIndicatorView && y < yIndicatorView + H_INDICATOR_VIEW) {
                         return { who: this.#indicatorViewId(n), x, y: y - yIndicatorView };
                     }
                 }
@@ -1075,12 +1078,24 @@ class KlineViewContainer extends Component<Props, State> {
                 // onWheel={this.onWheel}
                 style={{ zIndex: 1 }}
             >
+                <Header
+                    x={0}
+                    y={this.state.yHeader}
+                    width={this.state.chartviewWidth}
+                    height={H_HEADER}
+                    xc={this.xc}
+                    tvar={this.kvar}
+                    ticker={this.ticker}
+                    updateEvent={this.state.updateEvent}
+                    handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
+                />
+
                 <KlineView
                     id={"kline"}
                     x={0}
                     y={this.state.yKlineView}
                     width={this.state.chartviewWidth}
-                    height={this.hKlineView}
+                    height={H_KLINE_VIEW}
                     name=""
                     xc={this.xc}
                     tvar={this.kvar}
@@ -1096,7 +1111,7 @@ class KlineViewContainer extends Component<Props, State> {
                     x={0}
                     y={this.state.yVolumeView}
                     width={this.state.chartviewWidth}
-                    height={this.hVolumeView}
+                    height={H_VOLUME_VIEW}
                     name="Vol"
                     xc={this.xc}
                     tvar={this.kvar}
@@ -1112,9 +1127,9 @@ class KlineViewContainer extends Component<Props, State> {
                             id={this.#indicatorViewId(n)}
                             name={"Indicator-" + n}
                             x={0}
-                            y={this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing)}
+                            y={this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING)}
                             width={this.state.chartviewWidth}
-                            height={this.hIndicatorView}
+                            height={H_INDICATOR_VIEW}
                             xc={this.xc}
                             tvar={tvar}
                             colorScheme={this.props.colorScheme}
@@ -1131,7 +1146,7 @@ class KlineViewContainer extends Component<Props, State> {
                     x={0}
                     y={this.state.yAxisx}
                     width={this.state.chartviewWidth}
-                    height={this.hAxisx}
+                    height={H_AXIS_X}
                     xc={this.xc}
                     updateEvent={this.state.updateEvent}
                 />
@@ -1360,21 +1375,25 @@ class KlineViewContainer extends Component<Props, State> {
                     ref={this.chartviewRef}
                 >
                     {this.state.isLoaded && (<>
-                        <div className="title" style={{ width: '100%', height: this.hTitle }}>
+                        <div style={{ width: '100%', height: H_TITLE }}>
                             <Title
-                                height={this.hTitle}
                                 xc={this.xc}
-                                tvar={this.kvar}
                                 ticker={this.ticker}
-                                updateEvent={this.state.updateEvent}
                                 handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
                             />
-                            <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} />
+                            {/* <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} /> */}
                         </div>
 
                         {/* Indicator tags */}
                         {this.props.chartOnly === false &&
-                            <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', height: this.hIndtags, paddingTop: "0px" }}>
+                            <div style={{
+                                position: 'absolute',
+                                top: this.state.yKlineView - 20,
+                                zIndex: 2, // ensure it's above the SVG
+                                backgroundColor: 'transparent',
+                                display: 'flex',
+                                justifyContent: 'flex-start', width: '100%', height: H_INDICATOR_TAGS, paddingTop: "0px"
+                            }}>
                                 <TagGroup
                                     aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
                                     size="S"
@@ -1389,7 +1408,6 @@ class KlineViewContainer extends Component<Props, State> {
                             </div>}
 
                         <div style={{ position: 'relative', width: '100%', height: this.state.svgHeight }}>
-
                             {this.renderSvgChart()}
 
                             {
@@ -1398,7 +1416,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     <Fragment key={"indicator-values-" + m}>
                                         <div style={{
                                             position: 'absolute',
-                                            top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                            top: this.state.yKlineView + m * 13 - H_SPACING + 2,
                                             zIndex: 2, // ensure it's above the SVG
                                             backgroundColor: 'transparent',
                                         }}>
@@ -1425,7 +1443,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                                         <div style={{
                                             position: 'absolute',
-                                            top: this.state.yKlineView + m * 13 - this.hSpacing + 2,
+                                            top: this.state.yKlineView + m * 13 - H_SPACING + 2,
                                             right: ChartView.AXISY_WIDTH,
                                             zIndex: 2, // ensure it's above the SVG
                                             backgroundColor: 'transparent',
@@ -1459,7 +1477,7 @@ class KlineViewContainer extends Component<Props, State> {
                                     <Fragment key={"indicator-values-" + n}>
                                         <div style={{
                                             position: 'absolute',
-                                            top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                            top: this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING) - H_SPACING + 2,
                                             zIndex: 2, // ensure it's above the SVG
                                             backgroundColor: 'transparent',
                                         }}>
@@ -1488,7 +1506,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                                         <div style={{
                                             position: 'absolute',
-                                            top: this.state.yIndicatorViews + n * (this.hIndicatorView + this.hSpacing) - this.hSpacing + 2,
+                                            top: this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING) - H_SPACING + 2,
                                             right: ChartView.AXISY_WIDTH,
                                             zIndex: 2, // ensure it's above the SVG
                                             backgroundColor: 'transparent',
