@@ -14,6 +14,8 @@ import type { PineData } from "../../domain/PineData";
 import PlotBgcolor from "../plot/PlotBgcolor";
 import PlotDrawingLine from "../plot/PlotDrawingLine";
 import PlotDrawingLineFill from "../plot/PlotDrawingLineFill";
+import { H_SPACING } from "./KlineViewContainer";
+import { styleOfLabel } from "../../colors";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -169,13 +171,78 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         return { chartLines, chartAxisy, gridLines }
     }
 
+    plotIndicatorLabels(mouseIndicatorValues: string[], referIndicatorValues: string[]) {
+        const chartWidth = this.props.width;
+
+        const outputs = this.props.mainIndicatorOutputs;
+
+        // Calculate Y position. 
+        // Note: SVG <text> y-coordinate is the baseline. 
+        // The "+ 10" is an offset to approximate HTML's top-left positioning.
+        const yPos = - H_SPACING + 2 + 10;
+
+        const styleOfMouse = styleOfLabel('label-mouse', this.props.colorScheme);
+        const styleOfRefer = styleOfLabel('label-refer', this.props.colorScheme);
+
+        return (
+            [<g style={{ fontSize: '12px' }}>
+                {/* Left Aligned - Mouse Indicator Values */}
+                <text
+                    x={0}
+                    y={yPos}
+                    textAnchor="start"
+                >
+                    {outputs.map(({ title, options: { color } }, n) =>
+                        <Fragment key={"indicator-label-" + n}>
+                            <tspan style={styleOfMouse}>
+                                {title ? title + '\u00A0' : ''}
+                            </tspan>
+                            <tspan fill={color}>
+                                {mouseIndicatorValues && mouseIndicatorValues[n]}
+                            </tspan>
+                            {mouseIndicatorValues && n === mouseIndicatorValues.length - 1
+                                ? <tspan></tspan>
+                                : <tspan>{'\u00A0\u00B7\u00A0'}</tspan>
+                            }
+                        </Fragment>
+                    )}
+                </text>
+
+                {/* Right Aligned - Refer Indicator Values */}
+                {this.props.xc.isReferCursorEnabled && (
+                    <text
+                        x={chartWidth - ChartView.AXISY_WIDTH}
+                        y={yPos}
+                        textAnchor="end"
+                    >
+                        {outputs.map(({ title, options: { color } }, n) =>
+                            <Fragment key={"indicator-label-" + n}>
+                                <tspan style={styleOfRefer}>
+                                    {title ? title + '\u00A0' : ''}
+                                </tspan>
+                                <tspan fill={color}>
+                                    {referIndicatorValues && referIndicatorValues[n]}
+                                </tspan>
+                                {referIndicatorValues && n === referIndicatorValues.length - 1
+                                    ? <tspan></tspan>
+                                    : <tspan>{'\u00A0\u00B7\u00A0'}</tspan>
+                                }
+                            </Fragment>
+                        )}
+                    </text>
+                )}
+            </g >]
+        )
+
+    }
+
     override tryToUpdateIndicatorLabels(mouseTime: number, referTime?: number) {
         if (this.props.indexOfStackedIndicator !== undefined) {
             const tvar = this.props.tvar as TVar<PineData[]>;
-            let mvs: string[]
+            let mouseIndicatorValues: string[]
             if (mouseTime !== undefined && mouseTime > 0 && this.props.xc.baseSer.occurred(mouseTime)) {
                 const datas = tvar.getByTime(mouseTime);
-                mvs = datas && datas.map(data => {
+                mouseIndicatorValues = datas && datas.map(data => {
                     const v = data ? data.value : NaN;
                     return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
@@ -184,10 +251,10 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
 
             }
 
-            let rvs: string[]
+            let referIndicatorValues: string[]
             if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
                 const datas = tvar.getByTime(referTime);
-                rvs = datas && datas.map(data => {
+                referIndicatorValues = datas && datas.map(data => {
                     const v = data ? data.value : NaN
                     return typeof v === 'number'
                         ? isNaN(v) ? "" : v.toFixed(2)
@@ -195,7 +262,10 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 });
             }
 
-            this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicator, mvs, rvs);
+            const indicatorLabels = this.plotIndicatorLabels(mouseIndicatorValues, referIndicatorValues)
+            this.setState({ indicatorLabels })
+
+            // this.props.callbacksToContainer.updateStackedIndicatorLabels(this.props.indexOfStackedIndicator, mouseIndicatorValues, referIndicatorValues);
         }
     }
 
@@ -254,6 +324,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         return (
             <g transform={transform}>
                 {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.state.indicatorLabels && this.state.indicatorLabels.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.chartAxisy}
                 {this.state.gridLines}
                 {this.state.referCursor}

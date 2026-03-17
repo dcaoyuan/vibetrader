@@ -70,7 +70,6 @@ export interface ViewProps {
 }
 
 export interface ViewState {
-
     chartLines: JSX.Element[];
     chartAxisy?: JSX.Element;
     gridLines?: JSX.Element;
@@ -83,11 +82,15 @@ export interface ViewState {
     sketching?: JSX.Element
 
     cursor?: string;
+
+
+
+    indicatorLabels?: JSX.Element[];
 }
 
 export type CallbacksToContainer = {
-    updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
-    updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
+    // updateOverlayIndicatorLabels: (vs: string[][], refVs?: string[][]) => void
+    // updateStackedIndicatorLabels: (indexOfStackedIndicators: number, vs: string[], refVs?: string[]) => void
     updateDrawingIdsToCreate: (ids?: Selection) => void;
 }
 
@@ -115,6 +118,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
     ref: RefObject<SVGAElement>;
     font: string;
+
+    mouseIndicatorValues?: string[][];
+    referIndicatorValues?: string[][];
 
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
@@ -275,9 +281,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.setState({ ...(state as object), referCursor, mouseCursor })
     }
 
-    tryToUpdateIndicatorLabels(mouseTime: number, referTime?: number) {
-
-    }
+    abstract tryToUpdateIndicatorLabels(mouseTime: number, referTime?: number): void
 
     #plotCursor(x: number, y: number, time: number, value: number, className: string) {
         const pathStyle = styleOfAnnot(className, this.props.colorScheme);

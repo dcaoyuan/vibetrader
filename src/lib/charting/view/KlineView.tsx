@@ -16,7 +16,8 @@ import PlotFill from "../plot/PlotFill";
 import PlotBgcolor from "../plot/PlotBgcolor";
 import PlotDrawingLine from "../plot/PlotDrawingLine";
 import PlotDrawingLineFill from "../plot/PlotDrawingLineFill";
-import { negativeColor, positiveColor } from "../../colors";
+import { negativeColor, positiveColor, styleOfLabel } from "../../colors";
+import { H_SPACING } from "./KlineViewContainer";
 
 
 export class KlineView extends ChartView<ViewProps, ViewState> {
@@ -81,6 +82,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         const gridLines = this.plotGrids();
 
         const overlayChartLines = this.plotOverlayCharts();
+        // const indicatorLabels = this.plotIndicatorLabels()
         const drawingLines = this.plotDrawings()
 
         return { chartLines, chartAxisy, gridLines, overlayChartLines, drawingLines }
@@ -221,71 +223,82 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         return overlayChartLines;
     }
 
-    // plotIndicatorLabels() {
-    //     this.props.overlayIndicators.map(({ outputs }, m) =>
-    //         <Fragment key={"indicator-labels-" + m}>
-    //             <div style={{
-    //                 position: 'absolute',
-    //                 top: this.state.yKlineView + m * 13 - H_SPACING + 2,
-    //                 zIndex: 2, // ensure it's above the SVG
-    //                 backgroundColor: 'transparent',
-    //             }}>
-    //                 <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
-    //                     {
-    //                         outputs.map(({ title, options: { color } }, n) =>
-    //                             <Fragment key={"overlay-indicator-label-" + n} >
-    //                                 <span className="label-mouse">{title ? title : ''}&nbsp;</span>
-    //                                 <span style={{ color }}>{
-    //                                     this.state.overlayIndicatorLabels !== undefined &&
-    //                                     this.state.overlayIndicatorLabels[m] !== undefined &&
-    //                                     this.state.overlayIndicatorLabels[m][n]
-    //                                 }
-    //                                 </span>
-    //                                 {n === outputs.length - 1
-    //                                     ? <span></span>
-    //                                     : <span>&nbsp;&middot;&nbsp;</span>
-    //                                 }
-    //                             </Fragment>
-    //                         )
-    //                     }
-    //                 </div>
-    //             </div>
+    plotIndicatorLabels(mouseIndicatorValues: string[][], referIndicatorValues: string[][]) {
+        const chartWidth = this.props.width;
 
-    //             <div style={{
-    //                 position: 'absolute',
-    //                 top: this.state.yKlineView + m * 13 - H_SPACING + 2,
-    //                 right: ChartView.AXISY_WIDTH,
-    //                 zIndex: 2, // ensure it's above the SVG
-    //                 backgroundColor: 'transparent',
-    //             }}>
-    //                 <div style={{ paddingRight: "0px", paddingTop: '0px' }}>
-    //                     {
-    //                         this.xc.isReferCursorEnabled && outputs.map(({ title, options: { color } }, n) =>
-    //                             <Fragment key={"ovarlay-indicator-label-" + n} >
-    //                                 <span className="label-refer">{title ? title : ''}&nbsp;</span>
-    //                                 <span style={{ color }}>{
-    //                                     this.state.referOverlayIndicatorLabels &&
-    //                                     this.state.referOverlayIndicatorLabels[m] &&
-    //                                     this.state.referOverlayIndicatorLabels[m][n]
-    //                                 }
-    //                                 </span>
-    //                                 {n === outputs.length - 1
-    //                                     ? <span></span>
-    //                                     : <span>&nbsp;&middot;&nbsp;</span>
-    //                                 }
-    //                             </Fragment>
-    //                         )
-    //                     }
-    //                 </div>
-    //             </div>
-    //         </Fragment>)
+        const styleOfMouse = styleOfLabel('label-mouse', this.props.colorScheme);
+        const styleOfRefer = styleOfLabel('label-refer', this.props.colorScheme);
 
-    // }
+        return this.props.overlayIndicators.map(({ outputs }, m) => {
+            // Calculate Y position. 
+            // Note: SVG <text> y-coordinate is the baseline. 
+            // The "+ 10" is an offset to approximate HTML's top-left positioning.
+            const yPos = m * 13 - H_SPACING + 2 + 10;
+
+            return (
+                <g key={"indicator-labels-" + m} style={{ fontSize: '12px' }}>
+                    {/* Left Aligned - Mouse Indicator Values */}
+                    <text
+                        x={0}
+                        y={yPos}
+                        textAnchor="start"
+                    >
+                        {outputs.map(({ title, options: { color } }, n) =>
+                            <Fragment key={"indicator-label-" + n}>
+                                <tspan style={styleOfMouse}>
+                                    {title ? title + '\u00A0' : ''}
+                                </tspan>
+                                <tspan fill={color}>
+                                    {
+                                        mouseIndicatorValues !== undefined &&
+                                        mouseIndicatorValues[m] !== undefined &&
+                                        mouseIndicatorValues[m][n]
+                                    }
+                                </tspan>
+                                {n === outputs.length - 1
+                                    ? <tspan></tspan>
+                                    : <tspan>{'\u00A0\u00B7\u00A0'}</tspan>
+                                }
+                            </Fragment>
+                        )}
+                    </text>
+
+                    {/* Right Aligned - Refer Indicator Values */}
+                    {this.props.xc.isReferCursorEnabled && (
+                        <text
+                            x={chartWidth - ChartView.AXISY_WIDTH}
+                            y={yPos}
+                            textAnchor="end"
+                        >
+                            {outputs.map(({ title, options: { color } }, n) =>
+                                <Fragment key={"indicator-label-" + n}>
+                                    <tspan style={styleOfRefer}>
+                                        {title ? title + '\u00A0' : ''}
+                                    </tspan>
+                                    <tspan fill={color}>
+                                        {
+                                            referIndicatorValues &&
+                                            referIndicatorValues[m] &&
+                                            referIndicatorValues[m][n]
+                                        }
+                                    </tspan>
+                                    {n === outputs.length - 1
+                                        ? <tspan></tspan>
+                                        : <tspan>{'\u00A0\u00B7\u00A0'}</tspan>
+                                    }
+                                </Fragment>
+                            )}
+                        </text>
+                    )}
+                </g>
+            );
+        });
+    }
 
     override tryToUpdateIndicatorLabels(mouseTime: number, referTime?: number) {
         if (this.props.overlayIndicators !== undefined) {
-            const allmvs: string[][] = []
-            const allrvs: string[][] = []
+            const mouseIndicatorValues: string[][] = []
+            const referIndicatorValues: string[][] = []
             this.props.overlayIndicators.map((indicator, n) => {
                 const tvar = indicator.tvar;
 
@@ -304,7 +317,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     mvs = new Array(indicator.outputs.length);
                 }
 
-                allmvs.push(mvs)
+                mouseIndicatorValues.push(mvs)
 
                 let rvs: string[]
                 if (referTime !== undefined && referTime > 0 && this.props.xc.baseSer.occurred(referTime)) {
@@ -321,10 +334,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     rvs = new Array(indicator.outputs.length);
                 }
 
-                allrvs.push(rvs)
+                referIndicatorValues.push(rvs)
             })
 
-            this.props.callbacksToContainer.updateOverlayIndicatorLabels(allmvs, allrvs);
+            const indicatorLabels = this.plotIndicatorLabels(mouseIndicatorValues, referIndicatorValues)
+            this.setState({ indicatorLabels })
+
+            // this.props.callbacksToContainer.updateOverlayIndicatorLabels(mouseIndicatorValues, referIndicatorValues);
         }
     }
 
@@ -396,6 +412,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                         ? <></>
                         : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
                 }
+                {this.state.indicatorLabels && this.state.indicatorLabels.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.state.sketching}
             </g >
         )
