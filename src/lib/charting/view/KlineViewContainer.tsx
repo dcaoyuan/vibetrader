@@ -117,7 +117,9 @@ type State = {
 
     isLoaded: boolean;
 
-    screenshot: HTMLCanvasElement
+    screenshot: HTMLCanvasElement;
+
+    isChartOnly: boolean;
 }
 
 
@@ -185,6 +187,7 @@ class KlineViewContainer extends Component<Props, State> {
             selectedIndicatorTags: new Set(['ema', 'macd', 'rsi']),
             drawingIdsToCreate: new Set(),
             screenshot: undefined,
+            isChartOnly: props.chartOnly,
             ...geometry,
         }
 
@@ -881,8 +884,22 @@ class KlineViewContainer extends Component<Props, State> {
         )
     }
 
+    exportSvgChart(): Promise<string> {
+        return new Promise<string>((resolve, reject) =>
+            this.setState(
+                { isChartOnly: true },
+                () => {
+                    console.log(renderToStaticMarkup(this.renderSvgChart(this.state.isChartOnly)))
+                    const svg = renderToString(this.renderSvgChart(this.state.isChartOnly))
+
+                    this.setState({ isChartOnly: false });
+
+                    resolve(svg);
+                })
+        )
+    }
+
     async takeScreenshot(): Promise<HTMLCanvasElement> {
-        console.log(renderToStaticMarkup(this.renderSvgChart()))
         return html2canvas(this.chartviewRef.current, {
             useCORS: true, // in case you have images stored in your application
             backgroundColor: null // Sets the canvas background to transparent
@@ -891,6 +908,7 @@ class KlineViewContainer extends Component<Props, State> {
             return document.createElement('canvas')
         })
     }
+
 
     private handleTickerTimeframeChanged(ticker: string, timeframe?: string, tzone?: string) {
         if (this.reloadDataTimeoutId) {
@@ -1019,7 +1037,7 @@ class KlineViewContainer extends Component<Props, State> {
         return this.handleTickerTimeframeChanged(ticker, tframe, this.tzone)
     }
 
-    renderSvgChart() {
+    renderSvgChart(isChartOnly: boolean) {
         return (
             <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.state.svgHeight}`}
                 width={this.state.chartviewWidth}
@@ -1033,6 +1051,24 @@ class KlineViewContainer extends Component<Props, State> {
                 // onWheel={this.onWheel}
                 style={{ zIndex: 1 }}
             >
+
+                {/* Title in svg */}
+                {isChartOnly &&
+                    <g style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+                        <text
+                            x={1}
+                            y={12}
+                            fontFamily="monospace"
+                            fontSize="12px"
+                            fill="currentColor"
+                            textAnchor="start"
+                            dominantBaseline="middle"
+                        >
+                            {`${this.ticker} \u00B7 ${this.tframe.shortName} \u00B7 ${new Date().toLocaleString('en-US', { timeZoneName: 'short' }).split(' ').pop()}`}
+                        </text>
+                    </g>
+                }
+
                 <Header
                     x={0}
                     y={this.state.yHeader}
@@ -1119,7 +1155,7 @@ class KlineViewContainer extends Component<Props, State> {
             <div style={{ display: "flex", width: '100%' }}>
 
                 {/* Toolbar */}
-                {this.props.chartOnly === false &&
+                {!this.props.chartOnly &&
                     <div style={{ display: "inline-block", paddingTop: '3px' }}>
 
                         <ActionButtonGroup orientation="vertical" >
@@ -1335,6 +1371,7 @@ class KlineViewContainer extends Component<Props, State> {
                             <Title
                                 xc={this.xc}
                                 ticker={this.ticker}
+                                isChartOnly={this.props.chartOnly}
                                 handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
                             />
                         </div>
@@ -1366,7 +1403,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                         {/* Main svg chart part */}
                         <div style={{ position: 'relative', width: '100%', height: this.state.svgHeight }}>
-                            {this.renderSvgChart()}
+                            {this.renderSvgChart(this.state.isChartOnly)}
                         </div>
                     </>)}
 

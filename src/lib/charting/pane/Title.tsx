@@ -10,7 +10,7 @@ import { source } from "../../../Env";
 type Props = {
     xc: ChartXControl,
     ticker: string,
-
+    isChartOnly: boolean,
     handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void
 }
 
@@ -99,7 +99,6 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
                     items={filteredItems}
                     menuTrigger="focus"
                     autoFocus
-
                     onSelectionChange={(key) => {
                         if (key) {
                             props.handleSymbolTimeframeChanged(props.ticker, key as string);
@@ -113,12 +112,15 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
                     )}
                 </ComboBox>
             </Popover>
-
         </MenuTrigger>
     );
 }
 
-export function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
+export function Title({ xc, ticker, isChartOnly, handleSymbolTimeframeChanged }: Props) {
+    if (isChartOnly) {
+        return <></>;
+    }
+
     const tframe = xc.baseSer.timeframe;
 
     let tframeName = tframe.compactName.toLowerCase();
@@ -150,8 +152,7 @@ export function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
                 </ActionButtonGroup>
             </div>
         </div>
-    )
-
+    );
 }
 
 export default Title;
