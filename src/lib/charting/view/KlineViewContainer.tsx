@@ -1381,7 +1381,6 @@ class KlineViewContainer extends Component<Props, State> {
                                 ticker={this.ticker}
                                 handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
                             />
-                            {/* <div className="borderLeftUp" style={{ top: this.hTitle - 8 }} /> */}
                         </div>
 
                         {/* Indicator tags */}
@@ -1392,7 +1391,9 @@ class KlineViewContainer extends Component<Props, State> {
                                 zIndex: 2, // ensure it's above the SVG
                                 backgroundColor: 'transparent',
                                 display: 'flex',
-                                justifyContent: 'flex-start', width: '100%', height: H_INDICATOR_TAGS, paddingTop: "0px"
+                                justifyContent: 'flex-start',
+                                height: H_INDICATOR_TAGS,
+                                paddingTop: "0px"
                             }}>
                                 <TagGroup
                                     aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
