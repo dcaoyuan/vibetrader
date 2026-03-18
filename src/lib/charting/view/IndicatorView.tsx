@@ -330,7 +330,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     }
 
     render() {
-        this.checkUpdate(this.prevProps);
+        this.checkUpdate();
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (

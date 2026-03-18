@@ -136,6 +136,7 @@ const H_INDICATOR_VIEW = 160;
 const H_AXIS_X = 40;
 
 class KlineViewContainer extends Component<Props, State> {
+    prevProp: Props;
 
     ticker: string;
     tframe: TFrame;
@@ -168,6 +169,8 @@ class KlineViewContainer extends Component<Props, State> {
 
     constructor(props: Props) {
         super(props);
+
+        this.prevProp = props;
 
         this.chartviewRef = React.createRef();
 
@@ -451,16 +454,20 @@ class KlineViewContainer extends Component<Props, State> {
         // window.addEventListener('resize', this.updateWidth);
     }
 
-    // Around line 335
-    override checkUpdate(prevProps: Props) {
-        if (prevProps.ticker !== this.props.ticker || prevProps.timeframe !== this.props.timeframe) {
-            const newTicker = this.props.ticker || this.ticker;
-            const newTimeframe = this.props.timeframe || this.tframe.shortName;
+    checkUpdate() {
+        const prevProps = this.prevProp;
+        const props = this.props;
+
+        if (prevProps.ticker !== props.ticker || prevProps.timeframe !== props.timeframe) {
+            const newTicker = props.ticker || this.ticker;
+            const newTimeframe = props.timeframe || this.tframe.shortName;
 
             console.log(`Route updated: Reloading chart for ${newTicker} at ${newTimeframe}`);
 
             this.handleTickerTimeframeChanged(newTicker, newTimeframe, this.tzone);
         }
+
+        this.prevProp = props;
     }
 
     override componentWillUnmount() {
@@ -1143,6 +1150,8 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     render() {
+        this.checkUpdate();
+
         return (
             <div style={{ display: "flex", width: '100%' }}>
 

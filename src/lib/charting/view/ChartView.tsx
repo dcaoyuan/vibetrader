@@ -411,11 +411,12 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.updateCrosshair(undefined, undefined);
     }
 
-    // Important: Be careful when calling setState within componentDidUpdate
-    // Ensure you have a conditional check to prevent infinite re-renders.
-    // If setState is called unconditionally, it will trigger another update,
-    // potentially leading to a loop.
-    checkUpdate(prevProps: ViewProps) {
+    checkUpdate() {
+        const prevProps = this.prevProps;
+        const props = this.props;
+
+        const yc = this.yc;
+
         let willUpdateChart = false
         let willUpdateCrosshair = false;
         let willUpdateOverlayCharts = false;
@@ -423,26 +424,26 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let xMouse: number
         let yMouse: number
 
-        const xyMouse = this.props.updateEvent.xyMouse;
-        if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
+        const xyMouse = props.updateEvent.xyMouse;
+        if (props.updateEvent.changed !== prevProps.updateEvent.changed) {
 
-            switch (this.props.updateEvent.type) {
+            switch (props.updateEvent.type) {
                 case 'chart':
                     willUpdateChart = true;
-                    if (this.props.id === "kline") {
-                        if (this.props.updateEvent.deltaMouse) {
+                    if (props.id === "kline") {
+                        if (props.updateEvent.deltaMouse) {
                             // apply delta to yc chart scale
-                            const dy = this.props.updateEvent.deltaMouse.dy
+                            const dy = props.updateEvent.deltaMouse.dy
                             if (dy === undefined) {
-                                this.yc.yChartScale = 1 // back to 1
+                                yc.yChartScale = 1 // back to 1
 
                             } else {
-                                this.yc.yChartScale = this.yc.yChartScale * (1 - dy / this.yc.hChart)
+                                yc.yChartScale = yc.yChartScale * (1 - dy / yc.hChart)
                             }
 
-                        } else if (this.props.updateEvent.yScalar) {
+                        } else if (props.updateEvent.yScalar) {
                             let scalar: Scalar
-                            switch (this.yc.valueScalar.kind) {
+                            switch (yc.valueScalar.kind) {
                                 case "Linear":
                                     scalar = LG_SCALAR
                                     break;
@@ -452,7 +453,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                                     break;
                             }
 
-                            this.yc.valueScalar = scalar
+                            yc.valueScalar = scalar
                         }
                     }
 
@@ -461,7 +462,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 case 'crosshair':
                     willUpdateCrosshair = true;
                     if (xyMouse !== undefined) {
-                        if (xyMouse.who === this.props.id) {
+                        if (xyMouse.who === props.id) {
                             xMouse = xyMouse.x;
                             yMouse = xyMouse.y;
 
@@ -483,14 +484,14 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (this.isOverlayIndicatorsChanged(this.props.overlayIndicators, prevProps.overlayIndicators)) {
+        if (this.isOverlayIndicatorsChanged(props.overlayIndicators, prevProps.overlayIndicators)) {
             // console.log(this.props.id, "overlayIndicators changed")
             willUpdateOverlayCharts = true;
         }
 
-        if (this.props.updateDrawing != prevProps.updateDrawing) {
-            if (this.props.updateDrawing) {
-                switch (this.props.updateDrawing.action) {
+        if (props.updateDrawing != prevProps.updateDrawing) {
+            if (props.updateDrawing) {
+                switch (props.updateDrawing.action) {
                     case 'delete':
                         this.deleteSelectedDrawing()
                         break;
@@ -506,7 +507,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.updateChart_Crosshair(willUpdateChart, willUpdateOverlayCharts, willUpdateCrosshair, xMouse, yMouse)
         }
 
-        this.prevProps = this.props;
+        this.prevProps = props;
     }
 
     isOverlayIndicatorsChanged(newInds: Indicator[], oldInds: Indicator[]) {
