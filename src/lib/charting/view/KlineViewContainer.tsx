@@ -544,15 +544,13 @@ class KlineViewContainer extends Component<Props, State> {
 
         const pathStyle = styleOfAnnot(className, this.props.colorScheme)
 
-        const crosshair = new Path;
+        const crosshair = new Path();
         // vertical line
         crosshair.moveto(x, this.geom.yCursorRange[0]);
         crosshair.lineto(x, this.geom.yCursorRange[1])
 
         return (
-            <g className={className}>
-                {crosshair.render({ style: pathStyle })}
-            </g>
+            crosshair.render({ style: pathStyle, className })
         )
     }
 
@@ -1055,7 +1053,7 @@ class KlineViewContainer extends Component<Props, State> {
         return this.handleTickerTimeframeChanged(ticker, tframe, this.tzone)
     }
 
-    renderSvgChart(isChartOnly: boolean) {
+    crosshairs = () => {
         const xc = this.xc;
 
         // Calculate crosshairs dynamically during render
@@ -1075,6 +1073,14 @@ class KlineViewContainer extends Component<Props, State> {
             }
         }
 
+        return (
+            <g>
+                {referCrosshair}
+                {mouseCrosshair}
+            </g>)
+    }
+
+    renderSvgChart(isChartOnly: boolean) {
         return (
             <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.geom.svgHeight}`}
                 width={this.state.chartviewWidth}
@@ -1178,9 +1184,7 @@ class KlineViewContainer extends Component<Props, State> {
                     xc={this.xc}
                 />
 
-                {referCrosshair}
-                {mouseCrosshair}
-
+                <this.crosshairs />
             </svg>
         )
     }
