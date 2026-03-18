@@ -1127,7 +1127,6 @@ class KlineViewContainer extends Component<Props, State> {
                             colorScheme={this.props.colorScheme}
                             mainIndicatorOutputs={outputs}
                             updateEvent={this.state.updateEvent}
-                            indexOfStackedIndicator={n}
                             callbacksToContainer={this.callbacks}
                         />
                     )

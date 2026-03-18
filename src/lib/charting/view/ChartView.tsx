@@ -63,7 +63,6 @@ export interface ViewProps {
     // for indicator chart view's main indicator outputs
     mainIndicatorOutputs?: Output[]
 
-    indexOfStackedIndicator?: number
     overlayIndicators?: Indicator[];
 
     callbacksToContainer?: CallbacksToContainer;
