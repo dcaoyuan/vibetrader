@@ -97,12 +97,6 @@ type State = {
     overlayIndicators?: Indicator[];
     stackedIndicators?: Indicator[];
 
-    overlayIndicatorLabels?: string[][];
-    stackedIndicatorLabels?: string[][];
-
-    referOverlayIndicatorLabels?: string[][];
-    referStackedIndicatorLabels?: string[][];
-
     selectedIndicatorTags?: Selection;
     drawingIdsToCreate?: Selection;
 

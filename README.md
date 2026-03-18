@@ -16,15 +16,15 @@ https://deepwiki.com/dcaoyuan/vibetrader
 * Mouse:
   * Drag: Move chart
   * Ctrl + Drag: Scale chart
-  * Double click on chart: Put a reference cursor
-  * Double click on y-axis: Remove reference cursor
+  * Double click on chart: Put a reference crosshair
+  * Double click on y-axis: Remove reference crosshair
   * Wheel: Move chart
   * Shift + Wheel: Zoom in/out chart 
 
 * Keyboard:
   * Left/Right arrow: Move chart
-  * Ctrl + Left/Right arrow: Move reference cursor
-  * ESC: Remove reference cursor / Hide crosshair
+  * Ctrl + Left/Right arrow: Move reference crosshair
+  * ESC: Remove reference crosshair / Hide crosshair
   * Up/Down arrow: Zoom in/out chart
   * Space: Swich fast/normal moving speed
 

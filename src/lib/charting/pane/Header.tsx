@@ -21,19 +21,16 @@ type Props = {
     handleSymbolTimeframeChanged: (ticker: string, timeframe?: string) => void
 }
 
+type State = {
+    emptyState?: boolean
+}
+
 type Delta = {
     period?: number,
     percent?: number,
     volumeSum?: number
 }
 
-type State = {
-    referKline: Kline,
-    pointKline: Kline,
-    delta: Delta,
-    snapshots: Snapshot[]
-    newSnapshot: boolean
-}
 
 type Snapshot = {
     time: number,
@@ -44,6 +41,12 @@ type Snapshot = {
 const L_SNAPSHOTS = 6;
 
 class Header extends Component<Props, State> {
+    referKline: Kline
+    pointKline: Kline
+    delta: Delta
+    snapshots: Snapshot[] = []
+    newSnapshot: boolean
+
     ref: RefObject<SVGAElement>;
     font: string;
 
@@ -60,13 +63,7 @@ class Header extends Component<Props, State> {
 
         this.ref = React.createRef();
 
-        this.state = {
-            pointKline: undefined,
-            referKline: undefined,
-            delta: undefined,
-            snapshots: [],
-            newSnapshot: false
-        };
+        this.state = {}
 
         const tframe = this.props.xc.baseSer.timeframe;
 
@@ -101,29 +98,19 @@ class Header extends Component<Props, State> {
         });
     }
 
-    protected updateChart_Crosshair(willUpdateChart: boolean, willUpdateCrosshair: boolean) {
-        if (willUpdateChart || willUpdateCrosshair) {
-            this.updateState({});
-        }
-    }
-
-    protected updateCrosshairs() {
-        this.updateState({});
-    }
-
-    protected updateState(state: object) {
-        let referKline: Kline | undefined;
-        let pointKline: Kline | undefined;
-
+    protected updateHeader() {
         const xc = this.props.xc;
 
         const latestOccurredTime = xc.lastOccurredTime();
 
         if (xc.isReferCrosshairEnabled) {
             const time = xc.tr(xc.referCrosshairRow)
-            if (xc.occurred(time)) {
-                referKline = this.props.tvar.getByTime(time);
-            }
+            this.referKline = xc.occurred(time)
+                ? this.props.tvar.getByTime(time)
+                : undefined;
+
+        } else {
+            this.referKline = undefined;
         }
 
         const time = xc.isMouseCrosshairEnabled
@@ -131,34 +118,32 @@ class Header extends Component<Props, State> {
             : latestOccurredTime
 
         if (time !== undefined && time > 0 && xc.occurred(time)) {
-            pointKline = this.props.tvar.getByTime(time);
+            this.pointKline = this.props.tvar.getByTime(time);
         }
 
-        let delta: { period?: number, percent?: number, volumeSum?: number } | undefined;
         if (xc.isMouseCrosshairEnabled && xc.isReferCrosshairEnabled) {
-            delta = this.calcDelta()
+            this.delta = this.calcDelta()
+
         } else {
-            if (pointKline !== undefined) {
+            if (this.pointKline !== undefined) {
                 const prevRow = xc.rt(time) - 1
                 const prevOccurredTime = xc.tr(prevRow)
                 if (xc.occurred(prevOccurredTime)) {
                     const prevKline = this.props.tvar.getByTime(prevOccurredTime);
-                    delta = prevKline.close
-                        ? { percent: 100 * (pointKline.close - prevKline.close) / prevKline.close }
+                    this.delta = prevKline.close
+                        ? { percent: 100 * (this.pointKline.close - prevKline.close) / prevKline.close }
                         : undefined
 
                     let latestUpdateTime = new Date().getTime();
-                    latestUpdateTime = latestUpdateTime > pointKline.closeTime
-                        ? pointKline.closeTime
+                    latestUpdateTime = latestUpdateTime > this.pointKline.closeTime
+                        ? this.pointKline.closeTime
                         : latestUpdateTime;
 
-                    pointKline.closeTime = latestUpdateTime;
+                    this.pointKline.closeTime = latestUpdateTime;
                 }
             }
         }
 
-        const snapshots = this.state.snapshots;
-        let newSnapshot = this.state.newSnapshot;
         if (latestOccurredTime !== undefined && latestOccurredTime > 0) {
             const latestKline = this.props.tvar.getByTime(latestOccurredTime);
             if (latestKline !== undefined) {
@@ -167,19 +152,17 @@ class Header extends Component<Props, State> {
                     if (volume > 0) {
                         const price = latestKline.close
                         const time = new Date().getTime()
-                        snapshots.push({ time, price, volume })
-                        if (snapshots.length > L_SNAPSHOTS) {
-                            snapshots.shift()
+                        this.snapshots.push({ time, price, volume })
+                        if (this.snapshots.length > L_SNAPSHOTS) {
+                            this.snapshots.shift()
                         }
-                        newSnapshot = !newSnapshot;
+                        this.newSnapshot = !this.newSnapshot;
                     }
                 }
 
                 this.prevVolume = latestKline.volume
             }
         }
-
-        this.setState({ ...state, referKline, pointKline, delta, snapshots, newSnapshot })
     }
 
     calcDelta() {
@@ -253,9 +236,11 @@ class Header extends Component<Props, State> {
             }
         }
 
-        const rKline = this.state.referKline;
-        const mKline = this.state.pointKline || latestKline;
-        const delta = this.state.delta || latestDelta;
+        this.updateHeader();
+
+        const rKline = this.referKline;
+        const mKline = this.pointKline || latestKline;
+        const delta = this.delta || latestDelta;
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
 
@@ -336,30 +321,8 @@ class Header extends Component<Props, State> {
 
             this.font = fontSize + ' ' + fontFamily;
         }
-
-        this.updateCrosshairs();
     }
 
-    override componentDidUpdate(prevProps: Props, prevState: State) {
-        let willUpdateChart = false;
-        let willUpdateCrosshair = false;
-
-        if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
-            switch (this.props.updateEvent.type) {
-                case 'chart':
-                    willUpdateChart = true;
-                    break;
-                case 'crosshair':
-                    willUpdateCrosshair = true;
-                    break;
-                default:
-            }
-        }
-
-        if (willUpdateChart || willUpdateCrosshair) {
-            this.updateChart_Crosshair(willUpdateChart, willUpdateCrosshair)
-        }
-    }
 }
 
 export default Header;
