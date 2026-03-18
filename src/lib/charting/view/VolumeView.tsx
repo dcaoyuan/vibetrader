@@ -43,9 +43,7 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             colorScheme={this.props.colorScheme}
         />
 
-        const gridLines = this.plotGrids();
-
-        return { chartLines, chartAxisy, gridLines }
+        return { chartLines, chartAxisy }
     }
 
     override UpdateIndicatorLabels(_mouseTime: number, _referTime?: number) {
@@ -103,7 +101,6 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
             <g transform={transform}>
                 {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.chartElements.chartAxisy}
-                {this.chartElements.gridLines}
                 {this.crosshairs.referCrosshair}
                 {this.crosshairs.mouseCrosshair}
             </g>

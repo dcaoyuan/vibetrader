@@ -175,11 +175,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             colorScheme={this.props.colorScheme}
         />
 
-        const gridLines = this.plotGrids();
-
         const indicatorLabels = this.plotIndicatorLabels(latestIndicatorValues);
 
-        return { chartLines, chartAxisy, gridLines, indicatorLabels }
+        return { chartLines, chartAxisy, indicatorLabels }
     }
 
     plotIndicatorLabels(mouseIndicatorValues: string[], referIndicatorValues?: string[]) {
@@ -336,7 +334,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.chartElements.indicatorLabels?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.chartElements.chartAxisy}
-                {this.chartElements.gridLines}
                 {this.crosshairs.referCrosshair}
                 {this.crosshairs.mouseCrosshair}
             </g>

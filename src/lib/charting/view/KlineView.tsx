@@ -96,13 +96,11 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             latestValue={latestValue}
         />
 
-        const gridLines = this.plotGrids();
-
         const overlayIndicatorLines = this.plotOverlayIndicatorLines();
         const indicatorLabels = this.plotIndicatorLabels(latestIndicatorValues);
         const drawingLines = this.plotDrawings()
 
-        return { chartLines, chartAxisy, gridLines, overlayIndicatorLines, indicatorLabels, drawingLines }
+        return { chartLines, chartAxisy, overlayIndicatorLines, indicatorLabels, drawingLines }
     }
 
     protected override plotOverlayIndicatorLines() {
@@ -421,7 +419,6 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
                 {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {this.chartElements.chartAxisy}
-                {this.chartElements.gridLines}
                 {this.chartElements.overlayIndicatorLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {
                     this.props.updateDrawing?.isHidingDrawing

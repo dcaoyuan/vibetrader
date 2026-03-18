@@ -76,7 +76,6 @@ export interface ViewState {
 export type ChartElements = {
     chartLines?: JSX.Element[];
     chartAxisy?: JSX.Element;
-    gridLines?: JSX.Element;
     overlayIndicatorLines?: JSX.Element[];
     drawingLines?: JSX.Element[];
 
@@ -171,16 +170,145 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): Pick<ChartElements, "chartLines" | "chartAxisy" | "gridLines" | "overlayIndicatorLines" | "indicatorLabels" | "drawingLines">;
+    abstract plot(): Pick<ChartElements, "chartLines" | "chartAxisy" | "overlayIndicatorLines" | "indicatorLabels" | "drawingLines">;
 
     protected plotOverlayIndicatorLines(): JSX.Element[] {
         return [];
     }
 
+    checkUpdate() {
+        if (this.prevProps === undefined) {
+            this.chartElements = this.plot();
+
+            this.prevProps = this.props;
+            return
+        }
+
+        const isOverlayIndicatorsChanged = (newInds: Indicator[], oldInds: Indicator[]) => {
+            if (newInds === undefined && oldInds === undefined) {
+                return false;
+
+            } else if (newInds === undefined || oldInds === undefined) {
+                return true;
+            }
+
+            if (newInds.length !== oldInds.length) {
+                return true;
+            }
+
+            for (let i = 0; i < newInds.length; i++) {
+                const newInd = newInds[i];
+                const oldInd = oldInds[i];
+
+                if (newInd.scriptName !== oldInd.scriptName) {
+                    return true
+                }
+            }
+
+            return false;
+        }
+
+        const yc = this.yc;
+
+        let willUpdateChart = false
+        let willUpdateCrosshair = false;
+        let willUpdateOverlayCharts = false;
+
+        let xMouse: number
+        let yMouse: number
+
+        const xyMouse = this.props.updateEvent.xyMouse;
+        if (this.props.updateEvent.changed !== this.prevProps.updateEvent.changed) {
+
+            switch (this.props.updateEvent.type) {
+                case 'chart':
+                    willUpdateChart = true;
+                    if (this.props.id === "kline") {
+                        if (this.props.updateEvent.deltaMouse) {
+                            // apply delta to yc chart scale
+                            const dy = this.props.updateEvent.deltaMouse.dy
+                            if (dy === undefined) {
+                                yc.yChartScale = 1 // back to 1
+
+                            } else {
+                                yc.yChartScale = yc.yChartScale * (1 - dy / yc.hChart)
+                            }
+
+                        } else if (this.props.updateEvent.yScalar) {
+                            let scalar: Scalar
+                            switch (yc.valueScalar.kind) {
+                                case "Linear":
+                                    scalar = LG_SCALAR
+                                    break;
+
+                                case "Lg":
+                                    scalar = LINEAR_SCALAR
+                                    break;
+                            }
+
+                            yc.valueScalar = scalar
+                        }
+                    }
+
+                    break;
+
+                case 'crosshair':
+                    willUpdateCrosshair = true;
+                    if (xyMouse !== undefined) {
+                        if (xyMouse.who === this.props.id) {
+                            xMouse = xyMouse.x;
+                            yMouse = xyMouse.y;
+
+                        } else {
+                            xMouse = xyMouse.x;
+                            yMouse = undefined;
+                        }
+
+                    } else {
+                        xMouse = undefined;
+                        yMouse = undefined;
+                    }
+
+                    break;
+
+                case 'drawing':
+                    // TODO: handle drawing update here?
+                    break;
+            }
+        }
+
+        if (isOverlayIndicatorsChanged(this.props.overlayIndicators, this.prevProps.overlayIndicators)) {
+            // console.log(this.props.id, "overlayIndicators changed")
+            willUpdateOverlayCharts = true;
+        }
+
+        if (this.props.updateDrawing != this.prevProps.updateDrawing) {
+            if (this.props.updateDrawing) {
+                switch (this.props.updateDrawing.action) {
+                    case 'delete':
+                        this.deleteSelectedDrawing()
+                        break;
+
+                    case 'unselect':
+                        this.unselectDrawing();
+                        break;
+                }
+            }
+        }
+
+        if (willUpdateChart || willUpdateOverlayCharts || willUpdateCrosshair) {
+            this.updateChart_Crosshair(willUpdateChart, willUpdateOverlayCharts, willUpdateCrosshair, xMouse, yMouse)
+        }
+
+        this.prevProps = this.props;
+    }
+
     protected updateChart_Crosshair(
         willUpdateChart: boolean,
         willUpdateOverlayCharts: boolean,
-        willUpdateCrosshair: boolean, xMouse: number, yMouse: number
+        willUpdateCrosshair: boolean,
+        xMouse: number,
+        yMouse: number
     ) {
 
         if (willUpdateChart) {
@@ -293,8 +421,9 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             crosshair = new Path();
 
             // horizontal line
-            crosshair.moveto(0, y);
-            crosshair.lineto(this.props.width - wAxisY, y)
+            crosshair
+                .moveto(0, y)
+                .lineto(this.props.width - wAxisY, y)
         }
 
         const valueLabel = this.plotYValueLabel(y, value, className);
@@ -325,17 +454,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const axisyPath = new Path
         const y0 = y + 6
         const x0 = 6
-        // draw arrow
-        axisyPath.moveto(6, y - 3);
-        axisyPath.lineto(0, y);
-        axisyPath.lineto(6, y + 3);
 
-        axisyPath.moveto(x0, y0);
-        axisyPath.lineto(x0 + wLabel, y0);
-        axisyPath.lineto(x0 + wLabel, y0 - hLabel);
-        axisyPath.lineto(x0, y0 - hLabel);
-        axisyPath.closepath();
-        axisyTexts.text(8, y0 - 2, valueStr);
+        // draw arrow
+        axisyPath
+            .moveto(6, y - 3)
+            .lineto(0, y)
+            .lineto(6, y + 3);
+
+        axisyPath.moveto(x0, y0)
+            .lineto(x0 + wLabel, y0)
+            .lineto(x0 + wLabel, y0 - hLabel)
+            .lineto(x0, y0 - hLabel)
+            .closepath();
+
+        axisyTexts
+            .text(8, y0 - 2, valueStr);
 
         const transformYAnnot = `translate(${this.props.width - wAxisY}, ${0})`
         return (
@@ -345,47 +478,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 {axisyTexts.render({ style: textStyle })}
             </g>
         )
-    }
-
-    // We'll plot grids in AxisX and AxisY, so ChartView doesn't need to care about grids
-    // Leave code here for reference.
-    plotGrids() {
-        const disable = true;
-        if (disable) {
-            return <></>
-
-        } else {
-            const xTicks = this.props.xc.xTicks;
-            const vTicks = this.yc.vTicks;
-            const gridPath = new Path;
-
-            // x grid lines
-            for (let i = 0; i < xTicks.length; i++) {
-                const { x } = xTicks[i];
-                gridPath.moveto(x, 0);
-                gridPath.lineto(x, this.props.height);
-            }
-
-            // y grid lines
-            for (let i = 0; i < vTicks.length; i++) {
-                const vTick = vTicks[i];
-                const yTick = Math.round(this.yc.yv(vTick))
-
-                if (this.yc.shouldNormScale && yTick > this.yc.hCanvas - 10) {
-                    // skip to leave space for normMultiple text 
-
-                } else {
-                    gridPath.moveto(0, yTick);
-                    gridPath.lineto(this.props.xc.wChart, yTick);
-                }
-            }
-
-            return (
-                <g className="grid" >
-                    {gridPath.render()}
-                </g>
-            )
-        }
     }
 
     // translate offset x, y to svg to x, y to this view
@@ -409,136 +501,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.updateCrosshair(undefined, undefined);
     }
 
-    checkUpdate() {
-        if (this.prevProps === undefined) {
-            this.chartElements = this.plot();
 
-            this.prevProps = this.props;
-            return
-        }
-
-        const prevProps = this.prevProps;
-        const props = this.props;
-
-        const yc = this.yc;
-
-        let willUpdateChart = false
-        let willUpdateCrosshair = false;
-        let willUpdateOverlayCharts = false;
-
-        let xMouse: number
-        let yMouse: number
-
-        const xyMouse = props.updateEvent.xyMouse;
-        if (props.updateEvent.changed !== prevProps.updateEvent.changed) {
-
-            switch (props.updateEvent.type) {
-                case 'chart':
-                    willUpdateChart = true;
-                    if (props.id === "kline") {
-                        if (props.updateEvent.deltaMouse) {
-                            // apply delta to yc chart scale
-                            const dy = props.updateEvent.deltaMouse.dy
-                            if (dy === undefined) {
-                                yc.yChartScale = 1 // back to 1
-
-                            } else {
-                                yc.yChartScale = yc.yChartScale * (1 - dy / yc.hChart)
-                            }
-
-                        } else if (props.updateEvent.yScalar) {
-                            let scalar: Scalar
-                            switch (yc.valueScalar.kind) {
-                                case "Linear":
-                                    scalar = LG_SCALAR
-                                    break;
-
-                                case "Lg":
-                                    scalar = LINEAR_SCALAR
-                                    break;
-                            }
-
-                            yc.valueScalar = scalar
-                        }
-                    }
-
-                    break;
-
-                case 'crosshair':
-                    willUpdateCrosshair = true;
-                    if (xyMouse !== undefined) {
-                        if (xyMouse.who === props.id) {
-                            xMouse = xyMouse.x;
-                            yMouse = xyMouse.y;
-
-                        } else {
-                            xMouse = xyMouse.x;
-                            yMouse = undefined;
-                        }
-
-                    } else {
-                        xMouse = undefined;
-                        yMouse = undefined;
-                    }
-
-                    break;
-
-                case 'drawing':
-                    // TODO: handle drawing update here?
-                    break;
-            }
-        }
-
-        if (this.isOverlayIndicatorsChanged(props.overlayIndicators, prevProps.overlayIndicators)) {
-            // console.log(this.props.id, "overlayIndicators changed")
-            willUpdateOverlayCharts = true;
-        }
-
-        if (props.updateDrawing != prevProps.updateDrawing) {
-            if (props.updateDrawing) {
-                switch (props.updateDrawing.action) {
-                    case 'delete':
-                        this.deleteSelectedDrawing()
-                        break;
-
-                    case 'unselect':
-                        this.unselectDrawing();
-                        break;
-                }
-            }
-        }
-
-        if (willUpdateChart || willUpdateOverlayCharts || willUpdateCrosshair) {
-            this.updateChart_Crosshair(willUpdateChart, willUpdateOverlayCharts, willUpdateCrosshair, xMouse, yMouse)
-        }
-
-        this.prevProps = props;
-    }
-
-    isOverlayIndicatorsChanged(newInds: Indicator[], oldInds: Indicator[]) {
-        if (newInds === undefined && oldInds === undefined) {
-            return false;
-
-        } else if (newInds === undefined || oldInds === undefined) {
-            return true;
-        }
-
-        if (newInds.length !== oldInds.length) {
-            return true;
-        }
-
-        for (let i = 0; i < newInds.length; i++) {
-            const newInd = newInds[i];
-            const oldInd = oldInds[i];
-
-            if (newInd.scriptName !== oldInd.scriptName) {
-                return true
-            }
-        }
-
-        return false;
-
-    }
 
     // --- drawing ---
 
