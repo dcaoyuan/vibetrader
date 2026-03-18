@@ -18,10 +18,10 @@ export class ChartYControl {
 
     valueScalar: Scalar = LINEAR_SCALAR
 
-    isAutoReferCursorValue: boolean;
+    isAutoReferCrosshairValue: boolean;
 
-    mouseCursorValue: number;
-    mouseCursorY: number;
+    mouseCrosshairValue: number;
+    mouseCrosshairY: number;
 
     /** geometry that need to be set before chart plotting and render */
     #hChart = 0               // chart height in pixels, corresponds to the value range (maxValue - minValue)
@@ -177,9 +177,9 @@ export class ChartYControl {
         this.#yChartScale = yChartScale
     }
 
-    setMouseCursorValue(mouseCursorValue: number, mouseCursorY: number) {
-        this.mouseCursorValue = mouseCursorValue;
-        this.mouseCursorY = mouseCursorY;
+    setMouseCrosshairValue(mouseCrosshairValue: number, mouseCrosshairY: number) {
+        this.mouseCrosshairValue = mouseCrosshairValue;
+        this.mouseCrosshairY = mouseCrosshairY;
     }
 
     growYChartScale(increment: number) {

@@ -26,11 +26,11 @@ export const Help = () => {
                 </div>
                 <div>
                     <span className='label-mouse'>DoubleClick on chart: </span>
-                    <span className='label-refer'>Put a reference cursor</span>
+                    <span className='label-refer'>Put a reference crosshair</span>
                 </div>
                 <div>
                     <span className='label-mouse'>DoubleClick on axis-y: </span>
-                    <span className='label-refer'>Remove reference cursor</span>
+                    <span className='label-refer'>Remove reference crosshair</span>
                 </div>
                 <div>
                     <span className='label-mouse'>Wheel: </span>
@@ -49,11 +49,11 @@ export const Help = () => {
                 </div>
                 <div>
                     <span className='label-mouse'>CTRL + LEFT/RIGHT arrow: </span>
-                    <span className='label-refer'>Move reference cursor</span>
+                    <span className='label-refer'>Move reference crosshair</span>
                 </div>
                 <div>
                     <span className='label-mouse'>ESC: </span>
-                    <span className='label-refer'>Remove reference cursor / Hide crosshair</span>
+                    <span className='label-refer'>Remove reference crosshair / Hide crosshair</span>
                 </div>
                 <div>
                     <span className='label-mouse'>UP/DOWN arrow: </span>

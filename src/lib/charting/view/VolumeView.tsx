@@ -13,13 +13,9 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        const { chartLines, chartAxisy, gridLines } = this.plot();
+        this.chartElements = this.plot();
 
-        this.state = {
-            chartLines,
-            chartAxisy,
-            gridLines
-        };
+        this.state = {}
     }
 
     override plot() {
@@ -105,11 +101,11 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.chartAxisy}
-                {this.state.gridLines}
-                {this.state.referCursor}
-                {this.state.mouseCursor}
+                {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.chartAxisy}
+                {this.chartElements.gridLines}
+                {this.state.referCrosshair}
+                {this.state.mouseCrosshair}
             </g>
         )
     }

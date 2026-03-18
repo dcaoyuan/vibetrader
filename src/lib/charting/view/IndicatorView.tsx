@@ -21,14 +21,9 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
         super(props);
 
-        const { chartLines, chartAxisy, gridLines, indicatorLabels } = this.plot();
+        this.chartElements = this.plot();
 
-        this.state = {
-            chartLines,
-            chartAxisy,
-            gridLines,
-            indicatorLabels
-        };
+        this.state = {}
     }
 
     override plot() {
@@ -227,7 +222,7 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
                 </text>
 
                 {/* Right Aligned - Refer Indicator Values */}
-                {this.props.xc.isReferCursorEnabled && referIndicatorValues && (
+                {this.props.xc.isReferCrosshairEnabled && referIndicatorValues && (
                     <text
                         x={chartWidth - ChartView.AXISY_WIDTH}
                         y={yPos}
@@ -279,7 +274,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
             }
 
             const indicatorLabels = this.plotIndicatorLabels(mouseIndicatorValues, referIndicatorValues)
-            this.setState({ indicatorLabels })
+            this.chartElements.indicatorLabels = indicatorLabels;
+            // this.setState({ indicatorLabels })
         }
     }
 
@@ -337,12 +333,12 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
             <g transform={transform}>
-                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.indicatorLabels && this.state.indicatorLabels.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.chartAxisy}
-                {this.state.gridLines}
-                {this.state.referCursor}
-                {this.state.mouseCursor}
+                {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.indicatorLabels?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.chartAxisy}
+                {this.chartElements.gridLines}
+                {this.state.referCrosshair}
+                {this.state.mouseCrosshair}
             </g>
         )
     }

@@ -101,13 +101,13 @@ class Header extends Component<Props, State> {
         });
     }
 
-    protected updateChart_Cursor(willUpdateChart: boolean, willUpdateCursor: boolean) {
-        if (willUpdateChart || willUpdateCursor) {
+    protected updateChart_Crosshair(willUpdateChart: boolean, willUpdateCrosshair: boolean) {
+        if (willUpdateChart || willUpdateCrosshair) {
             this.updateState({});
         }
     }
 
-    protected updateCursors() {
+    protected updateCrosshairs() {
         this.updateState({});
     }
 
@@ -119,15 +119,15 @@ class Header extends Component<Props, State> {
 
         const latestOccurredTime = xc.lastOccurredTime();
 
-        if (xc.isReferCursorEnabled) {
-            const time = xc.tr(xc.referCursorRow)
+        if (xc.isReferCrosshairEnabled) {
+            const time = xc.tr(xc.referCrosshairRow)
             if (xc.occurred(time)) {
                 referKline = this.props.tvar.getByTime(time);
             }
         }
 
-        const time = xc.isMouseCursorEnabled
-            ? xc.tr(xc.mouseCursorRow)
+        const time = xc.isMouseCrosshairEnabled
+            ? xc.tr(xc.mouseCrosshairRow)
             : latestOccurredTime
 
         if (time !== undefined && time > 0 && xc.occurred(time)) {
@@ -135,7 +135,7 @@ class Header extends Component<Props, State> {
         }
 
         let delta: { period?: number, percent?: number, volumeSum?: number } | undefined;
-        if (xc.isMouseCursorEnabled && xc.isReferCursorEnabled) {
+        if (xc.isMouseCrosshairEnabled && xc.isReferCrosshairEnabled) {
             delta = this.calcDelta()
         } else {
             if (pointKline !== undefined) {
@@ -184,8 +184,8 @@ class Header extends Component<Props, State> {
 
     calcDelta() {
         const xc = this.props.xc;
-        const rRow = xc.referCursorRow;
-        const mRow = xc.mouseCursorRow;
+        const rRow = xc.referCrosshairRow;
+        const mRow = xc.mouseCrosshairRow;
         const rTime = xc.tr(rRow)
         const mTime = xc.tr(mRow)
 
@@ -310,7 +310,7 @@ class Header extends Component<Props, State> {
                         textAnchor="end"
                         dx="-8"
                         fill="currentColor"
-                        className={this.props.xc.isMouseCursorEnabled ? "" : "blinking-label"}
+                        className={this.props.xc.isMouseCrosshairEnabled ? "" : "blinking-label"}
                         key={'close-' + mKline.close?.toPrecision(8)}
                     >
                         {mKline.close?.toPrecision(8)}
@@ -337,27 +337,27 @@ class Header extends Component<Props, State> {
             this.font = fontSize + ' ' + fontFamily;
         }
 
-        this.updateCursors();
+        this.updateCrosshairs();
     }
 
     override componentDidUpdate(prevProps: Props, prevState: State) {
         let willUpdateChart = false;
-        let willUpdateCursor = false;
+        let willUpdateCrosshair = false;
 
         if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
             switch (this.props.updateEvent.type) {
                 case 'chart':
                     willUpdateChart = true;
                     break;
-                case 'cursors':
-                    willUpdateCursor = true;
+                case 'crosshair':
+                    willUpdateCrosshair = true;
                     break;
                 default:
             }
         }
 
-        if (willUpdateChart || willUpdateCursor) {
-            this.updateChart_Cursor(willUpdateChart, willUpdateCursor)
+        if (willUpdateChart || willUpdateCrosshair) {
+            this.updateChart_Crosshair(willUpdateChart, willUpdateCrosshair)
         }
     }
 }

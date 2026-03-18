@@ -20,7 +20,7 @@ import type { ColorScheme } from "../../../App";
 import { styleOfAnnot } from "../../colors";
 
 export type UpdateEvent = {
-    type: 'chart' | 'cursors' | 'drawing'
+    type: 'chart' | 'crosshair' | 'drawing'
     changed?: number,
     xyMouse?: { who: string, x: number, y: number }
     deltaMouse?: { dx: number, dy: number }
@@ -69,14 +69,16 @@ export interface ViewProps {
 }
 
 export interface ViewState {
-    chartLines: JSX.Element[];
+    mouseCrosshair?: JSX.Element
+    referCrosshair?: JSX.Element
+}
+
+export type ChartElements = {
+    chartLines?: JSX.Element[];
     chartAxisy?: JSX.Element;
     gridLines?: JSX.Element;
     overlayIndicatorLines?: JSX.Element[];
     drawingLines?: JSX.Element[];
-
-    mouseCursor?: JSX.Element
-    referCursor?: JSX.Element
 
     sketching?: JSX.Element
 
@@ -97,13 +99,10 @@ const MOVE_CURSOR = "all-scroll" // 'move' doesn't work?
 /**
  * All ChartViews shares the same x-control, have the same cursor behaves.
  *
- * ChangeSubject cases:
- *   rightSideRow
- *   referCursorRow
- *   wBar
- *   onCalendarMode
  */
 export abstract class ChartView<P extends ViewProps, S extends ViewState> extends Component<P, S> {
+
+    protected chartElements: ChartElements = {};
 
     static readonly AXISY_WIDTH = 55
     static readonly CONTROL_HEIGHT = 12
@@ -167,50 +166,44 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // return `value !== undefined` to show cursor value of time
     abstract valueAtTime(time: number): number
 
-    abstract plot(): Pick<ViewState, "chartLines" | "chartAxisy" | "gridLines" | "overlayIndicatorLines" | "indicatorLabels" | "drawingLines">;
+    abstract plot(): Pick<ChartElements, "chartLines" | "chartAxisy" | "gridLines" | "overlayIndicatorLines" | "indicatorLabels" | "drawingLines">;
 
     protected plotOverlayIndicatorLines(): JSX.Element[] {
         return [];
     }
 
-    protected updateChart_Cursor(
+    protected updateChart_Crosshair(
         willUpdateChart: boolean,
         willUpdateOverlayCharts: boolean,
-        willUpdateCursor: boolean, xMouse: number, yMouse: number
+        willUpdateCrosshair: boolean, xMouse: number, yMouse: number
     ) {
-
-        let state: Partial<ViewState> = {};
 
         if (willUpdateChart) {
             const { chartLines, chartAxisy, overlayIndicatorLines, drawingLines } = this.plot();
-            state = { ...state, chartLines, chartAxisy, overlayIndicatorLines, drawingLines }
+            this.chartElements = { ...this.chartElements, chartLines, chartAxisy, overlayIndicatorLines, drawingLines }
         }
 
         if (!willUpdateChart && willUpdateOverlayCharts) {
-            const overlayIndicatorLines = this.plotOverlayIndicatorLines()
-            state = { ...state, overlayIndicatorLines }
+            this.chartElements.overlayIndicatorLines = this.plotOverlayIndicatorLines();
         }
 
-        if (willUpdateCursor) {
-            this.updateState(state, xMouse, yMouse)
+        if (willUpdateCrosshair) {
+            this.updateCrosshair(xMouse, yMouse)
 
         } else {
-            this.updateState(state);
+            this.updateCrosshair();
         }
     }
 
     protected updateChart() {
         const { chartLines, chartAxisy, drawingLines } = this.plot();
-        this.updateState({ chartLines, chartAxisy, drawingLines });
+        this.chartElements = { ...this.chartElements, chartLines, chartAxisy, drawingLines }
     }
 
-    protected updateCursors(xMouse: number, yMouse: number) {
-        this.updateState({}, xMouse, yMouse);
-    }
 
-    protected updateState(state: Partial<ViewState>, xMouse?: number, yMouse?: number) {
-        let referCursor: JSX.Element
-        let mouseCursor: JSX.Element
+    protected updateCrosshair(xMouse?: number, yMouse?: number) {
+        let referCrosshair: JSX.Element
+        let mouseCrosshair: JSX.Element
 
         const xc = this.props.xc;
         const yc = this.yc;
@@ -218,67 +211,67 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const latestTime = this.props.xc.lastOccurredTime();
 
         let referTime: number
-        if (xc.isReferCursorEnabled) {
-            referTime = xc.tr(xc.referCursorRow)
+        if (xc.isReferCrosshairEnabled) {
+            referTime = xc.tr(xc.referCrosshairRow)
             const isOccurredTime = xc.occurred(referTime);
 
             if (isOccurredTime) {
-                const cursorX = xc.xr(xc.referCursorRow)
+                const crosshairX = xc.xr(xc.referCrosshairRow)
 
-                let cursorY: number
+                let crosshairY: number
                 let value = this.valueAtTime(referTime);
                 if (value && !isNaN(value)) {
-                    cursorY = yc.yv(value)
+                    crosshairY = yc.yv(value)
 
                     if (yc.shouldNormScale) {
                         value /= yc.normScale
                     }
 
-                    referCursor = this.#plotCursor(cursorX, cursorY, referTime, value, "annot-refer")
+                    referCrosshair = this.#plotCrosshair(crosshairX, crosshairY, referTime, value, "annot-refer")
                 }
             }
         }
 
         let mouseTime: number
-        if (xc.isMouseCursorEnabled) {
-            mouseTime = xc.tr(xc.mouseCursorRow)
+        if (xc.isMouseCrosshairEnabled) {
+            mouseTime = xc.tr(xc.mouseCrosshairRow)
             const isOccurredTime = xc.occurred(mouseTime);
             // try to align x to bar center
-            const cursorX = isOccurredTime ? xc.xr(xc.mouseCursorRow) : xMouse;
+            const crosshairX = isOccurredTime ? xc.xr(xc.mouseCrosshairRow) : xMouse;
 
             let value: number;
-            let cursorY: number;
+            let crosshairY: number;
             if (yMouse === undefined && isOccurredTime) {
                 value = this.valueAtTime(mouseTime);
                 if (value !== undefined && value !== null && !isNaN(value)) {
-                    cursorY = yc.yv(value);
+                    crosshairY = yc.yv(value);
                 }
 
             } else {
-                cursorY = yMouse;
-                value = yc.vy(cursorY);
+                crosshairY = yMouse;
+                value = yc.vy(crosshairY);
             }
 
-            if (cursorY !== undefined && !isNaN(cursorY) && value !== undefined && value !== null && !isNaN(value)) {
+            if (crosshairY !== undefined && !isNaN(crosshairY) && value !== undefined && value !== null && !isNaN(value)) {
                 if (yc.shouldNormScale) {
                     value /= yc.normScale
                 }
 
-                mouseCursor = this.#plotCursor(cursorX, cursorY, mouseTime, value, "annot-mouse")
+                mouseCrosshair = this.#plotCrosshair(crosshairX, crosshairY, mouseTime, value, "annot-mouse")
             }
 
         } else {
-            // mouse cursor invisible, will show latest value
+            // mouse crosshair invisible, will show latest value
             mouseTime = latestTime;
         }
 
         this.UpdateIndicatorLabels(mouseTime, referTime);
-        this.setState({ ...(state as object), referCursor, mouseCursor })
+        this.setState({ referCrosshair: referCrosshair, mouseCrosshair: mouseCrosshair })
     }
 
     abstract UpdateIndicatorLabels(mouseTime: number, referTime?: number): void
 
-    #plotCursor(x: number, y: number, time: number, value: number, className: string) {
+    #plotCrosshair(x: number, y: number, time: number, value: number, className: string) {
         const pathStyle = styleOfAnnot(className, this.props.colorScheme);
 
         const wAxisY = ChartView.AXISY_WIDTH
@@ -404,7 +397,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         }
 
         // call to update labels right now
-        this.updateCursors(undefined, undefined);
+        this.updateCrosshair(undefined, undefined);
     }
 
     // Important: Be careful when calling setState within componentDidUpdate
@@ -413,7 +406,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     // potentially leading to a loop.
     override componentDidUpdate(prevProps: ViewProps, prevState: ViewState) {
         let willUpdateChart = false
-        let willUpdateCursor = false;
+        let willUpdateCrosshair = false;
         let willUpdateOverlayCharts = false;
 
         let xMouse: number
@@ -454,8 +447,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
                     break;
 
-                case 'cursors':
-                    willUpdateCursor = true;
+                case 'crosshair':
+                    willUpdateCrosshair = true;
                     if (xyMouse !== undefined) {
                         if (xyMouse.who === this.props.id) {
                             xMouse = xyMouse.x;
@@ -498,8 +491,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             }
         }
 
-        if (willUpdateChart || willUpdateOverlayCharts || willUpdateCursor) {
-            this.updateChart_Cursor(willUpdateChart, willUpdateOverlayCharts, willUpdateCursor, xMouse, yMouse)
+        if (willUpdateChart || willUpdateOverlayCharts || willUpdateCrosshair) {
+            this.updateChart_Crosshair(willUpdateChart, willUpdateOverlayCharts, willUpdateCrosshair, xMouse, yMouse)
         }
     }
 
@@ -544,8 +537,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         const idx = this.props.xc.selectedDrawingIdx;
         if (idx !== undefined) {
             const drawingLines = [
-                ...this.state.drawingLines.slice(0, idx),
-                ...this.state.drawingLines.slice(idx + 1)
+                ...this.chartElements.drawingLines.slice(0, idx),
+                ...this.chartElements.drawingLines.slice(idx + 1)
             ];
 
             const drawings = [
@@ -558,7 +551,8 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
             this.props.xc.mouseMoveHitDrawingIdx = undefined
 
             this.drawings = drawings
-            this.setState({ drawingLines })
+
+            this.chartElements.drawingLines = drawingLines
         }
     }
 
@@ -570,7 +564,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     }
 
     private selectAndUpdateDrawings(idx: number, cursor?: string) {
-        let drawingLines = this.state.drawingLines
+        let drawingLines = this.chartElements.drawingLines
         const prevSelectedIdx = this.props.xc.selectedDrawingIdx
         if (prevSelectedIdx !== undefined && prevSelectedIdx !== idx) {
             // there is a different prev selected, unselect at the same time 
@@ -592,30 +586,31 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
 
         this.props.xc.selectedDrawingIdx = idx
 
-        this.setState({ drawingLines, cursor })
+        this.chartElements = { ...this.chartElements, drawingLines, cursor }
     }
 
     private updateDrawingsWithHandles(idxToAddHandles: number, cursor?: string) {
         const selected = this.drawings[idxToAddHandles].renderDrawingWithHandles("drawing-" + idxToAddHandles)
-        let drawingLines = this.state.drawingLines
+        let drawingLines = this.chartElements.drawingLines
         drawingLines = [
             ...drawingLines.slice(0, idxToAddHandles),
             selected,
             ...drawingLines.slice(idxToAddHandles + 1)
         ];
 
-        this.setState({ drawingLines, cursor })
+        const chartElements = this.chartElements;
+        this.chartElements = { ...this.chartElements, drawingLines, cursor }
     }
 
     private updateDrawingsWithoutHandles(idxToRemoveHandles: number, cursor?: string) {
         const unselected = this.drawings[idxToRemoveHandles].renderDrawing("drawing-" + idxToRemoveHandles)
         const drawingLines = [
-            ...this.state.drawingLines.slice(0, idxToRemoveHandles),
+            ...this.chartElements.drawingLines.slice(0, idxToRemoveHandles),
             unselected,
-            ...this.state.drawingLines.slice(idxToRemoveHandles + 1)
+            ...this.chartElements.drawingLines.slice(idxToRemoveHandles + 1)
         ];
 
-        this.setState({ drawingLines, cursor })
+        this.chartElements = { ...this.chartElements, drawingLines, cursor }
     }
 
     private p(x: number, y: number): TPoint {
@@ -696,17 +691,19 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     const toUnselect = this.drawings[prevSelected].renderDrawing("drawing-" + prevSelected)
 
                     const drawingLines = [
-                        ...this.state.drawingLines.slice(0, prevSelected),
+                        ...this.chartElements.drawingLines.slice(0, prevSelected),
                         toUnselect,
-                        ...this.state.drawingLines.slice(prevSelected + 1)
+                        ...this.chartElements.drawingLines.slice(prevSelected + 1)
                     ];
 
                     this.props.xc.selectedDrawingIdx = undefined
 
-                    this.setState({ drawingLines, sketching, cursor: DEFAULT_CURSOR })
+                    this.chartElements.drawingLines = drawingLines;
+                    this.chartElements.cursor = DEFAULT_CURSOR;
 
                 } else {
-                    this.setState({ sketching, cursor: DEFAULT_CURSOR })
+                    this.chartElements.sketching = sketching;
+                    this.chartElements.cursor = DEFAULT_CURSOR;
                 }
             }
 
@@ -734,7 +731,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                 this.updateDrawingsWithHandles(this.props.xc.selectedDrawingIdx, cursor)
 
             } else {
-                this.setState({ cursor: MOVE_CURSOR })
+                this.chartElements.cursor = MOVE_CURSOR;
             }
 
         } else {
@@ -764,7 +761,7 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     this.updateDrawingsWithoutHandles(tobeWithoutHandles, DEFAULT_CURSOR)
 
                 } else {
-                    this.setState({ cursor: DEFAULT_CURSOR })
+                    this.chartElements.cursor = DEFAULT_CURSOR;
                 }
 
             }
@@ -815,21 +812,21 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
                     const toUnselect = this.drawings[prevSelected].renderDrawing("drawing-" + prevSelected)
 
                     drawingLines = [
-                        ...this.state.drawingLines.slice(0, prevSelected),
+                        ...this.chartElements.drawingLines.slice(0, prevSelected),
                         toUnselect,
-                        ...this.state.drawingLines.slice(prevSelected + 1),
+                        ...this.chartElements.drawingLines.slice(prevSelected + 1),
                         drawingLine];
 
                 } else {
                     drawingLines = [
-                        ...this.state.drawingLines,
+                        ...this.chartElements.drawingLines,
                         drawingLine];
                 }
 
                 // set it as new selected one
                 this.props.xc.selectedDrawingIdx = this.drawings.length - 1;
 
-                this.setState({ drawingLines, sketching: undefined })
+                this.chartElements.sketching = undefined;
             }
         }
     }

@@ -28,15 +28,25 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         this.yc.valueScalar = LINEAR_SCALAR;
 
         const { chartLines, chartAxisy, gridLines, overlayIndicatorLines, indicatorLabels, drawingLines } = this.plot();
-
-        this.state = {
+        this.chartElements = {
             chartLines,
             chartAxisy,
             gridLines,
             overlayIndicatorLines,
             indicatorLabels,
             drawingLines
-        };
+        }
+
+        this.state = {}
+
+        // this.state = {
+        //     chartLines,
+        //     chartAxisy,
+        //     gridLines,
+        //     overlayIndicatorLines,
+        //     indicatorLabels,
+        //     drawingLines
+        // };
     }
 
     override plot() {
@@ -290,7 +300,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                     </text>
 
                     {/* Right Aligned - Refer Indicator Values */}
-                    {this.props.xc.isReferCursorEnabled && referIndicatorValues && (
+                    {this.props.xc.isReferCrosshairEnabled && referIndicatorValues && (
                         <text
                             x={chartWidth - ChartView.AXISY_WIDTH}
                             y={yPos}
@@ -364,7 +374,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
             })
 
             const indicatorLabels = this.plotIndicatorLabels(mouseIndicatorValues, referIndicatorValues)
-            this.setState({ indicatorLabels })
+            this.chartElements.indicatorLabels = indicatorLabels;
+            // this.setState({ indicatorLabels })
         }
     }
 
@@ -419,25 +430,25 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 onMouseDown={this.onDrawingMouseDown}
                 onMouseMove={this.onDrawingMouseMove}
                 onMouseUp={this.onDrawingMouseUp}
-                cursor={this.state.cursor}
+                cursor={this.chartElements.cursor}
                 ref={this.ref}
             >
                 {/* Invisible background to capture clicks in empty space */}
                 <rect width={this.props.width} height={this.props.height} fill="transparent" pointerEvents="all" />
 
-                {this.state.chartLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.chartAxisy}
-                {this.state.gridLines}
-                {this.state.referCursor}
-                {this.state.mouseCursor}
-                {this.state.overlayIndicatorLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.chartLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.chartAxisy}
+                {this.chartElements.gridLines}
+                {this.chartElements.overlayIndicatorLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
                 {
-                    this.props.updateDrawing && this.props.updateDrawing.isHidingDrawing
+                    this.props.updateDrawing?.isHidingDrawing
                         ? <></>
-                        : this.state.drawingLines.map((c, n) => <Fragment key={n}>{c}</Fragment>)
+                        : this.chartElements.drawingLines?.map((c, n) => <Fragment key={n}>{c}</Fragment>)
                 }
-                {this.state.indicatorLabels && this.state.indicatorLabels.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
-                {this.state.sketching}
+                {this.chartElements.indicatorLabels?.map((c, n) => <Fragment key={n}>{c}</Fragment>)}
+                {this.chartElements.sketching}
+                {this.state.referCrosshair}
+                {this.state.mouseCrosshair}
             </g >
         )
     }

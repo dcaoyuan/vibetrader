@@ -21,8 +21,8 @@ type Props = {
 type State = {
 	axis: JSX.Element,
 
-	referCursor: JSX.Element,
-	mouseCursor: JSX.Element,
+	referCrosshair: JSX.Element,
+	mouseCrosshair: JSX.Element,
 }
 
 class AxisX extends Component<Props, State> {
@@ -37,7 +37,7 @@ class AxisX extends Component<Props, State> {
 	dfH: Intl.DateTimeFormat
 	dfm: Intl.DateTimeFormat
 
-	dfCursor: Intl.DateTimeFormat
+	dfCrosshair: Intl.DateTimeFormat
 
 	constructor(props: Props) {
 		super(props);
@@ -91,7 +91,7 @@ class AxisX extends Component<Props, State> {
 		switch (tframe.unit.shortName) {
 			case "m":
 			case "h":
-				this.dfCursor = new Intl.DateTimeFormat("en-US", {
+				this.dfCrosshair = new Intl.DateTimeFormat("en-US", {
 					timeZone: tzone,
 					month: "short",
 					day: "numeric",
@@ -106,7 +106,7 @@ class AxisX extends Component<Props, State> {
 			case "W":
 			case "M":
 			case "Y":
-				this.dfCursor = new Intl.DateTimeFormat("en-US", {
+				this.dfCrosshair = new Intl.DateTimeFormat("en-US", {
 					timeZone: tzone,
 					year: "numeric",
 					month: "short",
@@ -116,7 +116,7 @@ class AxisX extends Component<Props, State> {
 		}
 
 		const axis = this.plot();
-		this.state = { axis, referCursor: <></>, mouseCursor: <></> };
+		this.state = { axis, referCrosshair: <></>, mouseCrosshair: <></> };
 
 		console.log("AxisX render");
 	}
@@ -225,37 +225,37 @@ class AxisX extends Component<Props, State> {
 		this.updateState({ axis });
 	}
 
-	protected updateCursors() {
+	protected updateCrosshair() {
 		this.updateState({});
 	}
 
 	protected updateState(state: object) {
-		let referCursor: JSX.Element
-		let mouseCursor: JSX.Element
+		let referCrosshair: JSX.Element
+		let mouseCrosshair: JSX.Element
 		const xc = this.props.xc;
 
-		if (this.props.xc.isReferCursorEnabled) {
-			const time = xc.tr(xc.referCursorRow)
+		if (this.props.xc.isReferCrosshairEnabled) {
+			const time = xc.tr(xc.referCrosshairRow)
 			if (xc.occurred(time)) {
-				const cursorX = xc.xr(xc.referCursorRow)
+				const crosshairX = xc.xr(xc.referCrosshairRow)
 
-				referCursor = this.#plotCursor(cursorX, time, 'annot-refer')
+				referCrosshair = this.#plotCrosshair(crosshairX, time, 'annot-refer')
 			}
 		}
 
-		if (xc.isMouseCursorEnabled) {
-			const time = xc.tr(xc.mouseCursorRow)
-			const cursorX = xc.xr(xc.mouseCursorRow)
-			mouseCursor = this.#plotCursor(cursorX, time, 'annot-mouse')
+		if (xc.isMouseCrosshairEnabled) {
+			const time = xc.tr(xc.mouseCrosshairRow)
+			const crosshairX = xc.xr(xc.mouseCrosshairRow)
+			mouseCrosshair = this.#plotCrosshair(crosshairX, time, 'annot-mouse')
 		}
 
-		this.setState({ ...state, referCursor, mouseCursor })
+		this.setState({ ...state, referCrosshair, mouseCrosshair })
 	}
 
-	#plotCursor(x: number, time: number, className: string) {
+	#plotCrosshair(x: number, time: number, className: string) {
 		const h = 13; // annotation height
 
-		const dtStr = this.dfCursor.format(new Date(time))
+		const dtStr = this.dfCrosshair.format(new Date(time))
 
 		const metrics = stringMetrics(dtStr, this.font)
 		const w = metrics.width + 3
@@ -290,8 +290,8 @@ class AxisX extends Component<Props, State> {
 		return (
 			<g transform={transform} ref={this.ref}>
 				{this.state.axis}
-				{this.state.referCursor}
-				{this.state.mouseCursor}
+				{this.state.referCrosshair}
+				{this.state.mouseCrosshair}
 			</g >
 		)
 	}
@@ -319,8 +319,8 @@ class AxisX extends Component<Props, State> {
 					this.updateChart();
 					break;
 
-				case 'cursors':
-					this.updateCursors();
+				case 'crosshair':
+					this.updateCrosshair();
 					break;
 
 				default:

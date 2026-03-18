@@ -131,7 +131,7 @@ export class ChartXControl {
         0.00025, 0.0005, 0.001, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10, 20
     ]
 
-    static isCursorAccelerated = false
+    static isMovingAccelerated = false
 
     readonly baseSer: TSer;
 
@@ -148,25 +148,25 @@ export class ChartXControl {
         this.baseSer = baseSer;
         this.wChart = wChart;
 
-        this.#internal_initCursorRow()
+        this.#internal_initCrosshairRow()
     }
 
     reinit() {
-        this.#internal_initCursorRow()
+        this.#internal_initCrosshairRow()
     }
 
     rightSideRow = 0;
 
-    referCursorRow = 0;
+    referCrosshairRow = 0;
 
-    mouseCursorRow = 0;
+    mouseCrosshairRow = 0;
 
-    isReferCursorEnabled = false
-    isMouseCursorEnabled = false
+    isReferCrosshairEnabled = false
+    isMouseCrosshairEnabled = false
 
     isCrosshairEnabled = false;
 
-    isCursorAccelerated = false;
+    isMovingAccelerated = false;
 
     fixedNBars?: number;
     fixedLeftSideTime?: number;
@@ -180,7 +180,7 @@ export class ChartXControl {
     #isAutoScrollToNewData = true;
     #isMouseEnteredAnyChartPane = false;
 
-    isCursorCrossVisible = true;
+    isCrosshairVisible = true;
 
     klineKind: KlineKind = 'candle'
 
@@ -453,15 +453,15 @@ export class ChartXControl {
         return this.br(this.baseSer.rowOfTime(time))
     }
 
-    #internal_initCursorRow() {
+    #internal_initCrosshairRow() {
         /**
          * baseSer may have finished computing at this time, to adjust
          * the cursor to proper row, update it here.
          * NOTE
-         * don't set row directly, instead, use setCursorByRow(row, row);
+         * don't set row directly, instead, use setCrosshairByRow(row, row);
          */
         const row = this.baseSer.lastOccurredRow();
-        this.setCursorByRow(row, row, true)
+        this.setCrosshairByRow(row, row, true)
     }
 
     get isMouseEnteredAnyChartPane() {
@@ -472,9 +472,8 @@ export class ChartXControl {
         this.#isMouseEnteredAnyChartPane = b
 
         if (!this.#isMouseEnteredAnyChartPane) {
-            /** this cleanups mouse cursor */
+            /** this cleanups mouse crosshair */
             if (this.#isMouseEnteredAnyChartPane != oldValue) {
-                //this.notifyChanged(classOf<MouseCursorObserver>);
                 this.#updateGeometry();
             }
         }
@@ -565,8 +564,8 @@ export class ChartXControl {
     }
     setOnCalendarMode(b: boolean) {
         if (this.isOnCalendarMode !== b) {
-            const referCursorTime1 = this.referCursorTime()
-            const rightCursorTime1 = this.rightSideTime()
+            const referCrosshairTime1 = this.referCrosshairTime()
+            const rightCrosshairTime1 = this.rightSideTime()
 
             if (b == true) {
                 this.baseSer.toOnCalendarMode()
@@ -574,35 +573,35 @@ export class ChartXControl {
                 this.baseSer.toOnOccurredMode()
             }
 
-            this.#internal_setReferCursorByTime(referCursorTime1);
-            this.#internal_setRightCursorByTime(rightCursorTime1);
+            this.#internal_setReferCrosshairByTime(referCrosshairTime1);
+            this.#internal_setRightCrosshairByTime(rightCrosshairTime1);
 
             this.#updateGeometry();
         }
     }
 
-    setCursorByRow(referRow: number, rightRow: number, willUpdateViews: boolean) {
-        /** set right cursor row first and directly */
+    setCrosshairByRow(referRow: number, rightRow: number, willUpdateViews: boolean) {
+        /** set right crosshair row first and directly */
         this.#internal_setRightSideRow(rightRow, willUpdateViews)
 
-        const oldValue = this.referCursorRow
-        this.scrollReferCursor(referRow - oldValue, willUpdateViews)
+        const oldValue = this.referCrosshairRow
+        this.scrollReferCrosshair(referRow - oldValue, willUpdateViews)
     }
 
-    setReferCursorByRow(row: number, willUpdateViews: boolean) {
-        const increment = row - this.referCursorRow
-        this.scrollReferCursor(increment, willUpdateViews)
+    setReferCrosshairByRow(row: number, willUpdateViews: boolean) {
+        const increment = row - this.referCrosshairRow
+        this.scrollReferCrosshair(increment, willUpdateViews)
     }
 
-    setMouseCursorByRow(row: number) {
-        this.mouseCursorRow = row
+    setMouseCrosshairByRow(row: number) {
+        this.mouseCrosshairRow = row
     }
 
-    scrollReferCursor(increment: number, willUpdateViews: boolean) {
-        const referRow = this.referCursorRow + increment
+    scrollReferCrosshair(increment: number, willUpdateViews: boolean) {
+        const referRow = this.referCrosshairRow + increment
         const rightRow = this.rightSideRow
 
-        // if refCursor is near left/right side, check if need to scroll chart except referCursur
+        // if refCrosshair is near left/right side, check if need to scroll chart except referCursur
         const rightPadding = rightRow - referRow
         if (rightPadding < ChartXControl.REF_PADDING_RIGHT) {
             this.#internal_setRightSideRow(rightRow + ChartXControl.REF_PADDING_RIGHT - rightPadding, willUpdateViews)
@@ -616,27 +615,27 @@ export class ChartXControl {
             }
         }
 
-        this.#internal_setReferCursorRow(referRow, willUpdateViews)
+        this.#internal_setReferCrosshairRow(referRow, willUpdateViews)
 
         this.#updateGeometry();
     }
 
-    /** keep refer cursor stay on same x of screen, and scroll charts left or right by bar */
+    /** keep refer crosshair stay on same x of screen, and scroll charts left or right by bar */
     scrollChartsHorizontallyByBar(increment: number) {
         const rightRow = this.rightSideRow;
         this.#internal_setRightSideRow(rightRow + increment)
 
-        this.scrollReferCursor(increment, true)
+        this.scrollReferCrosshair(increment, true)
     }
 
-    scrollReferCursorToLeftSide() {
+    scrollReferCrosshairToLeftSide() {
         const rightRow = this.rightSideRow;
         const leftRow = rightRow - this.nBars + ChartXControl.REF_PADDING_LEFT
-        this.setReferCursorByRow(leftRow, true)
+        this.setReferCrosshairByRow(leftRow, true)
     }
 
-    referCursorTime() {
-        return this.baseSer.timeOfRow(this.referCursorRow);
+    referCrosshairTime() {
+        return this.baseSer.timeOfRow(this.referCrosshairRow);
     }
 
     rightSideTime(): number {
@@ -657,13 +656,13 @@ export class ChartXControl {
         const toRow = frRow + this.nBars - 1;
 
         const lastOccurredRow = this.baseSer.lastOccurredRow()
-        this.setCursorByRow(lastOccurredRow, toRow, willUpdateViews)
+        this.setCrosshairByRow(lastOccurredRow, toRow, willUpdateViews)
     }
 
     /**
      * @NOTICE
      * =======================================================================
-     * as we don't like referCursor and rightCursor being set directly by others,
+     * as we don't like referCrosshair and rightCrosshair being set directly by others,
      * the following setter methods are named internal_setXXX, and are private.
      */
     #internal_setWBar(wBar: number) {
@@ -674,8 +673,8 @@ export class ChartXControl {
         }
     }
 
-    #internal_setReferCursorRow(row: number, boolean = true) {
-        this.referCursorRow = row
+    #internal_setReferCrosshairRow(row: number, boolean = true) {
+        this.referCrosshairRow = row
         // remember the lastRow for decision if need update cursor, see changeCursorByRow() 
         this.#lastOccurredRowOfBaseSer = this.baseSer.lastOccurredRow()
     }
@@ -684,28 +683,28 @@ export class ChartXControl {
         this.rightSideRow = row
     }
 
-    #internal_setReferCursorByTime(time: number, notify: boolean = true) {
-        this.#internal_setReferCursorRow(this.baseSer.rowOfTime(time), notify)
+    #internal_setReferCrosshairByTime(time: number, notify: boolean = true) {
+        this.#internal_setReferCrosshairRow(this.baseSer.rowOfTime(time), notify)
     }
 
-    #internal_setRightCursorByTime(time: number) {
+    #internal_setRightCrosshairByTime(time: number) {
         this.#internal_setRightSideRow(this.baseSer.rowOfTime(time))
     }
 
     // DIRECTION = -1: Left
     // DIRECTION = 1: Right 
-    moveCursorInDirection(nBarsToMove: number, DIRECTION: number, isDragging?: boolean) {
+    moveCrosshairInDirection(nBarsToMove: number, DIRECTION: number, isDragging?: boolean) {
         nBarsToMove = isDragging
             ? nBarsToMove
-            : this.isCursorAccelerated ? Math.floor(this.nBars * 0.168) : 1
+            : this.isMovingAccelerated ? Math.floor(this.nBars * 0.168) : 1
 
-        this.scrollReferCursor(nBarsToMove * DIRECTION, true)
+        this.scrollReferCrosshair(nBarsToMove * DIRECTION, true)
     }
 
     moveChartsInDirection(nBarsToMove: number, DIRECTION: number, isDragging?: boolean) {
         nBarsToMove = isDragging
             ? nBarsToMove
-            : this.isCursorAccelerated ? Math.floor(this.nBars * 0.168) : 1
+            : this.isMovingAccelerated ? Math.floor(this.nBars * 0.168) : 1
 
         this.scrollChartsHorizontallyByBar(nBarsToMove * DIRECTION)
     }
@@ -753,14 +752,14 @@ export class ChartXControl {
         //   default:
         // }
 
-        const oldReferRow = this.referCursorRow;
+        const oldReferRow = this.referCrosshairRow;
         if (oldReferRow === this.#lastOccurredRowOfBaseSer || this.#lastOccurredRowOfBaseSer <= 0) {
             /** update only when the old lastRow is extratly oldReferRow, or prev lastRow <= 0 */
             const lastTime = Math.max(toTime, this.baseSer.lastOccurredTime());
             const referRow = this.baseSer.rowOfTime(lastTime);
             const rightRow = this.isFixedLeftSideTime() ? this.rightSideRow : referRow;
 
-            this.setCursorByRow(referRow, rightRow, true)
+            this.setCrosshairByRow(referRow, rightRow, true)
         }
 
         //this.notifyChanged(classOf<ChartValidityObserver>)

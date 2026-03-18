@@ -91,8 +91,8 @@ type State = {
     updateEvent?: UpdateEvent;
     updateDrawing?: UpdateDrawing;
 
-    mouseCursor?: JSX.Element;
-    referCursor?: JSX.Element;
+    mouseCrosshair?: JSX.Element;
+    referCrosshair?: JSX.Element;
 
     overlayIndicators?: Indicator[];
     stackedIndicators?: Indicator[];
@@ -491,19 +491,19 @@ class KlineViewContainer extends Component<Props, State> {
     updateState(newState: Partial<State>, callback?: () => void) {
         const xc = this.xc;
 
-        let referCursor: JSX.Element
-        let mouseCursor: JSX.Element
-        if (xc.isReferCursorEnabled) {
-            const time = xc.tr(xc.referCursorRow)
+        let referCrosshair: JSX.Element
+        let mouseCrosshair: JSX.Element
+        if (xc.isReferCrosshairEnabled) {
+            const time = xc.tr(xc.referCrosshairRow)
             if (xc.occurred(time)) {
-                const cursorX = xc.xr(xc.referCursorRow)
-                referCursor = this.#plotCursor(cursorX, 'annot-refer')
+                const cursorX = xc.xr(xc.referCrosshairRow)
+                referCrosshair = this.#plotCursor(cursorX, 'annot-refer')
             }
         }
 
-        if (xc.isMouseCursorEnabled) {
-            const cursorX = xc.xr(xc.mouseCursorRow)
-            mouseCursor = this.#plotCursor(cursorX, 'annot-mouse')
+        if (xc.isMouseCrosshairEnabled) {
+            const cursorX = xc.xr(xc.mouseCrosshairRow)
+            mouseCrosshair = this.#plotCursor(cursorX, 'annot-mouse')
         }
 
         // need to re-calculate geometry?
@@ -511,7 +511,7 @@ class KlineViewContainer extends Component<Props, State> {
             ? this.#calcGeometry(newState.stackedIndicators)
             : undefined
 
-        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCursor, mouseCursor }, callback)
+        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCrosshair, mouseCrosshair }, callback)
     }
 
     #indicatorViewId(n: number) {
@@ -578,14 +578,14 @@ class KlineViewContainer extends Component<Props, State> {
         }
 
         const xc = this.xc;
-        xc.isMouseCursorEnabled = false;
+        xc.isMouseCrosshairEnabled = false;
 
         const fastSteps = Math.floor(xc.nBars * 0.168)
 
         switch (e.key) {
             case "ArrowLeft":
                 if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, -1)
+                    xc.moveCrosshairInDirection(fastSteps, -1)
 
                 } else {
                     xc.moveChartsInDirection(fastSteps, -1)
@@ -596,7 +596,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             case "ArrowRight":
                 if (e.ctrlKey) {
-                    xc.moveCursorInDirection(fastSteps, 1)
+                    xc.moveCrosshairInDirection(fastSteps, 1)
 
                 } else {
                     xc.moveChartsInDirection(fastSteps, 1)
@@ -620,7 +620,7 @@ class KlineViewContainer extends Component<Props, State> {
                 break;
 
             case " ":
-                xc.isCursorAccelerated = !xc.isCursorAccelerated
+                xc.isMovingAccelerated = !xc.isMovingAccelerated
                 break;
 
             case "Escape":
@@ -628,9 +628,9 @@ class KlineViewContainer extends Component<Props, State> {
                     this.setState({ updateDrawing: { ...(this.state.updateDrawing), action: 'unselect' } })
 
                 } else {
-                    xc.isReferCursorEnabled = !xc.isReferCursorEnabled;
+                    xc.isReferCrosshairEnabled = !xc.isReferCrosshairEnabled;
 
-                    this.update({ type: 'cursors' })
+                    this.update({ type: 'crosshair' })
                 }
                 break;
 
@@ -647,9 +647,9 @@ class KlineViewContainer extends Component<Props, State> {
         const xc = this.xc;
 
         // clear mouse cursor
-        xc.isMouseCursorEnabled = false;
+        xc.isMouseCrosshairEnabled = false;
 
-        this.update({ type: 'cursors' });
+        this.update({ type: 'crosshair' });
     }
 
     onMouseDown(e: React.MouseEvent) {
@@ -670,8 +670,8 @@ class KlineViewContainer extends Component<Props, State> {
             const dy = y - this.yDragStart
             const nBarDelta = Math.ceil(dx / xc.wBar)
 
-            xc.isMouseCursorEnabled = false
-            xc.isReferCursorEnabled = false
+            xc.isMouseCrosshairEnabled = false
+            xc.isReferCrosshairEnabled = false
             xc.moveChartsInDirection(nBarDelta, -1, true)
 
             // reset to current position 
@@ -693,8 +693,8 @@ class KlineViewContainer extends Component<Props, State> {
 
         if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || xc.selectedDrawingIdx !== undefined || xc.mouseMoveHitDrawingIdx !== undefined) {
             // is under drawing?
-            xc.isMouseCursorEnabled = false;
-            this.update({ type: 'cursors' });
+            xc.isMouseCrosshairEnabled = false;
+            this.update({ type: 'crosshair' });
             return
         }
 
@@ -703,16 +703,16 @@ class KlineViewContainer extends Component<Props, State> {
         if (this.isNotInAxisYArea(x)) {
             // show mouse cursor only when x is not in the axis-y area
             const row = xc.rb(b)
-            xc.setMouseCursorByRow(row)
-            xc.isMouseCursorEnabled = true
+            xc.setMouseCrosshairByRow(row)
+            xc.isMouseCrosshairEnabled = true
 
         } else {
-            xc.isMouseCursorEnabled = false;
+            xc.isMouseCrosshairEnabled = false;
         }
 
         const xyMouse = this.#calcXYMouses(x, y);
 
-        this.update({ type: 'cursors', xyMouse });
+        this.update({ type: 'crosshair', xyMouse });
     }
 
     onMouseUp(e: React.MouseEvent) {
@@ -743,16 +743,16 @@ class KlineViewContainer extends Component<Props, State> {
                 b >= 1 && b <= xc.nBars
             ) {
                 const row = xc.rb(b)
-                xc.setReferCursorByRow(row, true)
-                xc.isReferCursorEnabled = true;
+                xc.setReferCrosshairByRow(row, true)
+                xc.isReferCrosshairEnabled = true;
 
-                this.update({ type: 'cursors' });
+                this.update({ type: 'crosshair' });
             }
 
         } else {
-            xc.isReferCursorEnabled = false;
+            xc.isReferCrosshairEnabled = false;
 
-            this.update({ type: 'cursors' });
+            this.update({ type: 'crosshair' });
         }
     }
 
@@ -779,14 +779,14 @@ class KlineViewContainer extends Component<Props, State> {
 
         } else if (e.ctrlKey) {
             const fastSteps = Math.floor(xc.nBars * 0.168)
-            const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
+            const unitsToScroll = xc.isMovingAccelerated ? delta * fastSteps : delta;
             // move refer cursor left / right 
-            xc.scrollReferCursor(unitsToScroll, true)
+            xc.scrollReferCrosshair(unitsToScroll, true)
 
         } else {
             const fastSteps = Math.floor(xc.nBars * 0.168)
-            const unitsToScroll = xc.isCursorAccelerated ? delta * fastSteps : delta;
-            // keep referCursor staying same x in screen, and move
+            const unitsToScroll = xc.isMovingAccelerated ? delta * fastSteps : delta;
+            // keep referCrosshair staying same x in screen, and move
             xc.scrollChartsHorizontallyByBar(unitsToScroll)
         }
 
@@ -843,7 +843,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         xc.isCrosshairEnabled = !xc.isCrosshairEnabled
 
-        this.update({ type: 'cursors' })
+        this.update({ type: 'crosshair' })
     }
 
     toggleKlineKind() {
@@ -1142,8 +1142,8 @@ class KlineViewContainer extends Component<Props, State> {
                     updateEvent={this.state.updateEvent}
                 />
 
-                {this.state.referCursor}
-                {this.state.mouseCursor}
+                {this.state.referCrosshair}
+                {this.state.mouseCrosshair}
 
             </svg>
         )
