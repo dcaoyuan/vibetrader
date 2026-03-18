@@ -14,13 +14,11 @@ type Props = {
 	xc: ChartXControl,
 	width: number,
 	height: number,
-	updateEvent: UpdateEvent,
 	up?: boolean
 }
 
 type State = {
-	referCrosshair: JSX.Element,
-	mouseCrosshair: JSX.Element,
+	nothing?: boolean
 }
 
 class AxisX extends Component<Props, State> {
@@ -113,8 +111,6 @@ class AxisX extends Component<Props, State> {
 
 		}
 
-		this.state = { referCrosshair: <></>, mouseCrosshair: <></> };
-
 		console.log("AxisX render");
 	}
 
@@ -130,27 +126,32 @@ class AxisX extends Component<Props, State> {
 
 		// draw axis-x line 
 		if (this.props.up) {
-			tickPath.moveto(0, this.props.height)
-			tickPath.lineto(this.props.width, this.props.height)
+			tickPath
+				.moveto(0, this.props.height)
+				.lineto(this.props.width, this.props.height)
 
 		} else {
-			tickPath.moveto(0, 0)
-			tickPath.lineto(this.props.width, 0)
+			tickPath
+				.moveto(0, 0)
+				.lineto(this.props.width, 0)
 		}
 
 		const hTick = 4;
 		for (let i = 0; i < ticks.length; i++) {
 			const { dt, x, level } = ticks[i]
 			if (this.props.up) {
-				tickPath.moveto(x, hFont - 1)
-				tickPath.lineto(x, hFont - hTick)
+				tickPath
+					.moveto(x, hFont - 1)
+					.lineto(x, hFont - hTick)
 
 			} else {
-				tickPath.moveto(x, 1)
-				tickPath.lineto(x, hTick)
+				tickPath
+					.moveto(x, 1)
+					.lineto(x, hTick)
 
-				gridPath.moveto(x, 0);
-				gridPath.lineto(x, -this.props.y + H_SPACING + H_HEADER);
+				gridPath
+					.moveto(x, 0)
+					.lineto(x, -this.props.y + H_SPACING + H_HEADER);
 			}
 
 			const date = new Date(dt.epochMilliseconds);
@@ -196,12 +197,14 @@ class AxisX extends Component<Props, State> {
 
 		// draw end line
 		if (this.props.up) {
-			tickPath.moveto(0, this.props.height);
-			tickPath.lineto(0, this.props.height - 8);
+			tickPath
+				.moveto(0, this.props.height)
+				.lineto(0, this.props.height - 8);
 
 		} else {
-			tickPath.moveto(0, 0);
-			tickPath.lineto(0, 8);
+			tickPath
+				.moveto(0, 0)
+				.lineto(0, 8);
 		}
 
 		return (
@@ -237,7 +240,7 @@ class AxisX extends Component<Props, State> {
 			mouseCrosshair = this.#plotCrosshair(crosshairX, time, 'annot-mouse')
 		}
 
-		this.setState({ referCrosshair, mouseCrosshair })
+		return { referCrosshair, mouseCrosshair };
 	}
 
 	#plotCrosshair(x: number, time: number, className: string) {
@@ -275,13 +278,15 @@ class AxisX extends Component<Props, State> {
 	render() {
 		const axis = this.plot();
 
+		const { referCrosshair, mouseCrosshair } = this.updateCrosshair()
+
 		const transform = `translate(${this.props.x} ${this.props.y})`;
 
 		return (
 			<g transform={transform} ref={this.ref}>
 				{axis}
-				{this.state.referCrosshair}
-				{this.state.mouseCrosshair}
+				{referCrosshair}
+				{mouseCrosshair}
 			</g >
 		)
 	}
@@ -296,23 +301,6 @@ class AxisX extends Component<Props, State> {
 
 			this.font = fontSize + ' ' + fontFamily;
 		}
-	}
-
-	// Important: Be careful when calling setState within componentDidUpdate
-	// Ensure you have a conditional check to prevent infinite re-renders.
-	// If setState is called unconditionally, it will trigger another update,
-	// potentially leading to a loop.
-	override componentDidUpdate(prevProps: Props, prevState: State) {
-		if (this.props.updateEvent.changed !== prevProps.updateEvent.changed) {
-			switch (this.props.updateEvent.type) {
-				case 'crosshair':
-					this.updateCrosshair();
-					break;
-
-				default:
-			}
-		}
-
 	}
 }
 

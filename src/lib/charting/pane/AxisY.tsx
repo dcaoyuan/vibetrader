@@ -26,7 +26,6 @@ type State = {
     nothing?: boolean;
 }
 
-
 class AxisY extends Component<Props, State> {
     ref: RefObject<SVGAElement>;
     font: string;
@@ -48,8 +47,9 @@ class AxisY extends Component<Props, State> {
         const tickTexts = new Texts;
 
         // draw axis-y line */
-        tickPath.moveto(0, 0)
-        tickPath.lineto(0, this.props.height)
+        tickPath
+            .moveto(0, 0)
+            .lineto(0, this.props.height)
 
         const wTick = 4;
         for (let i = 0; i < vTicks.length; i++) {
@@ -60,8 +60,9 @@ class AxisY extends Component<Props, State> {
                 // skip to leave space for normMultiple text 
 
             } else {
-                tickPath.moveto(0, yTick)
-                tickPath.lineto(wTick, yTick)
+                tickPath
+                    .moveto(0, yTick)
+                    .lineto(wTick, yTick)
 
                 vTick = yc.shouldNormScale
                     ? vTick / yc.normScale
@@ -82,8 +83,9 @@ class AxisY extends Component<Props, State> {
         }
 
         // draw end line 
-        tickPath.moveto(0, 0);
-        tickPath.lineto(8, 0);
+        tickPath
+            .moveto(0, 0)
+            .lineto(8, 0);
 
         if (yc.valueScalar.kind !== 'Linear') {
             tickTexts.text(-1, -8, yc.valueScalar.kind)
@@ -138,16 +140,18 @@ class AxisY extends Component<Props, State> {
         const axisyPath = new Path
         const y0 = y + 6
         const x0 = 6
-        // draw arrow
-        axisyPath.moveto(6, y - 3);
-        axisyPath.lineto(0, y);
-        axisyPath.lineto(6, y + 3);
 
-        axisyPath.moveto(x0, y0);
-        axisyPath.lineto(x0 + wLabel, y0);
-        axisyPath.lineto(x0 + wLabel, y0 - hLabel);
-        axisyPath.lineto(x0, y0 - hLabel);
-        axisyPath.closepath();
+        // draw arrow
+        axisyPath.moveto(6, y - 3)
+            .lineto(0, y)
+            .lineto(6, y + 3);
+
+        axisyPath.moveto(x0, y0)
+            .lineto(x0 + wLabel, y0)
+            .lineto(x0 + wLabel, y0 - hLabel)
+            .lineto(x0, y0 - hLabel)
+            .closepath()
+
         axisyTexts.text(8, y0 - 2, valueStr);
 
         return (

@@ -1133,7 +1133,6 @@ class KlineViewContainer extends Component<Props, State> {
                     width={this.state.chartviewWidth}
                     height={H_AXIS_X}
                     xc={this.xc}
-                    updateEvent={this.state.updateEvent}
                 />
 
                 {this.state.referCrosshair}

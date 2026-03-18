@@ -19,12 +19,16 @@ export class Path implements Seg {
             { type: "M", values: [Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     closepath() {
         const c = { type: "Z", values: [] as number[] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     lineto(x: number, y: number, relative = false) {
@@ -33,6 +37,8 @@ export class Path implements Seg {
             { type: "L", values: [Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     horizontal_lineto(x: number, relative = false) {
@@ -41,6 +47,8 @@ export class Path implements Seg {
             { type: "H", values: [Math.round(x)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     vertical_lineto(y: number, relative = false) {
@@ -49,6 +57,8 @@ export class Path implements Seg {
             { type: "V", values: [Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     curveto(x1: number, y1: number, x2: number, y2: number, x: number, y: number, relative = false) {
@@ -57,6 +67,8 @@ export class Path implements Seg {
             { type: "C", values: [Math.round(x1), Math.round(y1), Math.round(x2), Math.round(y2), Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     smooth_curveto(x2: number, y2: number, x: number, y: number, relative = false) {
@@ -65,6 +77,8 @@ export class Path implements Seg {
             { type: "S", values: [Math.round(x2), Math.round(y2), Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     quadratic_bezier_curveto(x1: number, y1: number, x: number, y: number, relative = false) {
@@ -73,6 +87,8 @@ export class Path implements Seg {
             { type: "Q", values: [Math.round(x1), Math.round(y1), Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     smooth_quadratic_bezier_curveto(x: number, y: number, relative = false) {
@@ -81,6 +97,8 @@ export class Path implements Seg {
             { type: "T", values: [Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     elliptical_arc(rx: number, ry: number, x_axis_rotation: number, large_arc_flag: number, sweep_flag: number, x: number, y: number, relative = false) {
@@ -89,6 +107,8 @@ export class Path implements Seg {
             { type: "A", values: [rx, ry, x_axis_rotation, large_arc_flag, sweep_flag, Math.round(x), Math.round(y)] }
 
         this.pathDatas.push(c)
+
+        return this;
     }
 
     render(options?: Options) {
