@@ -29,13 +29,20 @@ import {
     DialogTrigger,
     Divider,
     Popover,
+    Image,
     type Selection,
     ToggleButtonGroup,
     ToggleButton,
     Tooltip,
     TooltipTrigger,
     TagGroup,
-    Tag
+    Tag,
+    Dialog,
+    ButtonGroup,
+    Button,
+    Heading,
+    Content,
+    ProgressCircle
 } from "@react-spectrum/s2";
 
 import Line from '@react-spectrum/s2/icons/Line';
@@ -76,6 +83,7 @@ import { fetchData, Source } from "../../domain/DataFecther";
 import type { ColorScheme } from "../../../App";
 import { styleOfAnnot } from "../../colors";
 import Header from "../pane/Header";
+import { formatDateForFileName } from "../../utils";
 
 type Props = {
     toggleColorScheme: () => void
@@ -91,31 +99,29 @@ type State = {
     updateEvent?: UpdateEvent;
     updateDrawing?: UpdateDrawing;
 
-    mouseCrosshair?: JSX.Element;
-    referCrosshair?: JSX.Element;
-
     overlayIndicators?: Indicator[];
     stackedIndicators?: Indicator[];
 
     selectedIndicatorTags?: Selection;
     drawingIdsToCreate?: Selection;
 
-    yHeader: number;
-    yKlineView: number;
-    yVolumeView: number;
-    yIndicatorViews: number;
-    yAxisx: number;
-    svgHeight: number;
-    containerHeight: number;
-    yCursorRange: number[];
-
     isLoaded: boolean;
 
-    screenshot: HTMLCanvasElement;
+    isGeneratingScreenshot: boolean;
 
     isChartOnly: boolean;
 }
 
+type Geometry = {
+    yHeader: number,
+    yKlineView: number,
+    yVolumeView: number,
+    yIndicatorViews: number,
+    yAxisx: number,
+    svgHeight: number,
+    containerHeight: number,
+    yCursorRange: number[]
+};
 
 const allIndTags = dev
     //? ['dynpivot']
@@ -142,11 +148,15 @@ class KlineViewContainer extends Component<Props, State> {
     tframe: TFrame;
     tzone: string;
 
+    mouseCrosshair?: JSX.Element;
+    referCrosshair?: JSX.Element;
+
+    screenshotCanvas?: HTMLCanvasElement;
+
     baseSer: TSer;
     kvar: TVar<Kline>;
     xc: ChartXControl;
 
-    reloadDataTimeoutId: number = undefined;
     latestTime: number;
 
     predefinedScripts: Map<string, string>;
@@ -155,16 +165,18 @@ class KlineViewContainer extends Component<Props, State> {
     chartviewRef: React.RefObject<HTMLDivElement>;
     resizeObserver: ResizeObserver;
 
-    globalKeyboardListener = undefined
+    geom: Geometry;
+
+    globalKeyboardListener;
     isDragging: boolean;
     xDragStart: number;
     yDragStart: number;
-
 
     callbacks: CallbacksToContainer
 
     systemScheme: string;
 
+    reloadDataTimeoutId: number;
     currentLoading = Promise.resolve()
 
     constructor(props: Props) {
@@ -172,7 +184,6 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.chartviewRef = React.createRef();
 
-        const geometry = this.#calcGeometry([]);
         this.state = {
             chartviewWidth: 0,
             isLoaded: false,
@@ -181,9 +192,8 @@ class KlineViewContainer extends Component<Props, State> {
             stackedIndicators: [],
             selectedIndicatorTags: new Set(['ema', 'macd', 'rsi']),
             drawingIdsToCreate: new Set(),
-            screenshot: undefined,
-            isChartOnly: props.chartOnly,
-            ...geometry,
+            isGeneratingScreenshot: false,
+            isChartOnly: props.chartOnly
         }
 
         console.log("KlinerViewContainer created, width=" + this.props.width);
@@ -199,6 +209,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.handleTickerTimeframeChanged = this.handleTickerTimeframeChanged.bind(this)
         this.handleTakeScreenshot = this.handleTakeScreenshot.bind(this)
+        this.handleSaveScreenshot = this.handleSaveScreenshot.bind(this)
 
         this.onGlobalKeyDown = this.onGlobalKeyDown.bind(this)
         this.onMouseUp = this.onMouseUp.bind(this)
@@ -213,8 +224,8 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
-    #calcGeometry(stackedIndicators: Indicator[]) {
-        stackedIndicators = stackedIndicators || [];
+    private calcGeometry() {
+        const stackedIndicators = this.state?.stackedIndicators || [];
 
         const yHeader = 0;
         const yKlineView = yHeader + H_HEADER + H_INDICATOR_TAGS + H_SPACING;
@@ -226,7 +237,7 @@ class KlineViewContainer extends Component<Props, State> {
         const containerHeight = svgHeight + H_TITLE + H_INDICATOR_TAGS;
         const yCursorRange = [0, yAxisx];
 
-        return { yHeader, yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange }
+        return { yHeader, yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCursorRange };
     }
 
     fetchOPredefinedScripts = (scriptNames: string[]) => {
@@ -494,29 +505,8 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     private updateState(newState: Partial<State>, callback?: () => void) {
-        const xc = this.xc;
 
-        let referCrosshair: JSX.Element
-        let mouseCrosshair: JSX.Element
-        if (xc.isReferCrosshairEnabled) {
-            const time = xc.tr(xc.referCrosshairRow)
-            if (xc.occurred(time)) {
-                const cursorX = xc.xr(xc.referCrosshairRow)
-                referCrosshair = this.plotCursor(cursorX, 'annot-refer')
-            }
-        }
-
-        if (xc.isMouseCrosshairEnabled) {
-            const cursorX = xc.xr(xc.mouseCrosshairRow)
-            mouseCrosshair = this.plotCursor(cursorX, 'annot-mouse')
-        }
-
-        // need to re-calculate geometry?
-        const geometry = newState.stackedIndicators
-            ? this.#calcGeometry(newState.stackedIndicators)
-            : undefined
-
-        this.setState({ ...(newState as (Pick<State, keyof State> | State)), ...geometry, referCrosshair, mouseCrosshair }, callback)
+        this.setState(newState as Pick<State, keyof State>, callback)
     }
 
     private indicatorViewId(n: number) {
@@ -524,19 +514,19 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     private calcXYMouses(x: number, y: number) {
-        if (y >= this.state.yKlineView && y < this.state.yKlineView + H_KLINE_VIEW) {
-            return { who: 'kline', x, y: y - this.state.yKlineView };
+        if (y >= this.geom.yKlineView && y < this.geom.yKlineView + H_KLINE_VIEW) {
+            return { who: 'kline', x, y: y - this.geom.yKlineView };
 
-        } else if (y >= this.state.yVolumeView && y < this.state.yVolumeView + H_VOLUME_VIEW) {
-            return { who: 'volume', x, y: y - this.state.yVolumeView };
+        } else if (y >= this.geom.yVolumeView && y < this.geom.yVolumeView + H_VOLUME_VIEW) {
+            return { who: 'volume', x, y: y - this.geom.yVolumeView };
 
-        } else if (y > this.state.yAxisx && y < this.state.yAxisx + H_AXIS_X) {
-            return { who: 'axisx', x, y: y - this.state.yVolumeView };
+        } else if (y > this.geom.yAxisx && y < this.geom.yAxisx + H_AXIS_X) {
+            return { who: 'axisx', x, y: y - this.geom.yVolumeView };
 
         } else {
             if (this.state.stackedIndicators) {
                 for (let n = 0; n < this.state.stackedIndicators.length; n++) {
-                    const yIndicatorView = this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING);
+                    const yIndicatorView = this.geom.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING);
                     if (y >= yIndicatorView && y < yIndicatorView + H_INDICATOR_VIEW) {
                         return { who: this.indicatorViewId(n), x, y: y - yIndicatorView };
                     }
@@ -547,7 +537,7 @@ class KlineViewContainer extends Component<Props, State> {
         return undefined;
     }
 
-    private plotCursor(x: number, className: string) {
+    private plotCrosshair(x: number, className: string) {
         if (this.state.drawingIdsToCreate === 'all' || this.state.drawingIdsToCreate.size > 0 || this.xc.isCrosshairEnabled) {
             return <></>
         }
@@ -556,8 +546,8 @@ class KlineViewContainer extends Component<Props, State> {
 
         const crosshair = new Path;
         // vertical line
-        crosshair.moveto(x, this.state.yCursorRange[0]);
-        crosshair.lineto(x, this.state.yCursorRange[1])
+        crosshair.moveto(x, this.geom.yCursorRange[0]);
+        crosshair.lineto(x, this.geom.yCursorRange[1])
 
         return (
             <g className={className}>
@@ -744,7 +734,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             // draw refer cursor only when not in the axis-y area
             if (
-                y >= this.state.yCursorRange[0] && y <= this.state.svgHeight &&
+                y >= this.geom.yCursorRange[0] && y <= this.geom.svgHeight &&
                 b >= 1 && b <= xc.nBars
             ) {
                 const row = xc.rb(b)
@@ -884,27 +874,19 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     private handleTakeScreenshot() {
-        this.takeScreenshot().then((screenshot) =>
-            this.setState({ screenshot })
-        )
-    }
+        // Clear out any old screenshot and start the loading state
+        this.screenshotCanvas = undefined;
+        this.setState({ isGeneratingScreenshot: true }, () => {
+            this.takeScreenshot().then(screenshot => {
+                this.screenshotCanvas = screenshot;
 
-    exportSvgChart(): Promise<string> {
-        return new Promise<string>((resolve, reject) =>
-            this.setState(
-                { isChartOnly: true },
-                () => {
-                    console.log(renderToStaticMarkup(this.renderSvgChart(this.state.isChartOnly)))
-                    const svg = renderToString(this.renderSvgChart(this.state.isChartOnly))
-
-                    this.setState({ isChartOnly: false });
-
-                    resolve(svg);
-                })
-        )
+                this.setState({ isGeneratingScreenshot: false });
+            })
+        });
     }
 
     async takeScreenshot(): Promise<HTMLCanvasElement> {
+        console.log(renderToStaticMarkup(this.renderSvgChart(this.state.isChartOnly)))
         return html2canvas(this.chartviewRef.current, {
             useCORS: true, // in case you have images stored in your application
             backgroundColor: null // Sets the canvas background to transparent
@@ -914,6 +896,37 @@ class KlineViewContainer extends Component<Props, State> {
         })
     }
 
+    handleSaveScreenshot = (close: () => void) => {
+        if (!this.screenshotCanvas) return;
+
+        const imgSrc = this.screenshotCanvas.toDataURL("image/png");
+        const filename = `vibetrader-chart-${formatDateForFileName(new Date())}.png`;
+
+        // Create a temporary hidden link, click it, and remove it
+        const link = document.createElement('a');
+        link.href = imgSrc;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        close();
+    };
+
+    exportSvgChart(): Promise<string> {
+        return new Promise<string>((resolve, reject) =>
+            this.setState(
+                { isChartOnly: true },
+                () => {
+                    // console.log(renderToStaticMarkup(this.renderSvgChart(this.state.isChartOnly)))
+                    const svg = renderToString(this.renderSvgChart(this.state.isChartOnly))
+
+                    this.setState({ isChartOnly: false });
+
+                    resolve(svg);
+                })
+        )
+    }
 
     private handleTickerTimeframeChanged(ticker: string, timeframe?: string, tzone?: string) {
         if (this.reloadDataTimeoutId) {
@@ -1043,10 +1056,29 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     renderSvgChart(isChartOnly: boolean) {
+        const xc = this.xc;
+
+        // Calculate crosshairs dynamically during render
+        let referCrosshair: JSX.Element;
+        let mouseCrosshair: JSX.Element;
+
+        if (xc.isMouseCrosshairEnabled) {
+            const crosshairX = xc.xr(xc.mouseCrosshairRow)
+            mouseCrosshair = this.plotCrosshair(crosshairX, 'annot-mouse')
+        }
+
+        if (xc.isReferCrosshairEnabled) {
+            const time = xc.tr(xc.referCrosshairRow)
+            if (xc.occurred(time)) {
+                const crosshairX = xc.xr(xc.referCrosshairRow)
+                referCrosshair = this.plotCrosshair(crosshairX, 'annot-refer')
+            }
+        }
+
         return (
-            <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.state.svgHeight}`}
+            <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.geom.svgHeight}`}
                 width={this.state.chartviewWidth}
-                height={this.state.svgHeight}
+                height={this.geom.svgHeight}
                 vectorEffect="non-scaling-stroke"
                 onDoubleClick={this.onDoubleClick}
                 onMouseLeave={this.onMouseLeave}
@@ -1076,7 +1108,7 @@ class KlineViewContainer extends Component<Props, State> {
 
                 <Header
                     x={0}
-                    y={this.state.yHeader}
+                    y={this.geom.yHeader}
                     width={this.state.chartviewWidth}
                     height={H_HEADER}
                     xc={this.xc}
@@ -1090,7 +1122,7 @@ class KlineViewContainer extends Component<Props, State> {
                 <KlineView
                     id={"kline"}
                     x={0}
-                    y={this.state.yKlineView}
+                    y={this.geom.yKlineView}
                     width={this.state.chartviewWidth}
                     height={H_KLINE_VIEW}
                     name=""
@@ -1106,7 +1138,7 @@ class KlineViewContainer extends Component<Props, State> {
                 <VolumeView
                     id={"volume"}
                     x={0}
-                    y={this.state.yVolumeView}
+                    y={this.geom.yVolumeView}
                     width={this.state.chartviewWidth}
                     height={H_VOLUME_VIEW}
                     name="Vol"
@@ -1124,7 +1156,7 @@ class KlineViewContainer extends Component<Props, State> {
                             id={this.indicatorViewId(n)}
                             name={"Indicator-" + n}
                             x={0}
-                            y={this.state.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING)}
+                            y={this.geom.yIndicatorViews + n * (H_INDICATOR_VIEW + H_SPACING)}
                             width={this.state.chartviewWidth}
                             height={H_INDICATOR_VIEW}
                             xc={this.xc}
@@ -1140,14 +1172,14 @@ class KlineViewContainer extends Component<Props, State> {
                 <AxisX
                     id={"axisx"}
                     x={0}
-                    y={this.state.yAxisx}
+                    y={this.geom.yAxisx}
                     width={this.state.chartviewWidth}
                     height={H_AXIS_X}
                     xc={this.xc}
                 />
 
-                {this.state.referCrosshair}
-                {this.state.mouseCrosshair}
+                {referCrosshair}
+                {mouseCrosshair}
 
             </svg>
         )
@@ -1155,6 +1187,7 @@ class KlineViewContainer extends Component<Props, State> {
 
     render() {
         this.checkUpdate();
+        this.geom = this.calcGeometry();
 
         return (
             <div style={{ display: "flex", width: '100%' }}>
@@ -1326,48 +1359,79 @@ class KlineViewContainer extends Component<Props, State> {
                                 </Tooltip>
                             </TooltipTrigger>
 
-                            <TooltipTrigger placement="end">
-                                <DialogTrigger>
+                            <DialogTrigger>
+                                <TooltipTrigger placement="end">
                                     <ActionButton >
                                         <HelpCircle />
                                     </ActionButton>
                                     <Tooltip>
                                         Help
                                     </Tooltip>
+                                </TooltipTrigger>
 
-                                    <Popover>
-                                        <div className="help" >
-                                            <Help />
-                                        </div>
-                                    </Popover>
-                                </DialogTrigger>
-                            </TooltipTrigger>
+                                <Popover>
+                                    <div className="help" >
+                                        <Help />
+                                    </div>
+                                </Popover>
+                            </DialogTrigger>
 
                             <Divider staticColor='auto' />
 
-                            <TooltipTrigger placement="end">
-                                <DialogTrigger>
-                                    <ActionButton onPress={this.handleTakeScreenshot} >
+                            <DialogTrigger>
+                                {/* TooltipTrigger must be the first child of DialogTrigger */}
+                                <TooltipTrigger placement="end">
+                                    {/* Note: Use arrow function for onPress if not bound in constructor */}
+                                    <ActionButton onPress={() => this.handleTakeScreenshot()}>
                                         <Exposure />
                                     </ActionButton>
                                     <Tooltip>
                                         Take screenshot
                                     </Tooltip>
+                                </TooltipTrigger>
 
-                                    <Popover>
-                                        <div className="help" >
-                                            <Screenshot canvas={this.state.screenshot} />
-                                        </div>
-                                    </Popover>
-                                </DialogTrigger>
-                            </TooltipTrigger>
+                                {/* react-spectrum's Dialog has strict grid layout */}
+                                <Dialog size="L">
+                                    {({ close }) => (
+                                        <>
+                                            <Heading>Screenshot</Heading>
+                                            <Divider />
 
+                                            <Content>
+                                                {this.state.isGeneratingScreenshot || !this.screenshotCanvas
+                                                    ? <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'center', /* Centers horizontally */
+                                                        alignItems: 'center',     /* Centers vertically */
+                                                        minHeight: '200px',       /* Gives the dialog a stable height while loading */
+                                                        width: '100%'
+                                                    }}>
+                                                        <ProgressCircle aria-label="Generating screenshot…" isIndeterminate />
+                                                    </div>
+                                                    : <Screenshot canvas={this.screenshotCanvas} />
+                                                }
+                                            </Content>
+
+                                            <ButtonGroup>
+                                                <Button onPress={close} variant="secondary">Close</Button>
+                                                <Button
+                                                    onPress={() => this.handleSaveScreenshot(close)}
+                                                    variant="primary"
+                                                    isDisabled={this.state.isGeneratingScreenshot}
+                                                >
+                                                    Save
+                                                </Button>
+                                            </ButtonGroup>
+                                        </>
+                                    )}
+                                </Dialog>
+                            </DialogTrigger>
                         </ActionButtonGroup>
 
                     </div>}
 
                 {/* View Container, width should be set at '.viewcontainer' in vibetrader.css */}
-                <div className="viewcontainer" style={{ paddingLeft: '6px', width: this.props.width || '100%', height: this.state.containerHeight + 'px' }}
+                <div className="viewcontainer" style={{ paddingLeft: '6px', width: this.props.width || '100%', height: this.geom.containerHeight + 'px' }}
                     key="klineviewcontainer"
                     ref={this.chartviewRef}
                 >
@@ -1384,7 +1448,7 @@ class KlineViewContainer extends Component<Props, State> {
                         {this.props.chartOnly === false &&
                             <div style={{
                                 position: 'absolute',
-                                top: this.state.yKlineView - 20,
+                                top: this.geom.yKlineView - 20,
                                 zIndex: 2, // ensure it's above the SVG
                                 backgroundColor: 'transparent',
                                 display: 'flex',
@@ -1406,7 +1470,7 @@ class KlineViewContainer extends Component<Props, State> {
                             </div>}
 
                         {/* Main svg chart part */}
-                        <div style={{ position: 'relative', width: '100%', height: this.state.svgHeight }}>
+                        <div style={{ position: 'relative', width: '100%', height: this.geom.svgHeight }}>
                             {this.renderSvgChart(this.state.isChartOnly)}
                         </div>
                     </>)}
