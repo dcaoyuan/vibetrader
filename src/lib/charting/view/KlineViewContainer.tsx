@@ -1416,7 +1416,7 @@ class KlineViewContainer extends Component<Props, State> {
                                                     }}>
                                                         <ProgressCircle aria-label="Generating screenshot…" isIndeterminate />
                                                     </div>
-                                                    : <Screenshot canvas={this.screenshotCanvas} />
+                                                    : <Screenshot imgSrc={this.screenshotCanvas.toDataURL("image/png")} />
                                                 }
                                             </Content>
 

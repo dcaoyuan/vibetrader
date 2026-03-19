@@ -1,9 +1,6 @@
 import { formatDateForFileName } from "../../utils";
 
-export const Screenshot = ({ canvas }: { canvas: HTMLCanvasElement }) => {
-
-    const imgSrc = canvas ? canvas.toDataURL("image/png") : undefined;
-
+export const Screenshot = ({ imgSrc }: { imgSrc: string }) => {
     if (!imgSrc) return undefined;
 
     return (
