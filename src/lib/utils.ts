@@ -86,3 +86,10 @@ export const formatDateForFileName = (date: Date) => {
 
     return `${year}${month}${day}_${hours}${minutes}`;
 }
+
+const createAtomicCounter = (initialValue = 0) => {
+    let count = initialValue;
+    return () => ++count;
+};
+
+export const nextTickerId = createAtomicCounter();

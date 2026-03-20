@@ -20,8 +20,9 @@ import type { ColorScheme } from "../../../App";
 import { styleOfAnnot } from "../../colors";
 
 export type UpdateEvent = {
-    type: 'chart' | 'crosshair' | 'drawing'
-    changed?: number,
+    chartTicker?: number,
+    crosshairTicker?: number,
+
     xyMouse?: { who: string, x: number, y: number }
     deltaMouse?: { dx: number, dy: number }
     yScalar?: boolean
@@ -218,64 +219,55 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         let yMouse: number
 
         const xyMouse = this.props.updateEvent.xyMouse;
-        if (this.props.updateEvent.changed !== this.prevProps.updateEvent.changed) {
 
-            switch (this.props.updateEvent.type) {
-                case 'chart':
-                    willUpdateChart = true;
-                    if (this.props.id === "kline") {
-                        if (this.props.updateEvent.deltaMouse) {
-                            // apply delta to yc chart scale
-                            const dy = this.props.updateEvent.deltaMouse.dy
-                            if (dy === undefined) {
-                                yc.yChartScale = 1 // back to 1
-
-                            } else {
-                                yc.yChartScale = yc.yChartScale * (1 - dy / yc.hChart)
-                            }
-
-                        } else if (this.props.updateEvent.yScalar) {
-                            let scalar: Scalar
-                            switch (yc.valueScalar.kind) {
-                                case "Linear":
-                                    scalar = LG_SCALAR
-                                    break;
-
-                                case "Lg":
-                                    scalar = LINEAR_SCALAR
-                                    break;
-                            }
-
-                            yc.valueScalar = scalar
-                        }
-                    }
-
-                    break;
-
-                case 'crosshair':
-                    willUpdateCrosshair = true;
-                    if (xyMouse !== undefined) {
-                        if (xyMouse.who === this.props.id) {
-                            xMouse = xyMouse.x;
-                            yMouse = xyMouse.y;
-
-                        } else {
-                            xMouse = xyMouse.x;
-                            yMouse = undefined;
-                        }
+        if (this.props.updateEvent.chartTicker != this.prevProps.updateEvent.chartTicker) {
+            willUpdateChart = true;
+            if (this.props.id === "kline") {
+                if (this.props.updateEvent.deltaMouse) {
+                    // apply delta to yc chart scale
+                    const dy = this.props.updateEvent.deltaMouse.dy
+                    if (dy === undefined) {
+                        yc.yChartScale = 1 // back to 1
 
                     } else {
-                        xMouse = undefined;
-                        yMouse = undefined;
+                        yc.yChartScale = yc.yChartScale * (1 - dy / yc.hChart)
                     }
 
-                    break;
+                } else if (this.props.updateEvent.yScalar) {
+                    let scalar: Scalar
+                    switch (yc.valueScalar.kind) {
+                        case "Linear":
+                            scalar = LG_SCALAR
+                            break;
 
-                case 'drawing':
-                    // TODO: handle drawing update here?
-                    break;
+                        case "Lg":
+                            scalar = LINEAR_SCALAR
+                            break;
+                    }
+
+                    yc.valueScalar = scalar
+                }
             }
         }
+
+        if (this.props.updateEvent.crosshairTicker != this.prevProps.updateEvent.crosshairTicker) {
+            willUpdateCrosshair = true;
+            if (xyMouse !== undefined) {
+                if (xyMouse.who === this.props.id) {
+                    xMouse = xyMouse.x;
+                    yMouse = xyMouse.y;
+
+                } else {
+                    xMouse = xyMouse.x;
+                    yMouse = undefined;
+                }
+
+            } else {
+                xMouse = undefined;
+                yMouse = undefined;
+            }
+        }
+
 
         if (isOverlayIndicatorsChanged(this.props.overlayIndicators, this.prevProps.overlayIndicators)) {
             // console.log(this.props.id, "overlayIndicators changed")
