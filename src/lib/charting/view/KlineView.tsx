@@ -3,15 +3,16 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
-import { createRef, Fragment, type JSX } from "react";
+import { createRef } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
-import { KlinesLayer } from "./layer/KlineLayer";
-import { AxisYLayer } from "./layer/AxisYLayer";
 import type { Scalar } from "../scalar/Scalar";
-import { OverlayIndicatorsLayer } from "./layer/OverlayIndicatorsLayer";
-import { CrosshairLayer } from "./layer/CrosshairLayer";
-import { OverlayIndicatorLabelsLayer } from "./layer/OverlayIndicatorLabelsLayer";
-import { DrawingLayer, type DrawingLayerRef } from "./layer/DrawingLayer";
+
+import KlinesLayer from "./layer/KlineLayer";
+import AxisYLayer from "./layer/AxisYLayer";
+import OverlayIndicatorsLayer from "./layer/OverlayIndicatorsLayer";
+import CrosshairLayer from "./layer/CrosshairLayer";
+import OverlayIndicatorLabelsLayer from "./layer/OverlayIndicatorLabelsLayer";
+import DrawingLayer, { type DrawingLayerRef } from "./layer/DrawingLayer";
 
 // Define the API KlineView will expose to its parent
 export interface KlineViewRef {
@@ -154,6 +155,8 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
 
         // update gemoetry
         this.computeGeometry();
+
+        // console.log(`KlineView render`)
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (

@@ -79,7 +79,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
     ref: RefObject<SVGAElement>;
     font: string;
 
-
     // share same xc through all views that are in the same viewcontainer.
     constructor(props: P) {
         super(props)
@@ -87,13 +86,6 @@ export abstract class ChartView<P extends ViewProps, S extends ViewState> extend
         this.yc = new ChartYControl(props.xc.baseSer, props.height);
 
         this.ref = React.createRef();
-
-        // this.onDrawingMouseDoubleClick = this.onDrawingMouseDoubleClick.bind(this)
-        // this.onDrawingMouseDown = this.onDrawingMouseDown.bind(this)
-        // this.onDrawingMouseMove = this.onDrawingMouseMove.bind(this)
-        // this.onDrawingMouseUp = this.onDrawingMouseUp.bind(this)
-
-        console.log(`ChartView created`)
     }
 
     /**

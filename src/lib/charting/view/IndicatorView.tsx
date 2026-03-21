@@ -3,10 +3,10 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import type { PineData } from "../../domain/PineData";
-import { AxisYLayer } from "./layer/AxisYLayer";
-import { IndicatorLayer } from "./layer/IndicatorLayer";
-import { CrosshairLayer } from "./layer/CrosshairLayer";
-import { IndicatorLabelsLayer } from "./layer/IndicatorLabelsLayer";
+import AxisYLayer from "./layer/AxisYLayer";
+import IndicatorLayer from "./layer/IndicatorLayer";
+import CrosshairLayer from "./layer/CrosshairLayer";
+import IndicatorLabelsLayer from "./layer/IndicatorLabelsLayer";
 
 export class IndicatorView extends ChartView<ViewProps, ViewState> {
     constructor(props: ViewProps) {
@@ -66,7 +66,6 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
     }
 
     render() {
-        // this.checkUpdate();
         const latestTime = this.props.xc.lastOccurredTime();
         let latestIndicatorValues: string[]
         if (this.props.mainIndicatorOutputs !== undefined) {
@@ -85,6 +84,8 @@ export class IndicatorView extends ChartView<ViewProps, ViewState> {
         // update gemoetry
         const atleastMinValue = this.props.mainIndicatorOutputs.some(({ options }) => options.style === 'style_columns') ? 0 : undefined
         this.computeGeometry(atleastMinValue);
+
+        // console.log(`IndicatorView render`)
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (

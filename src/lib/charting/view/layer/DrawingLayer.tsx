@@ -39,7 +39,7 @@ const HANDLE_CURSOR = "pointer"
 const GRAB_CURSOR = "grab"
 const MOVE_CURSOR = "all-scroll" // 'move' doesn't work?
 
-export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
+const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
     x, y, width, height, xc, yc, createDrawingId, isHidingDrawing, callback
 }, ref) => {
 
@@ -381,3 +381,5 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         </g>
     );
 })
+
+export default DrawingLayer

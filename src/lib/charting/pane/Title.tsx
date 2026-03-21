@@ -1,5 +1,5 @@
 import { ChartXControl } from "../view/ChartXControl";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Button } from 'react-aria-components';
 import { ActionButtonGroup, useAsyncList, Popover, TooltipTrigger, Tooltip, ComboBox, ComboBoxItem, MenuTrigger } from "@react-spectrum/s2";
 import { style } from '@react-spectrum/s2/style' with {type: 'macro'};
@@ -115,7 +115,7 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
     );
 }
 
-export function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
+function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
     const tframe = xc.baseSer.timeframe;
 
     let tframeName = tframe.compactName.toLowerCase();
@@ -126,7 +126,7 @@ export function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
     const dateStringWithTZ = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
     const tzoneShort = dateStringWithTZ.split(' ').pop();
 
-    // console.log("Title render");
+    console.log("Title render");
 
     return (
         <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0px 1px', fontFamily: 'monospace', fontSize: '12px' }}>
@@ -150,4 +150,4 @@ export function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
     );
 }
 
-export default Title;
+export default memo(Title);

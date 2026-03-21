@@ -14,12 +14,16 @@ type IndicatorLayerProps = {
     chartUpdateTicker: number;
 }
 
-export const IndicatorLayer = memo(function Layer({
+const IndicatorLayer = ({
     outputs, tvar, xc, yc
-}: IndicatorLayerProps) {
+}: IndicatorLayerProps) => {
+
+    // console.log("IndicatorLayer render")
 
     return plotLines(outputs, tvar, xc, yc).map((plotLine, n) =>
         <Fragment key={`plot-${n}`} >
             {plotLine}
         </Fragment >);
-})
+}
+
+export default memo(IndicatorLayer)

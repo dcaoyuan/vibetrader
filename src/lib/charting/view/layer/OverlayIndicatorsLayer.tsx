@@ -41,9 +41,9 @@ const areOverlayIndicatorsEqual = (prevInds: Indicator[], nextInds: Indicator[])
     return true;
 }
 
-export const OverlayIndicatorsLayer = memo(function Layer({
+const OverlayIndicatorsLayer = ({
     xc, yc, indicators
-}: OverlayIndicatorsLayerProps) {
+}: OverlayIndicatorsLayerProps) => {
 
     const overlayIndicatorLines: JSX.Element[] = []
     if (indicators) {
@@ -59,5 +59,6 @@ export const OverlayIndicatorsLayer = memo(function Layer({
         <Fragment key={`plot-${n}`} >
             {plotLine}
         </Fragment >);
-}, arePropsEqual)
+}
 
+export default memo(OverlayIndicatorsLayer, arePropsEqual)

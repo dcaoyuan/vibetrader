@@ -3,12 +3,9 @@ import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
-import AxisY from "../pane/AxisY";
-import PlotVolmue from "../plot/PlotVolume";
-import { Fragment } from "react/jsx-runtime";
-import { AxisYLayer } from "./layer/AxisYLayer";
-import { VolumeLayer } from "./layer/VolumeLayer";
-import { CrosshairLayer } from "./layer/CrosshairLayer";
+import AxisYLayer from "./layer/AxisYLayer";
+import VolumeLayer from "./layer/VolumeLayer";
+import CrosshairLayer from "./layer/CrosshairLayer";
 
 export class VolumeView extends ChartView<ViewProps, ViewState> {
 
@@ -64,6 +61,8 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
     render() {
         // update gemoetry
         this.computeGeometry();
+
+        // console.log(`VolumeView render`)
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (

@@ -26,9 +26,9 @@ type CrosshairLayerProps = {
     isCreateDrawing: boolean;
 }
 
-export const CrosshairLayer = memo(function Layer({
+const CrosshairLayer = ({
     id, xc, yc, width, colorScheme, font, valueAtTime, mouseWho, mouseX, mouseY, isCreateDrawing
-}: CrosshairLayerProps) {
+}: CrosshairLayerProps) => {
 
     // Show vertical crosshair according to mouse y if mouse is in this view.
     const yMouse = mouseWho === id
@@ -182,7 +182,6 @@ export const CrosshairLayer = memo(function Layer({
 
 
     return Crosshair();
-})
+}
 
-
-
+export default memo(CrosshairLayer)

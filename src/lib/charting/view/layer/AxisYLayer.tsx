@@ -6,9 +6,9 @@ type AxisYLayerProps = AxisYProps & {
     chartUpdateTicker: number;
 }
 
-export const AxisYLayer = memo(function Layer({
+const AxisYLayer = ({
     x, y, height, tvar, xc, yc, colorScheme, latestValue
-}: AxisYLayerProps) {
+}: AxisYLayerProps) => {
 
     return (
         <AxisY
@@ -22,4 +22,6 @@ export const AxisYLayer = memo(function Layer({
             latestValue={latestValue}
         />
     );
-})
+}
+
+export default memo(AxisYLayer)

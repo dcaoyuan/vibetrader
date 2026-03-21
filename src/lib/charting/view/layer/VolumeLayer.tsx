@@ -5,9 +5,11 @@ type VolumeLayerProps = VolumeProps & {
     chartUpdateTicker: number;
 }
 
-export const VolumeLayer = memo(function Layer({
+const VolumeLayer = ({
     kvar, xc, yc, colorScheme
-}: VolumeLayerProps) {
+}: VolumeLayerProps) => {
+
+    // console.log("VolumeLayer render")
 
     return (
         <PlotVolmue
@@ -17,4 +19,6 @@ export const VolumeLayer = memo(function Layer({
             colorScheme={colorScheme}
         />
     );
-})
+}
+
+export default memo(VolumeLayer)
