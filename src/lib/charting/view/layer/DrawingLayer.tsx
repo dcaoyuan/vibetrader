@@ -1,4 +1,4 @@
-import { forwardRef, Fragment, useImperativeHandle, useRef, useState, type JSX, type SetStateAction } from "react";
+import { forwardRef, Fragment, memo, useImperativeHandle, useRef, useState, type JSX, type SetStateAction } from "react";
 import { createDrawing } from "../../drawing/drawings";
 import { Drawing } from "../../drawing/Drawing";
 import type { ChartXControl } from "../ChartXControl";
@@ -254,8 +254,8 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                 setCursor(cursor);
 
             } else {
-                // previously drawing marked hit? show without handles if it's not the selected one
-                if (mouseMoveHitDrawing !== undefined && mouseMoveHitDrawing >= 0 /* && mouseMoveHitDrawingIdx !== selectedDrawing */) {
+                // Is there drawing previously marked hit? it's not the selected one
+                if (mouseMoveHitDrawing !== undefined && mouseMoveHitDrawing >= 0) {
                     setMouseMoveHitDrawing(undefined);
 
                     setCursor(DEFAULT_CURSOR);
@@ -345,6 +345,12 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         }
     }
 
+    const onMouseLeave = (_e: React.MouseEvent) => {
+        setMouseMoveHitDrawing(undefined);
+
+        setCursor(DEFAULT_CURSOR);
+    }
+
     // Expose the internal functions to the parent via the ref
     useImperativeHandle(ref, () => ({
         deleteSelected: () => deleteSelectedDrawing(),
@@ -356,7 +362,7 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         ? drawing.renderDrawingWithHandles("drawing-" + n)
         : drawing.renderDrawing("drawing-" + n))
 
-    const sketchingLines = (sketching && !sketching.isCompleted)
+    const sketchingLines = sketching && !sketching.isCompleted
         ? sketching.renderDrawingWithHandles("sketching")
         : <></>;
 
@@ -368,6 +374,7 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
             onMouseDown={onMouseDown}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
+            onMouseLeave={onMouseLeave}
             cursor={cursor}
         >
             {/* Invisible background to capture clicks in empty space */}
@@ -382,4 +389,4 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
     );
 })
 
-export default DrawingLayer
+export default memo(DrawingLayer)
