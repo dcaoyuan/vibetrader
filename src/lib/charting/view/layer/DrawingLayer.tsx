@@ -66,7 +66,7 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
     const setMouseMoveHitDrawing = (valueOrUpdater: SetStateAction<number | undefined>) => {
         const newValue = typeof valueOrUpdater === 'function'
-            ? valueOrUpdater(selectedDrawing)
+            ? valueOrUpdater(mouseMoveHitDrawing)
             : valueOrUpdater;
 
         setMouseMoveHitDrawingNative(newValue);
@@ -104,9 +104,7 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
     };
 
     const unselectDrawing = () => {
-        setSelectedDrawing(_currentSelected => {
-            return undefined;
-        });
+        setSelectedDrawing(undefined);
     }
 
     const cancelCurrentSketch = () => {
@@ -142,16 +140,13 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                 if (selectedOne.nHandles === undefined && e.ctrlKey) {
                     // delete handle for variable-handle drawing
                     selectedOne.deleteHandleAt(handleIdx)
-
                     selectedOne.setCurrHandleIdx(-1);
-
                     setSelectedDrawing(hitIdx);
                     setCursor(DEFAULT_CURSOR);
 
                 } else {
                     // ready to drag handle 
                     selectedOne.setCurrHandleIdx(handleIdx);
-
                     setSelectedDrawing(hitIdx);
                     setCursor(HANDLE_CURSOR);
                 }
@@ -160,37 +155,31 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                 if (selectedOne.nHandles === undefined && e.ctrlKey) {
                     // insert handle for variable-handle drawing
                     const newHandleIdx = selectedOne.insertHandle(p(x, y))
-
                     selectedOne.setCurrHandleIdx(newHandleIdx);
-
                     setSelectedDrawing(hitIdx);
-
                     setCursor(HANDLE_CURSOR);
 
                 } else {
                     // ready to drag whole drawing
                     selectedOne.recordHandlesWhenMousePressed(p(x, y))
-
                     selectedOne.setCurrHandleIdx(-1);
-
                     setSelectedDrawing(hitIdx);
                     setCursor(GRAB_CURSOR);
                 }
             }
 
         } else {
-            // not going to drag drawing (and handle), it's ok to drag any other things if you want
-
+            // not going to drag drawing or handle, it's ok to drag any other things if you want
             setMouseDownHitDrawing(undefined)
-
             if (selectedDrawing !== undefined) {
                 drawings[selectedDrawing].setCurrHandleIdx(-1);
+                setSelectedDrawing(undefined);
             }
         }
     }
 
     const onMouseMove = (e: React.MouseEvent) => {
-        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, createDrawing)
+        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
         const [x, y] = translate(e)
 
         if (sketching && sketching.isCompleted === false) {
@@ -218,11 +207,14 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
             if (mouseDownHitDrawing.current !== undefined) {
                 const activeOne = drawings[mouseDownHitDrawing.current];
 
-                if (activeOne.currHandleIdx >= 0) {
-                    activeOne.stretchCurrentHandle(p(x, y));
+                // Safety check in case state gets out of sync
+                if (activeOne) {
+                    if (activeOne.currHandleIdx >= 0) {
+                        activeOne.stretchCurrentHandle(p(x, y));
 
-                } else {
-                    activeOne.dragDrawing(p(x, y));
+                    } else {
+                        activeOne.dragDrawing(p(x, y));
+                    }
                 }
 
                 setDrawings(prev => [...prev]);
@@ -251,10 +243,8 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                 setCursor(cursor);
 
             } else {
-                // reset  MouseMoveHitDrawin
                 setMouseMoveHitDrawing(undefined);
                 setCursor(DEFAULT_CURSOR);
-
             }
         }
     }
@@ -280,9 +270,9 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
         if (creating && creating.isCompleted === false) {
             // completing new drawing
-            const isCompleted = creating.anchorHandle(p(x, y))
+            const hasCompleted = creating.anchorHandle(p(x, y))
 
-            if (isCompleted || e.ctrlKey) {
+            if (hasCompleted || e.ctrlKey) {
                 // is it a variable-handle drawing and ctrl + clicked? complete it 
                 if (creating.nHandles === undefined && e.ctrlKey) {
                     creating.setIsCompleted(true);
@@ -292,21 +282,18 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                     creating.handles.pop()
                 }
 
-                const newDrawings = [...drawings, creating];
-                setDrawings(newDrawings);
+                setDrawings(prev => [...prev, creating]);
+                setSelectedDrawing(drawings.length); // old drawing length is extract the index of latest drawing
 
                 callback.resetDrawingIdsToCreate();
 
-                // reset creating
-                creating = undefined;
+                setSketching(undefined)
 
-                // set it as new selected one
-                setSelectedDrawing(newDrawings.length - 1);
+            } else {
+                setSketching(creating);
             }
 
-            setSketching(creating);
-
-            // Force React to re-render so it picks up the mutated ref
+            // Force React to re-render 
             setSketchTick(tick => tick + 1);
         }
     }
@@ -325,18 +312,18 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                     sketching.handles.pop();
                 }
 
-                const newDrawings = [...drawings, sketching];
-                setDrawings(newDrawings);
+                setDrawings(prev => [...prev, sketching]);
+                setSelectedDrawing(drawings.length); // old drawing length is extract the index of latest drawing
 
                 callback.resetDrawingIdsToCreate();
                 setSketching(undefined);
-                setSelectedDrawing(newDrawings.length - 1);
                 setSketchTick(tick => tick + 1);
             }
         }
     }
 
     const onMouseLeave = (_e: React.MouseEvent) => {
+        // isDragging.current = false; // will cause sluggish dragging handle
         setMouseMoveHitDrawing(undefined);
 
         setCursor(DEFAULT_CURSOR);
