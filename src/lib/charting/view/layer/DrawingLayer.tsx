@@ -43,16 +43,18 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 }, ref) => {
 
     const [drawings, setDrawings] = useState<Drawing[]>([]);
-    const [sketching, setSketching] = useState<Drawing>(undefined);
+    const [sketching, setSketching] = useState<Drawing | undefined>(undefined);
+    const [_sketchTick, setSketchTick] = useState(0);
     const [cursor, setCursor] = useState(DEFAULT_CURSOR);
 
     // selectedDrawing, mouseMoveHitDrawing are used for rendering:
-    const [selectedDrawing, setSelectedDrawingNative] = useState<number>(undefined);
-    const [mouseMoveHitDrawing, setMouseMoveHitDrawingNative] = useState<number>(undefined);
+    const [selectedDrawing, setSelectedDrawingNative] = useState<number | undefined>(undefined);
+    const [mouseMoveHitDrawing, setMouseMoveHitDrawingNative] = useState<number | undefined>(undefined);
+
 
     const mouseDownHitDrawing = useRef<number>(undefined);
 
-    const creatingDrawing = useRef<Drawing>(undefined)
+    // const creatingDrawing = useRef<Drawing>(undefined)
     const isDragging = useRef(false);
 
     const setSelectedDrawing = (valueOrUpdater: SetStateAction<number | undefined>) => {
@@ -90,25 +92,17 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         ]
     }
 
-
     const deleteSelectedDrawing = () => {
-        // Use the functional update form. 'currentSelected' is guaranteed to be fresh.
-        setSelectedDrawing(currentSelected => {
-            if (currentSelected !== undefined) {
-                // Update the drawings array using its own functional update
-                setDrawings((currentDrawings) => [
-                    ...currentDrawings.slice(0, currentSelected),
-                    ...currentDrawings.slice(currentSelected + 1)
-                ]);
+        if (selectedDrawing !== undefined) {
+            setDrawings(currentDrawings => [
+                ...currentDrawings.slice(0, selectedDrawing),
+                ...currentDrawings.slice(selectedDrawing + 1)
+            ]);
 
-                setMouseMoveHitDrawing(undefined);
-                setMouseDownHitDrawing(undefined);
-
-                return undefined;
-            }
-
-            return currentSelected; // Do nothing if nothing is selected
-        });
+            setSelectedDrawing(undefined);
+            setMouseMoveHitDrawing(undefined);
+            setMouseDownHitDrawing(undefined);
+        }
     };
 
     const unselectDrawing = () => {
@@ -119,7 +113,7 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
     const onMouseDown = (e: React.MouseEvent) => {
         // console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        if (creatingDrawing.current && creatingDrawing.current.isCompleted === false) {
+        if (sketching && sketching.isCompleted === false) {
             return;
         }
 
@@ -127,8 +121,8 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
         const [x, y] = translate(e)
 
-        // select drawing ?
-        const hitDrawingIdx = drawings.findIndex(drawing => drawing.hits(x, y))
+        // Select drawing ? Search backwards so you select the top-most visual layer
+        const hitDrawingIdx = drawings.findLastIndex(drawing => drawing.hits(x, y))
         if (hitDrawingIdx >= 0) {
             // record the mouseDownHitDrawingIdx for dragging decision
             setMouseDownHitDrawing(hitDrawingIdx);
@@ -191,9 +185,12 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY, createDrawing)
         const [x, y] = translate(e)
 
-        if (creatingDrawing.current && creatingDrawing.current?.isCompleted === false) {
-            if (creatingDrawing.current.isAnchored) {
-                creatingDrawing.current.stretchCurrentHandle(p(x, y))
+        if (sketching && sketching.isCompleted === false) {
+            if (sketching.isAnchored) {
+                sketching.stretchCurrentHandle(p(x, y))
+
+                // Force React to re-render so it picks up the mutated ref
+                setSketchTick(tick => tick + 1);
 
                 // also reset mouseMoveHitDrawing to avoid render with handles during updateChart()
                 setMouseMoveHitDrawing(undefined);
@@ -201,42 +198,37 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
                 if (selectedDrawing !== undefined) {
                     console.log("!!!!!!!!!!!!!!!!!!!!!, will you be here ????")
                     setSelectedDrawing(undefined);
-                    setCursor(DEFAULT_CURSOR);
-
-                } else {
-                    setSketching(creatingDrawing.current);
-                    setCursor(DEFAULT_CURSOR);
                 }
+
+                setCursor(DEFAULT_CURSOR);
             }
 
             return
         }
 
         if (isDragging.current) {
-            if (selectedDrawing !== undefined && selectedDrawing === mouseDownHitDrawing.current) {
-                const selectedOne = drawings[selectedDrawing]
+            const activeDragIdx = mouseDownHitDrawing.current;
+
+            if (activeDragIdx !== undefined) {
+                const selectedOne = drawings[activeDragIdx];
+
                 if (selectedOne.currHandleIdx >= 0) {
-                    // drag handle
-                    selectedOne.stretchCurrentHandle(p(x, y))
+                    selectedOne.stretchCurrentHandle(p(x, y));
 
                 } else {
-                    // drag whole drawing
-                    selectedOne.dragDrawing(p(x, y))
+                    selectedOne.dragDrawing(p(x, y));
                 }
 
-                const cursor = selectedOne.currHandleIdx >= 0
-                    ? HANDLE_CURSOR
-                    : GRAB_CURSOR
-
-                setCursor(cursor);
+                setDrawings(prev => [...prev]);
+                setCursor(selectedOne.currHandleIdx >= 0 ? HANDLE_CURSOR : GRAB_CURSOR);
 
             } else {
                 setCursor(MOVE_CURSOR);
             }
 
         } else {
-            // process drawing is hit by mouse
-            const hitDrawingIdx = drawings.findIndex(drawing => drawing.hits(x, y))
+            // Process drawing is hit by mouse. Search backwards so you select the top-most visual layer.
+            const hitDrawingIdx = drawings.findLastIndex(drawing => drawing.hits(x, y))
             if (hitDrawingIdx >= 0) {
                 // show with handles 
                 setMouseMoveHitDrawing(hitDrawingIdx)
@@ -276,13 +268,12 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
         const [x, y] = translate(e)
 
-        if (creatingDrawing.current === undefined) {
+        let creating = sketching;
+        if (creating === undefined) {
             if (createDrawingId) {
-                creatingDrawing.current = createDrawing(createDrawingId, xc, yc);
+                creating = createDrawing(createDrawingId, xc, yc);
             }
         }
-
-        const creating = creatingDrawing.current;
 
         if (creating && creating.isCompleted === false) {
             // completing new drawing
@@ -303,13 +294,17 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
                 callback.resetDrawingIdsToCreate();
 
-                creatingDrawing.current = undefined;
+                // reset creating
+                creating = undefined;
 
                 // set it as new selected one
                 setSelectedDrawing(newDrawings.length - 1);
-
-                setSketching(undefined);
             }
+
+            setSketching(creating);
+
+            // Force React to re-render so it picks up the mutated ref
+            setSketchTick(tick => tick + 1);
         }
     }
 
@@ -330,9 +325,9 @@ export const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         ? drawing.renderDrawingWithHandles("drawing-" + n)
         : drawing.renderDrawing("drawing-" + n))
 
-    const sketchingLines = sketching
+    const sketchingLines = (sketching && !sketching.isCompleted)
         ? sketching.renderDrawingWithHandles("sketching")
-        : <></>
+        : <></>;
 
     // console.log("DrawingLayer Render Cycle! Selected is now:", selectedDrawing, mouseMoveHitDrawing);
 
