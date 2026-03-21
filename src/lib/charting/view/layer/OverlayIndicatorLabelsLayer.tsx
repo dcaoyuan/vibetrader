@@ -15,7 +15,9 @@ type OverlayIndicatorLabelsLayerProps = {
     crosshairUpdateTicker: number;
 }
 
-export const OverlayIndicatorLabelsLayer = memo(function Layer({ xc, indicators, width, colorScheme, latestIndicatorValues }: OverlayIndicatorLabelsLayerProps) {
+export const OverlayIndicatorLabelsLayer = memo(function Layer({
+    xc, indicators, width, colorScheme, latestIndicatorValues
+}: OverlayIndicatorLabelsLayerProps) {
 
     const plotIndicatorLabels = (mouseIndicatorValues: string[][], referIndicatorValues?: string[][]) => {
         const chartWidth = width;

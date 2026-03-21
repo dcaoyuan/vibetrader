@@ -5,7 +5,10 @@ type VolumeLayerProps = VolumeProps & {
     chartUpdateTicker: number;
 }
 
-export const VolumeLayer = memo(function Layer({ kvar, xc, yc, colorScheme }: VolumeLayerProps) {
+export const VolumeLayer = memo(function Layer({
+    kvar, xc, yc, colorScheme
+}: VolumeLayerProps) {
+
     return (
         <PlotVolmue
             kvar={kvar}

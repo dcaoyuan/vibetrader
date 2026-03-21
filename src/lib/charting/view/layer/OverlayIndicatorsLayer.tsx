@@ -41,7 +41,10 @@ const areOverlayIndicatorsEqual = (prevInds: Indicator[], nextInds: Indicator[])
     return true;
 }
 
-export const OverlayIndicatorsLayer = memo(function Layer({ xc, yc, indicators }: OverlayIndicatorsLayerProps) {
+export const OverlayIndicatorsLayer = memo(function Layer({
+    xc, yc, indicators
+}: OverlayIndicatorsLayerProps) {
+
     const overlayIndicatorLines: JSX.Element[] = []
     if (indicators) {
         indicators.map((indicator) => {

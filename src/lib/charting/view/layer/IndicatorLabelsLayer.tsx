@@ -18,7 +18,9 @@ type IndicatorLabelsLayerProps = {
     crosshairUpdateTicker: number;
 }
 
-export const IndicatorLabelsLayer = memo(function Layer({ xc, outputs, tvar, width, colorScheme, latestIndicatorValues }: IndicatorLabelsLayerProps) {
+export const IndicatorLabelsLayer = memo(function Layer({
+    xc, outputs, tvar, width, colorScheme, latestIndicatorValues
+}: IndicatorLabelsLayerProps) {
 
     const plotIndicatorLabels = (mouseIndicatorValues: string[], referIndicatorValues?: string[]) => {
         const chartWidth = width;

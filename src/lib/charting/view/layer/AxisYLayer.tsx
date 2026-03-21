@@ -6,7 +6,10 @@ type AxisYLayerProps = AxisYProps & {
     chartUpdateTicker: number;
 }
 
-export const AxisYLayer = memo(function Layer({ x, y, height, tvar, xc, yc, colorScheme, latestValue }: AxisYLayerProps) {
+export const AxisYLayer = memo(function Layer({
+    x, y, height, tvar, xc, yc, colorScheme, latestValue
+}: AxisYLayerProps) {
+
     return (
         <AxisY
             x={x}

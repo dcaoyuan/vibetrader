@@ -9,7 +9,10 @@ type KlinesLayerProps = KlineProps & {
 }
 
 // This render only fires if kind, colorScheme, or the updateTicker changes.
-export const KlinesLayer = memo(function Layer({ kvar, xc, yc, colorScheme }: KlinesLayerProps) {
+export const KlinesLayer = memo(function Layer({
+    kvar, xc, yc, colorScheme
+}: KlinesLayerProps) {
+
     return (
         <PlotKline
             kvar={kvar}
