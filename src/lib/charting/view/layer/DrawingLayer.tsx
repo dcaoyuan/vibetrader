@@ -48,12 +48,13 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
     const [_sketchTick, setSketchTick] = useState(0);
     const [cursor, setCursor] = useState(DEFAULT_CURSOR);
 
-    // selectedDrawing, mouseMoveHitDrawing are used for rendering:
     const [selectedDrawing, setSelectedDrawingNative] = useState<number | undefined>(undefined);
     const [mouseMoveHitDrawing, setMouseMoveHitDrawingNative] = useState<number | undefined>(undefined);
 
     const mouseDownHitDrawing = useRef<number | undefined>(undefined);
     const isDragging = useRef(false);
+    const renderFrameRef = useRef<number | undefined>(undefined);
+    const lastPointerUpTime = useRef<number>(0); // Track click timing
 
     const setSelectedDrawing = (valueOrUpdater: SetStateAction<number | undefined>) => {
         const newValue = typeof valueOrUpdater === 'function'
@@ -82,8 +83,8 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         return { time: xc.tx(x), value: yc.vy(y) }
     }
 
-    // translate offset x, y to svg to x, y to this view
-    const translate = (eOnWholeSVG: React.MouseEvent) => {
+    // translate offset from [x, y] to svg, to [x, y] to this view
+    const translate = (eOnWholeSVG: React.PointerEvent) => {
         return [
             eOnWholeSVG.nativeEvent.offsetX - x,
             eOnWholeSVG.nativeEvent.offsetY - y
@@ -112,40 +113,34 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
             setSketching(undefined);
             setCursor(DEFAULT_CURSOR);
             callback.resetDrawingIdsToCreate();
-            // Force re-render to clear the sketch lines
             setSketchTick(t => t + 1);
         }
     }
 
-    const onMouseDown = (e: React.MouseEvent) => {
-        // console.log('mouse down', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+    const onPointerDown = (e: React.PointerEvent<SVGGElement>) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+
         if (sketching && sketching.isCompleted === false) {
             return;
         }
 
         isDragging.current = true;
-
         const [x, y] = translate(e)
 
-        // Select drawing ? Search backwards so you select the top-most visual layer
         const hitIdx = drawings.findLastIndex(drawing => drawing.hits(x, y))
         if (hitIdx >= 0) {
-            // record the mouseDownHitDrawingIdx for dragging decision
             setMouseDownHitDrawing(hitIdx);
-
             const selectedOne = drawings[hitIdx]
-
             const handleIdx = selectedOne.getHandleIdxAt(x, y)
+
             if (handleIdx >= 0) {
                 if (selectedOne.nHandles === undefined && e.ctrlKey) {
-                    // delete handle for variable-handle drawing
                     selectedOne.deleteHandleAt(handleIdx)
                     selectedOne.setCurrHandleIdx(-1);
                     setSelectedDrawing(hitIdx);
                     setCursor(DEFAULT_CURSOR);
 
                 } else {
-                    // ready to drag handle 
                     selectedOne.setCurrHandleIdx(handleIdx);
                     setSelectedDrawing(hitIdx);
                     setCursor(HANDLE_CURSOR);
@@ -153,14 +148,12 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
             } else {
                 if (selectedOne.nHandles === undefined && e.ctrlKey) {
-                    // insert handle for variable-handle drawing
                     const newHandleIdx = selectedOne.insertHandle(p(x, y))
                     selectedOne.setCurrHandleIdx(newHandleIdx);
                     setSelectedDrawing(hitIdx);
                     setCursor(HANDLE_CURSOR);
 
                 } else {
-                    // ready to drag whole drawing
                     selectedOne.recordHandlesWhenMousePressed(p(x, y))
                     selectedOne.setCurrHandleIdx(-1);
                     setSelectedDrawing(hitIdx);
@@ -169,7 +162,6 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
             }
 
         } else {
-            // not going to drag drawing or handle, it's ok to drag any other things if you want
             setMouseDownHitDrawing(undefined)
             if (selectedDrawing !== undefined) {
                 drawings[selectedDrawing].setCurrHandleIdx(-1);
@@ -178,80 +170,74 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         }
     }
 
-    const onMouseMove = (e: React.MouseEvent) => {
-        // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-
-        // Safety net: if the user released the mouse outside the browser/element
-        // e.buttons === 1 means the primary (left) mouse button is pressed.
-        if (isDragging.current && e.buttons !== 1) {
-            isDragging.current = false;
-            setCursor(DEFAULT_CURSOR);
-            return;
-        }
-
+    const onPointerMove = (e: React.PointerEvent<SVGGElement>) => {
         e.stopPropagation();
 
         const [x, y] = translate(e)
 
         if (sketching && sketching.isCompleted === false) {
             if (sketching.isAnchored) {
-                sketching.stretchCurrentHandle(p(x, y))
+                if (renderFrameRef.current !== null) {
+                    cancelAnimationFrame(renderFrameRef.current);
+                }
 
-                // Force React to re-render so it picks up the mutated ref
-                setSketchTick(tick => tick + 1);
+                renderFrameRef.current = requestAnimationFrame(() => {
+                    sketching.stretchCurrentHandle(p(x, y));
+                    setSketchTick(tick => tick + 1);
+                    renderFrameRef.current = null;
+                });
 
-                // also reset mouseMoveHitDrawing to avoid render with handles during updateChart()
                 setMouseMoveHitDrawing(undefined);
-
                 if (selectedDrawing !== undefined) {
                     console.log("!!!!!!!!!!!!!!!!!!!!!, will you be here ????")
                     setSelectedDrawing(undefined);
                 }
-
                 setCursor(DEFAULT_CURSOR);
             }
-
             return
         }
 
         if (isDragging.current) {
             if (mouseDownHitDrawing.current !== undefined) {
                 const activeOne = drawings[mouseDownHitDrawing.current];
-
-                // Safety check in case state gets out of sync
                 if (activeOne) {
-                    if (activeOne.currHandleIdx >= 0) {
-                        activeOne.stretchCurrentHandle(p(x, y));
+                    const currentPoint = p(x, y);
 
-                    } else {
-                        activeOne.dragDrawing(p(x, y));
+                    if (renderFrameRef.current !== null) {
+                        cancelAnimationFrame(renderFrameRef.current);
                     }
-                }
 
-                setDrawings(prev => [...prev]);
-                setCursor(activeOne.currHandleIdx >= 0 ? HANDLE_CURSOR : GRAB_CURSOR);
+                    renderFrameRef.current = requestAnimationFrame(() => {
+                        if (activeOne.currHandleIdx >= 0) {
+                            activeOne.stretchCurrentHandle(currentPoint);
+                        } else {
+                            activeOne.dragDrawing(currentPoint);
+                        }
+
+                        setDrawings(prev => [...prev]);
+                        renderFrameRef.current = null;
+                    });
+
+                    setCursor(activeOne.currHandleIdx >= 0 ? HANDLE_CURSOR : GRAB_CURSOR);
+                }
 
             } else {
                 setCursor(MOVE_CURSOR);
             }
 
         } else {
-            // Process hover drawing. Search backwards so you select the top-most visual layer.
             const hoverIdx = drawings.findLastIndex(drawing => drawing.hits(x, y))
             if (hoverIdx >= 0) {
-                // show with handles 
                 setMouseMoveHitDrawing(hoverIdx)
-                const hitOne = drawings[hoverIdx]
-
-                const hoverHandle = hitOne.getHandleIdxAt(x, y)
-                const cursor = hoverHandle >= 0
+                const hoverOne = drawings[hoverIdx]
+                const hoverHandle = hoverOne.getHandleIdxAt(x, y)
+                const newCursor = hoverHandle >= 0
                     ? HANDLE_CURSOR
                     : e.ctrlKey
-                        ? HANDLE_CURSOR  // ctrl + move means going to insert handle for variable-handle drawing, use HANDLE_CURSOR
+                        ? HANDLE_CURSOR
                         : GRAB_CURSOR
 
-
-                setCursor(cursor);
+                setCursor(newCursor);
 
             } else {
                 setMouseMoveHitDrawing(undefined);
@@ -260,87 +246,81 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
         }
     }
 
-    // simulate single click only
-    const onMouseUp = (e: React.MouseEvent) => {
-        // console.log('mouse up', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
-        isDragging.current = false
+    const onPointerUp = (e: React.PointerEvent<SVGGElement>) => {
+        isDragging.current = false;
 
-        // Prevent the second click of a double-click from adding an extra point
-        if (e.detail === 2) {
-            return
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+
+        // --- DOUBLE CLICK SAFEGUARD ---
+        const now = Date.now();
+        const isDoubleClick = e.detail === 2 || (now - lastPointerUpTime.current < 300);
+        lastPointerUpTime.current = now;
+
+        // If it's a variable-handle drawing (like Polyline), a double-click finishes the sketch.
+        // We MUST intercept the second click so it doesn't anchor an extra handle right before onDoubleClick fires.
+        if (isDoubleClick && sketching && sketching.nHandles === undefined) {
+            return;
+        }
+        // ------------------------------
+
+        let currentSketching = sketching;
+        if (currentSketching === undefined) {
+            if (createDrawingId) {
+                currentSketching = createDrawing(createDrawingId, xc, yc);
+            }
         }
 
         const [x, y] = translate(e)
 
-        let creating = sketching;
-        if (creating === undefined) {
-            if (createDrawingId) {
-                creating = createDrawing(createDrawingId, xc, yc);
-            }
-        }
-
-        if (creating && creating.isCompleted === false) {
-            // completing new drawing
-            const hasCompleted = creating.anchorHandle(p(x, y))
-
-            if (hasCompleted || e.ctrlKey) {
-                // is it a variable-handle drawing and ctrl + clicked? complete it 
-                if (creating.nHandles === undefined && e.ctrlKey) {
-                    creating.setIsCompleted(true);
-                    creating.setIsAnchored(false);
-                    creating.setCurrHandleIdx(-1);
-                    // drop pre-created next handle, see anchorHandle(...)
-                    creating.handles.pop()
-                }
-
-                setDrawings(prev => [...prev, creating]);
-                setSelectedDrawing(drawings.length); // old drawing length is extract the index of latest drawing
-
+        if (currentSketching && currentSketching.isCompleted === false) {
+            const completedNow = currentSketching.anchorHandle(p(x, y))
+            if (completedNow) {
+                setDrawings(prev => [...prev, currentSketching]);
                 callback.resetDrawingIdsToCreate();
+                setSelectedDrawing(drawings.length);
 
-                setSketching(undefined)
+                setSketching(undefined);
 
             } else {
-                setSketching(creating);
+                setSketching(currentSketching);
             }
 
-            // Force React to re-render 
             setSketchTick(tick => tick + 1);
         }
     }
 
-    const onMouseDoubleClick = (e: React.MouseEvent) => {
-        //console.log('mouse doule clicked', e.detail, e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+    const onPointerCancel = (e: React.PointerEvent<SVGGElement>) => {
+        isDragging.current = false;
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        }
+        setMouseMoveHitDrawing(undefined);
+        setCursor(DEFAULT_CURSOR);
+    }
+
+    const onDoubleClick = (e: React.MouseEvent) => {
         if (e.detail === 2) {
-            // Logic to finish variable-handle drawings (e.g. Polyline) via Double Click
             if (sketching && sketching.isCompleted === false && sketching.nHandles === undefined) {
                 sketching.setIsCompleted(true);
                 sketching.setIsAnchored(false);
                 sketching.setCurrHandleIdx(-1);
 
-                // Pop the floating preview handle
                 if (sketching.handles.length > 1) {
+                    // drop pre-created next handle, see anchorHandle(...)
                     sketching.handles.pop();
                 }
 
                 setDrawings(prev => [...prev, sketching]);
-                setSelectedDrawing(drawings.length); // old drawing length is extract the index of latest drawing
-
                 callback.resetDrawingIdsToCreate();
                 setSketching(undefined);
+                setSelectedDrawing(drawings.length); // old drawing length is extract the index of latest drawing
                 setSketchTick(tick => tick + 1);
             }
         }
     }
 
-    const onMouseLeave = (_e: React.MouseEvent) => {
-        if (!isDragging.current) {
-            setMouseMoveHitDrawing(undefined);
-            setCursor(DEFAULT_CURSOR);
-        }
-    }
-
-    // Expose the internal functions to the parent via the ref
     useImperativeHandle(ref, () => ({
         deleteSelected: () => deleteSelectedDrawing(),
         unselect: () => unselectDrawing(),
@@ -359,11 +339,11 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
     return (
         <g
-            onDoubleClick={onMouseDoubleClick}
-            onMouseDown={onMouseDown}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-            onMouseLeave={onMouseLeave}
+            onDoubleClick={onDoubleClick}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
             cursor={cursor}
         >
             {/* Invisible background to capture clicks in empty space */}
