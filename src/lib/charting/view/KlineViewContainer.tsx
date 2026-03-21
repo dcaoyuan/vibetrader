@@ -626,6 +626,12 @@ class KlineViewContainer extends Component<Props, State> {
         }
     }
 
+    private isUnderDrawing() {
+        return this.state.drawingIdsToCreate === 'all' ||
+            this.state.drawingIdsToCreate.size > 0 ||
+            this.drawingState.selectedDrawing !== undefined ||
+            this.drawingState.mouseMoveHitDrawing !== undefined
+    }
 
     onMouseLeave() {
         const xc = this.xc;
@@ -675,10 +681,7 @@ class KlineViewContainer extends Component<Props, State> {
             return
         }
 
-        if (this.state.drawingIdsToCreate === 'all' ||
-            this.state.drawingIdsToCreate.size > 0 ||
-            this.drawingState.selectedDrawing !== undefined ||
-            this.drawingState.mouseMoveHitDrawing !== undefined) {  // is under drawing?
+        if (this.isUnderDrawing()) {  // is under drawing?
             xc.isMouseCrosshairEnabled = false;
             this.update({ crosshairUpdateTicker: nextTickerId() });
             return
@@ -710,8 +713,13 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     onDoubleClick(e: React.MouseEvent) {
+        if (this.isUnderDrawing()) {
+            return;
+        }
+
         const xc = this.xc;
         const [x, y] = this.xyOfMouseEvent(e)
+
 
         // set refer crosshair
         if (this.notWithinAxisYArea(x)) {
