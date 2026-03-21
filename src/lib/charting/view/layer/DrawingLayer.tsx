@@ -180,6 +180,17 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
 
     const onMouseMove = (e: React.MouseEvent) => {
         // console.log('mouse move', e.nativeEvent.offsetX, e.nativeEvent.offsetY)
+
+        // Safety net: if the user released the mouse outside the browser/element
+        // e.buttons === 1 means the primary (left) mouse button is pressed.
+        if (isDragging.current && e.buttons !== 1) {
+            isDragging.current = false;
+            setCursor(DEFAULT_CURSOR);
+            return;
+        }
+
+        e.stopPropagation();
+
         const [x, y] = translate(e)
 
         if (sketching && sketching.isCompleted === false) {
@@ -323,10 +334,10 @@ const DrawingLayer = forwardRef<DrawingLayerRef, DrawingLayerProps>(({
     }
 
     const onMouseLeave = (_e: React.MouseEvent) => {
-        // isDragging.current = false; // will cause sluggish dragging handle
-        setMouseMoveHitDrawing(undefined);
-
-        setCursor(DEFAULT_CURSOR);
+        if (!isDragging.current) {
+            setMouseMoveHitDrawing(undefined);
+            setCursor(DEFAULT_CURSOR);
+        }
     }
 
     // Expose the internal functions to the parent via the ref
