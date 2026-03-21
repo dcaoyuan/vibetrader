@@ -88,12 +88,16 @@ export class VolumeView extends ChartView<ViewProps, ViewState> {
                 />
 
                 <CrosshairLayer
+                    id={this.props.id}
                     xc={this.props.xc}
                     yc={this.yc}
                     width={this.props.width}
                     colorScheme={this.props.colorScheme}
                     font={this.font}
                     valueAtTime={(time) => (this.props.tvar.getByTime(time) as Kline).volume}
+                    mouseWho={this.props.updateEvent.xyMouse?.who}
+                    mouseX={this.props.updateEvent.xyMouse?.x}
+                    mouseY={this.props.updateEvent.xyMouse?.y}
                     crosshairUpdateTicker={this.props.updateEvent.crosshairUpdateTicker}
                     isCreateDrawing={this.props.updateDrawing && this.props.updateDrawing.createDrawingId !== undefined}
                 />

@@ -9,6 +9,7 @@ import { stringMetrics } from "../../../utils";
 import { Texts } from "../../../svg/Texts";
 
 type CrosshairLayerProps = {
+    id: string;
     xc: ChartXControl;
     yc: ChartYControl;
     width: number;
@@ -17,14 +18,19 @@ type CrosshairLayerProps = {
 
     valueAtTime: (time: number) => number;
 
-    xMouse?: number;
-    yMouse?: number;
+    mouseWho: string;
+    mouseX: number;
+    mouseY: number;
 
     crosshairUpdateTicker: number;
     isCreateDrawing: boolean;
 }
 
-export const CrosshairLayer = memo(function Layer({ xc, yc, width, colorScheme, font, valueAtTime, xMouse, yMouse, isCreateDrawing }: CrosshairLayerProps) {
+export const CrosshairLayer = memo(function Layer({ id, xc, yc, width, colorScheme, font, valueAtTime, mouseWho, mouseX, mouseY, isCreateDrawing }: CrosshairLayerProps) {
+    // Show vertical crosshair according to mouse y if mouse is in this view.
+    const yMouse = mouseWho === id
+        ? mouseY
+        : undefined;
 
     const Crosshair = () => {
         let referCrosshair: JSX.Element
@@ -59,7 +65,7 @@ export const CrosshairLayer = memo(function Layer({ xc, yc, width, colorScheme, 
             mouseTime = xc.tr(xc.mouseCrosshairRow)
             const isOccurredTime = xc.occurred(mouseTime);
             // try to align x to bar center
-            const crosshairX = isOccurredTime ? xc.xr(xc.mouseCrosshairRow) : xMouse;
+            const crosshairX = isOccurredTime ? xc.xr(xc.mouseCrosshairRow) : mouseX;
 
             let value: number;
             let crosshairY: number;
@@ -70,7 +76,7 @@ export const CrosshairLayer = memo(function Layer({ xc, yc, width, colorScheme, 
                 }
 
             } else {
-                crosshairY = yMouse;
+                crosshairY = mouseY;
                 value = yc.vy(crosshairY);
             }
 
@@ -87,7 +93,6 @@ export const CrosshairLayer = memo(function Layer({ xc, yc, width, colorScheme, 
             mouseTime = latestTime;
         }
 
-        // this.UpdateIndicatorLabels(mouseTime, referTime);
 
         return (
             <g>
