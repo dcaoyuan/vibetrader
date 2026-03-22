@@ -1,6 +1,5 @@
 import { Path } from "../../svg/Path"
-import { distanceToInfiniteLine, distanceToLine, distanceToSegment } from "../utils";
-import { ChartView } from "../view/ChartView";
+import { distanceToInfiniteLine, distanceToSegment } from "../utils";
 import { Drawing } from "./Drawing"
 
 export class LineDrawing extends Drawing {

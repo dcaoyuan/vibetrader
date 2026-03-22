@@ -1,5 +1,5 @@
 import { Fragment, memo } from "react";
-import type { Output } from "../ChartView";
+import type { Output } from "../chartviews";
 import type { ChartXControl } from "../ChartXControl";
 import type { ChartYControl } from "../ChartYControl";
 import type { PineData } from "../../../domain/PineData";

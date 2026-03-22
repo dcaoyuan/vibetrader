@@ -1,5 +1,5 @@
 import { Fragment, memo } from "react";
-import { ChartView, type Indicator, type Output } from "../ChartView";
+import { AXISY_WIDTH, type Indicator } from "../chartviews";
 import { styleOfLabel } from "../../../colors";
 import { H_SPACING } from "../KlineViewContainer";
 import type { ColorScheme } from "../../../../App";
@@ -62,7 +62,7 @@ const OverlayIndicatorLabelsLayer = ({
                     {/* Right Aligned - Refer Indicator Values */}
                     {xc.isReferCrosshairEnabled && referIndicatorValues && (
                         <text
-                            x={chartWidth - ChartView.AXISY_WIDTH}
+                            x={chartWidth - AXISY_WIDTH}
                             y={yPos}
                             textAnchor="end"
                         >

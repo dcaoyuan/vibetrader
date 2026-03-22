@@ -1,5 +1,5 @@
 import { Fragment, memo } from "react";
-import { ChartView, type Output } from "../ChartView";
+import { AXISY_WIDTH, type Output } from "../chartviews";
 import type { PineData } from "../../../domain/PineData";
 import type { TVar } from "../../../timeseris/TVar";
 import { styleOfLabel } from "../../../colors";
@@ -60,7 +60,7 @@ const IndicatorLabelsLayer = ({
                 {/* Right Aligned - Refer Indicator Values */}
                 {xc.isReferCrosshairEnabled && referIndicatorValues && (
                     <text
-                        x={chartWidth - ChartView.AXISY_WIDTH}
+                        x={chartWidth - AXISY_WIDTH}
                         y={yPos}
                         textAnchor="end"
                     >

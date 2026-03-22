@@ -3,7 +3,7 @@ import type { ChartXControl } from "../ChartXControl";
 import type { ChartYControl } from "../ChartYControl";
 import { styleOfAnnot } from "../../../colors";
 import type { ColorScheme } from "../../../../App";
-import { ChartView } from "../ChartView";
+import { AXISY_WIDTH } from "../chartviews";
 import { Path } from "../../../svg/Path";
 import { stringMetrics } from "../../../utils";
 import { Texts } from "../../../svg/Texts";
@@ -111,7 +111,7 @@ const CrosshairLayer = ({
     const plotCrosshair = (x: number, y: number, time: number, value: number, className: string) => {
         const pathStyle = styleOfAnnot(className, colorScheme);
 
-        const wAxisY = ChartView.AXISY_WIDTH
+        const wAxisY = AXISY_WIDTH
 
         let crosshair: Path
         if (
@@ -148,7 +148,7 @@ const CrosshairLayer = ({
         const wLabel = metrics.width + 4
         const hLabel = 13;
 
-        const wAxisY = ChartView.AXISY_WIDTH
+        const wAxisY = AXISY_WIDTH
 
         const axisyTexts = new Texts
         const axisyPath = new Path

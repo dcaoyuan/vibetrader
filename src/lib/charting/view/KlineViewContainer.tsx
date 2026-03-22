@@ -3,7 +3,7 @@ import html2canvas from "html2canvas";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
-import { ChartView, type Indicator, type Output, type UpdateDrawing, type UpdateEvent } from "./ChartView";
+import { AXISY_WIDTH, type Indicator, type Output, type UpdateDrawing, type UpdateEvent } from "./chartviews";
 import AxisX from "../pane/AxisX";
 import type { TSer } from "../../timeseris/TSer";
 import type { TVar } from "../../timeseris/TVar";
@@ -188,7 +188,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.klineViewRef = React.createRef();
 
         this.state = {
-            chartviewWidth: this.props.width - ChartView.AXISY_WIDTH,
+            chartviewWidth: this.props.width - AXISY_WIDTH,
             isLoaded: false,
             updateEvent: { chartUpdateTicker: 0, crosshairUpdateTicker: 0 },
             updateDrawing: { isHidingDrawing: false },
@@ -439,7 +439,7 @@ class KlineViewContainer extends Component<Props, State> {
                 // 2. Update the domain model so its internal math stays in sync!
                 if (this.xc) {
                     // Assuming you have or can add a setWidth method to ChartXControl
-                    this.xc.setChartWidth(width - ChartView.AXISY_WIDTH);
+                    this.xc.setChartWidth(width - AXISY_WIDTH);
                 }
 
                 this.setState({ chartviewWidth: width });
@@ -461,7 +461,7 @@ class KlineViewContainer extends Component<Props, State> {
 
             this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
             this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-            this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
+            this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
             this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
                 this.globalKeyboardListener = this.onGlobalKeyDown;
@@ -543,7 +543,7 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     private notWithinAxisYArea(x: number) {
-        return x < this.state.chartviewWidth - ChartView.AXISY_WIDTH
+        return x < this.state.chartviewWidth - AXISY_WIDTH
     }
 
     private xyOfMouseEvent(e: React.MouseEvent) {
@@ -937,7 +937,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         // Force related components re-render .
         // NOTE When you call setState multiple times within the same synchronous block of code, 
@@ -965,7 +965,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {
             console.log("runScripts ...")
@@ -993,7 +993,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         // Force related components re-render .
         // NOTE When you call setState multiple times within the same synchronous block of code, 
@@ -1021,7 +1021,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
         this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
-        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - ChartView.AXISY_WIDTH);
+        this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {
             this.setState(

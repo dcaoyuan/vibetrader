@@ -1,9 +1,9 @@
-import { ChartView, type ViewProps, type ViewState } from "./ChartView";
+import { AXISY_WIDTH, type ViewProps, type ViewState } from "./chartviews";
 import { TVar } from "../../timeseris/TVar";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import { LG_SCALAR } from "../scalar/LgScalar";
 import { Kline } from "../../domain/Kline";
-import { createRef } from "react";
+import { Component, createRef, type RefObject } from "react";
 import { LN_SCALAR } from "../scalar/LnScalar";
 import type { Scalar } from "../scalar/Scalar";
 
@@ -13,6 +13,8 @@ import OverlayIndicatorsLayer from "./layer/OverlayIndicatorsLayer";
 import CrosshairLayer from "./layer/CrosshairLayer";
 import OverlayIndicatorLabelsLayer from "./layer/OverlayIndicatorLabelsLayer";
 import DrawingLayer, { type DrawingLayerRef } from "./layer/DrawingLayer";
+import { ChartYControl } from "./ChartYControl";
+import React from "react";
 
 // Define the API KlineView will expose to its parent
 export interface KlineViewRef {
@@ -21,31 +23,42 @@ export interface KlineViewRef {
     cancelSketch: () => void;
 }
 
-export class KlineView extends ChartView<ViewProps, ViewState> {
+export class KlineView extends Component<ViewProps, ViewState> {
 
-    private drawingLayerRef = createRef<DrawingLayerRef>();
-
-    public deleteSelectedDrawing = () => {
-        this.drawingLayerRef.current?.deleteSelected();
-    }
-
-    public unselectDrawing = () => {
-        return this.drawingLayerRef.current?.unselect();
-    }
-
-    public cancelSketch = () => {
-        return this.drawingLayerRef.current?.cancelSketch();
-    }
+    yc: ChartYControl;
+    ref: RefObject<SVGAElement>;
+    font: string;
 
     constructor(props: ViewProps) {
         super(props);
+        this.ref = React.createRef();
+        this.yc = new ChartYControl(props.xc.baseSer, props.height);
 
         this.yc.valueScalar = LINEAR_SCALAR;
-
         this.state = {}
     }
 
-    override computeMaxValueMinValue() {
+    private drawingLayerRef = createRef<DrawingLayerRef>();
+    public deleteSelectedDrawing = () => this.drawingLayerRef.current?.deleteSelected();
+    public unselectDrawing = () => this.drawingLayerRef.current?.unselect();
+    public cancelSketch = () => this.drawingLayerRef.current?.cancelSketch();
+
+    override componentDidMount(): void {
+        if (this.ref.current) {
+            const computedStyle = window.getComputedStyle(this.ref.current);
+            const fontSize = computedStyle.getPropertyValue('font-size');
+            const fontFamily = computedStyle.getPropertyValue('font-family');
+
+            this.font = fontSize + ' ' + fontFamily;
+        }
+    }
+
+    private calcGeometry(atleastMinValue?: number) {
+        const [maxValue, minValue] = this.computeMaxValueMinValue();
+        this.yc.calcGeometry(maxValue, atleastMinValue !== undefined ? Math.min(minValue, atleastMinValue) : minValue);
+    }
+
+    private computeMaxValueMinValue() {
         let max = Number.NEGATIVE_INFINITY;
         let min = Number.POSITIVE_INFINITY;
 
@@ -84,7 +97,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         }
     }
 
-    override valueAtTime(time: number) {
+    valueAtTime(time: number) {
         return (this.props.tvar.getByTime(time) as Kline).close;
     }
 
@@ -154,15 +167,13 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
         }
 
         // update gemoetry
-        this.computeGeometry();
+        this.calcGeometry();
 
         // console.log(`KlineView render`)
 
         const transform = `translate(${this.props.x} ${this.props.y})`;
         return (
-            <g transform={transform}
-                ref={this.ref}
-            >
+            <g transform={transform} ref={this.ref}>
                 <DrawingLayer
                     ref={this.drawingLayerRef}
                     x={this.props.x}
@@ -190,7 +201,7 @@ export class KlineView extends ChartView<ViewProps, ViewState> {
                 />
 
                 <AxisYLayer
-                    x={this.props.width - ChartView.AXISY_WIDTH}
+                    x={this.props.width - AXISY_WIDTH}
                     y={0}
                     height={this.props.height}
                     xc={this.props.xc}

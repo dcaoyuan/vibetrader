@@ -1,6 +1,6 @@
 import { ChartXControl } from "../view/ChartXControl";
 import { Component, type RefObject } from "react";
-import type { UpdateEvent } from "../view/ChartView";
+import type { UpdateEvent } from "../view/chartviews";
 import type { TVar } from "../../timeseris/TVar";
 import { Kline } from "../../domain/Kline";
 import React from "react";

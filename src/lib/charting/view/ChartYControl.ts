@@ -52,7 +52,7 @@ export class ChartYControl {
     vTicks: number[]
 
 
-    computeGeometry(maxValue: number, minValue: number) {
+    calcGeometry(maxValue: number, minValue: number) {
         /**
          * @TIPS:
          * if want to leave spare space at lower side, do hCanvas -= space

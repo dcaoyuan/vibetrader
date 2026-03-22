@@ -2,7 +2,7 @@ import { ChartXControl } from "../view/ChartXControl";
 import { Path } from "../../svg/Path";
 import { Texts } from "../../svg/Texts";
 import { Component, type JSX, type RefObject, } from "react";
-import type { UpdateEvent } from "../view/ChartView";
+import type { UpdateEvent } from "../view/chartviews";
 import React from "react";
 import { stringMetrics } from "../../utils";
 import { H_HEADER, H_SPACING } from "../view/KlineViewContainer";

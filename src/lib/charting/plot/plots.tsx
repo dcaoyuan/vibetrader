@@ -12,7 +12,7 @@ import PlotLine from "./PlotLine";
 import type { PineData } from "../../domain/PineData";
 import type { ChartXControl } from "../view/ChartXControl";
 import type { ChartYControl } from "../view/ChartYControl";
-import type { Output } from "../view/ChartView";
+import type { Output } from "../view/chartviews";
 
 export function plotLines(outputs: Output[], tvar: TVar<PineData[]>, xc: ChartXControl, yc: ChartYControl) {
     return outputs.map(({ atIndex, options }) => {

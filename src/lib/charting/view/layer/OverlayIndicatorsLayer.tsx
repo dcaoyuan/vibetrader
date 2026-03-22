@@ -1,5 +1,5 @@
 import { Fragment, memo, type JSX } from "react";
-import type { Indicator } from "../ChartView";
+import type { Indicator } from "../chartviews";
 import { plotLines } from "../../plot/plots";
 import type { ChartXControl } from "../ChartXControl";
 import type { ChartYControl } from "../ChartYControl";
