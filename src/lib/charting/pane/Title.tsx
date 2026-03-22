@@ -67,7 +67,6 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
         TFrame.FIVE_MINS,
         TFrame.FIFTEEN_MINS,
         TFrame.THIRTY_MINS,
-        TFrame.TWO_HOUR,
         TFrame.FOUR_HOUR,
         TFrame.WEEKLY,
         TFrame.MONTHLY,

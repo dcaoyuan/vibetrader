@@ -166,57 +166,113 @@ export class TFrame {
 		return Math.floor(this.unit.nUnitsBetween(fromTime, toTime, tzone) / this.nUnits);
 	}
 
+
 	/**
-	 * round time to timeframe's begin 0
-	 * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-	 * @param tzone string
+	 * Truncates a Temporal.ZonedDateTime to the start of the timeframe interval.
+	 * Accounts for calendar boundaries (Months/Years) and nUnits multipliers.
 	 */
-	trunc(time: number, tzone: string): number {
+	truncDateTime(dt: Temporal.ZonedDateTime): number {
+		switch (this.unit) {
+			case TUnit.Year: {
+				const yearDiff = dt.year - 1970;
+				const truncatedYear = 1970 + Math.floor(yearDiff / this.nUnits) * this.nUnits;
+				return dt.with({
+					year: truncatedYear, month: 1, day: 1,
+					hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0
+				}).epochMilliseconds;
+			}
+
+			case TUnit.Month: {
+				const monthIndex = dt.month - 1;
+				const truncatedMonthIndex = Math.floor(monthIndex / this.nUnits) * this.nUnits;
+				return dt.with({
+					month: truncatedMonthIndex + 1, day: 1,
+					hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0
+				}).epochMilliseconds;
+			}
+
+			case TUnit.Week: {
+				const daysToSubtract = dt.dayOfWeek - 1; // Align to Monday
+				const startOfWeek = dt.subtract({ days: daysToSubtract }).with({
+					hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0
+				});
+
+				if (this.nUnits === 1) return startOfWeek.epochMilliseconds;
+
+				// For multi-week, align based on weeks elapsed since Unix Epoch
+				const epochWeeks = Math.floor(startOfWeek.epochMilliseconds / TUnit.ONE_WEEK);
+				const truncatedWeeks = Math.floor(epochWeeks / this.nUnits) * this.nUnits;
+				return truncatedWeeks * TUnit.ONE_WEEK;
+			}
+
+			case TUnit.Day: {
+				const startOfDay = dt.with({
+					hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0
+				});
+
+				if (this.nUnits === 1) return startOfDay.epochMilliseconds;
+
+				// For multi-day, align based on days elapsed since Unix Epoch
+				const epochDays = Math.floor(startOfDay.epochMilliseconds / TUnit.ONE_DAY);
+				const truncatedDays = Math.floor(epochDays / this.nUnits) * this.nUnits;
+				return truncatedDays * TUnit.ONE_DAY;
+			}
+
+			default:
+				// Mathematical truncation for fixed sub-daily units (Hours, Minutes, Seconds)
+				return Math.floor(dt.epochMilliseconds / this.interval) * this.interval;
+		}
+	}
+
+	trunc(time: number, tzone: string = "UTC"): number {
 		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
 		return this.truncDateTime(dt);
 	}
 
-	truncDateTime(dt: Temporal.ZonedDateTime): number {
-		const offsetToLocalZeroOfDay = dt.offsetNanoseconds / 1000000; //cal.getTimeZone.getRawOffset + cal.get(Calendar.DST_OFFSET)
-		return Math.floor((dt.epochMilliseconds + offsetToLocalZeroOfDay) / this.interval) * this.interval - offsetToLocalZeroOfDay
+	/**
+	 * Ceils a Temporal.ZonedDateTime to the next timeframe interval boundary.
+	 * If the time is exactly on a boundary, it returns that time.
+	 */
+	ceilDateTime(dt: Temporal.ZonedDateTime): number {
+		const truncated = this.truncDateTime(dt);
+
+		// If the timestamp is exactly on the interval boundary, no need to ceil
+		if (truncated === dt.epochMilliseconds) {
+			return truncated;
+		}
+
+		// Otherwise, add nUnits of the current unit to the truncated boundary
+		const truncDt = new Temporal.ZonedDateTime(BigInt(truncated) * TUnit.NANO_PER_MILLI, dt.timeZoneId);
+
+		switch (this.unit) {
+			case TUnit.Year:
+				return truncDt.add({ years: this.nUnits }).epochMilliseconds;
+			case TUnit.Month:
+				return truncDt.add({ months: this.nUnits }).epochMilliseconds;
+			case TUnit.Week:
+				return truncDt.add({ weeks: this.nUnits }).epochMilliseconds;
+			case TUnit.Day:
+				return truncDt.add({ days: this.nUnits }).epochMilliseconds;
+			default:
+				return truncated + this.interval;
+		}
 	}
 
-
-	ceil(time: number, tzone: string): number {
+	ceil(time: number, tzone: string = "UTC"): number {
 		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
 		return this.ceilDateTime(dt);
 	}
 
-	ceilDateTime(dt: Temporal.ZonedDateTime): number {
-		const trunced = this.truncDateTime(dt);
-		return trunced + this.interval - 1;
-	}
-
 	/**
-	 * @param timeA time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-	 * @param timeB time in milliseconds from the epoch (1 January 1970 0:00 UTC)
-	 * @param tzone string
-	 *
-	 * @todo use nUnits
+	 * Checks if two timestamps fall within the exact same timeframe interval bucket.
 	 */
 	sameInterval(timeA: number, timeB: number, tzone: string): boolean {
 		const dtA = new Temporal.ZonedDateTime(BigInt(timeA) * TUnit.NANO_PER_MILLI, tzone);
 		const dtB = new Temporal.ZonedDateTime(BigInt(timeB) * TUnit.NANO_PER_MILLI, tzone);
 
-		switch (this.unit) {
-			case TUnit.Week:
-				// Check yearOfWeek to prevent collapsing weeks across different calendar years
-				return dtA.yearOfWeek === dtB.yearOfWeek && dtA.weekOfYear === dtB.weekOfYear;
-
-			case TUnit.Month:
-				return dtA.year === dtB.year && dtA.month === dtB.month;
-
-			case TUnit.Year:
-				return dtA.year === dtB.year;
-
-			default:
-				return this.truncDateTime(dtA) === this.truncDateTime(dtB);
-		}
+		// Because truncDateTime handles Calendar alignments and nUnits perfectly,
+		// two times are in the same interval if they share the exact same truncated boundary.
+		return this.truncDateTime(dtA) === this.truncDateTime(dtB);
 	}
 
 	//   override 
