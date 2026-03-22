@@ -5,6 +5,7 @@ import { ActionButtonGroup, useAsyncList, Popover, TooltipTrigger, Tooltip, Comb
 import { TFrame } from "../../timeseris/TFrame";
 import { fetchSymbolList } from "../../domain/DataFecther";
 import { source } from "../../../Env";
+import { getTimezoneAbbr } from "../../utils";
 
 type Props = {
     xc: ChartXControl,
@@ -118,14 +119,16 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
 
 function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
     const tframe = xc.baseSer.timeframe;
+    const tzone = xc.baseSer.timezone;
 
     let tframeName = tframe.compactName.toLowerCase();
     const matchLeadingNumbers = tframeName.match(/^\d+/);
     const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
     tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
-    const dateStringWithTZ = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
-    const tzoneShort = dateStringWithTZ.split(' ').pop();
+    // const dateStringWithTZ = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
+    // const tzoneShort = dateStringWithTZ.split(' ').pop();
+    const tzoneShort = getTimezoneAbbr(tzone);
 
     console.log("Title render");
 
