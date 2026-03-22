@@ -72,8 +72,8 @@ export class DefaultTSer implements TSer {
      * @param name 
      * @returns var of name, will create one if non exist yet.
      */
-    varOf(name: string): TVar<unknown> {
-        let tvar = this._vars.get(name);
+    varOf<V>(name: string): TVar<V> | undefined {
+        let tvar = this._vars.get(name) as TVar<V> | undefined;
         if (tvar === undefined) {
             tvar = this.TVar(name, TVar.Kind.Accumlate);
         }

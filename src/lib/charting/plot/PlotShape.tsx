@@ -12,7 +12,7 @@ const PlotShape = (props: PlotProps) => {
 
     const font = '12px "Roboto", "Helvetica", "Arial", sans-serif'
 
-    const kvar = xc.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+    const kvar = xc.baseSer.varOf<Kline>(KVAR_NAME);
 
     function plot() {
         const r = 4;

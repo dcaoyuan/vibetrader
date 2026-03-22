@@ -322,7 +322,7 @@ class KlineViewContainer extends Component<Props, State> {
                         results.reduce(({ overlayIndicators, stackedIndicators }, { scriptName, result }, n) => {
                             if (result) {
                                 // should use identity var name, here we use `${scriptName}_${n}` 
-                                const tvar = baseSer.varOf(`${scriptName}_${n}`) as TVar<PineData[]>;
+                                const tvar = baseSer.varOf<PineData[]>(`${scriptName}_${n}`);
                                 const size = baseSer.size();
                                 const indicator = result.indicator;
                                 const plots = Object.values(result.plots) as Plot[];
@@ -462,7 +462,7 @@ class KlineViewContainer extends Component<Props, State> {
             this.tzone = "UTC"
 
             this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-            this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+            this.kvar = this.baseSer.varOf<Kline>(KVAR_NAME);
             this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
             this.currentLoading = this.fetchData_runScripts(undefined, 1000).then(() => {
@@ -938,7 +938,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.tzone = tzone === undefined ? this.tzone : tzone
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.kvar = this.baseSer.varOf<Kline>(KVAR_NAME);
         this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         // Force related components re-render .
@@ -966,7 +966,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.scripts = scripts.map((script, i) => ({ scriptName: `ai_${Math.round(1000)}_${i}`, script }));
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.kvar = this.baseSer.varOf<Kline>(KVAR_NAME);
         this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {
@@ -994,7 +994,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.scripts = scripts === undefined ? this.scripts : scripts.map((script, i) => ({ scriptName: `ai_${Math.round(1000)}_${i}`, script }));
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.kvar = this.baseSer.varOf<Kline>(KVAR_NAME);
         this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         // Force related components re-render .
@@ -1022,7 +1022,7 @@ class KlineViewContainer extends Component<Props, State> {
         this.scripts = undefined
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
-        this.kvar = this.baseSer.varOf(KVAR_NAME) as TVar<Kline>;
+        this.kvar = this.baseSer.varOf<Kline>(KVAR_NAME);
         this.xc = new ChartXControl(this.baseSer, this.state.chartviewWidth - AXISY_WIDTH);
 
         return new Promise<void>((resolve, reject) => {

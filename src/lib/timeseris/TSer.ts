@@ -14,7 +14,7 @@ export interface TSer {
      * @param name 
      * @returns var of name, will create one if non exist yet.
      */
-    varOf(name: string): TVar<unknown>;
+    varOf<V>(name: string): TVar<V> | undefined;
 
     valuesCapacity: number;
 
