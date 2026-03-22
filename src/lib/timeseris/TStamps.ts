@@ -163,177 +163,98 @@ export class TStampsOnOccurred extends TStamps {
     }
 
     indexOfOccurredTime(time: number): number {
-        const size1 = this.size();
-        if (size1 === 0) {
-            return -1;
-        } else if (size1 === 1) {
-            if (this.get(0) === time) {
-                return 0;
-            } else {
-                return -1;
-            }
+        let left = 0;
+        let right = this.size() - 1;
+
+        while (left <= right) {
+            const mid = (left + right) >>> 1;
+            const midTime = this.get(mid);
+
+            if (midTime === time) return mid;
+            if (midTime < time) left = mid + 1;
+            else right = mid - 1;
         }
 
-        let from = 0;
-        let to = size1 - 1;
-        let length = to - from;
-        while (length > 1) {
-            length = Math.floor(length / 2);
-            const midTime = this.get(from + length);
-            if (time > midTime) {
-                from += length;
-            } else if (time < midTime) {
-                to -= length;
-            } else {
-                /** time == midTime */
-                return from + length;
-            }
-            length = to - from;
-        }
-
-        /**
-         * if we reach here, that means the time should between (start) and (start + 1), and the
-         * length should be 1 (end - start). So, just do following checking, if can't get exact index,
-         * just return -1.
-         */
-        if (time === this.get(from)) {
-            return from;
-        } else if (time === this.get(from + 1)) {
-            return from + 1;
-        } else {
-            return -1;
-        }
+        return -1;
     }
 
     /**
-     * Search the nearest index between '1' to 'lastIndex - 1' We only need to use this computing in
-     * case of onOccurred.
-     */
-
+      * Search for the nearest index. If an exact match isn't found, 
+      * it compares the closest lower and upper bounds to find the absolute nearest time.
+      */
     nearestIndexOfOccurredTime(time: number): number {
-        let from = 0;
-        let to = this.size() - 1;
-        let length = to - from;
-        while (length > 1) {
-            length = Math.floor(length / 2);
-            const midTime = this.get(from + length);
-            if (time > midTime) {
-                from += length;
-            } else if (time < midTime) {
-                to -= length;
-            } else {
-                /** time == midTime */
-                return from + length;
-            }
-            length = to - from;
+        const size = this.size();
+        if (size === 0) return -1;
+
+        let left = 0;
+        let right = size - 1;
+
+        while (left <= right) {
+            const mid = (left + right) >>> 1;
+            const midTime = this.get(mid);
+
+            if (midTime === time) return mid;
+            if (midTime < time) left = mid + 1;
+            else right = mid - 1;
         }
 
-        /**
-         * if we reach here, that means the time should between (start) and (start + 1), and the
-         * length should be 1 (end - start). So, just do following checking, if can't get exact index,
-         * just return nearest one: 'start'
-         */
-        if (time === this.get(from)) {
-            return from;
-        } else if (time === this.get(from + 1)) {
-            return from + 1;
-        } else {
-            return from;
-        }
+        // If time is completely out of bounds
+        if (right < 0) return 0;
+        if (left >= size) return size - 1;
+
+        // Compare absolute differences to find the true nearest index
+        const lowerTimeDiff = time - this.get(right);
+        const upperTimeDiff = this.get(left) - time;
+
+        return lowerTimeDiff <= upperTimeDiff ? right : left;
     }
 
     /**
-     * return index of nearest behind time (include this time (if exist)),
-     *
      * @param time the time, inclusive
+     * @return index of nearest behind time (include this time (if exist)),
      */
-
     indexOrNextIndexOfOccurredTime(time: number): number {
-        const size1 = this.size();
-        if (size1 === 0) {
-            return -1;
-        } else if (size1 === 1) {
-            if (this.get(0) >= time) {
-                return 0;
+        let left = 0;
+        let right = this.size() - 1;
+        let result = -1;
+
+        while (left <= right) {
+            const mid = (left + right) >>> 1;
+            const midTime = this.get(mid);
+
+            if (midTime >= time) {
+                result = mid;      // Found a potential candidate
+                right = mid - 1;   // Keep looking left to find the tightest bound
             } else {
-                return -1;
+                left = mid + 1;
             }
         }
 
-        let from = 0;
-        let to = size1 - 1;
-        let length = to - from;
-        while (length > 1) {
-            length = Math.floor(length / 2);
-            const midTime = this.get(from + length);
-            if (time > midTime) {
-                from += length;
-            } else if (time < midTime) {
-                to -= length;
-            } else {
-                /** time == midTime */
-                return from + length;
-            }
-            length = to - from;
-        }
-
-        /**
-         * if we reach here, that means the time should between (from) and (from + 1), and the
-         * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
-         * index, just return invalid value -1
-         */
-        if (this.get(from) >= time) {
-            return from;
-        } else if (this.get(from + 1) >= time) {
-            return from + 1;
-        } else {
-            return -1;
-        }
+        return result;
     }
 
-    /** return index of nearest before or equal(if exist) time */
-
+    /**
+     * @param time the time, inclusive
+     * @return index of nearest before or equal(if exist) time
+     */
     indexOrPrevIndexOfOccurredTime(time: number): number {
-        const size1 = this.size();
-        if (size1 === 0) {
-            return -1;
-        } else if (size1 === 1) {
-            if (this.get(0) <= time) {
-                return 0;
+        let left = 0;
+        let right = this.size() - 1;
+        let result = -1;
+
+        while (left <= right) {
+            const mid = (left + right) >>> 1;
+            const midTime = this.get(mid);
+
+            if (midTime <= time) {
+                result = mid;      // Found a potential candidate
+                left = mid + 1;    // Keep looking right to find the tightest bound
             } else {
-                return -1;
+                right = mid - 1;
             }
         }
 
-        let from = 0;
-        let to = size1 - 1;
-        let length = to - from;
-        while (length > 1) {
-            length = Math.floor(length / 2);
-            const midTime = this.get(from + length);
-            if (time > midTime) {
-                from += length;
-            } else if (time < midTime) {
-                to -= length;
-            } else {
-                /** time == midTime */
-                return from + length;
-            }
-            length = to - from;
-        }
-
-        /**
-         * if we reach here, that means the time should between (from) and (from + 1), and the
-         * 'length' should be 1 (end - start). So, just do following checking. If can't get exact
-         * index, just return invalid -1.
-         */
-        if (this.get(from + 1) <= time) {
-            return from + 1;
-        } else if (this.get(from) <= time) {
-            return from;
-        } else {
-            return -1;
-        }
+        return result;
     }
 
 
