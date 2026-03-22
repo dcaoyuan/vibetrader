@@ -98,48 +98,42 @@ export class TUnit {
      * @param time time in milliseconds from the epoch (1 January 1970 0:00 UTC) 
      * timezone is independent when unit less than day.
      */
-    trunc(time: number) {
-        //return (time + offsetToUTC / getInterval()) * getInterval() - offsetToUTC
-        return Math.floor(time as number / this.interval) * this.interval;
+    trunc(time: number, tzone: string = "UTC"): number {
+        const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
+        return this.truncDateTime(dt);
     }
 
     truncDateTime(dt: Temporal.ZonedDateTime): number {
         switch (this) {
+            case TUnit.Second:
+                return dt.with({ millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
+
+            case TUnit.Minute:
+                return dt.with({ second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
+
+            case TUnit.Hour:
+                return dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
+
             case TUnit.Day:
-                return this.#roundToDay(dt);
+                return dt.with({ hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
 
-            case TUnit.Week:
-                /**
-                 * set the time to this week's first day of one week
-                 *     int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                 *     calendar.add(Calendar.DAY_OF_YEAR, -(dayOfWeek - Calendar.SUNDAY))
-                 *
-                 * From stebridev@users.sourceforge.net:
-                 * In some place of the world the first day of month is Monday,
-                 * not Sunday like in the United States. For example Sunday 14
-                 * of August of 2003 is the week 33 in Italy and not week 34
-                 * like in US, while Thursday 18 of August is in the week 34 in
-                 * boot Italy and US.
-                 */
-
-                //  1-based day index in the week of this date
-                return this.#roundToDay(dt.subtract({ days: dt.dayOfWeek - 1 }));
+            case TUnit.Week: {
+                // Align to Monday (Temporal dayOfWeek: 1=Monday...7=Sunday)
+                const daysToSubtract = dt.dayOfWeek - 1;
+                return dt.subtract({ days: daysToSubtract })
+                    .with({ hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 })
+                    .epochMilliseconds;
+            }
 
             case TUnit.Month:
-                // 1-based day index in the month of this date
-                return this.#roundToDay(dt.subtract({ days: dt.day - 1 }));
+                return dt.with({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
 
             case TUnit.Year:
-                // 1-based day index in the year of this date
-                return this.#roundToDay(dt.subtract({ days: dt.dayOfYear - 1 }));
+                return dt.with({ month: 1, day: 1, hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }).epochMilliseconds;
 
             default:
-                return this.trunc(dt.epochMilliseconds);
+                return Math.floor(dt.epochMilliseconds / this.interval) * this.interval;
         }
-    }
-
-    #roundToDay(dt: Temporal.ZonedDateTime): number {
-        return dt.round("day").epochMilliseconds;
     }
 
     nUnitsBetween(fromTime: number, toTime: number, tzone: string): number {

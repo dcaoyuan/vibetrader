@@ -106,12 +106,52 @@ export class TFrame {
 		}
 	}
 
-	nextTime(fromTime: number, tzone: string): number {
-		return this.unit.timeAfterNUnits(fromTime, this.nUnits, tzone);
+	nextTime(time: number, tzone: string): number {
+		// For sub-daily intervals, pure math is still faster and perfectly accurate
+		if (this.unit.interval < TUnit.ONE_DAY) {
+			return time + this.interval;
+		}
+
+		// For Calendar units (Day, Week, Month, Year), use Temporal to avoid drift
+		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
+
+		switch (this.unit) {
+			case TUnit.Year:
+				return dt.add({ years: this.nUnits }).epochMilliseconds;
+
+			case TUnit.Month:
+				return dt.add({ months: this.nUnits }).epochMilliseconds;
+
+			case TUnit.Week:
+				return dt.add({ weeks: this.nUnits }).epochMilliseconds;
+
+			case TUnit.Day:
+				return dt.add({ days: this.nUnits }).epochMilliseconds;
+
+			default:
+				return time + this.interval; // Fallback
+		}
 	}
 
-	prevTime(fromTime: number, tzone: string): number {
-		return this.unit.timeAfterNUnits(fromTime, -this.nUnits, tzone)
+	prevTime(time: number, tzone: string): number {
+		if (this.unit.interval < TUnit.ONE_DAY) {
+			return time - this.interval;
+		}
+
+		const dt = new Temporal.ZonedDateTime(BigInt(time) * TUnit.NANO_PER_MILLI, tzone);
+
+		switch (this.unit) {
+			case TUnit.Year:
+				return dt.subtract({ years: this.nUnits }).epochMilliseconds;
+			case TUnit.Month:
+				return dt.subtract({ months: this.nUnits }).epochMilliseconds;
+			case TUnit.Week:
+				return dt.subtract({ weeks: this.nUnits }).epochMilliseconds;
+			case TUnit.Day:
+				return dt.subtract({ days: this.nUnits }).epochMilliseconds;
+			default:
+				return time - this.interval; // Fallback
+		}
 	}
 
 	timeAfterNTimeframes(fromTime: number, nTFrames: number, tzone: string): number {
@@ -165,7 +205,8 @@ export class TFrame {
 
 		switch (this.unit) {
 			case TUnit.Week:
-				return dtA.weekOfYear === dtB.weekOfYear;
+				// Check yearOfWeek to prevent collapsing weeks across different calendar years
+				return dtA.yearOfWeek === dtB.yearOfWeek && dtA.weekOfYear === dtB.weekOfYear;
 
 			case TUnit.Month:
 				return dtA.year === dtB.year && dtA.month === dtB.month;
