@@ -10,7 +10,7 @@ import type { Collection } from "./Collection";
 export class ValueList<T> extends AbstractCollection<T> {
 
     private initialSize: number;
-    protected readonly maxCapacity: number;
+    readonly maxCapacity: number;
     array: Array<T>;
 
     constructor(maxCapacity: number = Number.MAX_SAFE_INTEGER, initialSize: number = 16) {

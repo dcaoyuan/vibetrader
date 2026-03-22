@@ -70,9 +70,7 @@ export abstract class TStamps extends ValueList<number> {
 
     abstract lastOccurredTime(): number;
 
-    abstract timeIterator(): TStampsIterator;
-
-    abstract timeIterator(fromTime: number, toTime: number): TStampsIterator;
+    abstract timeIterator(fromTime?: number, toTime?: number): TStampsIterator;
 
     abstract reversedOne(): TStamps;
 }
@@ -351,12 +349,7 @@ export class TStampsOnOccurred extends TStamps {
     }
 
 
-    timeIterator(): TStampsIterator {
-        return new ItrOnOccurred(this);
-    }
-
-
-    timeIterator2(fromTime: number, toTime: number): TStampsIterator {
+    timeIterator(fromTime?: number, toTime?: number): TStampsIterator {
         return new ItrOnOccurred(this, fromTime, toTime);
     }
 
@@ -397,14 +390,14 @@ class ItrOnOccurred implements TStampsIterator {
     /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
     #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
-    /** Row of element to be returned by subsequent call to next. */
-    #cursorRow = 0;
-
     /**
      * Index of element returned by most recent call to next or previous. Reset to -1 if this
      * element is deleted by a call to remove.
      */
     #lastRet = -1;
+
+    /** Row of element to be returned by subsequent call to next. */
+    #cursorRow = 0;
 
     constructor(outer: TStampsOnOccurred, fromTime?: number, toTime?: number) {
         this.#outer = outer;
@@ -494,7 +487,7 @@ export class TStampsOnCalendar extends TStamps {
     #delegateTimestamps: TStamps;
 
     constructor(delegateTimestamps: TStamps) {
-        super(delegateTimestamps.timeframe, delegateTimestamps.timezone, 1024);
+        super(delegateTimestamps.timeframe, delegateTimestamps.timezone, Math.min(Number.MAX_SAFE_INTEGER, delegateTimestamps.maxCapacity * 1.3));
         this.#delegateTimestamps = delegateTimestamps;
     }
 
@@ -580,11 +573,7 @@ export class TStampsOnCalendar extends TStamps {
         return this.#delegateTimestamps.size();
     }
 
-    timeIterator(): TStampsIterator {
-        return new ItrOnCalendar(this);
-    }
-
-    timeIterator2(fromTime: number, toTime: number): TStampsIterator {
+    timeIterator(fromTime?: number, toTime?: number): TStampsIterator {
         return new ItrOnCalendar(this, fromTime, toTime);
     }
 
@@ -697,14 +686,14 @@ class ItrOnCalendar implements TStampsIterator {
     /** Reset to LONG_LONG_AGO if this element is deleted by a call to remove. */
     #lastReturnTime: number = TStamps.LONG_LONG_AGO;
 
-    /** Row of element to be returned by subsequent call to next. */
-    #cursorRow = 0;
-
     /**
      * Index of element returned by most recent call to next or previous. Reset to -1 if this
      * element is deleted by a call to remove.
      */
     #lastRet = -1;
+
+    /** Row of element to be returned by subsequent call to next. */
+    #cursorRow = 0;
 
     /**
      * The modCount value that the iterator believes that the backing List should have. If this
