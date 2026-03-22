@@ -1,5 +1,5 @@
 import type { TSer } from "../../timeseris/TSer";
-import { getNormPow, normMinTick, normTickUnit } from "../normalize";
+import { cleanup, getNormPow, normTickUnit } from "../normalize";
 import { LINEAR_SCALAR } from "../scalar/LinearScala";
 import type { Scalar } from "../scalar/Scalar";
 
@@ -125,46 +125,37 @@ export class ChartYControl {
 
     calcYTicks(): number[] {
         let nTicksMax = 6.0;
-        while (this.hCanvas / nTicksMax < MIN_TICK_SPACING && nTicksMax > 2) {
-            nTicksMax -= 1
+
+        // Fallback to 1 to prevent NaN if hCanvas isn't initialized yet
+        const currentHCanvas = this.hCanvas || 1;
+
+        while ((currentHCanvas / nTicksMax) < MIN_TICK_SPACING && nTicksMax > 2) {
+            nTicksMax -= 1;
         }
 
-        const maxValueOnCanvas = this.#maxValue
-        const minValueOnCanvas = this.#minValue
+        const maxValueOnCanvas = this.#maxValue;
+        const minValueOnCanvas = this.#minValue;
+        const vRange = maxValueOnCanvas - minValueOnCanvas;
 
+        // Safety guard against 0 range
+        if (vRange <= 0) return [minValueOnCanvas];
 
-        const vRange = maxValueOnCanvas - minValueOnCanvas
-        const potentialUnit = vRange / nTicksMax;
-        const vTickUnit = normTickUnit(potentialUnit, vRange, nTicksMax);
+        const vTickUnit = normTickUnit(vRange, nTicksMax);
 
-        const vMinTick = normMinTick(minValueOnCanvas, vTickUnit);
-        const vMidTick = minValueOnCanvas < 0 && maxValueOnCanvas > 0 ? 0 : undefined
+        // Calculate the precise starting and ending ticks mathematically.
+        // Zero is Automatically Handled: Because startTick is derived via division/multiplication of the vTickUnit, 
+        // if 0 falls within your [min, max] range, it is mathematically guaranteed to be one of the ticks. You don't 
+        // need separate logic to anchor it.
+        const startTick = Math.ceil(minValueOnCanvas / vTickUnit) * vTickUnit;
+        const endTick = Math.floor(maxValueOnCanvas / vTickUnit) * vTickUnit;
 
-        const vTicks = [];
-        if (vMidTick === undefined) {
-            let i = 0
-            let vTick = minValueOnCanvas;
-            while (vTick <= maxValueOnCanvas) {
-                vTick = vMinTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || this.shouldNormScale) && vTick <= maxValueOnCanvas) {
-                    vTicks.push(vTick);
-                }
+        const vTicks: number[] = [];
 
-                i++;
-            }
-
-        } else {
-            const minI = Math.sign(minValueOnCanvas) * Math.floor(Math.abs(minValueOnCanvas / vTickUnit));
-            let i = minI
-            let vTick = 0;
-            while (vTick >= minValueOnCanvas && vTick <= maxValueOnCanvas) {
-                vTick = vMidTick + vTickUnit * i
-                if ((vTick > minValueOnCanvas || this.shouldNormScale) && vTick <= maxValueOnCanvas) {
-                    vTicks.push(vTick);
-                }
-
-                i++;
-            }
+        // Generate the ticks. 
+        // We add a tiny epsilon (vTickUnit * 0.001) to endTick to ensure 
+        // floating-point inaccuracies don't chop off the final tick.
+        for (let tick = startTick; tick <= endTick + (vTickUnit * 0.001); tick += vTickUnit) {
+            vTicks.push(cleanup(tick));
         }
 
         return vTicks;
