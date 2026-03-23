@@ -78,11 +78,10 @@ import UnlinkHoriz from '@react-spectrum/s2/icons/UnlinkHoriz';
 import Exposure from '@react-spectrum/s2/icons/Exposure';
 import FullScreenExit from '@react-spectrum/s2/icons/FullScreenExit';
 import { fetchData, Source } from "../../domain/DataFecther";
-import type { ColorScheme } from "../../../App";
 import { styleOfAnnot } from "../../colors";
 import Header from "../pane/Header";
 import { formatDateForFileName, nextTickerId } from "../../utils";
-import type { DrawingLayerRef, DrawingState } from "./layer/DrawingLayer";
+import type { DrawingState } from "./layer/DrawingLayer";
 
 type Props = {
     toggleColorScheme: () => void
@@ -493,9 +492,10 @@ class KlineViewContainer extends Component<Props, State> {
     }
 
     private update(event: UpdateEvent) {
-        this.setState({ updateEvent: { ...event } })
+        this.setState({ updateEvent: { ...event } }, () => {
+            this.chartviewRef.current?.focus();
+        })
     }
-
 
     private indicatorViewId(n: number) {
         return 'indicator-' + n;
@@ -1427,6 +1427,7 @@ class KlineViewContainer extends Component<Props, State> {
                 <div className="viewcontainer" style={{ paddingLeft: '6px', width: this.props.width || '100%', height: this.geom.containerHeight + 'px' }}
                     key="klineviewcontainer"
                     ref={this.chartviewRef}
+                    tabIndex={-1} // required for programmatically focusing non-inputs
                 >
                     {this.state.isLoaded && (<>
                         <div style={{ width: '100%', height: H_TITLE }}>
