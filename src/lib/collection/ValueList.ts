@@ -15,26 +15,29 @@ export class ValueList<T> extends AbstractCollection<T> {
 
     constructor(maxCapacity: number = Number.MAX_SAFE_INTEGER, initialSize: number = 16) {
         super();
-        this.initialSize = (maxCapacity < initialSize) ? maxCapacity : initialSize;
+        this.initialSize = initialSize > maxCapacity ? maxCapacity : initialSize;
         this.maxCapacity = maxCapacity;
-        this.array = Array(initialSize);
+        this.array = Array(this.initialSize);
     }
 
     private cursor0 = 0;
     private size0 = 0;
 
-    modCount = 0;
+    #modCount = 0;
+
+    get modCount() {
+        return this.#modCount
+    }
 
     /**
-     * Translate index to true index of underlying array according to cursor0. if <code>index >= size0
-     * </code>, will return -1
+     * Translate index to true index of underlying array according to cursor0. if `index >= size0` will return -1
      */
     trueIndex(index: number): number {
-        const index1 = this.cursor0 + index;
-        if (index1 < this.size0) {
-            return index1;
+        const physicalIndex = this.cursor0 + index;
+        if (physicalIndex < this.size0) {
+            return physicalIndex;
         } else {
-            return index1 - this.size0;
+            return physicalIndex - this.size0;
         }
     }
 
@@ -58,7 +61,17 @@ export class ValueList<T> extends AbstractCollection<T> {
     }
 
     private arraycopy<A>(src: A[], srcPos: number, dest: A[], destPos: number, length: number) {
-        dest.splice(destPos, length, ...src.slice(srcPos, srcPos + length));
+        if (src === dest && destPos > srcPos && destPos < srcPos + length) {
+            // Backward copy to handle right-shifts of overlapping regions safely
+            for (let i = length - 1; i >= 0; i--) {
+                dest[destPos + i] = src[srcPos + i];
+            }
+        } else {
+            // Forward copy for left-shifts or distinct arrays
+            for (let i = 0; i < length; i++) {
+                dest[destPos + i] = src[srcPos + i];
+            }
+        }
     }
 
     //  private void sizeHint(int len) {
@@ -77,7 +90,7 @@ export class ValueList<T> extends AbstractCollection<T> {
      */
 
     add(elem: T): boolean {
-        this.modCount++;
+        this.#modCount++;
         this.ensureSize(this.size0 + 1);
 
         if (this.size0 + 1 <= this.maxCapacity) {
@@ -113,7 +126,7 @@ export class ValueList<T> extends AbstractCollection<T> {
      */
     addAllArray(arr: T[]): boolean {
         const length = arr.length;
-        this.modCount++;
+        this.#modCount++;
 
         // const len = elems.length;
         this.ensureSize(this.size0 + length);
@@ -165,7 +178,7 @@ export class ValueList<T> extends AbstractCollection<T> {
             this.add(elem);
 
         } else {
-            this.modCount++;
+            this.#modCount++;
             this.ensureSize(this.size0 + 1);
             if (this.size0 + 1 <= this.maxCapacity) {
                 this.arraycopy(this.array, offset, this.array, offset + 1, this.size0 - offset);
@@ -238,7 +251,7 @@ export class ValueList<T> extends AbstractCollection<T> {
             throw new Error("IndexOutOfBoundsException: " + offset);
         }
 
-        this.modCount++;
+        this.#modCount++;
         if (offset === this.size0) { // insert at position 'size', it behaves like appending at the end
             this.addAllArray(arr);
 
@@ -313,7 +326,7 @@ export class ValueList<T> extends AbstractCollection<T> {
             throw new Error("IndexOutOfBoundsException:" + index);
         }
 
-        this.modCount++;
+        this.#modCount++;
         if (this.cursor0 === 0) {
             this.arraycopy(this.array, index + count, this.array, index, this.size0 - (index + count));
 
@@ -461,7 +474,7 @@ export class ValueList<T> extends AbstractCollection<T> {
             return undefined as T;
 
         } else {
-            this.modCount++;
+            this.#modCount++;
             const oldValue = this.get(idx);
             this.array[this.trueIndex(idx)] = elem;
 
@@ -505,8 +518,8 @@ export class ValueList<T> extends AbstractCollection<T> {
      * @param sz
      */
     reduceToSize(sz: number) {
-        if (sz <= this.size0) {
-            throw new Error(`sz ${sz} <= this.size0 ${this.size0}`);
+        if (sz > this.size0 || sz < 0) {
+            throw new Error(`sz ${sz} > this.size0 ${this.size0}`);
         }
 
         if (this.cursor0 === 0) {
@@ -581,7 +594,7 @@ export class ValueList<T> extends AbstractCollection<T> {
     iterator(): CIterator<T> {
         let cursor = 0; // index of next element to return
         let lastRet = -1; // index of last element returned; -1 if no such
-        let expectedModCount = this.modCount;
+        let expectedModCount = this.#modCount;
 
         return {
             hasNext: (): boolean => {
@@ -589,7 +602,7 @@ export class ValueList<T> extends AbstractCollection<T> {
             },
 
             next: (): T => {
-                if (this.modCount !== expectedModCount) {
+                if (this.#modCount !== expectedModCount) {
                     throw new Error("ConcurrentModificationException");
                 }
                 const i = cursor;
@@ -608,7 +621,7 @@ export class ValueList<T> extends AbstractCollection<T> {
                 if (lastRet < 0) {
                     throw new Error("IllegalStateException");
                 }
-                if (this.modCount !== expectedModCount) {
+                if (this.#modCount !== expectedModCount) {
                     throw new Error("ConcurrentModificationException");
                 }
 
@@ -616,7 +629,7 @@ export class ValueList<T> extends AbstractCollection<T> {
                     this.removeByIndex(lastRet);
                     cursor = lastRet;
                     lastRet = -1;
-                    expectedModCount = this.modCount;
+                    expectedModCount = this.#modCount;
                 } catch (ex) {
                     throw new Error("ConcurrentModificationException");
                 }

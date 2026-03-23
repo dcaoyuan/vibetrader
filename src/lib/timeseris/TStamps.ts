@@ -324,12 +324,13 @@ class ItrOnOccurred implements TStampsIterator {
         this.#timeframe = outer.timeframe;
         this.fromTime = fromTime === undefined
             ? outer.firstOccurredTime()
-            : outer.timeframe.trunc(fromTime, this.#outer.timezone);
+            : outer.timeframe.trunc(fromTime, outer.timezone);
         this.toTime = toTime === undefined
             ? outer.lastOccurredTime()
             : toTime;
         this.#cursorTime = this.fromTime;
-        this.#expectedModCount = this.#outer.modCount;
+        this.#cursorRow = outer.rowOfTime(this.fromTime);
+        this.#expectedModCount = outer.modCount;
     }
 
     hasNext(): boolean {
@@ -337,34 +338,37 @@ class ItrOnOccurred implements TStampsIterator {
     }
 
     next(): number {
-        this.#checkForComodification();
+        this.checkForComodification();
         try {
+            const currentRet = this.#cursorTime;
+
             this.#cursorRow++;
             const next = (this.#cursorRow >= this.#outer.size())
                 ? this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone)
                 : this.#outer.get(this.#cursorRow);
             this.#cursorTime = next;
             this.#lastReturnTime = this.#cursorTime;
-            return next;
+
+            return currentRet;
 
         } catch (e) {
-            this.#checkForComodification();
+            this.checkForComodification();
             throw new Error("NoSuchElementException");
         }
     }
 
-    #checkForComodification() {
+    private checkForComodification() {
         if (this.#outer.modCount !== this.#expectedModCount) {
             throw new Error("ConcurrentModificationException");
         }
     }
 
     hasPrev(): boolean {
-        return this.#cursorTime >= this.fromTime;
+        return this.#cursorTime > this.fromTime;
     }
 
     prev(): number {
-        this.#checkForComodification();
+        this.checkForComodification();
         try {
             this.#cursorRow--;
             const prev1 = this.#cursorRow < 0
@@ -374,7 +378,7 @@ class ItrOnOccurred implements TStampsIterator {
             this.#lastReturnTime = this.#cursorTime;
             return prev1;
         } catch (e) {
-            this.#checkForComodification();
+            this.checkForComodification();
             throw new Error("NoSuchElementException");
         }
     }
@@ -631,7 +635,8 @@ class ItrOnCalendar implements TStampsIterator {
             ? outer.lastOccurredTime()
             : toTime;
         this.#cursorTime = this.fromTime;
-        this.#expectedModCount = this.#outer.modCount;
+        this.#cursorRow = outer.rowOfTime(this.fromTime);
+        this.#expectedModCount = outer.modCount;
     }
 
     hasNext(): boolean {
@@ -639,31 +644,35 @@ class ItrOnCalendar implements TStampsIterator {
     }
 
     next(): number {
-        this.#checkForComodification();
+        this.checkForComodification();
         try {
+            const currentRet = this.#cursorTime;
+
             this.#cursorRow++;
             const next = this.#timeframe.nextTime(this.#cursorTime, this.#outer.timezone);
             this.#cursorTime = next;
             this.#lastReturnTime = this.#cursorTime;
-            return next;
+
+            return currentRet;
+
         } catch (e) {
-            this.#checkForComodification();
+            this.checkForComodification();
             throw new Error("NoSuchElementException");
         }
     }
 
-    #checkForComodification() {
+    private checkForComodification() {
         if (this.#outer.modCount != this.#expectedModCount) {
             throw new Error("ConcurrentModificationException");
         }
     }
 
     hasPrev(): boolean {
-        return this.#cursorTime >= this.fromTime;
+        return this.#cursorTime > this.fromTime;
     }
 
     prev(): number {
-        this.#checkForComodification();
+        this.checkForComodification();
         try {
             this.#cursorRow--;
             const prev1 = this.#timeframe.prevTime(this.#cursorTime, this.#outer.timezone);
@@ -671,7 +680,7 @@ class ItrOnCalendar implements TStampsIterator {
             this.#lastReturnTime = this.#cursorTime;
             return prev1;
         } catch (e) {
-            this.#checkForComodification();
+            this.checkForComodification();
             throw new Error("NoSuchElementException");
         }
     }
