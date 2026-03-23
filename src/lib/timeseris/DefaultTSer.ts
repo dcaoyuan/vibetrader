@@ -656,7 +656,13 @@ export class DefaultTSer implements TSer {
     }
 
     timeOfIndex(idx: number): number {
-        return this.#activeTimestamps().get(idx);
+        const lastIdx = this._timestamps.size() - 1
+        if (idx >= 0 && idx <= lastIdx) {
+            return this.#activeTimestamps().get(idx);
+
+        } else {
+            this.timeframe.timeAfterNTimeframes(this.lastOccurredTime(), idx - lastIdx, this.timezone);
+        }
     }
 
     rowOfTime(time: number): number {

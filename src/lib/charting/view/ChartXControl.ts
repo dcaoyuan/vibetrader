@@ -396,6 +396,10 @@ export class ChartXControl {
         return this.xb(this.br(row));
     }
 
+    xt(time: number): number {
+        return this.xb(this.bt(time));
+    }
+
     /**
      * barIndex <- x
      *
@@ -443,6 +447,10 @@ export class ChartXControl {
 
     rt(time: number): number {
         return this.baseSer.rowOfTime(time);
+    }
+
+    ti(index: number): number {
+        return this.baseSer.timeOfIndex(index);
     }
 
     /**

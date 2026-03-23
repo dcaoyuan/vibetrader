@@ -53,14 +53,14 @@ const PlotDrawingLine = ({ xc, yc, tvar, atIndex, options }: PlotProps) => {
 
                 switch (xloc) {
                     case 'bt': // bar_time
-                        xPos1 = xc.xb(xc.bt(x1));
-                        xPos2 = xc.xb(xc.bt(x2));
+                        xPos1 = xc.xt(x1);
+                        xPos2 = xc.xt(x2);
                         break
 
                     case 'bi': // bar_index
                     default:
-                        xPos1 = xc.xb(xc.br(x1));
-                        xPos2 = xc.xb(xc.br(x2));
+                        xPos1 = xc.xt(xc.ti(x1));
+                        xPos2 = xc.xt(xc.ti(x2));
                         break
                 }
 
