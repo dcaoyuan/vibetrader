@@ -69,6 +69,7 @@ import DistributeHorizontalCenter from '@react-spectrum/s2/icons/DistributeHoriz
 import MenuHamburger from '@react-spectrum/s2/icons/MenuHamburger';
 import Prototyping from '@react-spectrum/s2/icons/Prototyping';
 import Add from '@react-spectrum/s2/icons/Add';
+import RectangleHoriz from '@react-spectrum/s2/icons/RectangleHoriz';
 import DirectSelect from '@react-spectrum/s2/icons/DirectSelect';
 import DistributeSpaceVertically from '@react-spectrum/s2/icons/DistributeSpaceVertically';
 import Resize from '@react-spectrum/s2/icons/Resize';
@@ -1333,9 +1334,9 @@ class KlineViewContainer extends Component<Props, State> {
                             </TooltipTrigger>
 
                             <TooltipTrigger placement="end">
-                                <ActionButton onPress={this.toggleCrosshairVisiable} >
-                                    <Add />
-                                </ActionButton>
+                                <ToggleButton isSelected={this.xc === undefined || this.xc.isCrosshairEnabled} onPress={this.toggleCrosshairVisiable} >
+                                    <RectangleHoriz />
+                                </ToggleButton>
                                 <Tooltip >
                                     Toggle crosshair visible
                                 </Tooltip>
