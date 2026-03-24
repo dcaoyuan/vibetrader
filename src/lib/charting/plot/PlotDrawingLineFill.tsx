@@ -27,8 +27,21 @@ const PlotDrawingLineFill = ({ xc, yc, tvar, atIndex }: PlotProps) => {
     function getLineCoords(line: LineObject) {
         const { x1, y1, x2, y2, xloc, extend } = line;
 
-        const xPos1 = xloc === 'bt' ? xc.xb(xc.bt(x1)) : xc.xb(xc.br(x1));
-        const xPos2 = xloc === 'bt' ? xc.xb(xc.bt(x2)) : xc.xb(xc.br(x2));
+        let xPos1: number;
+        let xPos2: number;
+
+        switch (xloc) {
+            case 'bt': // bar_time
+                xPos1 = xc.xt(x1);
+                xPos2 = xc.xt(x2);
+                break
+
+            case 'bi': // bar_index
+            default:
+                xPos1 = xc.xt(xc.ti(x1));
+                xPos2 = xc.xt(xc.ti(x2));
+                break
+        }
 
         const yPos1 = yc.yv(y1);
         const yPos2 = yc.yv(y2);
