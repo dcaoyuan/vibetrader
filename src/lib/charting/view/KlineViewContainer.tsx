@@ -135,8 +135,7 @@ const allIndTags = dev
 // used for space between indicator panes and place for indicator value labels.    
 export const H_SPACING = 25;
 
-
-const H_TITLE = 25;
+const H_TITLE = 26;
 const H_INDICATOR_TAGS = 28;
 
 export const H_HEADER = 40;
