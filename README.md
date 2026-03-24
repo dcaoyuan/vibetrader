@@ -4,8 +4,7 @@ Toward an Open Source AI-Friendly Trading Platform.
 - Supports Pine Script indicators.
 - Take screenshot of chart.
 
-> **About Pine Script™?**  
-> [Pine Script™](https://www.tradingview.com/pine-script-docs/welcome/) is a domain-specific programming language created by TradingView for writing custom technical analysis indicators and strategies.
+> [Pine Script™](https://www.tradingview.com/pine-script-docs/welcome/) is a trademark of TradingView, Inc., and serves as their programming language for creating custom trading tools. VibeTrader is an independent platform and is not affiliated with, endorsed by, or sponsored by TradingView.
 
 ## For Developers
 
