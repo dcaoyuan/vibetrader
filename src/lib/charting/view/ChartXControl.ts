@@ -179,7 +179,7 @@ export class ChartXControl {
 
     /** BASIC_BAR_WIDTH = 6 */
     static readonly PREDEFINED_BAR_WIDTHS = [
-        0.00025, 0.0005, 0.001, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10, 20
+        0.04, 0.06, 0.08, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 2, 4, 6, 8, 10, 20
     ]
 
     static isMovingAccelerated = false
