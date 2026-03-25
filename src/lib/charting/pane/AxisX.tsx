@@ -159,7 +159,7 @@ class AxisX extends Component<Props, State> {
 					tickStr = this.dfM.format(date);
 					break;
 
-				case "week":
+				case "weekOfYear":
 				case "day":
 					tickStr = this.dfD.format(date);
 					break

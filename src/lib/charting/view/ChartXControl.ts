@@ -9,7 +9,7 @@ import { dev } from "../../../Env"
 type Tick = {
     dt: Temporal.ZonedDateTime,
     x: number,
-    level: "year" | "month" | "week" | "day" | "hour" | "minute"
+    level: "year" | "month" | "weekOfYear" | "day" | "hour" | "minute"
 }
 
 const MIN_TICK_SPACING = 100 // in pixels
@@ -26,13 +26,15 @@ const LOCATOR_DICT: Record<string, number[][]> = {
         [1, 4, 7, 10],
         [1, 7],
     ],
-    week: [
+    weekOfYear: [
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], // Used with modulo 10
         [0, 2, 4, 6, 8],
         [0, 5],
     ],
     day: [
-        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31], // 1st of month is critical
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31], // 1st of month is critical
+        [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30],
+        [1, 4, 8, 12, 16, 20, 24, 28],
         [1, 5, 10, 15, 20, 25],
         [1, 10, 20],
         [1, 15],
@@ -62,14 +64,9 @@ function getFuzzyTicks(newTicks: Tick[], locator: number[], level: Tick['level']
 
     for (let i = 0; i < newTicks.length; i++) {
         const tick = newTicks[i];
-
-        // Map "week" to "weekOfYear" and assert type for TypeScript
-        let value = level === "week"
-            ? tick.dt.weekOfYear
-            : tick.dt[level as keyof Temporal.ZonedDateTime] as number;
-
+        let value = tick.dt[level];
         // Apply modulo 10 logic for years/weeks
-        if (level === "year" || level === "week") {
+        if (level === "year" || level === "weekOfYear") {
             value = value % 10;
         }
 
@@ -86,8 +83,8 @@ function getFuzzyTicks(newTicks: Tick[], locator: number[], level: Tick['level']
             if (value >= target) {
 
                 // Check physical pixel spacing before adding.
-                // We use 0.7 * MIN_TICK_SPACING to match your collisionThreshold logic.
-                if (tick.x - lastSelectedX >= MIN_TICK_SPACING * 0.7) {
+                // We use 0.5 * MIN_TICK_SPACING to match your collisionThreshold logic.
+                if (tick.x - lastSelectedX >= MIN_TICK_SPACING * 0.5) {
                     selectedTicks.push(tick);
                     lastSelectedX = tick.x;
                 }
@@ -113,42 +110,42 @@ function fillTicks(existedTicks: Tick[], newTicks: Tick[], level: Tick['level'],
     if (existedTicks.length === 0) {
         const locators = LOCATOR_DICT[level];
 
+        let candidateTicks: Tick[]
         for (const locator of locators) {
-            const candidateTicks = getFuzzyTicks(newTicks, locator, level);
+            candidateTicks = getFuzzyTicks(newTicks, locator, level);
 
-            // We allow a 50% tolerance (1.5x) so we don't accidentally leave the chart empty
-            if (candidateTicks.length <= nTicksAround * 1.5) {
+            // We allow a 20% tolerance (1.2x) so we don't accidentally leave the chart empty
+            if (candidateTicks.length <= nTicksAround * 1.2) {
                 existedTicks.push(...candidateTicks);
+                console.log(level, locator)
                 return existedTicks.sort((a, b) => a.x - b.x);
             }
         }
 
-        // CRITICAL FIX: If we get here, ALL locators for this timeframe are too dense.
+        // If we get here, ALL locators for this timeframe are too dense.
         // We DO NOT force the fallback anymore. We SKIP this level entirely, returning 
         // the empty array so the next timeframe up (e.g. Month) becomes the baseline.
-
         // The only exception is "year" - if years are too dense, we have to plot them anyway.
         if (level === "year") {
-            const sparsestLocator = locators[locators.length - 1];
-            existedTicks.push(...getFuzzyTicks(newTicks, sparsestLocator, level));
+            const sparsestLocator = candidateTicks;
+            existedTicks.push(...sparsestLocator);
         }
 
         return existedTicks;
 
     } else {
         // Phase 2: Overlay upper-level ticks (Months over Days, Years over Months)
-        const collisionThreshold = MIN_TICK_SPACING * 0.7; // 70% of spacing requires clearing
+        const collisionThreshold = MIN_TICK_SPACING * 0.5; // 70% of spacing requires clearing
 
         for (const upperTick of newTicks) {
-
             // Prevent two major ticks of the SAME level from overlapping if zoomed out insanely far
-            const collidesWithSameLevel = existedTicks.some(existing =>
-                existing.level === upperTick.level && Math.abs(existing.x - upperTick.x) < collisionThreshold
-            );
+            // const collidesWithSameLevel = existedTicks.some(existing =>
+            //     existing.level === upperTick.level && Math.abs(existing.x - upperTick.x) < collisionThreshold
+            // );
 
-            if (collidesWithSameLevel) continue;
+            // if (collidesWithSameLevel) continue;
 
-            // CRITICAL FIX 2: Remove ALL lower-level ticks that fall within the collision radius
+            // Remove ALL lower-level ticks that fall within the collision radius
             existedTicks = existedTicks.filter(existing =>
                 Math.abs(existing.x - upperTick.x) >= collisionThreshold
             );
@@ -280,9 +277,7 @@ export class ChartXControl {
         const nTicksAround = Math.round(this.wChart / MIN_TICK_SPACING);
         const tzone = this.baseSer.timezone;
         const tframe = this.baseSer.timeframe;
-        const tunit = tframe.unit;
 
-        // We only need previous values, not full Temporal objects, to detect crossings
         let prev: Temporal.ZonedDateTime | undefined;
 
         const yearTicks: Tick[] = [];
@@ -292,45 +287,130 @@ export class ChartXControl {
         const hourTicks: Tick[] = [];
         const minuteTicks: Tick[] = [];
 
+        // Collect all potential ticks first.
         for (let i = 1; i <= this.nBars; i++) {
             const time = this.tb(i);
             const dt = new Temporal.ZonedDateTime(BigInt(time) * BigInt(TUnit.NANO_PER_MILLI), tzone);
             const x = this.xb(i);
 
             if (prev !== undefined) {
-                // Check Year
-                if (dt.year !== prev.year) {
-                    yearTicks.push({ dt, x, level: "year" });
-                }
-                // Check Month
-                if (dt.month !== prev.month) {
-                    monthTicks.push({ dt, x, level: "month" });
-                }
-                // Check Week (Only if timeframe is Weekly)
-                if (tunit === TUnit.Week && dt.weekOfYear !== prev.weekOfYear) {
-                    weekTicks.push({ dt, x, level: "week" });
-                }
-                // Check Day
-                if (dt.day !== prev.day) {
-                    dayTicks.push({ dt, x, level: "day" });
-                }
-                // Check Hour
-                if (dt.hour !== prev.hour) {
-                    hourTicks.push({ dt, x, level: "hour" });
-                }
-                // Check Minute
-                if (dt.minute !== prev.minute) {
-                    minuteTicks.push({ dt, x, level: "minute" });
+                switch (tframe.unit) {
+                    case TUnit.Minute:
+                        if (dt.minute !== prev.minute) {
+                            minuteTicks.push({ dt, x, level: "minute" })
+                        }
+
+                        if (dt.hour !== prev.hour) {
+                            hourTicks.push({ dt, x, level: "hour" })
+
+                        }
+
+                        if (dt.day !== prev.day) {
+                            dayTicks.push({ dt, x, level: "day" })
+
+                        }
+
+                        if (dt.month !== prev.month) {
+                            monthTicks.push({ dt, x, level: "month" })
+
+                        }
+
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+
+                        }
+
+                        break
+
+                    case TUnit.Hour:
+                        if (dt.hour !== prev.hour) {
+                            hourTicks.push({ dt, x, level: "hour" })
+
+                        }
+
+                        if (dt.day !== prev.day) {
+                            dayTicks.push({ dt, x, level: "day" })
+
+                        }
+
+                        if (dt.month !== prev.month) {
+                            monthTicks.push({ dt, x, level: "month" })
+
+                        }
+
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+
+                        }
+
+                        break
+
+
+                    case TUnit.Day:
+                        if (dt.day !== prev.day) {
+                            dayTicks.push({ dt, x, level: "day" })
+
+                        }
+
+                        if (dt.month !== prev.month) {
+                            monthTicks.push({ dt, x, level: "month" })
+
+                        }
+
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+
+                        }
+
+                        break;
+
+
+                    case TUnit.Week:
+                        if (dt.weekOfYear !== prev.weekOfYear) {
+                            weekTicks.push({ dt, x, level: "weekOfYear" })
+                        }
+
+                        if (dt.month !== prev.month) {
+                            monthTicks.push({ dt, x, level: "month" })
+
+                        }
+
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+
+                        }
+
+                        break
+
+                    case TUnit.Month:
+                        if (dt.month !== prev.month) {
+                            monthTicks.push({ dt, x, level: "month" })
+
+                        }
+
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+
+                        }
+
+                        break;
+
+
+                    case TUnit.Year:
+                        if (dt.year !== prev.year) {
+                            yearTicks.push({ dt, x, level: "year" })
+                        }
+
+                        break;
                 }
             }
 
             prev = dt;
         }
 
+        // Try to fill ticks
         let ticks: Tick[] = [];
-
-        // The cascading fills remain the same, but now benefit from full data and collision handling
-        switch (tunit) {
+        switch (tframe.unit) {
             case TUnit.Minute:
                 ticks = fillTicks(ticks, minuteTicks, "minute", nTicksAround);
                 ticks = fillTicks(ticks, hourTicks, "hour", nTicksAround);
@@ -350,7 +430,7 @@ export class ChartXControl {
                 ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
                 break;
             case TUnit.Week:
-                ticks = fillTicks(ticks, weekTicks, "week", nTicksAround);
+                ticks = fillTicks(ticks, weekTicks, "weekOfYear", nTicksAround);
                 ticks = fillTicks(ticks, monthTicks, "month", nTicksAround);
                 ticks = fillTicks(ticks, yearTicks, "year", nTicksAround);
                 break;
