@@ -58,6 +58,7 @@ function getFuzzyTicks(newTicks: Tick[], locator: number[], level: Tick['level']
     const selectedTicks: Tick[] = [];
     let targetIdx = 0;
     let prevValue = -1;
+    let lastSelectedX = -99999; // Keep track of the physical X coordinate
 
     for (let i = 0; i < newTicks.length; i++) {
         const tick = newTicks[i];
@@ -73,8 +74,6 @@ function getFuzzyTicks(newTicks: Tick[], locator: number[], level: Tick['level']
         }
 
         // 1. Detect Period Rollover
-        // If the current value is less than the previous (e.g., Day 31 -> Day 1),
-        // we have entered a new month/period. Reset the locator target.
         if (prevValue !== -1 && value < prevValue) {
             targetIdx = 0;
         }
@@ -83,13 +82,19 @@ function getFuzzyTicks(newTicks: Tick[], locator: number[], level: Tick['level']
         if (targetIdx < locator.length) {
             const target = locator[targetIdx];
 
-            // If the current tick's value has reached or passed the target, select it!
+            // If the current tick's value has reached or passed the target
             if (value >= target) {
-                selectedTicks.push(tick);
+
+                // Check physical pixel spacing before adding.
+                // We use 0.7 * MIN_TICK_SPACING to match your collisionThreshold logic.
+                if (tick.x - lastSelectedX >= MIN_TICK_SPACING * 0.7) {
+                    selectedTicks.push(tick);
+                    lastSelectedX = tick.x;
+                }
 
                 // Fast-forward the target index. 
-                // This prevents a single large value (e.g., market opens on the 6th) 
-                // from consuming both the '1' and '5' targets at the same time.
+                // We do this whether the tick was physically drawn or skipped due to crowding.
+                // This prevents mislabeling a future bar with an old target.
                 while (targetIdx < locator.length && value >= locator[targetIdx]) {
                     targetIdx++;
                 }
@@ -278,12 +283,7 @@ export class ChartXControl {
         const tunit = tframe.unit;
 
         // We only need previous values, not full Temporal objects, to detect crossings
-        let prevYear: number | undefined;
-        let prevMonth: number | undefined;
-        let prevDay: number | undefined;
-        let prevHour: number | undefined;
-        let prevMinute: number | undefined;
-        let prevWeek: number | undefined;
+        let prev: Temporal.ZonedDateTime | undefined;
 
         const yearTicks: Tick[] = [];
         const monthTicks: Tick[] = [];
@@ -297,40 +297,34 @@ export class ChartXControl {
             const dt = new Temporal.ZonedDateTime(BigInt(time) * BigInt(TUnit.NANO_PER_MILLI), tzone);
             const x = this.xb(i);
 
-            if (prevYear !== undefined) {
+            if (prev !== undefined) {
                 // Check Year
-                if (dt.year !== prevYear) {
+                if (dt.year !== prev.year) {
                     yearTicks.push({ dt, x, level: "year" });
                 }
                 // Check Month
-                else if (dt.month !== prevMonth) {
+                if (dt.month !== prev.month) {
                     monthTicks.push({ dt, x, level: "month" });
                 }
                 // Check Week (Only if timeframe is Weekly)
-                else if (tunit === TUnit.Week && dt.weekOfYear !== prevWeek) {
+                if (tunit === TUnit.Week && dt.weekOfYear !== prev.weekOfYear) {
                     weekTicks.push({ dt, x, level: "week" });
                 }
                 // Check Day
-                else if (dt.day !== prevDay) {
+                if (dt.day !== prev.day) {
                     dayTicks.push({ dt, x, level: "day" });
                 }
                 // Check Hour
-                else if (dt.hour !== prevHour) {
+                if (dt.hour !== prev.hour) {
                     hourTicks.push({ dt, x, level: "hour" });
                 }
-                // Check Minute (Notice the hardcoded filter is gone)
-                else if (dt.minute !== prevMinute) {
+                // Check Minute
+                if (dt.minute !== prev.minute) {
                     minuteTicks.push({ dt, x, level: "minute" });
                 }
             }
 
-            // Cache primitives for the next iteration
-            prevYear = dt.year;
-            prevMonth = dt.month;
-            prevDay = dt.day;
-            prevHour = dt.hour;
-            prevMinute = dt.minute;
-            prevWeek = dt.weekOfYear;
+            prev = dt;
         }
 
         let ticks: Tick[] = [];
