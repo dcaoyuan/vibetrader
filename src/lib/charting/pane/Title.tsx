@@ -102,7 +102,6 @@ export function ChooseTimeframe(props: { ticker: string, timeframe: TFrame, hand
                     onSelectionChange={(key) => {
                         if (key) {
                             props.handleSymbolTimeframeChanged(props.ticker, key as string);
-                            close();
                         }
                     }} >
                     {(item) => (

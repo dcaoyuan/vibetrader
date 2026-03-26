@@ -26,14 +26,10 @@ export const fetchData = async (source: Source, baseSer: TSer, ticker: string, t
             fetch = fetchDataYahoo
     }
 
-    return fetch(baseSer, ticker, tframe, tzone, startTime, limit).then(lastKline => {
-        //console.log(lastKline)
-        return lastKline === undefined
-            ? fetchDataLocal(baseSer)
-            : Promise.resolve(lastKline as number)
-    })
+    return fetch(baseSer, ticker, tframe, tzone, startTime, limit);
 }
 
+// test only
 const fetchDataLocal = (baseSer: TSer) => fetch("./klines.json")
     .then(r => r.json())
     .then(json => {

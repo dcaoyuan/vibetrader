@@ -80,18 +80,21 @@ export async function fetchYahooData(ticker: string, tframe: string, startTime: 
             })
             .then(data => {
                 const result = data.chart.result[0];
-                const timestamps = result.timestamp;
+                const timestamp = result.timestamp;
                 const quotes = result.indicators.quote[0];
 
                 // convert Yahoo 'row' data to Candle
-                return timestamps.map((ts: number, i: number) => ({
-                    time: ts * 1000, // to ms 
-                    open: quotes.open[i],
-                    high: quotes.high[i],
-                    low: quotes.low[i],
-                    close: quotes.close[i],
-                    volume: quotes.volume[i]
-                }));
+                return timestamp === undefined
+                    ? []
+                    : timestamp.map((ts: number, i: number) => ({
+                        time: ts * 1000, // to ms 
+                        open: quotes.open[i],
+                        high: quotes.high[i],
+                        low: quotes.low[i],
+                        close: quotes.close[i],
+                        volume: quotes.volume[i]
+                    }))
+
             })
         )
 }
