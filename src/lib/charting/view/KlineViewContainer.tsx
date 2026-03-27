@@ -405,7 +405,7 @@ class KlineViewContainer extends Component<Props, State> {
                         () => {
 
                             if (latestTime !== undefined && source === Source.binance) {
-                                //this.reloadDataTimeoutId = window.setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
+                                this.reloadDataTimeoutId = window.setTimeout(() => { this.currentLoading = this.fetchData_runScripts(latestTime, 1000) }, 5000)
                             }
                         })
 
