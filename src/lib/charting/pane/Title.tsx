@@ -124,8 +124,6 @@ function Title({ xc, ticker, handleSymbolTimeframeChanged }: Props) {
     const leadingNumbers = matchLeadingNumbers ? matchLeadingNumbers[0] : '';
     tframeName = leadingNumbers === '1' ? tframeName.slice(1) : '(' + tframeName + ')'
 
-    // const dateStringWithTZ = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
-    // const tzoneShort = dateStringWithTZ.split(' ').pop();
     const tzoneShort = getTimezoneAbbr(tzone);
 
     console.log("Title render");

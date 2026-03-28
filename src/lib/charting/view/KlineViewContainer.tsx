@@ -1,5 +1,5 @@
-import React, { Component, Fragment, type JSX } from "react";
-import html2canvas from "html2canvas";
+import React, { Component, type JSX } from "react";
+import { toCanvas } from "html-to-image";
 import { KlineView } from "./KlineView";
 import { VolumeView } from "./VolumeView";
 import { ChartXControl } from "./ChartXControl";
@@ -64,7 +64,7 @@ import Exposure from '@react-spectrum/s2/icons/Exposure';
 import { fetchData, Source } from "../../domain/DataFecther";
 import { styleOfAnnot } from "../../colors";
 import Header from "../pane/Header";
-import { formatDateForFileName, nextTickerId } from "../../utils";
+import { formatDateForFileName, getTimezoneAbbr, nextTickerId } from "../../utils";
 import type { DrawingState } from "./layer/DrawingLayer";
 
 type Props = {
@@ -874,13 +874,18 @@ class KlineViewContainer extends Component<Props, State> {
 
     async takeScreenshot(): Promise<HTMLCanvasElement> {
         console.log(renderToStaticMarkup(this.renderSvgChart()))
-        return html2canvas(this.chartviewRef.current, {
-            useCORS: true, // in case you have images stored in your application
-            backgroundColor: null // Sets the canvas background to transparent
-        }).catch(e => {
-            console.error(e);
-            return document.createElement('canvas')
-        })
+
+        if (!this.chartviewRef.current) {
+            return document.createElement('canvas');
+        }
+
+        return toCanvas(this.chartviewRef.current, {
+            backgroundColor: 'rgba(0,0,0,0)', // Transparent
+            skipFonts: true, // Bypass the Firefox font bug
+        }).catch((e: Error) => {
+            console.error("Screenshot failed:", e);
+            return document.createElement('canvas');
+        });
     }
 
     handleSaveScreenshot = (close: () => void) => {
@@ -949,7 +954,6 @@ class KlineViewContainer extends Component<Props, State> {
         if (this.reloadDataTimeoutId) {
             clearTimeout(this.reloadDataTimeoutId);
         }
-
         this.scripts = scripts.map((script, i) => ({ scriptName: `ai_${Math.round(1000)}_${i}`, script }));
 
         this.baseSer = new DefaultTSer(this.tframe, this.tzone, 1000);
@@ -990,7 +994,7 @@ class KlineViewContainer extends Component<Props, State> {
         // So we set isLoaded to false here and use callback.
         return new Promise<void>((resolve, reject) => {
             this.setState(
-                { isLoaded: false },
+                { isLoaded: false, selectedIndicatorTags: new Set() },
                 () => {
                     this.currentLoading = this.fetchData_runScripts(undefined, 1000)
                         .catch(ex => reject(ex))
@@ -1069,6 +1073,8 @@ class KlineViewContainer extends Component<Props, State> {
             </g>)
     }
 
+    isChartOnly = () => this.props.chartOnly || this.state.isChartOnly;
+
     renderSvgChart() {
         return (
             <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.geom.svgHeight}`}
@@ -1079,7 +1085,7 @@ class KlineViewContainer extends Component<Props, State> {
             >
 
                 {/* Title in svg */}
-                {this.state.isChartOnly &&
+                {this.isChartOnly() &&
                     <g style={{ fontFamily: 'monospace', fontSize: '12px' }}>
                         <text
                             x={1}
@@ -1090,7 +1096,7 @@ class KlineViewContainer extends Component<Props, State> {
                             textAnchor="start"
                             dominantBaseline="middle"
                         >
-                            {`${this.ticker} \u00B7 ${this.tframe.shortName} \u00B7 ${new Date().toLocaleString('en-US', { timeZoneName: 'short' }).split(' ').pop()}`}
+                            {`${this.ticker} \u00B7 ${this.tframe.shortName} \u00B7 ${getTimezoneAbbr(this.tzone)}`}
                         </text>
                     </g>
                 }
@@ -1418,17 +1424,17 @@ class KlineViewContainer extends Component<Props, State> {
                     tabIndex={-1} // required for programmatically focusing non-inputs
                 >
                     {this.state.isLoaded && (<>
-                        <div style={{ width: '100%', height: H_TITLE }}>
+                        {!this.isChartOnly() && <div style={{ width: '100%', height: H_TITLE }}>
                             <Title
                                 xc={this.xc}
                                 ticker={this.ticker}
                                 handleSymbolTimeframeChanged={this.handleTickerTimeframeChanged}
                             />
-                        </div>
+                        </div>}
 
                         <div style={{ position: 'relative' }}>
                             {/* Indicator tags */}
-                            {this.props.chartOnly === false &&
+                            {!this.isChartOnly() &&
                                 <div style={{
                                     position: 'absolute', // relative to the closest positioned ancestor,
                                     top: 39,
