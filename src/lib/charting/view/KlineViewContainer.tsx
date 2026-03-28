@@ -44,6 +44,7 @@ import {
     ProgressCircle
 } from "@react-spectrum/s2";
 
+import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import Line from '@react-spectrum/s2/icons/Line';
 import Properties from '@react-spectrum/s2/icons/Properties';
 import AudioWave from '@react-spectrum/s2/icons/AudioWave';
@@ -91,7 +92,7 @@ type State = {
 
     isGeneratingScreenshot: boolean;
 
-    isChartOnly: boolean;
+    isSvgOnly: boolean;
 }
 
 type Geometry = {
@@ -179,7 +180,7 @@ class KlineViewContainer extends Component<Props, State> {
             selectedIndicatorTags: new Set(['ema', 'macd', 'rsi']),
             drawingIdsToCreate: new Set(),
             isGeneratingScreenshot: false,
-            isChartOnly: props.chartOnly
+            isSvgOnly: false,
         }
 
         console.log("KlinerViewContainer created, width=" + this.props.width);
@@ -908,12 +909,12 @@ class KlineViewContainer extends Component<Props, State> {
     exportSvgChart(): Promise<string> {
         return new Promise<string>((resolve, reject) =>
             this.setState(
-                { isChartOnly: true },
+                { isSvgOnly: true },
                 () => {
                     // console.log(renderToStaticMarkup(this.renderSvgChart(this.state.isChartOnly)))
                     const svg = renderToString(this.renderSvgChart())
 
-                    this.setState({ isChartOnly: false });
+                    this.setState({ isSvgOnly: false });
 
                     resolve(svg);
                 })
@@ -1018,9 +1019,7 @@ class KlineViewContainer extends Component<Props, State> {
 
         return new Promise<void>((resolve, reject) => {
             this.setState(
-                {
-                    isLoaded: false,
-                }, () => {
+                { isLoaded: false }, () => {
                     this.currentLoading = this.fetchData_runScripts(undefined, 1000)
                         .catch(ex => reject(ex))
                         .then(() => resolve())
@@ -1073,8 +1072,6 @@ class KlineViewContainer extends Component<Props, State> {
             </g>)
     }
 
-    isChartOnly = () => this.props.chartOnly || this.state.isChartOnly;
-
     renderSvgChart() {
         return (
             <svg viewBox={`0, 0, ${this.state.chartviewWidth} ${this.geom.svgHeight}`}
@@ -1085,7 +1082,7 @@ class KlineViewContainer extends Component<Props, State> {
             >
 
                 {/* Title in svg */}
-                {this.isChartOnly() &&
+                {this.state.isSvgOnly &&
                     <g style={{ fontFamily: 'monospace', fontSize: '12px' }}>
                         <text
                             x={1}
@@ -1424,7 +1421,7 @@ class KlineViewContainer extends Component<Props, State> {
                     tabIndex={-1} // required for programmatically focusing non-inputs
                 >
                     {this.state.isLoaded && (<>
-                        {!this.isChartOnly() && <div style={{ width: '100%', height: H_TITLE }}>
+                        {!this.state.isSvgOnly && <div style={{ width: '100%', height: H_TITLE }}>
                             <Title
                                 xc={this.xc}
                                 ticker={this.ticker}
@@ -1434,30 +1431,29 @@ class KlineViewContainer extends Component<Props, State> {
 
                         <div style={{ position: 'relative' }}>
                             {/* Indicator tags */}
-                            {!this.isChartOnly() &&
-                                <div style={{
-                                    position: 'absolute', // relative to the closest positioned ancestor,
-                                    top: 39,
-                                    left: 0,
-                                    zIndex: 2, // ensure it's above the SVG
-                                    backgroundColor: 'transparent',
-                                    display: 'flex',
-                                    justifyContent: 'flex-start',
-                                    height: H_INDICATOR_TAGS,
-                                    paddingTop: "0px"
-                                }}>
-                                    <TagGroup
-                                        aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
-                                        size="S"
-                                        selectionMode="multiple"
-                                        selectedKeys={this.state.selectedIndicatorTags}
-                                        onSelectionChange={this.setSelectedIndicatorTags}
-                                    >
-                                        {allIndTags.map((tag, n) =>
-                                            <Tag key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
-                                        )}
-                                    </TagGroup>
-                                </div>}
+                            {<div style={{
+                                display: (this.state.isSvgOnly || this.props.chartOnly) ? 'none' : 'flex', // display: 'flex',
+                                position: 'absolute', // relative to the closest positioned ancestor,
+                                top: 39,
+                                left: 0,
+                                zIndex: 2, // ensure it's above the SVG
+                                backgroundColor: 'transparent',
+                                justifyContent: 'flex-start',
+                                height: H_INDICATOR_TAGS,
+                                paddingTop: "0px",
+                            }}>
+                                <TagGroup
+                                    aria-label="Or need 'label' that will show" // An aria-label or aria-labelledby prop is required for accessibility.
+                                    size="S"
+                                    selectionMode="multiple"
+                                    selectedKeys={this.state.selectedIndicatorTags}
+                                    onSelectionChange={this.setSelectedIndicatorTags}
+                                >
+                                    {allIndTags.map((tag, n) =>
+                                        <Tag key={"ind-tag-" + n} id={tag}>{tag.toUpperCase()}</Tag>
+                                    )}
+                                </TagGroup>
+                            </div>}
 
                             {/* Main svg chart part */}
                             <div style={{ position: 'relative', width: '100%', height: this.geom.svgHeight }}
