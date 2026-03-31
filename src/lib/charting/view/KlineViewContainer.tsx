@@ -102,7 +102,6 @@ type Geometry = {
     yIndicatorViews: number,
     yAxisx: number,
     svgHeight: number,
-    containerHeight: number,
     yCrosshairRange: number[]
 };
 
@@ -222,10 +221,9 @@ class KlineViewContainer extends Component<Props, State> {
         const yAxisx = yIndicatorViews + nStackedIndicators * (H_INDICATOR_VIEW + H_SPACING);
 
         const svgHeight = yAxisx + H_AXIS_X;
-        const containerHeight = svgHeight + H_TITLE + H_INDICATOR_TAGS;
         const yCrosshairRange = [yKlineView - H_SPACING, yAxisx];
 
-        return { yHeader, yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, containerHeight, yCrosshairRange };
+        return { yHeader, yKlineView, yVolumeView, yIndicatorViews, yAxisx, svgHeight, yCrosshairRange };
     }
 
     fetchOPredefinedScripts = (scriptNames: string[]) => {
@@ -1423,7 +1421,7 @@ class KlineViewContainer extends Component<Props, State> {
                     </div>}
 
                 {/* View Container */}
-                <div className="viewcontainer" style={{ position: 'relative', paddingLeft: '6px', width: this.props.width || '100%', height: this.geom.containerHeight + 'px' }}
+                <div className="viewcontainer" style={{ position: 'relative', paddingLeft: '6px', width: this.props.width || '100%', height: this.geom.svgHeight + 'px' }}
                     key="klineviewcontainer"
                     ref={this.chartviewRef}
                     tabIndex={-1} // required for programmatically focusing non-inputs
