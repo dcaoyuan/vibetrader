@@ -16,7 +16,7 @@
         "@react-spectrum/s2": "^1.2.0",
         "html-to-image": "^1.11.13",
         "lucide-react": "^0.562.0",
-        "pinets": "^0.9.8",
+        "pinets": "^0.9.11",
         "react": "^19.2.0",
         "react-aria-components": "^1.16.0",
         "react-dom": "^19.2.0",
