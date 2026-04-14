@@ -135,11 +135,37 @@ function fillTicks(levelToTicks: { level: Tick['level'], ticks: Tick[] }[], widt
                 spacings.push(spacing);
             }
 
-            const maxSpacing = Math.max(...spacings.map(([start, end]) => end - start))
-            const nInSpacing = Math.ceil(maxSpacing / MIN_TICK_SPACING);
+            const maxSpacingFromView = Math.max(...spacings.map(([start, end]) => end - start))
+            let estimatedMaxSpacing = maxSpacingFromView;
 
-            const locator = LOCATOR_DICT[level].find((locator) => locator.length <= nInSpacing);
-            // console.log(locator, nonCollisionticks.map(x => x.dt[level]))
+            if (ticks.length > 1) {
+                const avgTickSpacing = (ticks[ticks.length - 1].x - ticks[0].x) / (ticks.length - 1);
+
+                const ticksPerUpperLevel: Record<string, number> = {
+                    year: 10,
+                    month: 12,
+                    weekOfYear: 10,
+                    day: 30,
+                    hour: 24,
+                    minute: 60
+                };
+
+                const extrapolatedSpacing = avgTickSpacing * (ticksPerUpperLevel[level] || 10);
+
+                // FIX 1: If it's the top level, use only the logical period width.
+                // Using maxSpacingFromView (the whole screen) skews the density for years.
+                if (existedTicks.length === 0) {
+                    estimatedMaxSpacing = extrapolatedSpacing;
+                } else {
+                    estimatedMaxSpacing = Math.max(maxSpacingFromView, extrapolatedSpacing);
+                }
+            }
+
+            const nInSpacing = Math.ceil(estimatedMaxSpacing / MIN_TICK_SPACING);
+
+            // FIX 2: Safely fallback to the sparsest locator if nInSpacing is very small (zoomed way out)
+            const dict = LOCATOR_DICT[level];
+            const locator = dict.find((l) => l.length <= nInSpacing) || dict[dict.length - 1];
 
             const ticksInLocator = nonCollisionticks.filter(tick => {
                 let value = tick.dt[level];
@@ -149,9 +175,20 @@ function fillTicks(levelToTicks: { level: Tick['level'], ticks: Tick[] }[], widt
                 return locator.includes(value);
             })
 
-            // const candidateTicks = getFuzzyTicks(nonCollisionticks, locator, level);
+            // FIX 3: Enforce strict physical collision filter to prevent overlaps.
+            // This acts as a bulletproof final pass, replacing the need for getFuzzyTicks.
+            const collisionThreshold = MIN_TICK_SPACING * 0.6;
+            const finalTicks: Tick[] = [];
+            let lastX = -99999;
 
-            existedTicks.push(...ticksInLocator);
+            for (const tick of ticksInLocator) {
+                if (tick.x - lastX >= collisionThreshold) {
+                    finalTicks.push(tick);
+                    lastX = tick.x;
+                }
+            }
+
+            existedTicks.push(...finalTicks);
             return existedTicks.sort((a, b) => a.x - b.x);
         }
     }
