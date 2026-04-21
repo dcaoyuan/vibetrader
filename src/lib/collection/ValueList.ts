@@ -369,9 +369,10 @@ export class ValueList<T> extends AbstractCollection<T> {
      * @param index the index which refers to the element to delete.
      * @return The element that was formerly at position `n`
      */
-
     removeByIndex(index: number): T {
-        const res = this.get(this.trueIndex(index));
+        // FIX: this.get() already translates the logical index to the true index internally.
+        // Do not wrap 'index' with trueIndex() here.
+        const res = this.get(index);
         this.removeMultiple(index, 1);
         return res;
     }
@@ -552,6 +553,12 @@ export class ValueList<T> extends AbstractCollection<T> {
         // Use a Long to prevent overflows
         const arrayLength = this.array.length;
         if (n > arrayLength) {
+            // FIX: If the array is already at maxCapacity, do not grow or unroll.
+            // The add/insert methods handle the circular wrapping natively.
+            if (arrayLength >= this.maxCapacity) {
+                return;
+            }
+
             let newSize = arrayLength + this.initialSize;
             while (newSize <= n) {
                 newSize += this.initialSize;
